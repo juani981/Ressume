@@ -98,16 +98,14 @@ body.scale-cv {
 }
 
 /*========== Classes modified to reduce size and print on A4 sheet ==========*/
-.scale-cv .resume {
-  height: 100vh;
-}
+
 .scale-cv .change-theme,
 .scale-cv .generate-pdf {
   display: none;
 }
 
 .scale-cv .bd-container {
-  max-width: 595px;
+  overflow: hidden;
 }
 
 .scale-cv .section {
@@ -185,8 +183,8 @@ body.scale-cv {
   column-gap: 2.5rem;
 }
 
-/* #experience {
-  page-break-before: always;
+/* #certificates {
+  page-break-after: always;
 } */
 
 body {
