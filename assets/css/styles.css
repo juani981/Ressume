@@ -98,7 +98,9 @@ body.scale-cv {
 }
 
 /*========== Classes modified to reduce size and print on A4 sheet ==========*/
-
+.scale-cv .resume {
+  height: 100vh;
+}
 .scale-cv .change-theme,
 .scale-cv .generate-pdf {
   display: none;
@@ -181,6 +183,10 @@ body.scale-cv {
 
 .scale-cv .interests__container {
   column-gap: 2.5rem;
+}
+
+#experience {
+  page-break-before: always;
 }
 
 body {
