@@ -185,9 +185,9 @@ body.scale-cv {
   column-gap: 2.5rem;
 }
 
-#experience {
+/* #experience {
   page-break-before: always;
-}
+} */
 
 body {
   margin: 0 0 var(--header-height) 0;
@@ -246,6 +246,9 @@ img {
 
 /*========== LAYOUT ==========*/
 .bd-container {
+  position: absolute;
+  left: 0;
+  top: 0;
   max-width: 968px;
   width: calc(100% - 3rem);
   margin-left: var(--mb-3);
@@ -267,7 +270,9 @@ img {
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
   transition: 0.3s;
 }
-
+.l-main {
+  position: relative;
+}
 /*========== NAV ==========*/
 
 .nav {
@@ -329,6 +334,16 @@ img {
 .nav__icon {
   font-size: 1.2rem;
   margin-bottom: var(--mb-1);
+}
+
+.l-navbar {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  top: 1rem;
+  left: 2vw;
+  z-index: 1;
+  gap: 1rem;
 }
 
 /* Show menu */
