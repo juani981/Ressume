@@ -126,7 +126,7 @@ let opt = {
     format: [
       areaCv.scrollWidth,
       // areaCv.scrollHeight,
-      1530,
+      1580,
     ] /* Ajustar el tamaño dinámicamente basado en el contenido real */,
     orientation: "portrait" /* Mantener la orientación vertical */,
   },
