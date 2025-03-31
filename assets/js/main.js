@@ -125,7 +125,8 @@ let opt = {
     unit: "px" /* Usamos 'px' para evitar escalado no deseado */,
     format: [
       areaCv.scrollWidth,
-      areaCv.scrollHeight,
+      // areaCv.scrollHeight,
+      1580,
     ] /* Ajustar el tamaño dinámicamente basado en el contenido real */,
     orientation: "portrait" /* Mantener la orientación vertical */,
   },
