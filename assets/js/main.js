@@ -92,53 +92,21 @@ themeButton.addEventListener("click", () => {
   localStorage.setItem("selected-icon", getCurrentIcon());
 });
 
-/*==================== REDUCE THE SIZE AND PRINT ON AN A4 SHEET ====================*/
-function scaleCV() {
-  document.body.classList.add("scale-cv");
-}
-
-/*==================== REMOVE THE SIZE WHEN THE CV IS DOWNLOADED ====================*/
-function removeScale() {
-  document.body.classList.remove("scale-cv");
-}
-
-/*==================== GENERATE PDF ====================*/
-// PDF generated area
-let areaCv = document.getElementById("area-cv");
-
+/*==================== DOWNLOAD ATS-FRIENDLY PDF ====================*/
 let resumeButton = document.getElementById("resume-button");
 
-// Html2pdf options (adjusted for quality and removing background issues)
-let opt = {
-  margin: 0 /* Sin márgenes adicionales */,
-  filename: "CV - Carrizo, Juan Ignacio.pdf",
-  image: { type: "jpeg", quality: 1 } /* Mejorar la calidad de imagen */,
-  html2canvas: {
-    scale: 3 /* Aumentar la escala para mejorar la calidad */,
-    useCORS: true /* Permitir imágenes externas */,
-    backgroundColor: window.getComputedStyle(document.body)
-      .backgroundColor /* Capturar el color de fondo correcto */,
-    scrollX: 0,
-    scrollY: 0,
-  },
-  jsPDF: {
-    unit: "px" /* Usamos 'px' para evitar escalado no deseado */,
-    format: [
-      areaCv.scrollWidth,
-      // areaCv.scrollHeight,
-      1580,
-    ] /* Ajustar el tamaño dinámicamente basado en el contenido real */,
-    orientation: "portrait" /* Mantener la orientación vertical */,
-  },
-};
-
-// Function to call areaCv and Html2Pdf options
-function generateResume() {
-  html2pdf().from(areaCv).set(opt).save();
+function downloadPDF() {
+  const link = document.createElement("a");
+  link.href = "assets/pdf/CV-Carrizo,JuanIgnacio.pdf";
+  link.download = "CV - Carrizo, Juan Ignacio.pdf";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-// When the button is clicked, it executes the functions
-resumeButton.addEventListener("click", () => {
-  // 1. Mantener el tamaño del contenido y generar el PDF
-  generateResume();
-});
+// When the button is clicked, download the high-fidelity vector PDF
+if (resumeButton) {
+  resumeButton.addEventListener("click", () => {
+    downloadPDF();
+  });
+}
