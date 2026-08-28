@@ -1,5 +1,3 @@
-const chromiumModule = require('@sparticuz/chromium');
-const chromium = chromiumModule.default || chromiumModule;
 const puppeteer = require('puppeteer-core');
 
 exports.handler = async (event, context) => {
@@ -10,6 +8,11 @@ exports.handler = async (event, context) => {
 
     let browser = null;
     try {
+        // Dynamically import @sparticuz/chromium because it's an ES Module
+        // and cannot be required() in CommonJS Netlify functions
+        const chromiumModule = await import('@sparticuz/chromium');
+        const chromium = chromiumModule.default || chromiumModule;
+
         const { url, edits, lang, height } = JSON.parse(event.body);
         
         if (!url) {
