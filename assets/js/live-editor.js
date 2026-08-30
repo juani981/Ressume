@@ -9,24 +9,15 @@ try {
     console.warn('Failed to parse cv_edits', e);
 }
 
-function applyCustomEdits(lang) {
-    if (!window.customEdits[lang]) return;
-    
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (window.customEdits[lang][key]) {
-            el.innerHTML = window.customEdits[lang][key];
+window.applyCustomLinks = function() {
+    if (!window.customEdits.links) return;
+    document.querySelectorAll('#area-cv a').forEach((a, index) => {
+        const linkId = a.getAttribute('id') || `cv-link-${index}`;
+        a.setAttribute('data-link-id', linkId);
+        if (window.customEdits.links[linkId]) {
+            a.href = window.customEdits.links[linkId];
         }
     });
-}
-
-// Intercept window.updateLanguage to apply custom edits after default translations
-const originalUpdateLanguage = window.updateLanguage;
-window.updateLanguage = function(lang) {
-    if (originalUpdateLanguage) {
-        originalUpdateLanguage(lang);
-    }
-    applyCustomEdits(lang);
 };
 
 // Enable Live Editing (Google Docs style)
@@ -67,6 +58,68 @@ function initLiveEditor() {
             window.customEdits[currentLang][key] = el.innerHTML;
             localStorage.setItem('cv_edits', JSON.stringify(window.customEdits));
         });
+    });
+
+    // 1.5 Setup Link Editor Modal (Google Docs style)
+    const linkModal = document.createElement('div');
+    linkModal.innerHTML = `
+        <div style="display:flex; gap: 8px; align-items:center; background: #fff; padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 1px solid #e0e0e0; font-family: sans-serif;">
+            <i class='bx bx-link' style="color: #666; font-size: 1.2rem;"></i>
+            <input type="text" id="link-modal-input" style="border: 1px solid #ccc; padding: 6px; border-radius: 4px; font-size: 14px; width: 220px; outline: none;">
+            <button id="link-modal-save" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;">Aplicar</button>
+        </div>
+    `;
+    linkModal.style.position = 'absolute';
+    linkModal.style.display = 'none';
+    linkModal.style.zIndex = '9999';
+    document.body.appendChild(linkModal);
+
+    let activeLinkEl = null;
+
+    document.querySelectorAll('#area-cv a').forEach((a, index) => {
+        const linkId = a.getAttribute('id') || `cv-link-${index}`;
+        a.setAttribute('data-link-id', linkId);
+
+        // Hover feedback for links
+        a.addEventListener('mouseenter', () => {
+            a.style.outline = '1px dashed #007bff';
+        });
+        a.addEventListener('mouseleave', () => {
+            a.style.outline = 'none';
+        });
+
+        // Click to open modal
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            activeLinkEl = a;
+            const rect = a.getBoundingClientRect();
+            linkModal.style.top = (window.scrollY + rect.bottom + 8) + 'px';
+            linkModal.style.left = (window.scrollX + rect.left) + 'px';
+            linkModal.style.display = 'block';
+            document.getElementById('link-modal-input').value = a.href;
+            document.getElementById('link-modal-input').focus();
+        });
+    });
+
+    document.getElementById('link-modal-save').addEventListener('click', () => {
+        if (activeLinkEl) {
+            const newUrl = document.getElementById('link-modal-input').value;
+            activeLinkEl.href = newUrl;
+            const linkId = activeLinkEl.getAttribute('data-link-id');
+            
+            if (!window.customEdits.links) window.customEdits.links = {};
+            window.customEdits.links[linkId] = newUrl;
+            localStorage.setItem('cv_edits', JSON.stringify(window.customEdits));
+            
+            linkModal.style.display = 'none';
+        }
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        if (linkModal.style.display === 'block' && !linkModal.contains(e.target) && e.target !== activeLinkEl && !activeLinkEl.contains(e.target)) {
+            linkModal.style.display = 'none';
+        }
     });
 
     // 4. Setup Reset and Export buttons
