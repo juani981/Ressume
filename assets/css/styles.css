@@ -336,12 +336,17 @@ img {
 
 .l-navbar {
   display: flex;
-  flex-direction: row;
-  position: absolute;
+  flex-direction: column;
+  position: fixed;
   top: 1rem;
-  left: 2vw;
-  z-index: 1;
+  left: 1rem;
+  z-index: 100;
   gap: 1rem;
+  background-color: var(--container-color);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  align-items: center;
 }
 
 /* Show menu */
@@ -529,7 +534,7 @@ img {
 
 /*========== SKILLS, LANGUAGES AND COMPETENCIES ==========*/
 .skills__content {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
 }
 
 .languages__content {
@@ -563,6 +568,7 @@ img {
   background-color: var(--text-color);
   border-radius: 50%;
   margin-right: 0.75rem;
+  flex-shrink: 0;
 }
 
 /*========== CERTIFICATES ==========*/
@@ -660,7 +666,7 @@ img {
 
   .resume {
     display: grid;
-    grid-template-columns: 0fr 1fr;
+    grid-template-columns: 1fr 70%;
     background-color: var(--container-color);
     box-shadow: 0 0 8px rgba(13, 12, 12, 0.15);
   }
