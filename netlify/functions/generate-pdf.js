@@ -80,17 +80,14 @@ exports.handler = async (event, context) => {
         // Force screen media type to preserve exact styling (ignore @media print)
         await page.emulateMediaType('screen');
         
-        // Use the height provided by the frontend, or fallback to recalculating
-        let finalHeight = height;
-        if (!finalHeight) {
-            const dimensions = await page.evaluate(() => {
-                const el = document.getElementById('area-cv');
-                return el ? el.offsetHeight : 3000;
-            });
-            finalHeight = dimensions;
-        }
+        // Always calculate the exact height in the backend AFTER styles are injected and animations stopped
+        const finalHeight = await page.evaluate(() => {
+            const el = document.getElementById('area-cv');
+            // Add a small buffer of 20px just in case of subpixel rendering clipping
+            return el ? el.offsetHeight + 20 : 3000;
+        });
 
-        console.log(`Generating PDF with height: ${finalHeight}px`);
+        console.log(`Generating PDF with exact height: ${finalHeight}px`);
         
         // Generate PDF
         const pdfBuffer = await page.pdf({
