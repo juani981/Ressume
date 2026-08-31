@@ -34,14 +34,14 @@ function scrollActive() {
     const sectionTop = current.offsetTop - 50;
     sectionId = current.getAttribute("id");
 
-    if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-      document
-        .querySelector(".nav__menu a[href*=" + sectionId + "]")
-        .classList.add("active-link");
-    } else {
-      document
-        .querySelector(".nav__menu a[href*=" + sectionId + "]")
-        .classList.remove("active-link");
+    const navMenuLink = document.querySelector(".nav__menu a[href*=" + sectionId + "]");
+    
+    if (navMenuLink) {
+      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        navMenuLink.classList.add("active-link");
+      } else {
+        navMenuLink.classList.remove("active-link");
+      }
     }
   });
 }

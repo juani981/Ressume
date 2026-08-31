@@ -666,7 +666,7 @@ img {
 
   .resume {
     display: grid;
-    grid-template-columns: 1fr 70%;
+    grid-template-columns: 1fr;
     background-color: var(--container-color);
     box-shadow: 0 0 8px rgba(13, 12, 12, 0.15);
   }

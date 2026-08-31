@@ -24,26 +24,8 @@
                 <ul class="nav__list">
 
                     <li class="nav__item">
-                        <a href="#home" class="nav__link active-link">
-                            <i class='bx bx-home nav__icon'></i><span data-i18n="nav_home">Inicio</span>
-                        </a>
-                    </li>
-
-                    <li class="nav__item">
-                        <a href="#profile" class="nav__link">
+                        <a href="#profile" class="nav__link active-link">
                             <i class='bx bx-user nav__icon'></i><span data-i18n="nav_profile">Perfil</span>
-                        </a>
-                    </li>
-
-                    <li class="nav__item">
-                        <a href="#education" class="nav__link">
-                            <i class='bx bx-book nav__icon'></i><span data-i18n="nav_education">Educación</span>
-                        </a>
-                    </li>
-
-                    <li class="nav__item">
-                        <a href="#skills" class="nav__link">
-                            <i class='bx bx-code-alt nav__icon'></i><span data-i18n="nav_skills">Habilidades</span>
                         </a>
                     </li>
 
@@ -54,14 +36,26 @@
                     </li>
 
                     <li class="nav__item">
-                        <a href="#certificates" class="nav__link">
-                            <i class='bx bx-award nav__icon'></i><span data-i18n="nav_certificates">Certificados</span>
+                        <a href="#projects" class="nav__link">
+                            <i class='bx bx-code-block nav__icon'></i><span data-i18n="section_projects">Proyectos</span>
                         </a>
                     </li>
 
                     <li class="nav__item">
-                        <a href="#competencies" class="nav__link">
-                            <i class='bx bx-receipt nav__icon'></i><span data-i18n="nav_competencies">Competencias</span>
+                        <a href="#skills" class="nav__link">
+                            <i class='bx bx-code-alt nav__icon'></i><span data-i18n="nav_skills">Habilidades</span>
+                        </a>
+                    </li>
+
+                    <li class="nav__item">
+                        <a href="#education" class="nav__link">
+                            <i class='bx bx-book nav__icon'></i><span data-i18n="nav_education">Educación</span>
+                        </a>
+                    </li>
+
+                    <li class="nav__item">
+                        <a href="#certificates" class="nav__link">
+                            <i class='bx bx-award nav__icon'></i><span data-i18n="nav_certificates">Certificados</span>
                         </a>
                     </li>
 
@@ -99,254 +93,162 @@
     <main class="l-main bd-container">
         <!-- All elements within this div, are generated in PDF -->
         <div class="resume" id="area-cv">
-            <div class="resume__left">
-                <!--========== HOME ===============-->
-                <section class="home" id="home">
-                    <!-- <div class="home__container section bd-grid">
-                        
-                    </div> -->
-                    
-                </section>
-                
-                <!--========== SOCIAL =============-->
-                <section class="social section">
-                    <h2 class="section-title" data-i18n="section_social">Contacto</h2>
+            <!--========== HEADER/CONTACT ==========-->
+            <section class="profile section" id="profile">
+                <div class="home__data bd-grid">
+                    <h1 class="home__title" data-i18n="profile_title">JUAN IGNACIO CARRIZO</h1>
+                    <h2 class="home__subtitle" data-i18n="profile_subtitle">Desarrollador Full-Stack | Backend & Bases de Datos</h2>
+                </div>
+                <div class="social__container bd-grid" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 1rem;">
+                    <span class="social__link"><i class='bx bx-map'></i> <span data-i18n="profile_location">San Miguel de Tucumán, Argentina</span></span>
+                    <span class="social__link"><i class='bx bx-envelope'></i> <span data-i18n="profile_email">juanicarrizo97@gmail.com</span></span>
+                    <span class="social__link"><i class='bx bx-phone'></i> <span data-i18n="profile_phone">+54 9 381 6706133</span></span>
+                    <a href="https://www.linkedin.com/in/juan-ignacio-carrizo-juani981/" target="_blank" class="social__link"><i class='bx bxl-linkedin-square'></i> <span data-i18n="profile_linkedin">linkedin.com/in/juan-ignacio-carrizo-juani981</span></a>
+                    <a href="https://github.com/juani981" target="_blank" class="social__link"><i class='bx bxl-github'></i> <span data-i18n="profile_github">github.com/juani981</span></a>
+                </div>
+            </section>
 
-                    <div class="social__container bd-grid">
-                        <a href="https://www.linkedin.com/in/juan-ignacio-carrizo-juani981/" target="_blank"
-                            class="social__link">
-                            <i class='bx bxl-linkedin-square'></i> Juan Ignacio Carrizo
-                        </a>
-                        <a href="https://github.com/juani981" target="_blank" class="social__link">
-                            <i class='bx bxl-github'></i> github.com/juani981
-                        </a>
-                        <a class="social__link">
-                                <i class='bx bx-envelope'></i>juanicarrizo97@gmail.com
-                        </a>
-                    </div>
-                </section>
-<!--========== COMPETENCIES AND SKILLS=======-->
-                <section class="skills section" id="skills">
-                    <h2 class="section-title" data-i18n="section_skills">SKILLS</h2>
+            <!--========== PERFIL PROFESIONAL ==========-->
+            <section class="profile section" id="about">
+                <h2 class="section-title" data-i18n="section_profile">Perfil Profesional</h2>
+                <p class="profile__description" data-i18n="profile_desc">
+                    Desarrollador Full-Stack con sólida experiencia en backend (.NET, C#, PHP, Laravel) y gestión avanzada de bases de datos relacionales (Oracle, PostgreSQL, MySQL). Especializado en modernización de sistemas legacy, optimización de consultas SQL/PL-SQL y automatización de flujos de trabajo mediante Docker y pipelines CI/CD con GitHub Actions. Titulado como Programador Universitario y cursando la etapa final de Ingeniería en Informática.
+                </p>
+            </section>
 
-                    <div class="skills__container">
-                        <ul class="skills__content bd-grid">
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill1">Laravel y PHP |<br> .NET y C#</span>
-                            </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill2">MySQL | PostgreSQL |<br> Oracle | SQLite</span>
-                            </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill3">ReactJS | HTML | CSS |<br> JavaScript | JQuery | Bootstrap</span>
-                            </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill4">PL/SQL Avanzado | Procedures y Triggers</span>
-                              </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill5">Query Optimization | Índices y Planes de Ejecución</span>
-                            </li>
-                            <li class="skills__name long-text">
-                                <span class="skills__circle"></span> <span data-i18n="skill6">Git | GitHub | Bitbucket</span>
-                              </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill8">Docker | Terraform |<br> Ansible | GitHub Actions</span>
-                            </li>
-                            <li class="skills__name">
-                                <span class="skills__circle"></span> <span data-i18n="skill9">SCRUM | TRELLO | ClickUp</span>
-                            </li>
-                            
-                        </ul>
-                    </div>
-                </section>
-
-<!--========== EDUCATION ==========-->
-                <section class="education section" id="education">
-                    <h2 class="section-title" data-i18n="section_education">Educación</h2>
-                    <div class="education__container bd-grid">
-                        
-                        <div class="education__content">
-                            <!-- <div class="education__time">
-                                <span class="education__rounder"></span>
-                                <span class="education__line"></span>
-                            </div> -->
-
-                            <div class="education__data bd-grid">
-                                <h3 class="education__title" data-i18n="edu1_title">Estudiante de Ingeniería en Informática (Programa de 5 años)</h3>
-                                <span class="education__studies" data-i18n="edu1_study">Universidad Nacional de Tucumán (UNT)</span>
-                                <span class="education__studies" data-i18n="edu1_fac">Facultad de Ciencias Exactas y Tecnología</span>
-                                <span class="education__year" data-i18n="edu1_year">2023 - Actualidad</span>
-                            </div>
-                        </div>
-
-
-                        <div class="education__content">
-                            <!-- <div class="education__time">
-                                <span class="education__rounder"></span>
-                            </div> -->
-                        
-                            <div class="education__data bd-grid">
-                                <h3 class="education__title" data-i18n="edu3_title">Programador Universitario</h3>
-                                <span class="education__studies" data-i18n="edu3_study">Universidad Nacional de Tucumán (UNT)</span>
-                                <span class="education__studies" data-i18n="edu3_fac">Facultad de Ciencias Exactas y Tecnología</span>
-                                <span class="education__year" data-i18n="edu3_year">2021 - 2024</span>
-                            </div>
-                            
-                        </div>
-
-                    </div>
-                </section>
-<!--========== LANGUAGES ==========-->
-                <section class="languages section">
-                    <h2 class="section-title" data-i18n="section_languages">Idiomas</h2>
-
-                    <div class="languages__container">
-                        <ul class="languages__content bd-grid">
-                            <li class="languages__name">
-                                <span class="languages__circle"></span> <span data-i18n="lang_en">Inglés (C2 - Avanzado)</span>
-                            </li>
-                            <div class="social__container bd-grid">
-                                <a href="https://cert.efset.org/en/C9i5dF" class="social__link" target="_blank"><i class="bx bx-link-external"></i> <span data-i18n="cert_efset">Certificado EF SET</span></a>
-                            </div>
-                            <li class="languages__name">
-                                <span class="languages__circle"></span> <span data-i18n="lang_es">Español (Nativo)</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-            </div>
-            <div class="resume__right">
-<!--========== PROFILE ============-->
-                <section class="profile section" id="profile">
-                    <div class="home__data bd-grid ">
-                            <h1 class="home__title" data-i18n="profile_title">JUAN IGNACIO <b>CARRIZO</b></h1>
-                            <h2 class="home__subtitle" data-i18n="profile_subtitle">Desarrollador Full-Stack</h2>
-                            <h3 class="home__profession" data-i18n="profile_profession">Técnico<br>Programador Universitario</h3>                                                     
-                        </div>
-                         <!-- <div class="home__address bd-grid">
-                            <span class="home__information">
-                                <i class='bx bx-map social__icon'></i> <span data-i18n="profile_location">Tucumán - Argentina</span>
-                            </span>
-                        </div> -->
-                    <h2 class="section-title" data-i18n="section_profile">Perfil</h2>
-
-                    <p class="profile__description" data-i18n="profile_desc">
-                        Desarrollador Full-Stack enfocado en la creación de soluciones escalables (.NET, Laravel, FastAPI, PHP, ReactJS). Abarco todo el ciclo de vida del software, gestionando bases de datos y automatizando infraestructura con Docker, GitHub Actions, scripts en Python e Infraestructura como Código.<br> Potenciando mi flujo de trabajo con herramientas de IA para acelerar procesos, garantizo eficiencia, innovación y trazabilidad en cada proyecto. Titulado como Programador Universitario y próximamente Ingeniero en Informática, adeudando únicamente la tesis final.
-                    </p>
-                </section>
-<!--========== EXPERIENCE =========-->
-                <section class="experience section" id="experience">
-                    <h2 class="section-title" data-i18n="section_experience">Experiencia</h2>
-<div class="experience__container bd-grid">
-  <div class="experience__content">
-                            <!-- <div class="experience__time">
-                                <span class="experience__rounder"></span>
-                                <span class="experience__line"></span>
-                            </div> -->
-
-                            <div class="experience__data bd-grid">
-                                <h3 class="experience__title" data-i18n="exp1_title">Desarrollador Web Full-Stack (Laravel, PHP, JS)</h3>
-                                <span class="experience__company" data-i18n="exp1_company">2025 | Actualidad | Dirección General de Catastro | San Miguel de Tucumán</span>
-                                <p class="experience__description" data-i18n="exp1_desc">
-                                       Impulso la modernización de sistemas legacy (PHP, Laravel, JS, Visual Basic), actuando como referente técnico del equipo para resolver problemas complejos. Mi trabajo abarca tanto el análisis y escritura de código como optimización a nivel de base de datos revisando planes de ejecucion e índexación. Gestiono el flujo completo, desde crear entornos de desearrollo y testing hasta automatizar pipelines CI/CD, y lidero nuestra transformación cultural redactando guías para adoptar buenas prácticas con Git, Docker e IA, haciendo de la testeabilidad y trazabilidad nuestro nuevo estándar.
-                                </p>
-                            </div>
-
-                        </div>
-                        <div class="experience__content">
-                            <!-- <div class="experience__time">
-                                <span class="experience__rounder"></span>
-                                <span class="experience__line"></span>
-                            </div> -->
-
-                            <div class="experience__data bd-grid">
-                                <h3 class="experience__title" data-i18n="exp2_title">Sitio Dinámico de Creación de Encuestas en Laravel y React</h3>
-                                <span class="experience__company" data-i18n="exp2_company">Octubre 2024 | Proyecto de graduación para el título de Programador Universitario</span>
-                                <span class="social__container bd-grid">
-                                                <a href="https://github.com/juani981/WebEncuestas-Demo" class="social__link" target="_blank"><i class="bx bx-link-external"></i> <span data-i18n="exp2_link">Enlace al Repositorio de GitHub</span></a></span>
-                                <p class="experience__description" data-i18n="exp2_desc">
-                                     Lideré el desarrollo Front-End para un sitio web dinámico de creación de encuestas utilizando React, Material UI y Laravel. Lideré la gestión Agile del proyecto en ClickUp. Documenté el diseño lógico de la base de datos, diagramas UML, diseño de interfaz con Figma y casos de uso. Implementé y mantuve el estandar de los flujos de git.
-                                </p>
-                            </div>
-
-                        </div>
-                    
-                      <div class="experience__container bd-grid">
-                        <div class="experience__content">
-                            <!-- <div class="experience__time">
-                                <span class="experience__rounder"></span>
-                                <span class="experience__line"></span>
-
-                            </div> -->
-
-                            <div class="experience__data bd-grid">
-                                <h3 class="experience__title" data-i18n="exp3_title">Pasante de Soporte Técnico (IT)</h3>
-                                <span class="experience__company" data-i18n="exp3_company">Julio 2023 – Enero 2024 | Dirección General de Catastro | San Miguel de Tucumán</span>
-                                <p class="experience__description" data-i18n="exp3_desc">
-                                    Soporte técnico de software y hardware, configuración e instalación de sistemas Windows.
-Realicé reparaciones de hardware en PCs, switches, fuentes de alimentación e impresoras.
-Instalé dispositivos de red incluyendo switches, cámaras y puntos de acceso (Access Points).
-Brindé servicios integrales de soporte y mantenimiento informático.
-                                </p>
-                            </div>
-
-                        </div>
-                    
-                    </div>
-                        <div class="experience__container bd-grid">
-                        <div class="experience__content">
-                            <!-- <div class="experience__time">
-                                <span class="experience__rounder"></span>
-                            </div> -->
-
-                            <div class="experience__data bd-grid">
-                                <h3 class="experience__title" data-i18n="exp4_title">Técnico en Electrónica de Consumo y Microelectrónica</h3>
-                                <span class="experience__company" data-i18n="exp4_company">2023 - Actualidad | Freelance | Alderetes</span>
-                                <p class="experience__description" data-i18n="exp4_desc">
-                                    Diagnóstico y reparación a nivel componente (SMD/THT) de PCs y todo tipo de sistemas electrónicos. Gestión integral del taller, desde el trato directo con clientes y proveedores hasta la automatización de presupuestos y stock mediante un sistema de tickets.
-                                </p>
-                            </div>
-
+            <!--========== EXPERIENCIA LABORAL ==========-->
+            <section class="experience section" id="experience">
+                <h2 class="section-title" data-i18n="section_experience">EXPERIENCIA LABORAL</h2>
+                <div class="experience__container bd-grid">
+                    <div class="experience__content">
+                        <div class="experience__data bd-grid">
+                            <h3 class="experience__title" data-i18n="exp1_title">Desarrollador Web Full-Stack (PHP, Laravel, JS)</h3>
+                            <span class="experience__company" data-i18n="exp1_company">Dirección General de Catastro | San Miguel de Tucumán</span>
+                            <span class="experience__year" data-i18n="exp1_date" style="font-size: var(--small-font-size); color: var(--text-color-light); margin-bottom: 0.5rem; display: block;">2025 – Actualidad</span>
+                            <ul style="list-style-type: disc; margin-left: 1.5rem; color: var(--text-color);">
+                                <li data-i18n="exp1_bullet1">Lidero la modernización y refactorización de sistemas legacy desarrollados en PHP, Laravel, JavaScript y Visual Basic.</li>
+                                <li data-i18n="exp1_bullet2">Optimizo el rendimiento de bases de datos relacionales mediante el análisis de planes de ejecución, reestructuración de consultas complejas y diseño de índices.</li>
+                                <li data-i18n="exp1_bullet3">Configuro y despliego entornos de desarrollo y testing contenerizados con Docker, automatizando pipelines de CI/CD para integración continua.</li>
+                                <li data-i18n="exp1_bullet4">Estandarizo flujos de trabajo en el equipo mediante la redacción de guías técnicas de buenas prácticas en Git, pruebas y control de versiones.</li>
+                            </ul>
                         </div>
                     </div>
-                  
-                
-                </section> 
-
-<!--========== CERTIFICATES =======-->
-                <section class="certificate section" id="certificates">
-                    <h2 class="section-title" data-i18n="section_certificates">Certificados</h2>
-                    <div class="certificate__container bd-grid">
-                         <div class="certificate__content">
-                            <h3 class="certificate__title" data-i18n="cert1_title">Diplomatura en Ingeniería de Datos de Alto Rendimiento utilizando herramientas CASE - Universidad Nacional de Tucumán - 2024</h3>
-                            <p class="certificate__description" data-i18n="cert1_desc">
-                                Diseño de bases de datos de alto rendimiento con alta concurrencia, utilizando herramientas CASE y mejores prácticas, incluyendo el análisis de planes de ejecución en MySQL Workbench y Percona Server.
-                            </p>
+                    <div class="experience__content">
+                        <div class="experience__data bd-grid">
+                            <h3 class="experience__title" data-i18n="exp2_title">Pasante de Soporte Técnico (IT)</h3>
+                            <span class="experience__company" data-i18n="exp2_company">Dirección General de Catastro | San Miguel de Tucumán</span>
+                            <span class="experience__year" data-i18n="exp2_date" style="font-size: var(--small-font-size); color: var(--text-color-light); margin-bottom: 0.5rem; display: block;">Julio 2023 – Enero 2024</span>
+                            <ul style="list-style-type: disc; margin-left: 1.5rem; color: var(--text-color);">
+                                <li data-i18n="exp2_bullet1">Instalación, configuración y mantenimiento de sistemas operativos Windows y aplicaciones institucionales.</li>
+                                <li data-i18n="exp2_bullet2">Diagnóstico y reparación de hardware en estaciones de trabajo, impresoras y equipamiento de infraestructura.</li>
+                                <li data-i18n="exp2_bullet3">Despliegue y configuración de dispositivos de red local, incluyendo switches, cámaras de seguridad y puntos de acceso (Access Points).</li>
+                            </ul>
                         </div>
-                        <div class="certificate__content">
-                            <h3 class="certificate__title" data-i18n="cert2_title">Cisco Academy: Fundamentos de IA con IBM Watson Studio - 2025</h3>
-                            <p class="certificate__description" data-i18n="cert2_desc">
-                                Conceptos de IA como procesamiento de lenguaje natural, visión por computadora, machine learning, deep learning, chatbots, redes GAN y neuronales, ética de la IA, utilizando IBM Watson Studio.
-                            </p>
-                        </div>
-                        <div class="certificate__content">
-                            <h3 class="certificate__title" data-i18n="cert3_title">Desafío LATAM Academy: Introducción al análisis de datos con Python - 2025</h3>
-                            <p class="certificate__description" data-i18n="cert3_desc">
-                                Manipulación de datos con Pandas y Numpy, y Seaborn para su visualización y gráficos.
-                            </p>
-                        </div>
-                        <div class="certificate__content">
-                            <h3 class="certificate__title" data-i18n="cert4_title">Cisco Academy: Introducción a la Ciberseguridad - 2024</h3>
-                            <p class="certificate__description" data-i18n="cert4_desc">
-                                Fundamentos de ciberseguridad y vectores de ataque comunes, protección de datos, seguridad organizacional, estrategias de ingeniería social y ética del hacking.
-                            </p>
-                        </div>
-                                              
                     </div>
-                </section>
-                
+                    <div class="experience__content">
+                        <div class="experience__data bd-grid">
+                            <h3 class="experience__title" data-i18n="exp3_title">Técnico en Electrónica y Microelectrónica</h3>
+                            <span class="experience__company" data-i18n="exp3_company">Freelance | Tucumán, Argentina</span>
+                            <span class="experience__year" data-i18n="exp3_date" style="font-size: var(--small-font-size); color: var(--text-color-light); margin-bottom: 0.5rem; display: block;">2023 – Actualidad</span>
+                            <ul style="list-style-type: disc; margin-left: 1.5rem; color: var(--text-color);">
+                                <li data-i18n="exp3_bullet1">Diagnóstico y reparación a nivel componente (SMD/THT) de equipamiento informático y circuitos electrónicos.</li>
+                                <li data-i18n="exp3_bullet2">Administración del flujo de trabajo, gestión de inventario y emisión de presupuestos mediante sistema de tickets.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            </div>
+            <!--========== PROYECTOS DESTACADOS ==========-->
+            <section class="experience section" id="projects">
+                <h2 class="section-title" data-i18n="section_projects">PROYECTOS DESTACADOS</h2>
+                <div class="experience__container bd-grid">
+                    <div class="experience__content">
+                        <div class="experience__data bd-grid">
+                            <h3 class="experience__title" data-i18n="proj1_title">Sitio Dinámico de Creación y Gestión de Encuestas (React, Laravel)</h3>
+                            <span class="experience__company" data-i18n="proj1_company">Proyecto de Graduación — Programador Universitario | Octubre 2024</span>
+                            <a href="https://github.com/juani981/WebEncuestas-Demo" target="_blank" class="social__link" style="margin-bottom: 0.5rem; display: block;">
+                                <i class='bx bx-link-external'></i> <span data-i18n="proj1_link">github.com/juani981/WebEncuestas-Demo</span>
+                            </a>
+                            <ul style="list-style-type: disc; margin-left: 1.5rem; color: var(--text-color);">
+                                <li data-i18n="proj1_bullet1">Desarrollo de la interfaz de usuario con React y Material UI, consumiendo APIs REST desarrolladas en Laravel.</li>
+                                <li data-i18n="proj1_bullet2">Diseño del modelo lógico de base de datos relacional, diagramas UML y prototipado UI en Figma.</li>
+                                <li data-i18n="proj1_bullet3">Coordinación del flujo ágil de trabajo y control de versiones bajo metodología Scrum utilizando ClickUp y Git.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!--========== HABILIDADES TÉCNICAS ==========-->
+            <section class="skills section" id="skills">
+                <h2 class="section-title" data-i18n="section_skills">HABILIDADES TÉCNICAS</h2>
+                <div class="skills__container">
+                    <ul class="skills__content bd-grid" style="grid-template-columns: 1fr;">
+                        <li class="skills__name" style="align-items: flex-start; margin-bottom: 0.5rem;">
+                            <span class="skills__circle" style="margin-top: 8px;"></span>
+                            <span><b data-i18n="skill_lang">Lenguajes y Frameworks:</b> <span data-i18n="skill_lang_val">PHP (Laravel), C# (.NET), JavaScript (React, jQuery), Python, HTML5, CSS3, Bootstrap, Material UI.</span></span>
+                        </li>
+                        <li class="skills__name" style="align-items: flex-start; margin-bottom: 0.5rem;">
+                            <span class="skills__circle" style="margin-top: 8px;"></span>
+                            <span><b data-i18n="skill_db">Bases de Datos:</b> <span data-i18n="skill_db_val">Oracle (PL/SQL, Stored Procedures, Triggers), PostgreSQL, MySQL, SQLite, Optimización de Queries e Índices.</span></span>
+                        </li>
+                        <li class="skills__name" style="align-items: flex-start; margin-bottom: 0.5rem;">
+                            <span class="skills__circle" style="margin-top: 8px;"></span>
+                            <span><b data-i18n="skill_devops">DevOps y Herramientas:</b> <span data-i18n="skill_devops_val">Docker, CI/CD (GitHub Actions), Git, GitHub, Bitbucket, Linux, Ansible, Terraform.</span></span>
+                        </li>
+                        <li class="skills__name" style="align-items: flex-start; margin-bottom: 0.5rem;">
+                            <span class="skills__circle" style="margin-top: 8px;"></span>
+                            <span><b data-i18n="skill_agile">Metodologías y Gestión:</b> <span data-i18n="skill_agile_val">Scrum, ClickUp, Trello, Figma, Postman.</span></span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!--========== EDUCACIÓN ==========-->
+            <section class="education section" id="education">
+                <h2 class="section-title" data-i18n="section_education">EDUCACIÓN</h2>
+                <div class="education__container bd-grid">
+                    <div class="education__content">
+                        <div class="education__data bd-grid">
+                            <h3 class="education__title" data-i18n="edu1_title">Ingeniería en Informática (En etapa de tesis final)</h3>
+                            <span class="education__studies" data-i18n="edu1_study">Universidad Nacional de Tucumán (UNT) – Facultad de Ciencias Exactas y Tecnología</span>
+                            <span class="education__year" data-i18n="edu1_year">2023 – Actualidad</span>
+                        </div>
+                    </div>
+                    <div class="education__content">
+                        <div class="education__data bd-grid">
+                            <h3 class="education__title" data-i18n="edu2_title">Programador Universitario (Graduado)</h3>
+                            <span class="education__studies" data-i18n="edu2_study">Universidad Nacional de Tucumán (UNT) – Facultad de Ciencias Exactas y Tecnología</span>
+                            <span class="education__year" data-i18n="edu2_year">2021 – 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!--========== CERTIFICACIONES ==========-->
+            <section class="certificate section" id="certificates">
+                <h2 class="section-title" data-i18n="section_certificates">CERTIFICACIONES</h2>
+                <div class="certificate__container bd-grid" style="padding-left: 1.5rem;">
+                    <ul style="list-style-type: disc; color: var(--text-color);">
+                        <li style="margin-bottom: 0.5rem;" data-i18n="cert1">Diplomatura en Ingeniería de Datos de Alto Rendimiento (CASE & MySQL/Percona) — UNT (2024)</li>
+                        <li style="margin-bottom: 0.5rem;" data-i18n="cert2">Fundamentos de IA con IBM Watson Studio — Cisco Networking Academy (2025)</li>
+                        <li style="margin-bottom: 0.5rem;" data-i18n="cert3">Introducción al Análisis de Datos con Python (Pandas, NumPy, Seaborn) — Desafío LATAM (2025)</li>
+                        <li style="margin-bottom: 0.5rem;" data-i18n="cert4">Introducción a la Ciberseguridad — Cisco Networking Academy (2024)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!--========== IDIOMAS ==========-->
+            <section class="languages section" id="languages">
+                <h2 class="section-title" data-i18n="section_languages">IDIOMAS</h2>
+                <div class="certificate__container bd-grid" style="padding-left: 1.5rem;">
+                    <ul style="list-style-type: disc; color: var(--text-color);">
+                        <li style="margin-bottom: 0.5rem;" data-i18n="lang1">Inglés: Avanzado (C2 – Certificación EF SET)</li>
+                        <li style="margin-bottom: 0.5rem;" data-i18n="lang2">Español: Nativo</li>
+                    </ul>
+                </div>
+            </section>
         </div>
     </main>
 <!--========== SCROLL TOP =========--> 
