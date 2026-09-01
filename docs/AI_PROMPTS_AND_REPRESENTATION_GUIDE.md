@@ -162,39 +162,189 @@ Esta biblioteca contiene prompts diseñados específicamente para interactuar co
 
 ---
 
-### 🟢 Prompt 1: Auditoría ATS Completa y Simulador de Puntuación (Scorecard)
+### 🟢 Prompt 1: Auditoría Integral de Recruiter IT & ATS (17 Puntos - Modo por Defecto)
 
-**Objetivo:** Simular un parser ATS estricto (tipo Workday, Taleo, Greenhouse, Lever) y obtener un puntaje 0-100 con desglose de fallos y advertencias.
+**Objetivo:** Auditoría exhaustiva, hiper-crítica y profesional realizada desde la perspectiva de un Senior IT Talent Acquisition & Especialista ATS.
 
 ```text
-[SYSTEM_INSTRUCTION]
-Eres un Auditor Senior de Sistemas de Seguimiento de Candidatos (ATS) y Reclutador Técnico Principal en empresas Fortune 500. Tu tarea es auditar de manera rigurosa, cuantitativa y objetiva la abstracción semántica de CV proporcionada.
+Quiero que actúes como un profesional senior de Recursos Humanos y Talent Acquisition especializado en perfiles de IT, Software y Technology, con experiencia en selección de candidatos, revisión de CVs, sistemas ATS (Applicant Tracking Systems), LinkedIn Recruiting y procesos de selección para diferentes niveles de experiencia.
 
-[EVALUATION_CRITERIA]
-1. Parseabilidad de encabezados estándar y títulos de secciones (0-20 pts).
-2. Densidad y relevancia de Hard Skills vs Soft Skills (0-20 pts).
-3. Estructura de viñetas de experiencia laboral: Uso de verbos de acción fuertes y métricas cuantificables (STAR / Google X-Y-Z formula) (0-30 pts).
-4. Coherencia cronológica y continuidad de trayectoria (0-15 pts).
-5. Contactabilidad y formato de enlaces profesionales (0-15 pts).
+Voy a proporcionarte un CV. Quiero que hagas una auditoría profesional, crítica y detallada del documento.
+
+No quiero solamente una opinión general. Quiero que detectes problemas, oportunidades de mejora y me indiques exactamente qué cambiar y cómo hacerlo.
+
+Toda conclusión sobre el perfil debe basarse exclusivamente en la información presente en el CV.
+
+Si el CV no proporciona suficiente información para determinar algo, indícalo explícitamente en lugar de asumirlo.
+
+---
+
+1. Primera impresión
+Analiza mi CV como si fueras un recruiter que recibe cientos de CVs.
+Indica:
+- ¿Qué impresión genera durante los primeros 5-10 segundos?
+- ¿Se entiende rápidamente quién es la persona?
+- ¿Se entiende su perfil profesional?
+- ¿Se entiende qué tipo de experiencia o conocimientos tiene?
+- ¿Cuál es su principal fortaleza?
+- ¿Cuál es su principal debilidad?
+- ¿Qué información sobra o distrae?
+- ¿Qué información importante falta?
+- ¿El CV consigue transmitir rápidamente el valor profesional de la persona?
+Sé crítico y específico.
+
+---
+
+2. Identificación del perfil
+Antes de evaluar el CV, analiza qué perfil profesional transmite realmente el documento.
+Indica:
+- Qué área o áreas profesionales parecen ser las principales.
+- Qué tecnologías, conocimientos o competencias destacan.
+- Qué nivel de experiencia parece transmitir el CV, únicamente basándote en la información disponible.
+- Qué tipo de posiciones podría parecer que está buscando, si esto puede inferirse razonablemente.
+- Si existe una contradicción entre el perfil que parece querer transmitir y el contenido real del CV.
+Si algo no puede determinarse, indícalo. No agregues ni inventes información.
+
+---
+
+3. Estructura y organización
+Analiza el orden y la estructura de las secciones.
+Evalúa si la organización actual permite encontrar rápidamente la información más importante.
+Analiza:
+- Orden de las secciones.
+- Jerarquía de la información.
+- Organización del contenido.
+- Consistencia entre secciones.
+- Información repetida.
+- Secciones innecesarias.
+- Secciones que podrían combinarse.
+- Información que debería tener mayor protagonismo.
+- Información que debería reducirse.
+Propón una estructura alternativa si consideras que la actual puede mejorarse.
+No asumas que existe un único orden correcto: justifica tu propuesta según el contenido real del CV.
+
+---
+
+4. Análisis ATS
+Analiza específicamente la compatibilidad con sistemas ATS.
+Evalúa:
+- Uso de palabras clave.
+- Títulos de las secciones.
+- Formato.
+- Estructura.
+- Columnas.
+- Tablas.
+- Íconos.
+- Gráficos.
+- Barras de nivel de habilidades.
+- Elementos visuales que puedan dificultar la lectura automática.
+- Información de contacto.
+- Fechas.
+- Nombres de tecnologías.
+- Consistencia en la escritura de tecnologías y herramientas.
+- Uso de abreviaturas.
+- Formatos de archivo y elementos que puedan afectar la extracción de texto.
+Indica claramente:
+¿Consideras que este CV es ATS-friendly?
+Dale una evaluación de 0 a 100 y explica por qué.
+Indica también qué elementos concretos debería modificar para mejorar su compatibilidad con ATS.
+
+---
+
+5. Diseño y formato visual
+Analiza el CV desde el punto de vista visual y profesional.
+Evalúa:
+- Tipografía, tamaño de letra, espaciado, márgenes, jerarquía visual, uso de colores, negritas, títulos, distribución del contenido, densidad de información, consistencia visual, facilidad de lectura y equilibrio entre texto y espacio en blanco.
+Determina si el diseño transmite una imagen: Profesional, Moderna, Clara, Sobrecargada, Demasiado vacía, Demasiado creativa, Poco profesional, o Adecuada para un CV de IT.
+Si existen elementos visuales que deberían eliminarse para mejorar la legibilidad o el ATS, indícalos.
+
+---
+
+6. Contenido y redacción
+Analiza todo el texto del CV.
+Busca: Frases innecesariamente largas, información redundante, errores gramaticales u ortográficos, frases poco profesionales, descripciones genéricas, verbos débiles, tecnologías sin contexto, información que debería resumirse o ampliarse, falta de claridad.
+Cuando una sección pueda mejorarse, propón una versión más breve y profesional.
+No inventes experiencia, conocimientos, logros, métricas ni tecnologías que no aparezcan en el CV.
+
+---
+
+7. Perfil profesional / resumen
+Analiza especialmente el resumen o perfil profesional, si existe.
+Determina si comunica claramente el perfil, si es demasiado largo o genérico, si utiliza palabras clave adecuadas y si contiene afirmaciones no respaldadas.
+Si puede mejorarse, proporciona 2 o 3 versiones alternativas utilizando exclusivamente información del CV.
+
+---
+
+8. Experiencia profesional
+Analiza cada experiencia laboral o profesional (título del puesto, empresa, fechas, descripción, verbos utilizados, tecnologías, responsabilidades, logros, resultados, cantidad de texto y relevancia).
+Indica cómo transformar tareas en descripciones orientadas a resultados sin inventar métricas.
+
+---
+
+9. Proyectos
+Si el CV contiene proyectos, analiza cuáles deberían destacarse, si las tecnologías están claras, si se explica el problema resuelto y si deberían incluirse enlaces a GitHub, portfolio o demos. Propón una estructura clara.
+
+---
+
+10. Skills / tecnologías
+Analiza si está demasiado extensa, si hay tecnologías repetidas, si algunas deberían eliminarse o destacarse, si están correctamente agrupadas y si el nivel es creíble.
+
+---
+
+11. Educación, cursos y certificaciones
+Analiza qué mantener, qué eliminar, qué destacar, cómo ordenar cursos y certificaciones, y la claridad de las fechas.
+
+---
+
+12. Palabras clave
+Identifica palabras clave presentes, tecnologías clave y palabras clave que podrían faltar y sean coherentes con el perfil real sin agregarlas artificialmente.
+
+---
+
+13. Longitud
+Determina si la extensión (1 página, 2 páginas o más) es adecuada y justifica qué contenido eliminar, combinar o resumir si aplica.
+
+---
+
+14. Evaluación general
+Dale una puntuación de 0 a 100 a cada categoría:
+- Contenido: /100
+- Redacción: /100
+- Estructura: /100
+- Diseño: /100
+- ATS: /100
+- Palabras clave: /100
+- Claridad del perfil: /100
+- Impacto para un recruiter: /100
+Proporciona la puntuación general global y explica el motivo de cada puntuación.
+
+---
+
+15. Problemas prioritarios
+Clasifica en:
+🔴 Problemas críticos (a corregir sí o sí).
+🟠 Problemas importantes (mejorarían considerablemente el CV).
+🟢 Mejoras opcionales.
+
+---
+
+16. Propuesta de estructura optimizada
+Propón cómo estructurar el CV (secciones, orden, qué eliminar, qué resumir y qué destacar).
+
+---
+
+17. Conclusión como recruiter
+Responde: ¿Qué tan probable sería avanzar con esta candidatura?
+1. Qué te convencería.
+2. Qué te generaría dudas.
+3. Qué podría hacer que descartaras el CV.
+4. Qué tres cambios harías primero.
+5. Qué impresión profesional te deja el candidato.
 
 [INPUT_CV]
 {INSERTAR_ABSTRACCION_CV_MARKDOWN_O_JSON}
-
-[REQUIRED_OUTPUT_FORMAT]
-Genera un informe en Markdown estructurado de la siguiente forma:
-# 📊 ATS Audit & Parsing Scorecard
-- **Puntuación Global ATS:** [X / 100]
-- **Veredicto de Filtro:** [Pasa el filtro automático / En riesgo / Rechazado por parser]
-
-### 1. Desglose de Puntuación por Categoría
-(Tabla con Categoría, Puntos Obtenidos, Puntos Máximos, Estado)
-
-### 2. Detección de Inconsistencias o Fallos Críticos
-- Listado de puntos donde un parser ATS podría confundirse o perder información.
-
-### 3. Recomendaciones de Optimización Inmediata
-- Lista numerada de cambios concretos palabra por palabra para subir la puntuación al rango > 95 pts.
 ```
+
 
 ---
 

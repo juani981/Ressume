@@ -25,13 +25,23 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
 
       setPos({ top, left });
 
-      // Map section type to target_section in our rules
+      // Map section type & id to target_section in our rules
       let targetSection = 'global';
-      if (section.type === 'experience') targetSection = 'experience';
-      if (section.type === 'education') targetSection = 'education';
-      if (section.type === 'skills') targetSection = 'skills';
-      if (section.type === 'projects') targetSection = 'projects';
-      if (section.type === 'about' || section.type === 'profile_header') targetSection = 'profile';
+      if (section.id === 'experience' || section.type === 'experience') {
+        targetSection = 'experience';
+      } else if (section.id === 'education' || section.type === 'education') {
+        targetSection = 'education';
+      } else if (section.id === 'skills' || section.type === 'skills') {
+        targetSection = 'skills';
+      } else if (section.id === 'projects' || section.type === 'projects') {
+        targetSection = 'projects';
+      } else if (section.id === 'certificates' || section.id === 'certifications') {
+        targetSection = 'certificates';
+      } else if (section.id === 'languages') {
+        targetSection = 'languages';
+      } else if (section.type === 'about' || section.type === 'profile_header' || section.id === 'about_section' || section.id === 'profile_header') {
+        targetSection = 'profile';
+      }
 
       // layoutType is 1 or 2
       const targetLayout = layoutType === 1 ? 'ATS_1_col' : 'Human_2_col';
@@ -43,20 +53,23 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
 
       let allMatching = [...rawSuggestions, ...layoutSuggestions, ...formatScanSuggestions];
 
-      // Fallback if empty
+      // Fallbacks if empty
       if (allMatching.length === 0) {
         allMatching = getAISuggestions(targetSection, 'both', 'on_edit_description', 'tech');
       }
       if (allMatching.length === 0) {
         allMatching = getAISuggestions(targetSection, 'both', 'format_scan', 'tech');
       }
+      if (allMatching.length === 0) {
+        allMatching = getAISuggestions('global', targetLayout, 'format_scan', 'tech');
+      }
 
-      // Regex matching based on content (Optional simple keyword check)
+      // Regex matching based on content with critical severity prioritization
       const sectionText = JSON.stringify(section).toLowerCase();
-      // Weight matches based on keywords in rules
       const scoredMatches = allMatching.map(rule => {
-        let score = 1; // base score
-        const keywords = rule.suggestion_title.toLowerCase().split(' ').filter(w => w.length > 4);
+        // High severity gets strong baseline score
+        let score = rule.severity === 'critical' ? 8 : rule.severity === 'warning' ? 4 : 1;
+        const keywords = (rule.suggestion_title + ' ' + (rule.suggestion_body || '')).toLowerCase().split(' ').filter(w => w.length > 4);
         keywords.forEach(kw => {
           if (sectionText.includes(kw)) score += 2;
         });
@@ -67,6 +80,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
       setSuggestions(scoredMatches.slice(0, 3).map(sm => sm.rule));
     }
   }, [isHovered, section, layoutType, rect]);
+
 
   if (!isHovered || suggestions.length === 0) return null;
 

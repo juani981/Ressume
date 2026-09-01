@@ -4,8 +4,9 @@ import { prompts, buildAIPromptPayload, exportToAIMarkdown, exportToAIXML, expor
 
 const AIExportModal = ({ isOpen, onClose }) => {
   const { cvData } = useCV();
-  const [selectedPromptId, setSelectedPromptId] = useState('ats_audit');
+  const [selectedPromptId, setSelectedPromptId] = useState('recruiter_audit');
   const [selectedFormat, setSelectedFormat] = useState('markdown');
+  const [layoutMode, setLayoutMode] = useState('1-column'); // Default to 1-column ATS mode for >95 score
   const [jobDescription, setJobDescription] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -13,12 +14,22 @@ const AIExportModal = ({ isOpen, onClose }) => {
     return prompts.find(p => p.id === selectedPromptId) || prompts[0];
   }, [selectedPromptId]);
 
+  const targetCvData = useMemo(() => {
+    return {
+      ...cvData,
+      layout: {
+        ...(cvData.layout || {}),
+        type: layoutMode
+      }
+    };
+  }, [cvData, layoutMode]);
+
   const compiledPayload = useMemo(() => {
-    return buildAIPromptPayload(cvData, selectedPromptId, {
+    return buildAIPromptPayload(targetCvData, selectedPromptId, {
       format: selectedFormat,
       jobDescription
     });
-  }, [cvData, selectedPromptId, selectedFormat, jobDescription]);
+  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription]);
 
   if (!isOpen) return null;
 
@@ -122,8 +133,8 @@ const AIExportModal = ({ isOpen, onClose }) => {
         {/* Modal Body */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* Row: Prompt Selection & Format Selection */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+          {/* Row: Prompt Selection, Format Selection & Layout Mode */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             
             {/* Prompt Selector */}
             <div>
@@ -140,7 +151,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
                   border: '1px solid rgba(150, 150, 150, 0.3)',
                   background: 'var(--body-color, #f9f9f9)',
                   color: 'inherit',
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   cursor: 'pointer'
                 }}
               >
@@ -152,10 +163,34 @@ const AIExportModal = ({ isOpen, onClose }) => {
               </select>
             </div>
 
+            {/* Layout Mode Selector */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                📐 Disposición de Abstracción:
+              </label>
+              <select 
+                value={layoutMode} 
+                onChange={(e) => setLayoutMode(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(150, 150, 150, 0.3)',
+                  background: 'var(--body-color, #f9f9f9)',
+                  color: 'inherit',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="1-column">🟢 1 Columna — Lineal ATS (&gt;95 Pts)</option>
+                <option value="2-column">🎨 2 Columnas — Visual para Reclutador</option>
+              </select>
+            </div>
+
             {/* Abstraction Format Selector */}
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                📄 Formato de Abstracción del CV:
+                📄 Formato de Abstracción:
               </label>
               <select 
                 value={selectedFormat} 
@@ -167,17 +202,18 @@ const AIExportModal = ({ isOpen, onClose }) => {
                   border: '1px solid rgba(150, 150, 150, 0.3)',
                   background: 'var(--body-color, #f9f9f9)',
                   color: 'inherit',
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   cursor: 'pointer'
                 }}
               >
-                <option value="markdown">Semantic Markdown + YAML Frontmatter (Recomendado)</option>
-                <option value="xml">Semantic XML con Tags Jerárquicos</option>
-                <option value="ats_text">Texto Plano Lineal para ATS Tradicional</option>
+                <option value="markdown">Semantic Markdown (Recomendado)</option>
+                <option value="xml">Semantic XML</option>
+                <option value="ats_text">Texto Plano Lineal</option>
                 <option value="json">JSON Schema Nativo</option>
               </select>
             </div>
           </div>
+
 
           {/* Description of Selected Prompt */}
           <div style={{

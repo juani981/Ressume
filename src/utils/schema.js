@@ -1,6 +1,6 @@
 export const defaultSchema = {
   layout: {
-    type: '2-column', // '1-column' or '2-column'
+    type: '2-column', // '1-column' (ATS Optimized) or '2-column' (Visual Recruiter)
     leftBg: '', // empty means it uses CSS defaults
     rightBg: ''
   },
@@ -35,6 +35,39 @@ export const defaultSchema = {
         {
           id: "about1",
           description: "Desarrollador Full-Stack con sólida experiencia en backend (.NET, C#, PHP, Laravel) y gestión avanzada de bases de datos relacionales (Oracle, PostgreSQL, MySQL). Especializado en modernización de sistemas legacy, optimización de consultas SQL/PL-SQL y automatización de flujos de trabajo mediante Docker y pipelines CI/CD con GitHub Actions. Titulado como Programador Universitario y cursando la etapa final de Ingeniería en Informática."
+        }
+      ]
+    },
+    {
+      id: "skills",
+      column: "left",
+      type: "skills",
+      title: "HABILIDADES TÉCNICAS",
+      items: [
+        {
+          id: "skill1",
+          title: "Backend & Lenguajes",
+          description: "PHP (Laravel), C# (.NET Core), Python (FastAPI), Node.js, RESTful APIs, Visual Basic."
+        },
+        {
+          id: "skill2",
+          title: "Bases de Datos & Almacenamiento",
+          description: "PostgreSQL, MySQL, Oracle (PL/SQL, Stored Procedures, Triggers), SQLite, Optimización de Queries e Índices."
+        },
+        {
+          id: "skill3",
+          title: "DevOps, Cloud & Infraestructura",
+          description: "Docker, CI/CD (GitHub Actions), Linux, Git, GitHub, Bitbucket, Ansible, Terraform."
+        },
+        {
+          id: "skill4",
+          title: "Frontend & UI",
+          description: "React, JavaScript (ES6+), HTML5, CSS3, Bootstrap, jQuery, Material UI."
+        },
+        {
+          id: "skill5",
+          title: "Metodologías & Herramientas",
+          description: "Scrum, Agile, Postman, ClickUp, Trello, Jira, Figma."
         }
       ]
     },
@@ -90,35 +123,7 @@ export const defaultSchema = {
           title: "Sitio Dinámico de Creación y Gestión de Encuestas (React, Laravel)",
           subtitle: "Proyecto de Graduación — Programador Universitario | Octubre 2024",
           link: "github.com/juani981/WebEncuestas-Demo",
-          description: "Lideré el desarrollo Front-End para un sitio web dinámico de creación de encuestas utilizando React, Material UI y Laravel. Lideré la gestión Agile del proyecto en ClickUp. Documenté el diseño lógico de la base de datos, diagramas UML, diseño de interfaz con Figma y casos de uso. Implementé y mantuve el estandar de los flujos de git."
-        }
-      ]
-    },
-    {
-      id: "skills",
-      column: "left",
-      type: "skills",
-      title: "HABILIDADES TÉCNICAS",
-      items: [
-        {
-          id: "skill1",
-          title: "Lenguajes y Frameworks",
-          description: "PHP (Laravel), C# (.NET), JavaScript (React, jQuery), Python, HTML5, CSS3, Bootstrap, Material UI."
-        },
-        {
-          id: "skill2",
-          title: "Bases de Datos",
-          description: "Oracle (PL/SQL, Stored Procedures, Triggers), PostgreSQL, MySQL, SQLite, Optimización de Queries e Índices."
-        },
-        {
-          id: "skill3",
-          title: "DevOps y Herramientas",
-          description: "Docker, CI/CD (GitHub Actions), Git, GitHub, Bitbucket, Linux, Ansible, Terraform."
-        },
-        {
-          id: "skill4",
-          title: "Metodologías y Gestión",
-          description: "Scrum, ClickUp, Trello, Figma, Postman."
+          description: "Lideré el desarrollo Front-End para un sitio web dinámico de creación de encuestas utilizando React, Material UI y Laravel. Lideré la gestión Agile del proyecto en ClickUp. Documenté el diseño lógico de la base de datos, diagramas UML, diseño de interfaz con Figma y casos de uso. Implementé y mantuve el estándar de los flujos de Git."
         }
       ]
     },

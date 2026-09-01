@@ -2,8 +2,8 @@ import atsRules from './ats.json';
 import humanRules from './human.json';
 import techRules from './tech.json';
 import businessRules from './business.json';
-import creativeRules from './creative.json';
-import promptsCatalog from './prompts.json';
+import creativeRules from './creative.json' with { type: 'json' };
+import promptsCatalog from './prompts.json' with { type: 'json' };
 
 // Combine all rules into a single knowledge base
 const ALL_RULES = [
