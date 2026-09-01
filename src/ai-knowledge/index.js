@@ -3,6 +3,7 @@ import humanRules from './human.json';
 import techRules from './tech.json';
 import businessRules from './business.json';
 import creativeRules from './creative.json';
+import promptsCatalog from './prompts.json';
 
 // Combine all rules into a single knowledge base
 const ALL_RULES = [
@@ -12,6 +13,8 @@ const ALL_RULES = [
   ...businessRules,
   ...creativeRules
 ];
+
+export const ALL_PROMPTS = promptsCatalog;
 
 /**
  * Query the AI knowledge base for pre-computed suggestions.
@@ -40,4 +43,12 @@ export const getAISuggestions = (target_section, target_layout, trigger_context,
   });
 };
 
+/**
+ * Get a specific prompt definition by ID
+ */
+export const getAIPromptById = (promptId) => {
+  return ALL_PROMPTS.find(p => p.id === promptId) || ALL_PROMPTS[0];
+};
+
 export default ALL_RULES;
+
