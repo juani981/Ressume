@@ -1,18 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { useCV } from '../../context/CVContext';
-import { prompts, buildAIPromptPayload, exportToAIMarkdown, exportToAIXML, exportToATSPlainText } from '../../utils/aiExporter';
+import { getPrompts, getUI } from '../../locales/index';
+import { buildAIPromptPayload, exportToAIMarkdown, exportToAIXML, exportToATSPlainText } from '../../utils/aiExporter';
 
 const AIExportModal = ({ isOpen, onClose }) => {
-  const { cvData } = useCV();
+  const { cvData, activeLanguage } = useCV();
   const [selectedPromptId, setSelectedPromptId] = useState('recruiter_audit');
   const [selectedFormat, setSelectedFormat] = useState('markdown');
   const [layoutMode, setLayoutMode] = useState('1-column'); // Default to 1-column ATS mode for >95 score
   const [jobDescription, setJobDescription] = useState('');
   const [copied, setCopied] = useState(false);
 
+  const localizedPrompts = useMemo(() => {
+    return getPrompts(activeLanguage);
+  }, [activeLanguage]);
+
+  const ui = useMemo(() => {
+    return getUI(activeLanguage);
+  }, [activeLanguage]);
+
   const selectedPrompt = useMemo(() => {
-    return prompts.find(p => p.id === selectedPromptId) || prompts[0];
-  }, [selectedPromptId]);
+    return localizedPrompts.find(p => p.id === selectedPromptId) || localizedPrompts[0];
+  }, [localizedPrompts, selectedPromptId]);
 
   const targetCvData = useMemo(() => {
     return {
@@ -27,11 +36,13 @@ const AIExportModal = ({ isOpen, onClose }) => {
   const compiledPayload = useMemo(() => {
     return buildAIPromptPayload(targetCvData, selectedPromptId, {
       format: selectedFormat,
-      jobDescription
+      jobDescription,
+      lang: activeLanguage
     });
-  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription]);
+  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, activeLanguage]);
 
   if (!isOpen) return null;
+
 
   const handleCopy = async () => {
     try {
@@ -155,11 +166,12 @@ const AIExportModal = ({ isOpen, onClose }) => {
                   cursor: 'pointer'
                 }}
               >
-                {prompts.map(p => (
+                {localizedPrompts.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>
                 ))}
+
               </select>
             </div>
 

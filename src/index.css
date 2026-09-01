@@ -6,12 +6,12 @@
   --header-height: 3rem;
   
   /*========== Colors ==========*/
-  --title-color: #0b0a0a;
-  --text-color: #403a3a;
-  --text-color-light: #707070;
-  --container-color: #FAFAFA;
-  --container-color-alt: #F0EFEF;
-  --body-color: #FCFCFC;
+  --title-color: #0f172a;
+  --text-color: #334155;
+  --text-color-light: #64748b;
+  --container-color: #FFFFFF;
+  --container-color-alt: #F8FAFC;
+  --body-color: #e2e8f0;
 
   /*========== Font and typography ==========*/
   --body-font: 'Poppins', sans-serif;
@@ -45,30 +45,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/*========== Variables Dark theme ==========*/
-body.dark-theme {
-  --title-color: #f2f2f2;
-  --text-color: #bfbfbf;
-  --text-color-light: #a6a6a6;
-  --container-color: #212121;
-  --container-color-alt: #181616;
-  --body-color: #2b2b2b;
-}
-
-/*========== Button Dark/Light ==========*/
-.change-theme {
-  position: absolute;
-  right: 0;
-  top: 2.2rem;
-  display: flex;
-  color: var(--text-color);
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.change-theme:hover {
-  color: var(--title-color);
-}
 
 /*========== Font size variables to scale cv ==========*/
 body.scale-cv {
@@ -760,8 +736,73 @@ img {
   background: rgba(56, 116, 255, 0.05);
 }
 
+/*========== ACTION MENU TOOLTIPS & BUTTONS ==========*/
+.action-menu-btn-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.45rem;
+  color: var(--title-color);
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.action-menu-btn:hover {
+  transform: scale(1.15);
+  background-color: rgba(56, 116, 255, 0.08);
+}
+
+.action-menu-tooltip {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 1000;
+}
+
+.action-menu-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #0f172a transparent transparent;
+}
+
+.action-menu-btn-wrap:hover .action-menu-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
 /* ==========================================================
    PRINT STYLES (For Native Browser Printing & Clean PDFs)
+
    ========================================================== */
 @media print {
   /* Ocultar toda la interfaz interactiva de edición */

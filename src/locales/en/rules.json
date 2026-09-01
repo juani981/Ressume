@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ats_crit_en_001",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Cluster Skills: Prioritize Backend & DevOps",
+    "suggestion_body": "Organize your stack into strategic clusters: Backend & Languages, Databases & Storage, DevOps & Cloud, and Frontend & UI. Placing Backend and DevOps first ensures automated ATS screeners immediately detect your technical domain.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_002",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "1-Column Format: Zero Column Tags or Splitting",
+    "suggestion_body": "In 1-column ATS mode, remove any left/right tags or layout divisions. ATS parsers read in a single vertical stream; divided elements trigger severe parsing penalties due to text scrambling risk.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_003",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Canonical ATS Hierarchy: Skills Directly After Summary",
+    "suggestion_body": "In 1-column ATS-optimized resumes, place Technical Skills before Work Experience to capture 80% of vacancy keyword matches within the first 200 tokens.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_004",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Google XYZ Formula: Action Verb + Measurable Impact",
+    "suggestion_body": "Structure each achievement as 'Accomplished [X], measured by [Y], by doing [Z]' (e.g. 'Optimized database query performance via execution plan profiling and indexing'). Avoid passive duty lists.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_005",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Clean Repository Links & Explicit Tech Stack",
+    "suggestion_body": "Include verifiable links to GitHub repositories or live demos with their explicit tech stack (e.g. React, Laravel, REST APIs). Technical screeners prioritize verifiable code.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_006",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Standardized Degree Equivalency for ATS Filters",
+    "suggestion_body": "Clarify international degree equivalencies (e.g., 'Associate Degree in Computer Programming' or 'B.S. in Computer Science & Engineering') with explicit graduation status to pass automated education filters.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_007",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Direct Plain-Text Contact Information",
+    "suggestion_body": "Present Email, Phone, Location, and LinkedIn/GitHub URLs in selectable plain text without graphic icons or tables that block ATS OCR extraction.",
+    "severity": "critical"
+  }
+]
