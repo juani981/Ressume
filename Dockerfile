@@ -1,19 +1,20 @@
-FROM node:26.7.0-slim
+# 1. Base Image: Use Node.js 22 LTS (Alpine Linux for small size)
+FROM node:22-alpine
 
-# 1. Establecemos una carpeta de trabajo dentro del contenedor
+# 2. Working Directory: Set the working directory inside the container
 WORKDIR /app
 
-# 2. Copiamos el package.json y package-lock.json primero (optimiza el caché de Docker)
+# 3. Dependencies: Copy package manifests first to optimize Docker layer caching
 COPY package*.json ./
 
-# 3. Instalamos las dependencias
+# 4. Install dependencies inside the container
 RUN npm install
 
-# 4. Copiamos el resto de los archivos de tu proyecto
+# 5. Source code: Copy remaining project files
 COPY . .
 
-# 5. Exponemos el puerto por defecto de netlify dev (usualmente es el 8888)
-EXPOSE 8888
+# 6. Port: Expose default Vite development server port
+EXPOSE 5173
 
-# 6. Ejecutamos netlify dev, forzándolo a escuchar en todas las interfaces de red
-CMD ["npx", "netlify", "dev", "--port", "8888" , "&&" , "npm", "run" ,"generate-pdf"]
+# 7. Start Command: Run Vite dev server, binding to 0.0.0.0 so it's accessible from your host machine
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
