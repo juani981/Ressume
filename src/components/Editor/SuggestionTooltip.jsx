@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getAISuggestions } from '../../ai-knowledge/index.js';
-import { MessageSquareWarning, TriangleAlert, CircleAlert } from 'lucide-react'
+import { useCV } from '../../context/CVContext';
+import { getRules } from '../../locales/index';
+import { MessageSquareWarning, TriangleAlert, CircleAlert } from 'lucide-react';
 
 const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
+  const { activeLanguage } = useCV();
   const [suggestions, setSuggestions] = useState([]);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
@@ -46,23 +48,19 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
       // layoutType is 1 or 2
       const targetLayout = layoutType === 1 ? 'ATS_1_col' : 'Human_2_col';
 
-      // We'll fetch all rules matching the section and layout for 'tech' industry
-      const rawSuggestions = getAISuggestions(targetSection, targetLayout, 'on_edit_description', 'tech');
-      const layoutSuggestions = getAISuggestions(targetSection, targetLayout, 'layout_select', 'tech');
-      const formatScanSuggestions = getAISuggestions(targetSection, targetLayout, 'format_scan', 'tech');
-
-      let allMatching = [...rawSuggestions, ...layoutSuggestions, ...formatScanSuggestions];
+      // Load localized rules for active language
+      const allRules = getRules(activeLanguage);
+      let allMatching = allRules.filter(rule => {
+        const matchesSection = rule.target_section === targetSection || rule.target_section === 'global';
+        const matchesLayout = rule.target_layout === targetLayout || rule.target_layout === 'both';
+        return matchesSection && matchesLayout;
+      });
 
       // Fallbacks if empty
       if (allMatching.length === 0) {
-        allMatching = getAISuggestions(targetSection, 'both', 'on_edit_description', 'tech');
+        allMatching = allRules.filter(rule => rule.target_section === 'global');
       }
-      if (allMatching.length === 0) {
-        allMatching = getAISuggestions(targetSection, 'both', 'format_scan', 'tech');
-      }
-      if (allMatching.length === 0) {
-        allMatching = getAISuggestions('global', targetLayout, 'format_scan', 'tech');
-      }
+
 
       // Regex matching based on content with critical severity prioritization
       const sectionText = JSON.stringify(section).toLowerCase();

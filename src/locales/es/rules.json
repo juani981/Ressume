@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ats_crit_es_001",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Agrupar Habilidades: Backend y DevOps Primero",
+    "suggestion_body": "Clasifica tus tecnologías en categorías estratégicas: Backend & Lenguajes, Bases de Datos & Almacenamiento, DevOps & Cloud, y Frontend & UI. Priorizar Backend y DevOps primero garantiza que los filtros automáticos ATS identifiquen tu especialidad técnica en los primeros milisegundos.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_002",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Formato 1 Columna: Cero Residuos de División",
+    "suggestion_body": "En modo de 1 columna para ATS, elimina cualquier etiqueta o división izquierda/derecha. Los parsers ATS leen en un único flujo vertical; etiquetas divididas generan penalizaciones severas por riesgo de mezcla de texto.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_003",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Orden Canónico ATS: Skills Inmediatamente tras Resumen",
+    "suggestion_body": "En CVs de 1 columna optimizados para ATS, ubica las Habilidades Técnicas antes de la Experiencia Laboral para capturar el 80% de las palabras clave de la vacante en los primeros 200 tokens.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_004",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Fórmula Google XYZ: Verbo de Acción + Impacto",
+    "suggestion_body": "Redacta cada viñeta siguiendo 'Logré [X], medido por [Y], haciendo [Z]' (ej: 'Optimizo el rendimiento de BD mediante planes de ejecución e índices'). Evita listas de responsabilidades pasivas sin contexto de logro.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_005",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Enlaces Limpios a Repositorios & Stack Explícito",
+    "suggestion_body": "Incluye enlaces accesibles a repositorios GitHub o demos en vivo con su stack tecnológico explícito (ej: React, Laravel, REST APIs). Los parsers ATS y reclutadores técnicos validan código real de forma prioritaria.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_006",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Equivalencia Internacional de Títulos Universitarios",
+    "suggestion_body": "Clarifica títulos académicos regionales (ej: 'Programador Universitario' con su equivalencia 'Associate Degree in Computer Programming') y estado claro ('Graduado' o 'En etapa de tesis final') para superar filtros automáticos de titulación.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_007",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Contactabilidad Directa en Texto Plano",
+    "suggestion_body": "Presenta Email, Teléfono, Ubicación y perfiles de LinkedIn/GitHub en texto seleccionable directo sin iconos gráficos ni tablas que bloqueen la extracción OCR del ATS.",
+    "severity": "critical"
+  }
+]

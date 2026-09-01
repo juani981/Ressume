@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { defaultSchema } from '../utils/schema';
-import defaultContent from '../../assets/data/content.json';
+import { LOCALES } from '../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
 
@@ -9,24 +9,31 @@ const CVContext = createContext();
 export const useCV = () => useContext(CVContext);
 
 export const CVProvider = ({ children }) => {
+  // Base default language packs from folder structure
+  const baseDefaultContent = {
+    es: LOCALES.es.content,
+    en: LOCALES.en.content
+  };
+
   // Load saved cvData or fallback to defaultSchema
   const [cvData, setCvData] = useState(() => {
     const saved = localStorage.getItem('cvData');
     return saved ? JSON.parse(saved) : defaultSchema;
   });
 
-  // Load language packs (defaults to content.json + saved custom slots)
+  // Load language packs (defaults to locales folder + saved custom slots)
   const [languagePacks, setLanguagePacks] = useState(() => {
     const savedPacks = localStorage.getItem('cvLanguagePacks');
     if (savedPacks) {
       try {
-        return { ...defaultContent, ...JSON.parse(savedPacks) };
+        return { ...baseDefaultContent, ...JSON.parse(savedPacks) };
       } catch (e) {
         console.error('Error parsing cvLanguagePacks', e);
       }
     }
-    return defaultContent;
+    return baseDefaultContent;
   });
+
 
   const [activeLanguage, setActiveLanguage] = useState(() => {
     return localStorage.getItem('cvActiveLanguage') || 'es';

@@ -1,4 +1,5 @@
-import prompts from '../ai-knowledge/prompts.json' with { type: 'json' };
+import { getPrompts } from '../locales/index';
+import prompts from '../locales/es/prompts.json' with { type: 'json' };
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -393,9 +394,10 @@ export const exportToATSPlainText = (cvData) => {
  * ready to be copied directly into ChatGPT, Claude, Gemini, DeepSeek, or an API call.
  */
 export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', options = {}) => {
-  const { format = 'markdown', jobDescription = '' } = options;
+  const { format = 'markdown', jobDescription = '', lang = 'es' } = options;
   
-  const promptDef = prompts.find(p => p.id === promptId) || prompts[0];
+  const localizedPrompts = getPrompts(lang);
+  const promptDef = localizedPrompts.find(p => p.id === promptId) || localizedPrompts[0];
 
   let cvFormatted = '';
   if (format === 'markdown') {
@@ -407,6 +409,7 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
   } else {
     cvFormatted = JSON.stringify(cvData, null, 2);
   }
+
 
   const payload = [];
   payload.push(promptDef.system_instruction);
