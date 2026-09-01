@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import { defaultSchema } from '../utils/schema';
 import defaultContent from '../../assets/data/content.json';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
+import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
 
 const CVContext = createContext();
 
@@ -75,7 +76,7 @@ export const CVProvider = ({ children }) => {
         if (sec.id !== sectionId) return sec;
         return {
           ...sec,
-          items: sec.items.map(item => {
+          items: (sec.items || []).map(item => {
             if (item.id !== itemId) return item;
             return { ...item, [key]: value };
           })
@@ -84,12 +85,111 @@ export const CVProvider = ({ children }) => {
     }));
   };
 
+  // Add a new generic item to any section
+  const addSectionItem = (sectionId) => {
+    setCvData(prev => ({
+      ...prev,
+      sections: prev.sections.map(sec => {
+        if (sec.id !== sectionId) return sec;
+        const newItem = createDefaultItemForSection(sec.type);
+        return {
+          ...sec,
+          items: [...(sec.items || []), newItem]
+        };
+      })
+    }));
+  };
+
+  // Delete an item from any section
+  const deleteSectionItem = (sectionId, itemId) => {
+    setCvData(prev => ({
+      ...prev,
+      sections: prev.sections.map(sec => {
+        if (sec.id !== sectionId) return sec;
+        return {
+          ...sec,
+          items: (sec.items || []).filter(item => item.id !== itemId)
+        };
+      })
+    }));
+  };
+
+  // Reorder items within the same section
   const reorderSectionItems = (sectionId, newItems) => {
     setCvData(prev => ({
       ...prev,
       sections: prev.sections.map(sec => 
         sec.id === sectionId ? { ...sec, items: newItems } : sec
       )
+    }));
+  };
+
+  // Move and adapt an item between sections (polymorphic cross-container drag & drop)
+  const moveItemBetweenSections = (activeItemId, overItemId, activeSectionId, overSectionId) => {
+    setCvData(prev => {
+      const sourceSec = prev.sections.find(s => s.id === activeSectionId);
+      const targetSec = prev.sections.find(s => s.id === overSectionId);
+
+      if (!sourceSec || !targetSec) return prev;
+
+      const sourceItem = (sourceSec.items || []).find(i => i.id === activeItemId);
+      if (!sourceItem) return prev;
+
+      // Same section reorder
+      if (activeSectionId === overSectionId) {
+        const oldIndex = sourceSec.items.findIndex(i => i.id === activeItemId);
+        let newIndex = sourceSec.items.findIndex(i => i.id === overItemId);
+        if (newIndex === -1) newIndex = sourceSec.items.length - 1;
+
+        const updatedItems = [...sourceSec.items];
+        const [moved] = updatedItems.splice(oldIndex, 1);
+        updatedItems.splice(newIndex, 0, moved);
+
+        return {
+          ...prev,
+          sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s)
+        };
+      }
+
+      // Cross-section movement: adapt item to target section type
+      const adaptedItem = adaptItemToSectionType(sourceItem, targetSec.type);
+      const newSourceItems = sourceSec.items.filter(i => i.id !== activeItemId);
+      
+      const newTargetItems = [...(targetSec.items || [])];
+      let insertIndex = newTargetItems.findIndex(i => i.id === overItemId);
+      if (insertIndex === -1) {
+        newTargetItems.push(adaptedItem);
+      } else {
+        newTargetItems.splice(insertIndex, 0, adaptedItem);
+      }
+
+      return {
+        ...prev,
+        sections: prev.sections.map(sec => {
+          if (sec.id === activeSectionId) return { ...sec, items: newSourceItems };
+          if (sec.id === overSectionId) return { ...sec, items: newTargetItems };
+          return sec;
+        })
+      };
+    });
+  };
+
+  // Add a brand new section container
+  const addSection = (column = 'right', type = 'list', title = 'NUEVA SECCIÓN') => {
+    const newSec = createDefaultSection(column, type, title);
+    setCvData(prev => ({
+      ...prev,
+      sections: [...prev.sections, newSec]
+    }));
+  };
+
+  // Delete an entire section container
+  const deleteSection = (sectionId) => {
+    // Protect profile header from being completely removed
+    if (sectionId === 'profile_header') return;
+    setCvData(prev => ({
+      ...prev,
+      sections: prev.sections.filter(sec => sec.id !== sectionId)
     }));
   };
 
@@ -138,13 +238,18 @@ export const CVProvider = ({ children }) => {
   return (
     <CVContext.Provider value={{
       cvData,
-      updateProfile,
       updateLayout,
       updateSectionColumn,
-      updateSectionTitle,
+      updateProfile,
       updateSectionItem,
-      reorderSections,
+      addSectionItem,
+      deleteSectionItem,
       reorderSectionItems,
+      moveItemBetweenSections,
+      addSection,
+      deleteSection,
+      reorderSections,
+      updateSectionTitle,
       languagePacks,
       activeLanguage,
       switchLanguage,

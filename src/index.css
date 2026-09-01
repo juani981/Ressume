@@ -3,33 +3,33 @@
 
 /*===== VARIABLES CSS =====*/
 :root {
-  --header-height: 2rem;
-
+  --header-height: 3rem;
+  
   /*========== Colors ==========*/
   --title-color: #0b0a0a;
   --text-color: #403a3a;
   --text-color-light: #707070;
-  --container-color: #fafafa;
-  --container-color-alt: #f0efef;
-  --body-color: #fcfcfc;
+  --container-color: #FAFAFA;
+  --container-color-alt: #F0EFEF;
+  --body-color: #FCFCFC;
 
   /*========== Font and typography ==========*/
-  --body-font: "Poppins", sans-serif;
+  --body-font: 'Poppins', sans-serif;
   --h1-font-size: 1.5rem;
   --h2-font-size: 1.25rem;
   --h3-font-size: 1rem;
-  --normal-font-size: 0.938rem;
-  --small-font-size: 0.875rem;
-  --smaller-font-size: 0.813rem;
+  --normal-font-size: .938rem;
+  --small-font-size: .875rem;
+  --smaller-font-size: .813rem;
 
   /*========== Font weight ==========*/
   --font-medium: 500;
   --font-semi-bold: 600;
 
   /*========== Margenes ==========*/
-  --mb-1: 0.4rem;
-  --mb-2: 0.8rem;
-  --mb-3: 1rem;
+  --mb-1: .5rem;
+  --mb-2: 1rem;
+  --mb-3: 1.5rem;
 
   /*========== z index ==========*/
   --z-tooltip: 10;
@@ -37,9 +37,7 @@
 }
 
 /*========== BASE ==========*/
-*,
-::before,
-::after {
+*, ::before, ::after {
   box-sizing: border-box;
 }
 
@@ -51,9 +49,125 @@ html {
 body.dark-theme {
   --title-color: #f2f2f2;
   --text-color: #bfbfbf;
+  --text-color-light: #a6a6a6;
   --container-color: #212121;
   --container-color-alt: #181616;
   --body-color: #2b2b2b;
+}
+
+/*========== Button Dark/Light ==========*/
+.change-theme {
+  position: absolute;
+  right: 0;
+  top: 2.2rem;
+  display: flex;
+  color: var(--text-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.change-theme:hover {
+  color: var(--title-color);
+}
+
+/*========== Font size variables to scale cv ==========*/
+body.scale-cv {
+  --h1-font-size: .938rem;
+  --h2-font-size: .938rem;
+  --h3-font-size: .875rem;
+  --normal-font-size: .813rem;
+  --small-font-size: .75rem;
+  --smaller-font-size: .688rem;
+}
+
+/*========== Generate PDF button ==========*/
+.generate-pdf {
+  display: none;
+  margin-bottom: 2rem;
+}
+
+.scale-cv .generate-pdf {
+  display: inline-block;
+}
+
+.scale-cv .bd-container {
+  max-width: 595px;
+}
+
+.scale-cv .section {
+  padding: 1.5rem 0 .80rem;
+}
+
+.scale-cv .section-title {
+  margin-bottom: .75rem;
+}
+
+.scale-cv .resume__left,
+.scale-cv .resume__right {
+  padding: 0 1rem;
+}
+
+.scale-cv .home__img {
+  width: 90px;
+  height: 90px;
+}
+
+.scale-cv .home__container {
+  gap: 1.5rem;
+}
+
+.scale-cv .home__data {
+  gap: .25rem;
+}
+
+.scale-cv .home__address,
+.scale-cv .social__container {
+  gap: .75rem;
+}
+
+.scale-cv .home__icon,
+.scale-cv .social__icon,
+.scale-cv .interests__icon {
+  font-size: 1rem;
+}
+
+.scale-cv .education__container,
+.scale-cv .experience__container,
+.scale-cv .services__container {
+  gap: 1rem;
+}
+
+.scale-cv .education__time,
+.scale-cv .experience__time {
+  padding-right: .5rem;
+}
+
+.scale-cv .education__rounder,
+.scale-cv .experience__rounder {
+  width: 11px;
+  height: 11px;
+  margin-top: .22rem;
+}
+
+.scale-cv .education__line,
+.scale-cv .experience__line {
+  width: 1px;
+  height: 110%;
+  transform: translate(5px, 0);
+}
+
+.scale-cv .education__data,
+.scale-cv .experience__data {
+  gap: .25rem;
+}
+
+.scale-cv .skills__name {
+  margin-bottom: var(--mb-1);
+}
+
+.scale-cv .interests__container {
+  grid-template-columns: repeat(4, max-content);
+  column-gap: 1rem;
 }
 
 body {
@@ -75,8 +189,8 @@ h1, h2, h3 {
 }
 
 ul {
+  padding: 0;
   list-style: none;
-  padding-inline-start: 0;
 }
 
 a {
@@ -88,98 +202,438 @@ img {
   height: auto;
 }
 
+/*========== CLASS CSS ==========*/
 .section {
   padding: 1.5rem 0;
 }
 
 .section-title {
   font-size: var(--h2-font-size);
-  font-weight: var(--title-color);
-  margin-bottom: var(--font-semi-bold);
+  color: var(--title-color);
+  font-weight: var(--font-semi-bold);
   text-transform: uppercase;
-  letter-spacing: 0.35rem;
-  text-align: center;
+  letter-spacing: .35rem;
   margin-bottom: var(--mb-3);
-  animation: titleGlow 4s infinite alternate;
+  text-align: center;
 }
 
-.resume {
+.bd-container {
+  max-width: 1040px;
+  width: calc(100% - 2rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+.bd-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  background-color: var(--container-color);
-  box-shadow: 0 0 8px rgba(13, 12, 12, 0.15);
-  max-width: 968px;
-  margin: 3rem auto;
+  gap: 1.5rem;
 }
 
-.resume__left {
-  background-color: var(--container-color-alt);
-  padding: 0 1.5rem;
+.l-header {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-fixed);
+  background-color: var(--body-color);
+  box-shadow: 0 -1px 4px rgba(0,0,0,.1);
+  transition: .3s;
 }
 
-.resume__right {
-  padding: 0 1.5rem;
+/*========== NAV ==========*/
+.nav {
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.profile__description {
+@media screen and (max-width: 968px) {
+  .nav__menu {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    padding: 2rem 1.5rem;
+    background-color: var(--body-color);
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    border-radius: 1rem 1rem 0 0;
+    z-index: var(--z-fixed);
+    transition: .3s;
+  }
+}
+
+.nav__logo, .nav__toggle {
+  color: var(--title-color);
+  font-weight: var(--font-medium);
+}
+
+.nav__toggle {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.nav__item {
+  text-align: center;
+}
+
+.nav__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.nav__link {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--smaller-font-size);
+  color: var(--text-color-light);
+  font-weight: var(--font-medium);
+}
+
+.nav__link:hover {
+  color: var(--title-color);
+}
+
+.nav__icon {
+  font-size: 1.2rem;
+  margin-bottom: var(--mb-1);
+}
+
+/* Active menu */
+.active-link {
+  color: var(--title-color);
+}
+
+/*========== HOME ==========*/
+.home {
+  position: relative;
+}
+
+.home__container {
+  gap: 3rem;
+}
+
+.home__data {
+  gap: .5rem;
+  text-align: center;
+}
+
+.home__img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  justify-self: center;
+  margin-bottom: var(--mb-1);
+}
+
+.home__title {
+  font-size: var(--h1-font-size);
+}
+
+.home__profession {
   font-size: var(--normal-font-size);
-  line-height: 1.6;
+  margin-bottom: var(--mb-1);
 }
 
+.home__address {
+  gap: 1rem;
+}
+
+.home__information {
+  display: flex;
+  align-items: center;
+  font-size: var(--small-font-size);
+}
+
+.home__icon {
+  font-size: 1.2rem;
+  margin-right: .25rem;
+}
+
+.home__button-movil {
+  display: inline-block;
+  border: 2px solid var(--text-color);
+  color: var(--title-color);
+  padding: 1rem 2rem;
+  border-radius: .25rem;
+  transition: .3s;
+  font-weight: var(--font-medium);
+  margin-top: var(--mb-3);
+}
+
+.home__button-movil:hover {
+  background-color: var(--text-color);
+  color: var(--container-color);
+}
+
+/*========== SOCIAL ==========*/
+.social__container {
+  grid-template-columns: max-content;
+  gap: 1rem;
+}
+
+.social__link {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--small-font-size);
+  color: var(--text-color);
+}
+
+.social__link:hover {
+  color: var(--title-color);
+}
+
+.social__icon {
+  font-size: 1.2rem;
+  margin-right: .25rem;
+}
+
+/*========== PROFILE ==========*/
+.profile__description {
+  text-align: center;
+}
+
+/*========== EDUCATION AND EXPERIENCE ==========*/
+.education__content,
 .experience__content {
   display: flex;
 }
 
+.education__time,
 .experience__time {
   padding-right: 1rem;
 }
 
-.experience__rounder, .education__rounder {
+.education__rounder,
+.experience__rounder {
   position: relative;
   display: block;
   width: 16px;
   height: 16px;
-  background-color: var(--circle-color, var(--text-color-light));
+  background-color: var(--text-color-light);
   border-radius: 50%;
-  margin-top: 0.25rem;
+  margin-top: .25rem;
 }
 
-.experience__line, .education__line {
+.education__line,
+.experience__line {
   display: block;
   width: 2px;
   height: 110%;
-  background-color: var(--circle-color, var(--text-color-light));
+  background-color: var(--text-color-light);
   transform: translate(7px, 0);
 }
 
+.education__data,
 .experience__data {
-  gap: 0.5rem;
+  gap: .5rem;
 }
 
+.education__title,
 .experience__title {
   font-size: var(--h3-font-size);
 }
 
+.education__studies,
 .experience__company {
   font-size: var(--small-font-size);
   color: var(--title-color);
 }
 
-/* Drag Handle */
+.education__year {
+  font-size: var(--smaller-font-size);
+}
+
+/*========== SKILLS AND LANGUAGES ==========*/
+.skills__content,
+.languages__content {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+
+.skills__name,
+.languages__name {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--mb-3);
+}
+
+.skills__circle,
+.languages__circle {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background-color: var(--text-color);
+  border-radius: 50%;
+  margin-right: .75rem;
+}
+
+/*========== CERTIFICATES ==========*/
+.certificates__title {
+  font-size: var(--h3-font-size);
+  margin-bottom: var(--mb-1);
+}
+
+/*========== REFERENCES ==========*/
+.references__content {
+  gap: .25rem;
+}
+
+.references__subtitle {
+  color: var(--text-color-light);
+}
+
+.references__subtitle,
+.references__contact {
+  font-size: var(--smaller-font-size);
+}
+
+.references__title {
+  font-size: var(--h3-font-size);
+}
+
+/*========== INTERESTS ==========*/
+.interests__container {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: var(--mb-2);
+}
+
+.interests__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.interests__icon {
+  font-size: 1.5rem;
+  color: var(--text-color-light);
+  margin-bottom: .25rem;
+}
+
+/*========== SCROLL TOP ==========*/
+.scrolltop {
+  position: fixed;
+  right: 1rem;
+  bottom: -20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: .3rem;
+  background-color: var(--container-color-alt);
+  border-radius: .4rem;
+  z-index: var(--z-tooltip);
+  transition: .4s;
+  visibility: hidden;
+}
+
+.scrolltop__icon {
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+
+.show-scroll {
+  visibility: visible;
+  bottom: 5rem;
+}
+
+/*========== MEDIA QUERIES ==========*/
+@media screen and (min-width: 968px) {
+  body {
+    margin: 3rem 0;
+  }
+
+  .bd-container {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .l-header,
+  .scrolltop {
+    display: none;
+  }
+
+  .resume {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    background-color: var(--container-color);
+    box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+
+  .resume__left {
+    background-color: var(--container-color-alt);
+  }
+
+  .resume__left,
+  .resume__right {
+    padding: 0 1.5rem;
+  }
+
+  .generate-pdf {
+    display: inline-block;
+  }
+
+  .section-title,
+  .profile__description {
+    text-align: initial;
+  }
+
+  .home__container {
+    gap: 1.5rem;
+  }
+
+  .home__data {
+    text-align: initial;
+  }
+
+  .home__img {
+    justify-self: initial;
+  }
+
+  .social__container {
+    grid-template-columns: repeat(3, max-content);
+  }
+
+  .skills__content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .languages__content {
+    grid-template-columns: repeat(2, max-content);
+    column-gap: 3.5rem;
+  }
+
+  .interests__container {
+    grid-template-columns: repeat(4, max-content);
+    column-gap: 3.5rem;
+  }
+}
+
+/*========== INLINE EDIT & DRAG HANDLE STYLES ==========*/
 .drag-handle {
   cursor: grab;
   color: var(--text-color-light);
-  padding: 0.5rem;
+  padding: 0.25rem 0.5rem;
   opacity: 0;
   transition: opacity 0.2s;
+  position: absolute;
+  top: 0.25rem;
+  left: -1.75rem;
+  z-index: 10;
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
-.editable-container:hover .drag-handle {
-  opacity: 1;
+.editable-section-container:hover > .drag-handle,
+.editable-item-container:hover > .drag-handle {
+  opacity: 0.85;
 }
 
 .inline-input {
@@ -188,14 +642,16 @@ img {
   font: inherit;
   color: inherit;
   width: 100%;
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 .inline-input:hover {
-  border-color: #ccc;
+  border-color: rgba(56, 116, 255, 0.4);
 }
 .inline-input:focus {
-  border-color: #007bff;
+  border-color: #3874ff;
   outline: none;
-  background: rgba(0,0,0,0.05);
+  background: rgba(56, 116, 255, 0.06);
 }
 
 /*========== DND EDITOR STYLES ==========*/
@@ -204,53 +660,145 @@ img {
   outline: 2px solid transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   border-radius: 8px;
+  padding: 0.5rem 0.25rem;
 }
 .editable-item-container {
   position: relative;
   outline: 1px dashed transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
-  border-radius: 4px;
+  border-radius: 6px;
+  padding: 0.35rem 0.25rem;
 }
 
-.editable-section-container:has(> .section-drag-handle:hover) {
-  outline-color: var(--text-color-light);
-  background-color: var(--container-color-alt);
+.editable-section-container:hover {
+  outline-color: rgba(56, 116, 255, 0.25);
 }
-.editable-item-container:has(> .item-drag-handle:hover) {
-  outline-color: var(--text-color-light);
-  background-color: var(--container-color-alt);
+.editable-item-container:hover {
+  outline-color: rgba(56, 116, 255, 0.35);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
-.resume__left, .resume__right {
-  color: var(--text-color);
+/*========== ROUND ACTION BUTTONS (GREEN ADD / RED DELETE) ==========*/
+.round-btn-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.round-btn-add:hover {
+  transform: scale(1.15);
+  background: #059669;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.55);
+}
+
+.round-btn-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+  transition: transform 0.15s ease, opacity 0.2s ease, background 0.15s ease;
+  position: absolute;
+  z-index: 15;
+  opacity: 0;
+}
+
+.round-btn-del:hover {
+  transform: scale(1.18);
+  background: #dc2626;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
+}
+
+.section-del-btn {
+  top: 0.5rem;
+  right: 0.25rem;
+}
+
+.item-del-btn {
+  top: 0.25rem;
+  right: 0.25rem;
+}
+
+.editable-section-container:hover > .section-del-btn,
+.editable-item-container:hover > .item-del-btn {
+  opacity: 0.85;
+}
+
+.add-section-btn {
+  background: transparent;
+  border: 2px dashed var(--text-color-light, #999);
+  color: var(--text-color, #555);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.add-section-btn:hover {
+  border-color: #3874ff;
+  color: #3874ff;
+  background: rgba(56, 116, 255, 0.05);
 }
 
 /* ==========================================================
-   PRINT STYLES (For Native Browser Printing & Puppeteer)
+   PRINT STYLES (For Native Browser Printing & Clean PDFs)
    ========================================================== */
 @media print {
-  /* Ocultar UI de Edición */
+  /* Ocultar toda la interfaz interactiva de edición */
   .l-navbar, 
   .change-theme, 
   .generate-pdf,
   .section-drag-handle,
-  .item-drag-handle {
+  .item-drag-handle,
+  .drag-handle,
+  .round-btn-add,
+  .round-btn-del,
+  .add-section-btn,
+  .section-add-container,
+  .column-add-section,
+  .no-print {
     display: none !important;
   }
 
-  /* Forzar renderizado de colores de fondo */
+  /* Eliminar outlines y fondos de edición */
+  .editable-section-container,
+  .editable-item-container {
+    outline: none !important;
+    background-color: transparent !important;
+  }
+
+  /* Forzar renderizado exacto de colores de fondo */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Formato A4 y eliminación de márgenes del navegador */
+  /* Formato A4 y márgenes de impresión estándar */
   @page {
     size: A4;
     margin: 0; 
   }
 
-  /* Asegurar que solo se imprima el área del CV */
   body {
     background-color: white !important;
     margin: 0 !important;
@@ -279,7 +827,6 @@ img {
     break-inside: avoid;
   }
   
-  /* Evitar que una sección se corte a la mitad, si es posible */
   .cv-section {
     page-break-inside: avoid;
     break-inside: avoid;
