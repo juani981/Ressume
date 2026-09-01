@@ -1,0 +1,502 @@
+[
+  {
+    "id": "ats_001",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Tables and Columns",
+    "suggestion_body": "ATS parsers read left to right, top to bottom. Tables and columns can scramble your text. Use standard left-aligned text.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_002",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "No Headers or Footers",
+    "suggestion_body": "Information placed in the header or footer of a document (including contact info) is often dropped entirely by ATS parsers.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_003",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Images and Graphics",
+    "suggestion_body": "ATS software cannot read text within images or graphics. Remove all photos, logos, and icons to prevent parsing errors.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_004",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Use Standard Fonts",
+    "suggestion_body": "Stick to common fonts like Arial, Calibri, Times New Roman, or Garamond. Unusual fonts may be converted to illegible symbols.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_005",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Use Simple Bullet Points",
+    "suggestion_body": "Use solid circle or square bullets. Fancy characters (arrows, checkmarks) may scramble the parser output.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_006",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Standardize Date Formats",
+    "suggestion_body": "Always use 'MM/YYYY' or 'Month YYYY' consistently (e.g., '05/2021 - Present' or 'May 2021 - August 2023'). Avoid using only years.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_007",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Standard Section Headings",
+    "suggestion_body": "Use conventional titles like 'Work Experience', 'Education', and 'Skills'. ATS systems may not recognize 'Career Journey' or 'What I Do'.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_008",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Include Both Acronyms and Full Terms",
+    "suggestion_body": "Some ATS search for 'Search Engine Optimization', others for 'SEO'. Include both like this: 'Search Engine Optimization (SEO)'.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_009",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Match Job Titles Closely",
+    "suggestion_body": "If your internal title was obscure (e.g., 'Happiness Engineer'), include the industry standard title as well (e.g., 'Customer Service Representative').",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_010",
+    "target_section": "education",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Spell out Degrees",
+    "suggestion_body": "Include both 'Master of Business Administration' and 'MBA', or 'Bachelor of Science' and 'B.S.' so all keyword queries hit.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_011",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Company Name Before Dates",
+    "suggestion_body": "Format experience exactly as: Company Name, Job Title, Dates, Location. Non-standard ordering can confuse date parsing.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_012",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Text Boxes",
+    "suggestion_body": "Text inside floating text boxes or shapes is often entirely skipped by ATS. Keep text in the main body.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_013",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "File Format Check",
+    "suggestion_body": "Unless a PDF is explicitly requested or accepted, a standard DOCX file is the most universally accurately parsed format for legacy ATS.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_014",
+    "target_section": "profile",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_empty_description",
+    "suggestion_title": "Include a Professional Summary",
+    "suggestion_body": "A short summary packed with keywords from the target job description is a great way to boost your ATS match score early.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_015",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_empty_description",
+    "suggestion_title": "Flesh Out Job Descriptions",
+    "suggestion_body": "Empty job descriptions mean missed keyword opportunities. Detail your responsibilities focusing on hard skills and measurable outcomes.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_016",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "No Skill Ratings",
+    "suggestion_body": "Do not use progress bars, stars, or numerical ratings (e.g., 'Python 4/5') for skills. ATS cannot read graphics, and numbers confuse keyword counts.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_017",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Use Action Verbs",
+    "suggestion_body": "Start bullet points with strong action verbs (Developed, Managed, Created). This helps ATS linguistic algorithms identify achievements.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_018",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Lines and Borders",
+    "suggestion_body": "Complex borders or horizontal lines (other than standard paragraph borders) might cause parsing to abruptly stop.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_019",
+    "target_section": "education",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "List University Name Clearly",
+    "suggestion_body": "State the full name of the university, do not rely on abbreviations alone (e.g., 'Massachusetts Institute of Technology' instead of just 'MIT').",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_020",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Address Structure",
+    "suggestion_body": "You don't need a full street address, but include City, State, and Zip Code. ATS often filters candidates by geographic location radius.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_021",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Remove Hyperlinks in Text",
+    "suggestion_body": "While URLs for LinkedIn or Portfolio are fine in contact info, embedding hyperlinks in regular text might break the parser. Write out the URL if necessary.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_022",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "tech",
+    "trigger_context": "on_add",
+    "suggestion_title": "Exact Tech Stack Matching",
+    "suggestion_body": "If the job asks for 'React.js', do not just write 'React'. Use the exact casing and punctuation specified in the job description.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_023",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Italics on Keywords",
+    "suggestion_body": "Heavy use of italics or underlining can sometimes run characters together during OCR/parsing. Use bolding sparingly instead.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_024",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Separate Roles at Same Company",
+    "suggestion_body": "If you had multiple roles at one company, list them as separate entries with their own dates. ATS often fails to parse 'stacked' roles correctly.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_025",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Contextualize Your Skills",
+    "suggestion_body": "Don't just dump a list of 50 skills. Ensure key skills are also mentioned in the context of your work experience bullets.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_026",
+    "target_section": "projects",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Format Projects Like Experience",
+    "suggestion_body": "ATS systems handle 'Experience' best. Format projects with a 'Title', 'Role', and 'Dates' to ensure the parser extracts the information properly.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_027",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Keyword Density Limit",
+    "suggestion_body": "Avoid keyword stuffing or 'white text' tricks. Modern ATS detects this and flags the resume as spam.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_028",
+    "target_section": "education",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Leave High School Out",
+    "suggestion_body": "If you have a university degree, omit high school. Irrelevant educational entries dilute your keyword relevance.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_029",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Check Spelling Meticulously",
+    "suggestion_body": "ATS has no fuzzy logic for typos. 'Mnagement' will not match 'Management', causing you to miss out on the keyword entirely.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_030",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Present Tense vs Past Tense",
+    "suggestion_body": "Ensure current roles use present tense verbs and past roles use past tense. Advanced semantic ATS analyzers check for linguistic consistency.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_031",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Remove Symbols like &",
+    "suggestion_body": "Spell out 'and' instead of using '&' where possible, unless the exact company name or job requirement uses an ampersand.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_032",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Hard Skills Over Soft Skills",
+    "suggestion_body": "ATS bots are programmed to search for hard skills (software, methodologies, licenses) much more often than soft skills (leadership, teamwork).",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_033",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Single Spaces Only",
+    "suggestion_body": "Do not use double spacing after periods. Multiple spaces or tabs can confuse legacy parsers into thinking a new column or section has started.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_034",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Avoid Vague Dates",
+    "suggestion_body": "Do not write 'Spring 2019' or '2 Years'. The ATS calculates total years of experience, and needs strict months/years to do so accurately.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_035",
+    "target_section": "profile",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Include Desired Job Title",
+    "suggestion_body": "Put the exact title of the job you are applying for in your professional summary header. (e.g., 'Dedicated Financial Analyst').",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_036",
+    "target_section": "education",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "GPA Formatting",
+    "suggestion_body": "If including GPA, format it exactly as 'GPA: 3.8/4.0'. Just writing '3.8' might not be recognized as a grade point average by the system.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_037",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Name Placement",
+    "suggestion_body": "Your name should be the very first line of the document on its own line, unadorned. Do not precede it with 'Resume' or 'Curriculum Vitae'.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_038",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Phone Number Format",
+    "suggestion_body": "Use standard formatting like (555) 555-5555 or 555-555-5555. Unusual formats might fail regex extraction.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_039",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Email Address Professionalism",
+    "suggestion_body": "Ensure the email address is plain text and professional. Sometimes ATS systems flag unprofessional emails automatically.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_040",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Avoid Slashes Between Words",
+    "suggestion_body": "Instead of 'Manager/Director', write 'Manager and Director'. Some parsers will merge the word into 'ManagerDirector', destroying both keywords.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_041",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "tech",
+    "trigger_context": "on_add",
+    "suggestion_title": "Version Numbers Matter",
+    "suggestion_body": "If the job asks for Angular 14, list 'Angular 14', not just 'Angular'. ATS matching is often literal.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_042",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Use Numbers and Metrics",
+    "suggestion_body": "Include quantitative data (e.g., 'Increased sales by 15%'). Some ATS look for numerical digits as a marker of strong achievements.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_043",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "No Page Numbers",
+    "suggestion_body": "Omit 'Page 1 of 2' from headers or footers, as it can get mistakenly parsed as part of your experience or education.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_044",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid Abbreviations",
+    "suggestion_body": "Write out full state names or common abbreviations (e.g., 'Department' instead of 'Dept') unless explicitly abbreviated in the job listing.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_045",
+    "target_section": "projects",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_empty_description",
+    "suggestion_title": "Detail Project Contributions",
+    "suggestion_body": "Simply listing a project name isn't enough. Provide bullets detailing exactly what tools you used and your specific contribution.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_046",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Avoid First-Person Pronouns",
+    "suggestion_body": "Do not use 'I', 'me', or 'my'. It wastes valuable space and ATS algorithms are optimized for standard resume syntax starting with action verbs.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_047",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Consistent Capitalization",
+    "suggestion_body": "Keep capitalization consistent. Unpredictable casing might interfere with how an older ATS recognizes standard nouns and verbs.",
+    "severity": "info"
+  },
+  {
+    "id": "ats_048",
+    "target_section": "education",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Include Graduation Year",
+    "suggestion_body": "Most ATS look for graduation years to calculate career length or degree completion. If left off, the degree might not be credited.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_049",
+    "target_section": "experience",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "on_add",
+    "suggestion_title": "Clear Employment Status",
+    "suggestion_body": "Use 'Present' or 'Current' for your current role. Using '2023' when we are in a later year suggests you are unemployed, affecting ranking.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_050",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Limit Resume Length",
+    "suggestion_body": "While ATS doesn't strictly care about length, excessively long documents may hit parsing limits or time out. Keep it under 2 pages.",
+    "severity": "warning"
+  }
+]

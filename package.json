@@ -1,29 +1,30 @@
 {
-  "name": "ressume",
-  "version": "1.0.0",
-  "description": "Curriculum Vitae project with html, css and javascript for responsive viewing in multiple devices, as well as allowing a pdf file download.",
-  "main": "index.js",
+  "name": "ressume-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-pdf": "node scripts/generate-pdf.js",
-    "build:pdf": "node scripts/generate-pdf.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/juani981/Ressume.git"
-  },
-  "keywords": [],
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/juani981/Ressume/issues"
-  },
-  "homepage": "https://github.com/juani981/Ressume#readme",
   "dependencies": {
-    "@sparticuz/chromium": "^149.0.0",
-    "puppeteer": "^25.8.0",
-    "puppeteer-core": "^25.9.0"
+    "netlify-cli": "^27.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
   },
   "allowScripts": {
-    "puppeteer@25.8.0": true
+    "esbuild@0.21.5": true,
+    "netlify-cli@27.4.2": true,
+    "esbuild@0.28.1": true,
+    "unix-dgram@2.0.7": true,
+    "sharp@0.34.5": true
   }
 }

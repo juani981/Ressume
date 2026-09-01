@@ -1,0 +1,292 @@
+/*===== GOOGLE FONTS =====*/
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+
+/*===== VARIABLES CSS =====*/
+:root {
+  --header-height: 2rem;
+
+  /*========== Colors ==========*/
+  --title-color: #0b0a0a;
+  --text-color: #403a3a;
+  --text-color-light: #707070;
+  --container-color: #fafafa;
+  --container-color-alt: #f0efef;
+  --body-color: #fcfcfc;
+
+  /*========== Font and typography ==========*/
+  --body-font: "Poppins", sans-serif;
+  --h1-font-size: 1.5rem;
+  --h2-font-size: 1.25rem;
+  --h3-font-size: 1rem;
+  --normal-font-size: 0.938rem;
+  --small-font-size: 0.875rem;
+  --smaller-font-size: 0.813rem;
+
+  /*========== Font weight ==========*/
+  --font-medium: 500;
+  --font-semi-bold: 600;
+
+  /*========== Margenes ==========*/
+  --mb-1: 0.4rem;
+  --mb-2: 0.8rem;
+  --mb-3: 1rem;
+
+  /*========== z index ==========*/
+  --z-tooltip: 10;
+  --z-fixed: 100;
+}
+
+/*========== BASE ==========*/
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/*========== Variables Dark theme ==========*/
+body.dark-theme {
+  --title-color: #f2f2f2;
+  --text-color: #bfbfbf;
+  --container-color: #212121;
+  --container-color-alt: #181616;
+  --body-color: #2b2b2b;
+}
+
+body {
+  margin: 0 0 var(--header-height) 0;
+  padding: 0;
+  font-family: var(--body-font);
+  font-size: var(--normal-font-size);
+  background-color: var(--body-color);
+  color: var(--text-color);
+}
+
+h1, h2, h3, ul, p {
+  margin: 0;
+}
+
+h1, h2, h3 {
+  color: var(--title-color);
+  font-weight: var(--font-medium);
+}
+
+ul {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.section {
+  padding: 1.5rem 0;
+}
+
+.section-title {
+  font-size: var(--h2-font-size);
+  font-weight: var(--title-color);
+  margin-bottom: var(--font-semi-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.35rem;
+  text-align: center;
+  margin-bottom: var(--mb-3);
+  animation: titleGlow 4s infinite alternate;
+}
+
+.resume {
+  display: grid;
+  grid-template-columns: 1fr;
+  background-color: var(--container-color);
+  box-shadow: 0 0 8px rgba(13, 12, 12, 0.15);
+  max-width: 968px;
+  margin: 3rem auto;
+}
+
+.resume__left {
+  background-color: var(--container-color-alt);
+  padding: 0 1.5rem;
+}
+
+.resume__right {
+  padding: 0 1.5rem;
+}
+
+.profile__description {
+  font-size: var(--normal-font-size);
+  line-height: 1.6;
+}
+
+.experience__content {
+  display: flex;
+}
+
+.experience__time {
+  padding-right: 1rem;
+}
+
+.experience__rounder, .education__rounder {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: var(--circle-color, var(--text-color-light));
+  border-radius: 50%;
+  margin-top: 0.25rem;
+}
+
+.experience__line, .education__line {
+  display: block;
+  width: 2px;
+  height: 110%;
+  background-color: var(--circle-color, var(--text-color-light));
+  transform: translate(7px, 0);
+}
+
+.experience__data {
+  gap: 0.5rem;
+}
+
+.experience__title {
+  font-size: var(--h3-font-size);
+}
+
+.experience__company {
+  font-size: var(--small-font-size);
+  color: var(--title-color);
+}
+
+/* Drag Handle */
+.drag-handle {
+  cursor: grab;
+  color: var(--text-color-light);
+  padding: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.editable-container:hover .drag-handle {
+  opacity: 1;
+}
+
+.inline-input {
+  border: 1px dashed transparent;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+.inline-input:hover {
+  border-color: #ccc;
+}
+.inline-input:focus {
+  border-color: #007bff;
+  outline: none;
+  background: rgba(0,0,0,0.05);
+}
+
+/*========== DND EDITOR STYLES ==========*/
+.editable-section-container {
+  position: relative;
+  outline: 2px solid transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  border-radius: 8px;
+}
+.editable-item-container {
+  position: relative;
+  outline: 1px dashed transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  border-radius: 4px;
+}
+
+.editable-section-container:has(> .section-drag-handle:hover) {
+  outline-color: var(--text-color-light);
+  background-color: var(--container-color-alt);
+}
+.editable-item-container:has(> .item-drag-handle:hover) {
+  outline-color: var(--text-color-light);
+  background-color: var(--container-color-alt);
+}
+
+.resume__left, .resume__right {
+  color: var(--text-color);
+}
+
+/* ==========================================================
+   PRINT STYLES (For Native Browser Printing & Puppeteer)
+   ========================================================== */
+@media print {
+  /* Ocultar UI de Edición */
+  .l-navbar, 
+  .change-theme, 
+  .generate-pdf,
+  .section-drag-handle,
+  .item-drag-handle {
+    display: none !important;
+  }
+
+  /* Forzar renderizado de colores de fondo */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Formato A4 y eliminación de márgenes del navegador */
+  @page {
+    size: A4;
+    margin: 0; 
+  }
+
+  /* Asegurar que solo se imprima el área del CV */
+  body {
+    background-color: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  #root, html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #area-cv {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Control de Saltos de Página (Page Breaks) */
+  .experience__content, 
+  .education__content,
+  .skills__name,
+  .editable-item-container {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Evitar que una sección se corte a la mitad, si es posible */
+  .cv-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  p, h2, h3, li {
+    orphans: 3;
+    widows: 3;
+  }
+}

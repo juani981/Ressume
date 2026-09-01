@@ -1,0 +1,302 @@
+[
+  {
+    "id": "crea_001",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Portfolio Link Essential",
+    "suggestion_body": "Design roles require visual proof. Ensure your primary portfolio link (website, Behance, or Dribbble) is prominent in the header.",
+    "severity": "critical"
+  },
+  {
+    "id": "crea_002",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "color_select",
+    "suggestion_title": "Maintain High Contrast",
+    "suggestion_body": "Ensure your background and text colors maintain at least a 4.5:1 contrast ratio for accessibility and readability.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_003",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Process Over Output",
+    "suggestion_body": "Don't just show the final design. Briefly describe your design thinking process and the problem you solved.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_004",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Typography Hierarchy",
+    "suggestion_body": "Use a clear typographic hierarchy. Stick to 1-2 font families, using varied weights (e.g., Bold for headers, Regular for body) to guide the eye.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_005",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Creative Identity",
+    "suggestion_body": "Define your creative niche. Are you a UX researcher, a motion designer, or a brand specialist? Make your primary focus clear in the first line.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_006",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Quantify Design Impact",
+    "suggestion_body": "Design isn't just about making things look good. Mention metrics like 'increased conversion by 15%' or 'reduced user onboarding time'.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_007",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "color_select",
+    "suggestion_title": "Color Palette Restraint",
+    "suggestion_body": "Limit your resume color palette to 2-3 complementary colors to avoid visual clutter. Let your portfolio pieces bring the color.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_008",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Behance Profile Verification",
+    "suggestion_body": "If linking to Behance, ensure your profile has at least 3 detailed case studies, not just single images.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_009",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Dribbble for UI/Visuals",
+    "suggestion_body": "Dribbble links are great for UI/Visual design roles. If applying for UX, prioritize a full portfolio site over Dribbble.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_010",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Highlight Soft Skills",
+    "suggestion_body": "Design is highly collaborative. Mention soft skills like 'cross-functional communication', 'workshop facilitation', or 'client presentation'.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_011",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "color_select",
+    "suggestion_title": "Embrace White Space",
+    "suggestion_body": "Don't cram information. Use generous negative space (white space) to create a sense of elegance and focus the reader's attention.",
+    "severity": "critical"
+  },
+  {
+    "id": "crea_012",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Specific Tools Used",
+    "suggestion_body": "List the specific tools used for each project (e.g., Figma, After Effects, Cinema4D) to show your technical breadth.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_013",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Avoid Skill Progress Bars",
+    "suggestion_body": "Avoid using arbitrary progress bars or ratings (e.g., 4/5 stars in Photoshop). They are subjective and often confusing.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_014",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Consistency in Alignment",
+    "suggestion_body": "Ensure all dates, locations, and titles are perfectly aligned. Design recruiters notice alignment errors immediately.",
+    "severity": "critical"
+  },
+  {
+    "id": "crea_015",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Avoid Buzzwords",
+    "suggestion_body": "Skip generic terms like 'creative ninja' or 'design rockstar'. Stick to professional, clear job titles.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_016",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Highlight Prototyping",
+    "suggestion_body": "If applicable, mention your level of prototyping fidelity (lo-fi wireframes vs. high-fidelity interactive prototypes).",
+    "severity": "info"
+  },
+  {
+    "id": "crea_017",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Password Protected Work",
+    "suggestion_body": "If your portfolio is password protected, clearly state this and offer a way for recruiters to request access.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_018",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "color_select",
+    "suggestion_title": "Dark Mode Considerations",
+    "suggestion_body": "If using a dark mode theme for your resume, ensure typography remains legible when printed on standard paper.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_019",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "User-Centered Focus",
+    "suggestion_body": "Use language that emphasizes the end-user. Mention 'user testing', 'accessibility', and 'empathy'.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_020",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Showcase Grid Systems",
+    "suggestion_body": "Design your resume using a strong underlying grid (e.g., 12-column). This subliminally communicates your layout skills.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_021",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Role Clarity in Teams",
+    "suggestion_body": "For team projects, explicitly state your specific role and contribution. What exactly did *you* design?",
+    "severity": "critical"
+  },
+  {
+    "id": "crea_022",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Typography: Line Length",
+    "suggestion_body": "Keep line lengths between 45 and 75 characters for optimal readability. Don't stretch paragraphs across the entire page.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_023",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mention Design Systems",
+    "suggestion_body": "Experience with creating or maintaining Design Systems is highly valuable. Highlight this if you have it.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_024",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Continuous Learning",
+    "suggestion_body": "Design trends change rapidly. Mention recent courses, workshops, or new software you've mastered.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_025",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Custom Domain",
+    "suggestion_body": "A custom domain (e.g., yourname.com) for your portfolio looks far more professional than a default platform URL.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_026",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Agile and Sprints",
+    "suggestion_body": "Mention your experience working in Agile environments, two-week sprints, or collaborating with developers.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_027",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Visual Balance",
+    "suggestion_body": "Ensure the visual weight of the resume is balanced. Don't make one side heavy with text while the other is empty.",
+    "severity": "warning"
+  },
+  {
+    "id": "crea_028",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Format and Export",
+    "suggestion_body": "Always export your CV as a vector-based PDF. Rasterized text looks unprofessional when zoomed in.",
+    "severity": "critical"
+  },
+  {
+    "id": "crea_029",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Client Management",
+    "suggestion_body": "If you have freelance or agency experience, highlight your skills in managing client expectations and feedback loops.",
+    "severity": "info"
+  },
+  {
+    "id": "crea_030",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "creative",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Accessibility Standards",
+    "suggestion_body": "Highlight any experience designing for WCAG compliance and accessible user interfaces.",
+    "severity": "info"
+  }
+]

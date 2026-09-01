@@ -1,0 +1,502 @@
+[
+  {
+    "id": "hum_001",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "F-Pattern Scanning",
+    "suggestion_body": "Recruiters scan in an F-pattern. Ensure your most critical information (name, current title) is at the top left.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_002",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "color_select",
+    "suggestion_title": "60-30-10 Color Rule",
+    "suggestion_body": "Use 60% neutral background, 30% secondary text color, and 10% accent color for headers or icons to maintain professional harmony.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_003",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "White Space Balance",
+    "suggestion_body": "Avoid crowding the narrow column. Leave at least 0.5 inches of margin on all sides to give the eyes resting space.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_004",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Bullet Length Limit",
+    "suggestion_body": "Keep experience bullets to a maximum of 2 lines. Dense blocks of text are skipped by human eyes.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_005",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Avoid Progress Bars",
+    "suggestion_body": "Do not use visual progress bars for skills. They create cognitive load and recruiters find subjective ratings confusing.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_006",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Job Title Prominence",
+    "suggestion_body": "Make your Job Title more visually prominent (bold/larger) than the Company Name. Recruiters look for role alignment first.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_007",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Right-Aligned Dates",
+    "suggestion_body": "Align dates to the right margin of the main column. This creates a clean Z-pattern flow for the reader.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_008",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Sans-Serif Fonts",
+    "suggestion_body": "Use clean, sans-serif fonts (like Arial, Roboto, or Calibri) which render better on screens and are easier to skim quickly.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_009",
+    "target_section": "profile",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Concise Summary",
+    "suggestion_body": "Limit your professional summary to 3-4 lines. Long paragraphs at the top disrupt the 7-second initial scan.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_010",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Visual Metrics",
+    "suggestion_body": "Bold quantifiable numbers in your bullets (e.g., 'increased by **20%**'). Numbers act as anchor points for human eyes.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_011",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "color_select",
+    "suggestion_title": "Avoid Dark Themes",
+    "suggestion_body": "Avoid dark background resumes unless applying to specific design roles. They strain the eyes and print poorly.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_012",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Two-Column Proportion",
+    "suggestion_body": "Ensure a 1/3 to 2/3 column split. A 50/50 split confuses visual hierarchy and reading direction.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_013",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Skill Categorization",
+    "suggestion_body": "Group skills into categories (e.g., 'Languages', 'Frameworks'). A massive unstructured list causes visual fatigue.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_014",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Optimal Bullet Count",
+    "suggestion_body": "Aim for 3-5 bullets per recent role. Older roles should have fewer (1-2) to maintain scan velocity.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_015",
+    "target_section": "education",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Education Placement",
+    "suggestion_body": "If you have >3 years experience, move Education to the narrow column or the bottom. Experience matters more.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_016",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Consistent Spacing",
+    "suggestion_body": "Use consistent vertical spacing between sections. Inconsistent spacing signals lack of attention to detail.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_017",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "color_select",
+    "suggestion_title": "Accessible Contrast",
+    "suggestion_body": "Ensure text contrast meets WCAG standards (at least 4.5:1). Light gray text on white is a common readability killer.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_018",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Action Verbs Front-Loaded",
+    "suggestion_body": "Start every bullet point with a strong action verb. Recruiters skim down the left edge of bullet lists.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_019",
+    "target_section": "projects",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Project Impact",
+    "suggestion_body": "Format projects exactly like jobs: Title, tech stack used, and bulleted outcomes. Avoid narrative paragraphs.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_020",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Limit to 2 Fonts",
+    "suggestion_body": "Use a maximum of two font families (one for headers, one for body). Too many fonts destroy visual cohesion.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_021",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Avoid Orphans",
+    "suggestion_body": "Watch for single words spilling onto a new line at the end of bullets (orphans). It wastes valuable vertical space.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_022",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Line Height",
+    "suggestion_body": "Set line height to 1.15 or 1.2. Single spacing (1.0) looks too cramped for humans to read comfortably.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_023",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Clear Section Headers",
+    "suggestion_body": "Make section headers at least 2-4 points larger than body text and consider all-caps or distinct color to anchor the F-pattern.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_024",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Skill Keyword Highlighting",
+    "suggestion_body": "Bold your 3 strongest skills if they are in a comma-separated list. It directs the recruiter's eye immediately.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_025",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Consistent Bullet Icons",
+    "suggestion_body": "Use standard round or square bullets. Novelty icons distract from the content.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_026",
+    "target_section": "education",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Degree Prominence",
+    "suggestion_body": "Bold the degree name (e.g., B.S. Computer Science) rather than the university name, unless the university is highly prestigious.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_027",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Strategic Narrow Column",
+    "suggestion_body": "Put easily scannable lists (Skills, Contact, Languages) in the narrow column. Keep the wide column for narrative (Experience).",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_028",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "color_select",
+    "suggestion_title": "Hyperlink Colors",
+    "suggestion_body": "Make hyperlinks a distinct but professional color (like subtle blue) and remove underlines to reduce visual clutter.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_029",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Remove Filler Words",
+    "suggestion_body": "Remove words like 'Responsible for' or 'Tasked with'. Jump straight to the action to respect the recruiter's time.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_030",
+    "target_section": "projects",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Link to Repos",
+    "suggestion_body": "Include a direct, clickable link to the live project or GitHub repo right next to the project title.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_031",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Visual Dividers",
+    "suggestion_body": "Use subtle horizontal lines beneath section headers. It visually sections the document and aids the scanning process.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_032",
+    "target_section": "education",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Omit High School",
+    "suggestion_body": "Do not include high school education if you have a university degree. It clutters the visual hierarchy.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_033",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Use Month and Year",
+    "suggestion_body": "Format dates as 'MMM YYYY' (e.g., Oct 2021). Just using years can hide employment gaps and look visually unbalanced.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_034",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Limit Skill Count",
+    "suggestion_body": "Keep total listed skills under 15. Listing 30+ skills makes them blend together and dilutes your core competencies.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_035",
+    "target_section": "profile",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Avoid Buzzwords",
+    "suggestion_body": "Remove words like 'Synergy', 'Go-getter', or 'Ninja'. Human readers find them cliché and they waste space.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_036",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Page Length Limit",
+    "suggestion_body": "Keep to 1 page unless you have 10+ years of experience. A 2-column layout gets visually exhausting over multiple pages.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_037",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Italics for Context",
+    "suggestion_body": "Use italics sparingly, such as for a one-line company description beneath the company name, to establish context visually.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_038",
+    "target_section": "education",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Hide Old Dates",
+    "suggestion_body": "If you graduated over 10 years ago, omit the graduation year to prevent age bias and reduce visual clutter.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_039",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "color_select",
+    "suggestion_title": "Subtle Section Backgrounds",
+    "suggestion_body": "If tinting the narrow column, use a very light gray or pastel. Heavy colors make text hard to read and waste printer ink.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_040",
+    "target_section": "projects",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Limit Project Count",
+    "suggestion_body": "List only top 2-3 most relevant projects. More than that dilutes impact in a 2-column layout.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_041",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Present Tense for Current",
+    "suggestion_body": "Ensure current role uses present tense and past roles use past tense. Consistency aids cognitive processing.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_042",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Avoid All Caps",
+    "suggestion_body": "Avoid using ALL CAPS for anything longer than 2 words (like a section header). It slows down reading speed.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_043",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Iconography",
+    "suggestion_body": "If using icons for skills or contact info, keep them minimalist, monotone, and small so they do not overpower text.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_044",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Stacked vs Inline",
+    "suggestion_body": "Keep Job Title and Company stacked rather than inline. It allows the eyes to quickly parse role vs employer.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_045",
+    "target_section": "profile",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "on_edit_title",
+    "suggestion_title": "Headline Alignment",
+    "suggestion_body": "Include a headline under your name (e.g., 'Senior Frontend Engineer') to instantly tell the recruiter your level and domain.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_046",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Left Align Text",
+    "suggestion_body": "Always left-align body text. Center or justified text creates uneven whitespace and is harder to track.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_047",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Contextualize Promotions",
+    "suggestion_body": "If promoted, stack the job titles under one company header to show growth visually without cluttering.",
+    "severity": "info"
+  },
+  {
+    "id": "hum_048",
+    "target_section": "skills",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Remove Soft Skills",
+    "suggestion_body": "Do not list generic soft skills (e.g., 'Hard Worker'). Show these through experience bullets instead. They waste space here.",
+    "severity": "warning"
+  },
+  {
+    "id": "hum_049",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "layout_select",
+    "suggestion_title": "Sufficient Font Size",
+    "suggestion_body": "Body text must be at least 10pt (ideally 11pt). Anything smaller is illegible for older recruiters or on small screens.",
+    "severity": "critical"
+  },
+  {
+    "id": "hum_050",
+    "target_section": "education",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "text_length_scan",
+    "suggestion_title": "Include Honors Sparingly",
+    "suggestion_body": "Only include honors (e.g., Cum Laude) if you are a recent grad. Otherwise, it detracts from professional achievements.",
+    "severity": "info"
+  }
+]

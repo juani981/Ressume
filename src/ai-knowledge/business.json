@@ -1,0 +1,302 @@
+[
+  {
+    "id": "exec_001",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Quantify P&L Ownership",
+    "suggestion_body": "Specify exact P&L managed (e.g., '$50M+ P&L'). Executives must demonstrate concrete financial scope.",
+    "severity": "critical"
+  },
+  {
+    "id": "exec_002",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_add_experience",
+    "suggestion_title": "Highlight Revenue Growth",
+    "suggestion_body": "Use percentages and absolute numbers to show revenue growth (e.g., 'Grew ARR by 45% to $120M').",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_003",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Detail Team Size & Structure",
+    "suggestion_body": "Indicate the scale of your leadership. Mention direct reports and total organization size (e.g., 'Led a 500+ global team').",
+    "severity": "info"
+  },
+  {
+    "id": "exec_004",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mergers & Acquisitions (M&A)",
+    "suggestion_body": "If applicable, highlight M&A activity, deal sizes, and successful integrations.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_005",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Board & Investor Relations",
+    "suggestion_body": "Emphasize experience reporting to the Board of Directors or managing investor relations.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_006",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Cost Optimization",
+    "suggestion_body": "Detail specific cost-saving initiatives and their bottom-line impact.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_007",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_add_experience",
+    "suggestion_title": "Market Expansion",
+    "suggestion_body": "Highlight successful entries into new geographic markets or product categories.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_008",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Change Management",
+    "suggestion_body": "Describe large-scale transformations or change management programs you spearheaded.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_009",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Restructuring & Turnarounds",
+    "suggestion_body": "For turnaround roles, quantify the recovery metrics (e.g., 'Reversed 3-year decline, achieving 15% EBITDA margin').",
+    "severity": "critical"
+  },
+  {
+    "id": "exec_010",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Executive Summary Tone",
+    "suggestion_body": "Ensure your profile reads as a high-level executive summary, focusing on strategic vision and key outcomes.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_011",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Highlight Prestige Programs",
+    "suggestion_body": "Prominently feature MBAs or executive education from top-tier institutions.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_012",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Use High-Impact Verbs",
+    "suggestion_body": "Start bullets with strong executive verbs: Spearheaded, Architected, Championed, Orchestrated.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_013",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Digital Transformation",
+    "suggestion_body": "Detail any enterprise-wide digital transformations you led and their ROI.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_014",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_add_experience",
+    "suggestion_title": "Capital Raising & Funding",
+    "suggestion_body": "Specify amounts raised in funding rounds (Series A/B/C, IPO) or debt restructuring.",
+    "severity": "critical"
+  },
+  {
+    "id": "exec_015",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Strategic Partnerships",
+    "suggestion_body": "Highlight key alliances, joint ventures, or strategic partnerships negotiated.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_016",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Operational Efficiency",
+    "suggestion_body": "Quantify improvements in operational efficiency, cycle times, or productivity.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_017",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Crisis Leadership",
+    "suggestion_body": "Showcase resilience and decisive action during crises (e.g., pandemic response, supply chain disruptions).",
+    "severity": "info"
+  },
+  {
+    "id": "exec_018",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Stakeholder Alignment",
+    "suggestion_body": "Mention your ability to align diverse stakeholders (internal and external) toward a unified vision.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_019",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "KPI & OKR Frameworks",
+    "suggestion_body": "Specify the performance management frameworks (OKRs, Balanced Scorecard) you implemented.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_020",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_add_experience",
+    "suggestion_title": "Major Product Launches",
+    "suggestion_body": "Highlight the financial impact of flagship product or service launches.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_021",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Cross-Functional Synergy",
+    "suggestion_body": "Demonstrate how you broke down silos between Sales, Marketing, Ops, and Finance.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_022",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Talent Retention & Culture",
+    "suggestion_body": "Highlight improvements in employee retention, engagement scores, and corporate culture.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_023",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Budget Management",
+    "suggestion_body": "State the exact size of the annual operating or capital budgets you controlled.",
+    "severity": "critical"
+  },
+  {
+    "id": "exec_024",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Market Share Growth",
+    "suggestion_body": "Quantify market share captured from competitors during your tenure.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_025",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Regulatory Compliance",
+    "suggestion_body": "Highlight experience navigating complex regulatory environments or avoiding penalties.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_026",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Brand Positioning",
+    "suggestion_body": "Summarize your role in elevating or repositioning the corporate brand in the market.",
+    "severity": "info"
+  },
+  {
+    "id": "exec_027",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Go-To-Market (GTM) Strategy",
+    "suggestion_body": "Detail the GTM strategies designed and executed for new ventures.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_028",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Customer Acquisition Cost (CAC)",
+    "suggestion_body": "Highlight reductions in CAC or improvements in Lifetime Value (LTV).",
+    "severity": "info"
+  },
+  {
+    "id": "exec_029",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Post-Merger Integration",
+    "suggestion_body": "Describe the speed and success metrics of integrating acquired companies.",
+    "severity": "warning"
+  },
+  {
+    "id": "exec_030",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "business",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Avoid Management Clichés",
+    "suggestion_body": "Replace generic buzzwords ('thought leader', 'results-driven') with concrete, quantifiable facts.",
+    "severity": "critical"
+  }
+]

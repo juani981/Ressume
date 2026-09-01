@@ -1,26 +1,36 @@
-const puppeteer = require('puppeteer-core');
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
-exports.handler = async (event, context) => {
-    // Only accept POST requests
+export const handler = async (event, context) => {
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    };
+
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers, body: '' };
+    }
+
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+        return { statusCode: 405, headers, body: 'Method Not Allowed' };
     }
 
     let browser = null;
     try {
-        // Dynamically import @sparticuz/chromium because it's an ES Module
-        // and cannot be required() in CommonJS Netlify functions
-        const chromiumModule = await import('@sparticuz/chromium');
-        const chromium = chromiumModule.default || chromiumModule;
-
-        const { url, edits, lang, height } = JSON.parse(event.body);
+        const bodyData = JSON.parse(event.body);
+        
+        // Frontend might send the url along with the state, or we fallback to origin/referer
+        const url = bodyData.url || event.headers.referer || event.headers.origin;
         
         if (!url) {
-            return { statusCode: 400, body: 'Missing URL parameter' };
+            return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing URL parameter or referer' }) };
         }
 
+        // Use the explicit cv_state if provided, otherwise assume the entire body is the state
+        const cvState = bodyData.cv_state !== undefined ? bodyData.cv_state : bodyData;
+
         // Configure chromium for serverless environment
-        // This relies on @sparticuz/chromium downloading the correct binaries
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: { width: 1200, height: 3000, deviceScaleFactor: 2 },
@@ -32,9 +42,16 @@ exports.handler = async (event, context) => {
         const page = await browser.newPage();
         
         console.log(`Navigating to ${url}...`);
-        // Use networkidle0 to ensure fonts and styles are loaded
         await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 });
         
+        console.log('Injecting cvData into localStorage...');
+        await page.evaluate((state) => {
+            localStorage.setItem('cvData', typeof state === 'string' ? state : JSON.stringify(state));
+        }, cvState);
+
+        console.log('Reloading page to apply state...');
+        await page.reload({ waitUntil: 'networkidle0', timeout: 15000 });
+
         // Ensure web fonts are fully loaded
         await page.evaluate(async () => {
             if (document.fonts) {
@@ -42,17 +59,6 @@ exports.handler = async (event, context) => {
             }
         });
 
-        console.log(`Injecting custom edits for lang: ${lang}`);
-        // Inject the custom edits and language
-        await page.evaluate((customEdits, targetLang) => {
-            if (customEdits) {
-                window.customEdits = customEdits;
-            }
-            if (window.updateLanguage) {
-                window.updateLanguage(targetLang);
-            }
-        }, edits, lang);
-        
         // Inject styles to hide UI navigation elements and prepare layout for pixel-perfect PDF export
         await page.addStyleTag({
             content: `
@@ -82,7 +88,7 @@ exports.handler = async (event, context) => {
         
         // Always calculate the exact height in the backend AFTER styles are injected and animations stopped
         const finalHeight = await page.evaluate(() => {
-            const el = document.getElementById('area-cv');
+            const el = document.getElementById('area-cv') || document.body;
             // Add a small buffer of 20px just in case of subpixel rendering clipping
             return el ? el.offsetHeight + 20 : 3000;
         });
@@ -101,6 +107,7 @@ exports.handler = async (event, context) => {
         return {
             statusCode: 200,
             headers: {
+                ...headers,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ pdfBase64: Buffer.from(pdfBuffer).toString('base64') })
@@ -109,6 +116,7 @@ exports.handler = async (event, context) => {
         console.error("PDF Generation Error:", error);
         return {
             statusCode: 500,
+            headers,
             body: JSON.stringify({ error: error.message || "Failed to generate PDF" })
         };
     } finally {
