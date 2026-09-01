@@ -1,11 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { getAISuggestions } from '../../ai-knowledge/index.js';
 
-const SuggestionTooltip = ({ section, isHovered, layoutType }) => {
+const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
   const [suggestions, setSuggestions] = useState([]);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (isHovered) {
+    if (isHovered && rect) {
+      // Calculate tooltip position
+      let top = rect.top;
+      let left = rect.right + 20;
+
+      // If it overflows the right edge of the screen, place it on the left of the section
+      if (left + 300 > window.innerWidth) {
+        left = rect.left - 320;
+      }
+      
+      // Keep it within vertical bounds
+      if (top + 400 > window.innerHeight) {
+        top = window.innerHeight - 420;
+      }
+      if (top < 20) top = 20;
+
+      setPos({ top, left });
+
       // Map section type to target_section in our rules
       let targetSection = 'global';
       if (section.type === 'experience') targetSection = 'experience';
@@ -47,7 +65,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType }) => {
       // Pick top 2-3 to avoid overwhelming
       setSuggestions(scoredMatches.slice(0, 3).map(sm => sm.rule));
     }
-  }, [isHovered, section, layoutType]);
+  }, [isHovered, section, layoutType, rect]);
 
   if (!isHovered || suggestions.length === 0) return null;
 
@@ -56,8 +74,8 @@ const SuggestionTooltip = ({ section, isHovered, layoutType }) => {
       className="suggestion-tooltip"
       style={{
         position: 'fixed',
-        top: '100px',
-        right: '20px', 
+        top: `${pos.top}px`,
+        left: `${pos.left}px`, 
         width: '300px',
         backgroundColor: '#f8fafc',
         border: '1px solid #cbd5e1',

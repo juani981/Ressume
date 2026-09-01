@@ -11,6 +11,7 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 
 const CVSection = ({ section }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [rect, setRect] = useState(null);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: section.id });
   const { cvData, updateSectionTitle, reorderSectionItems } = useCV();
 
@@ -31,16 +32,21 @@ const CVSection = ({ section }) => {
 
   const sectionClass = section.type === 'skills' ? 'skills' : section.type === 'education' ? 'education' : section.type === 'profile_header' ? 'home' : section.type === 'about' ? 'profile' : 'experience';
 
+  const handleMouseEnter = (e) => {
+    setRect(e.currentTarget.getBoundingClientRect());
+    setIsHovered(true);
+  };
+
   return (
     <section 
       ref={setNodeRef} 
       style={style} 
       className={`${sectionClass} section editable-section-container`} 
       id={section.id}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <SuggestionTooltip section={section} isHovered={isHovered} layoutType={cvData.layout?.columns || 2} />
+      <SuggestionTooltip section={section} isHovered={isHovered} layoutType={cvData.layout?.columns || 2} rect={rect} />
       <DragHandle listeners={listeners} attributes={attributes} />
       {section.type !== 'profile_header' && (
         <h2 className="section-title">
