@@ -1,8 +1,7 @@
 [build]
-  command = "npm install"
-  publish = "."
+  command = "npm run build"
+  publish = "dist"
 
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@sparticuz/chromium"]
-  included_files = ["node_modules/@sparticuz/chromium/bin/**"]
+[context.deploy-preview]
+  command = "npm run build"
+  publish = "dist"

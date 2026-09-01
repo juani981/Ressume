@@ -1,33 +1,30 @@
 import React, { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
 import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import CVBlock from './CVBlock';
 import SuggestionTooltip from '../Editor/SuggestionTooltip';
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 
 const CVSection = ({ section }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [rect, setRect] = useState(null);
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: section.id });
-  const { cvData, updateSectionTitle, reorderSectionItems } = useCV();
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
+    id: section.id,
+    data: {
+      type: 'section',
+      section
+    }
+  });
+
+  const { cvData, updateSectionTitle, addSectionItem, deleteSection } = useCV();
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    position: 'relative'
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = section.items.findIndex((i) => i.id === active.id);
-      const newIndex = section.items.findIndex((i) => i.id === over.id);
-      reorderSectionItems(section.id, arrayMove(section.items, oldIndex, newIndex));
-    }
+    position: 'relative',
+    opacity: isDragging ? 0.4 : 1
   };
 
   const sectionClass = section.type === 'skills' ? 'skills' : section.type === 'education' ? 'education' : section.type === 'profile_header' ? 'home' : section.type === 'about' ? 'profile' : 'experience';
@@ -46,8 +43,24 @@ const CVSection = ({ section }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <SuggestionTooltip section={section} isHovered={isHovered} layoutType={cvData.layout?.columns || 2} rect={rect} />
+      <SuggestionTooltip section={section} isHovered={isHovered} layoutType={cvData.layout?.type === '1-column' ? 1 : 2} rect={rect} />
       <DragHandle listeners={listeners} attributes={attributes} />
+      
+      {/* Red (-) Delete Section Button in Top-Right */}
+      {section.type !== 'profile_header' && (
+        <button 
+          type="button"
+          className="round-btn-del section-del-btn no-print"
+          title={`Eliminar sección ${section.title || section.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteSection(section.id);
+          }}
+        >
+          <i className='bx bx-trash' style={{ fontSize: '14px' }}></i>
+        </button>
+      )}
+
       {section.type !== 'profile_header' && (
         <h2 className="section-title">
           <InlineEdit 
@@ -58,28 +71,43 @@ const CVSection = ({ section }) => {
       )}
       
       <div className={section.type === 'profile_header' || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}>
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={section.items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-            {section.type === 'simple_list' ? (
-              <ul style={{ color: 'var(--text-color)' }}>
-                {section.items.map(item => (
-                  <CVBlock key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-                ))}
-              </ul>
-            ) : section.type === 'skills' ? (
-              <ul className="skills__content bd-grid" style={{ gridTemplateColumns: '1fr' }}>
-                {section.items.map(item => (
-                  <CVBlock key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-                ))}
-              </ul>
-            ) : (
-              section.items.map(item => (
+        <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
+          {section.type === 'simple_list' ? (
+            <ul style={{ color: 'var(--text-color)', padding: 0 }}>
+              {(section.items || []).map(item => (
                 <CVBlock key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-              ))
-            )}
-          </SortableContext>
-        </DndContext>
+              ))}
+            </ul>
+          ) : section.type === 'skills' ? (
+            <ul className="skills__content bd-grid" style={{ gridTemplateColumns: '1fr', padding: 0 }}>
+              {(section.items || []).map(item => (
+                <CVBlock key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
+              ))}
+            </ul>
+          ) : (
+            (section.items || []).map(item => (
+              <CVBlock key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
+            ))
+          )}
+        </SortableContext>
       </div>
+
+      {/* Green (+) Add Item Button below Container */}
+      {section.type !== 'profile_header' && (
+        <div className="section-add-container no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '0.75rem' }}>
+          <button 
+            type="button"
+            className="round-btn-add no-print"
+            title={`Agregar nuevo elemento a ${section.title || 'esta sección'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              addSectionItem(section.id);
+            }}
+          >
+            <i className='bx bx-plus' style={{ fontSize: '18px', fontWeight: 'bold' }}></i>
+          </button>
+        </div>
+      )}
     </section>
   );
 };

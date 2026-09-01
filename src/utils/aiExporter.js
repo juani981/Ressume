@@ -169,11 +169,21 @@ export const exportToAIMarkdown = (cvData) => {
     lines.push('');
   };
 
-  // In 1-column (ATS mode), force strict canonical ATS ordering
+  // In 1-column (ATS mode), force strict canonical ATS ordering + dynamic user sections
   if (is1Col) {
+    const renderedIds = new Set();
     CANONICAL_ATS_ORDER.forEach(secId => {
       const sec = cvData.sections?.find(s => s.id === secId || (secId === 'about_section' && s.type === 'about'));
-      if (sec) renderSection(sec);
+      if (sec) {
+        renderSection(sec);
+        renderedIds.add(sec.id);
+      }
+    });
+    // Append any custom sections added by the user
+    (cvData.sections || []).forEach(sec => {
+      if (!renderedIds.has(sec.id) && sec.type !== 'profile_header') {
+        renderSection(sec);
+      }
     });
   } else {
     // In 2-column mode, render sections as configured
@@ -184,6 +194,7 @@ export const exportToAIMarkdown = (cvData) => {
 
   return lines.join('\n');
 };
+
 
 /**
  * Converts cvData into hierarchical Semantic XML for LLMs/Parsers with tag boundaries.
@@ -232,11 +243,27 @@ export const exportToAIXML = (cvData) => {
     xml.push(`    <professional_summary>${escapeXML(aboutItem.description)}</professional_summary>`);
   }
   xml.push('  </candidate>');
-  xml.push('  <sections>');
+  const getOrderedSections = () => {
+    if (!is1Col) return cvData.sections || [];
+    const ordered = [];
+    const seen = new Set();
+    CANONICAL_ATS_ORDER.forEach(id => {
+      const sec = cvData.sections?.find(s => s.id === id || (id === 'about_section' && s.type === 'about'));
+      if (sec) {
+        ordered.push(sec);
+        seen.add(sec.id);
+      }
+    });
+    (cvData.sections || []).forEach(sec => {
+      if (!seen.has(sec.id) && sec.type !== 'profile_header') {
+        ordered.push(sec);
+      }
+    });
+    return ordered;
+  };
 
-  const sectionsToRender = is1Col
-    ? CANONICAL_ATS_ORDER.map(id => cvData.sections?.find(s => s.id === id || (id === 'about_section' && s.type === 'about'))).filter(Boolean)
-    : (cvData.sections || []);
+  const sectionsToRender = getOrderedSections();
+
 
   sectionsToRender.forEach((sec, idx) => {
     if (sec.type === 'profile_header' || sec.type === 'about') return;
@@ -306,12 +333,24 @@ export const exportToATSPlainText = (cvData) => {
     lines.push('\n');
   }
 
-  // Canonical ATS linear output
-  const sectionsToRender = CANONICAL_ATS_ORDER
-    .map(id => cvData.sections?.find(s => s.id === id || (id === 'about_section' && s.type === 'about')))
-    .filter(Boolean);
+  // Canonical ATS linear output + dynamic custom sections
+  const orderedSections = [];
+  const seenIds = new Set();
+  CANONICAL_ATS_ORDER.forEach(id => {
+    const sec = cvData.sections?.find(s => s.id === id || (id === 'about_section' && s.type === 'about'));
+    if (sec) {
+      orderedSections.push(sec);
+      seenIds.add(sec.id);
+    }
+  });
+  (cvData.sections || []).forEach(sec => {
+    if (!seenIds.has(sec.id) && sec.type !== 'profile_header') {
+      orderedSections.push(sec);
+    }
+  });
 
-  sectionsToRender.forEach(sec => {
+  orderedSections.forEach(sec => {
+
     if (sec.type === 'profile_header' || sec.type === 'about') return;
     lines.push((sec.title || sec.id).toUpperCase());
     lines.push('-'.repeat(30));
