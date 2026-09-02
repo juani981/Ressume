@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getRules } from '../../locales/index';
-import { MessageSquareWarning, TriangleAlert, CircleAlert } from 'lucide-react';
+import { Sparkles, OctagonAlert, TriangleAlert, Info } from 'lucide-react';
 
 const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
   const { activeLanguage } = useCV();
@@ -29,7 +29,9 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
 
       // Map section type & id to target_section in our rules
       let targetSection = 'global';
-      if (section.id === 'experience' || section.type === 'experience') {
+      if (!section) {
+        targetSection = 'global';
+      } else if (section.id === 'experience' || section.type === 'experience' || section.type === 'list') {
         targetSection = 'experience';
       } else if (section.id === 'education' || section.type === 'education') {
         targetSection = 'education';
@@ -49,7 +51,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
       const targetLayout = layoutType === 1 ? 'ATS_1_col' : 'Human_2_col';
 
       // Load localized rules for active language
-      const allRules = getRules(activeLanguage);
+      const allRules = getRules(activeLanguage) || [];
       let allMatching = allRules.filter(rule => {
         const matchesSection = rule.target_section === targetSection || rule.target_section === 'global';
         const matchesLayout = rule.target_layout === targetLayout || rule.target_layout === 'both';
@@ -61,13 +63,22 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
         allMatching = allRules.filter(rule => rule.target_section === 'global');
       }
 
+      if (allMatching.length === 0) {
+        allMatching = [
+          {
+            id: 'default_tip',
+            severity: 'info',
+            suggestion_title: 'Optimización de Contenido',
+            suggestion_body: 'Estructura tus logros con verbos de acción y métricas cuantificables.'
+          }
+        ];
+      }
 
       // Regex matching based on content with critical severity prioritization
-      const sectionText = JSON.stringify(section).toLowerCase();
+      const sectionText = JSON.stringify(section || {}).toLowerCase();
       const scoredMatches = allMatching.map(rule => {
-        // High severity gets strong baseline score
         let score = rule.severity === 'critical' ? 8 : rule.severity === 'warning' ? 4 : 1;
-        const keywords = (rule.suggestion_title + ' ' + (rule.suggestion_body || '')).toLowerCase().split(' ').filter(w => w.length > 4);
+        const keywords = ((rule.suggestion_title || '') + ' ' + (rule.suggestion_body || '')).toLowerCase().split(' ').filter(w => w.length > 4);
         keywords.forEach(kw => {
           if (sectionText.includes(kw)) score += 2;
         });
@@ -77,10 +88,9 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
       // Pick top 2-3 to avoid overwhelming
       setSuggestions(scoredMatches.slice(0, 3).map(sm => sm.rule));
     }
-  }, [isHovered, section, layoutType, rect]);
+  }, [isHovered, section, layoutType, rect, activeLanguage]);
 
-
-  if (!isHovered || suggestions.length === 0) return null;
+  if (!isHovered || !rect || suggestions.length === 0) return null;
 
   return (
     <div
@@ -96,7 +106,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
         padding: '12px',
         zIndex: 9999,
-        pointerEvents: 'none', // so it doesn't interrupt drag/drop
+        pointerEvents: 'none',
         transition: 'opacity 0.2s ease-in-out',
         maxHeight: '80vh',
         overflowY: 'auto'
@@ -104,11 +114,13 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
     >
       <div style={{ margin: '0 0 10px 0', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
         <h4 style={{ margin: '0', fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
-          <span role="img" aria-label="lightbulb">💡</span> AI Suggestions
+          <Sparkles size={16} color="#3874ff" /> AI Suggestions
         </h4>
-        <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-          For section: <strong style={{ textTransform: 'capitalize' }}>{section.type.replace('_', ' ')}</strong>
-        </span>
+        {section?.type && (
+          <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+            For section: <strong style={{ textTransform: 'capitalize' }}>{section.type.replace('_', ' ')}</strong>
+          </span>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -116,7 +128,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
           const isCritical = s.severity === 'critical';
           const isWarning = s.severity === 'warning';
 
-          // Obsidian Callout Theme Colors
+          // Obsidian Callout Theme Colors according to AGENTS.md
           const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
 
           return (
@@ -124,7 +136,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
               key={s.id || index}
               className="obsidian-callout"
               style={{
-                backgroundColor: `rgba(${themeColor}, 0.05)`,
+                backgroundColor: `rgba(${themeColor}, 0.1)`,
                 borderLeft: `4px solid rgba(${themeColor}, 1)`,
                 borderRadius: '4px',
                 padding: '12px 14px',
@@ -147,8 +159,14 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
                   fontSize: '14px'
                 }}
               >
-                <span className="callout-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px' }}>
-                  {isCritical ? <CircleAlert size={16} /> : isWarning ? <TriangleAlert size={16} /> : <MessageSquareWarning size={16} />}
+                <span className="callout-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {isCritical ? (
+                    <OctagonAlert size={16} color={`rgba(${themeColor}, 1)`} />
+                  ) : isWarning ? (
+                    <TriangleAlert size={16} color={`rgba(${themeColor}, 1)`} />
+                  ) : (
+                    <Info size={16} color={`rgba(${themeColor}, 1)`} />
+                  )}
                 </span>
                 <span>{s.suggestion_title}</span>
               </div>

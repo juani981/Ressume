@@ -1,5 +1,5 @@
 /*===== GOOGLE FONTS =====*/
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap");
 
 /*===== VARIABLES CSS =====*/
 :root {
@@ -14,13 +14,19 @@
   --body-color: #e2e8f0;
 
   /*========== Font and typography ==========*/
+  --font-scale: 1;
+  --line-height: 1.45;
   --body-font: 'Poppins', sans-serif;
-  --h1-font-size: 1.5rem;
-  --h2-font-size: 1.25rem;
-  --h3-font-size: 1rem;
-  --normal-font-size: .938rem;
-  --small-font-size: .875rem;
-  --smaller-font-size: .813rem;
+  --page-padding: 24px;
+  --section-gap: 20px;
+  --item-gap: 8px;
+
+  --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+  --h3-font-size: calc(1rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+  --small-font-size: calc(0.875rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
 
   /*========== Font weight ==========*/
   --font-medium: 500;
@@ -155,6 +161,11 @@ body {
   color: var(--text-color);
 }
 
+#area-cv {
+  font-family: var(--body-font);
+  line-height: var(--line-height);
+}
+
 h1, h2, h3, ul, p {
   margin: 0;
 }
@@ -180,7 +191,8 @@ img {
 
 /*========== CLASS CSS ==========*/
 .section {
-  padding: 1.5rem 0;
+  padding: calc(var(--section-gap, 20px) / 2) 0;
+  margin-bottom: var(--section-gap, 1.5rem);
 }
 
 .section-title {
@@ -293,7 +305,7 @@ img {
 
 .home__data {
   gap: .5rem;
-  text-align: center;
+  text-align: left;
 }
 
 .home__img {
@@ -536,8 +548,14 @@ img {
     background-color: var(--container-color);
     box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     margin: 0 auto;
+  }
+
+  .resume.resume__single-column,
+  .resume:not(.bd-grid) {
+    display: block;
+    grid-template-columns: none;
   }
 
 
@@ -547,7 +565,7 @@ img {
 
   .resume__left,
   .resume__right {
-    padding: 0 1.5rem;
+    padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
   }
 
   .generate-pdf {
@@ -594,22 +612,49 @@ img {
 .drag-handle {
   cursor: grab;
   color: var(--text-color-light);
-  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease, transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
   position: absolute;
-  top: 0.25rem;
-  left: -1.75rem;
-  z-index: 10;
+  z-index: 20;
+  user-select: none;
+  touch-action: none;
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
-.editable-section-container:hover > .drag-handle,
-.editable-item-container:hover > .drag-handle {
-  opacity: 0.85;
+.drag-handle:hover {
+  color: #3874ff;
+  transform: scale(1.15);
+}
+
+.section-drag-handle {
+  top: 0.25rem;
+  left: 0.15rem;
+  font-size: 1.25rem;
+  padding: 1px 3px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.item-drag-handle {
+  top: 0.15rem;
+  left: 0.1rem;
+  font-size: 1.05rem;
+  padding: 1px 2px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.editable-section-container:hover > .section-drag-handle,
+.editable-item-container:hover > .item-drag-handle {
+  opacity: 0.9;
 }
 
 .inline-input {
@@ -636,22 +681,38 @@ img {
   outline: 2px solid transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   border-radius: 8px;
-  padding: 0.5rem 0.25rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.35rem;
+  margin-bottom: 0.35rem;
 }
+
 .editable-item-container {
   position: relative;
   outline: 1px dashed transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
   border-radius: 6px;
-  padding: 0.35rem 0.25rem;
+  padding: 0.15rem 0.25rem 0.15rem 0.25rem;
 }
 
 .editable-section-container:hover {
   outline-color: rgba(56, 116, 255, 0.25);
+  background-color: rgba(56, 116, 255, 0.02);
 }
 .editable-item-container:hover {
   outline-color: rgba(56, 116, 255, 0.35);
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Bullet points clean alignment */
+.experience__bullets {
+  padding-left: 1.15rem !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.25rem !important;
+  list-style-type: disc !important;
+}
+
+.experience__bullets li {
+  margin-bottom: 0.2rem;
+  line-height: 1.45;
 }
 
 /*========== ROUND ACTION BUTTONS (GREEN ADD / RED DELETE) ==========*/
@@ -860,17 +921,15 @@ img {
   }
 
   /* Control de Saltos de Página (Page Breaks) */
+  .cv-section,
+  .cv-block,
+  .section,
   .experience__content, 
   .education__content,
   .skills__name,
   .editable-item-container {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-  
-  .cv-section {
-    page-break-inside: avoid;
-    break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
   
   p, h2, h3, li {

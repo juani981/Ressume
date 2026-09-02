@@ -1,0 +1,546 @@
+/**
+ * staticHtmlPdfEngine.js
+ * 
+ * Dedicated static HTML PDF generation core for high-fidelity native printing.
+ * Isolates visual content from editor artifacts, embeds strict CSS pagination rules,
+ * and enforces dynamic auto-scaling to fit within a maximum of 2 A4 pages.
+ */
+
+const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246px)
+const MIN_SCALE_FLOOR = 0.75;
+
+/**
+ * Escapes HTML characters to prevent XSS and malformed HTML
+ */
+export const escapeHTML = (str) => {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+/**
+ * Calculates auto-scale factor adhering to max 2 A4 pages limit
+ * @param {number} renderedHeight 
+ * @returns {number} Scale factor between 0.82 and 1.0
+ */
+export const calculatePrintScale = (renderedHeight) => {
+  if (!renderedHeight || renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX) {
+    return 1.0;
+  }
+  const calculated = MAX_A4_2PAGE_HEIGHT_PX / renderedHeight;
+  return Math.max(MIN_SCALE_FLOOR, +(calculated.toFixed(3)));
+};
+
+/**
+ * Computes YIQ contrast colors for backgrounds
+ */
+const getDynamicTextColors = (hexcolor) => {
+  let calcHex = hexcolor || '#ffffff';
+  let hex = calcHex.replace("#", "");
+  if (hex.length === 3) {
+    hex = hex.split('').map(char => char + char).join('');
+  }
+  const r = parseInt(hex.substr(0, 2), 16) || 0;
+  const g = parseInt(hex.substr(2, 2), 16) || 0;
+  const b = parseInt(hex.substr(4, 2), 16) || 0;
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  
+  const adjustColor = (color, amount) => {
+    return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
+  };
+  const circleColor = adjustColor(calcHex, yiq >= 128 ? -40 : 40);
+
+  if (yiq < 128) {
+    return {
+      titleColor: '#fcfcfc',
+      textColor: '#f0efef',
+      textColorLight: '#cccccc',
+      containerColorAlt: 'rgba(255, 255, 255, 0.1)',
+      circleColor
+    };
+  } else {
+    return {
+      titleColor: '#0b0a0a',
+      textColor: '#403a3a',
+      textColorLight: '#707070',
+      containerColorAlt: 'rgba(0, 0, 0, 0.05)',
+      circleColor
+    };
+  }
+};
+
+/**
+ * Renders an item to clean static HTML
+ */
+const renderItemHTML = (item, sectionType) => {
+  if (!item) return '';
+
+  if (sectionType === 'profile_header') {
+    return `
+      <div class="home__data bd-grid cv-block">
+        <h1 class="home__title">${escapeHTML(item.name)}</h1>
+        <h2 class="home__subtitle">${escapeHTML(item.subtitle)}</h2>
+        <div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.75rem;">
+          ${item.location ? `<span class="social__link"><i class='bx bx-map'></i> ${escapeHTML(item.location)}</span>` : ''}
+          ${item.email ? `<span class="social__link"><i class='bx bx-envelope'></i> ${escapeHTML(item.email)}</span>` : ''}
+          ${item.phone ? `<span class="social__link"><i class='bx bx-phone'></i> ${escapeHTML(item.phone)}</span>` : ''}
+          ${item.linkedin ? `<span class="social__link"><i class='bx bxl-linkedin-square'></i> ${escapeHTML(item.linkedin)}</span>` : ''}
+          ${item.github ? `<span class="social__link"><i class='bx bxl-github'></i> ${escapeHTML(item.github)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'about') {
+    return `
+      <div class="profile__description cv-block">
+        <p>${escapeHTML(item.description)}</p>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'skills') {
+    return `
+      <li class="skills__name cv-block" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px);">
+        <span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span>
+        <span style="flex: 1;">
+          <b>${escapeHTML(item.title)}:</b> ${escapeHTML(item.description)}
+        </span>
+      </li>
+    `;
+  }
+
+  if (sectionType === 'education') {
+    return `
+      <div class="education__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
+        <div class="education__time" style="padding-right: 0.75rem;">
+          <span class="education__rounder"></span>
+          <span class="education__line"></span>
+        </div>
+        <div class="education__data bd-grid" style="width: 100%;">
+          <h3 class="education__title">${escapeHTML(item.title)}</h3>
+          <span class="education__studies">${escapeHTML(item.subtitle)}</span>
+          <span class="education__year">${escapeHTML(item.date)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'simple_list') {
+    return `
+      <li class="cv-block" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px); list-style: none;">
+        <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
+        <span style="flex: 1;">${escapeHTML(item.text)}</span>
+      </li>
+    `;
+  }
+
+  // default 'list' (experience / projects / custom)
+  return `
+    <div class="experience__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
+      <div class="experience__time" style="padding-right: 0.75rem;">
+        <span class="experience__rounder"></span>
+        <span class="experience__line"></span>
+      </div>
+      <div class="experience__data bd-grid" style="width: 100%;">
+        <h3 class="experience__title">${escapeHTML(item.title)}</h3>
+        <span class="experience__company">${escapeHTML(item.date)}${item.subtitle || item.date ? ' | ' : ''}${escapeHTML(item.subtitle)}</span>
+        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${escapeHTML(item.link)}</a></span>` : ''}
+        ${item.description ? `<p class="experience__description">${escapeHTML(item.description)}</p>` : ''}
+        ${item.bullets && item.bullets.length > 0 ? `
+          <ul style="padding-left: 1.15rem; margin-top: 0.35rem; list-style-type: disc;">
+            ${item.bullets.map(b => `<li style="margin-bottom: 0.2rem; line-height: 1.45;">${escapeHTML(b)}</li>`).join('')}
+          </ul>
+        ` : ''}
+      </div>
+    </div>
+  `;
+};
+
+/**
+ * Renders a section to clean static HTML
+ */
+const renderSectionHTML = (section) => {
+  if (!section) return '';
+
+  const sectionClass = section.type === 'skills' 
+    ? 'skills' 
+    : section.type === 'education' 
+      ? 'education' 
+      : section.type === 'profile_header' 
+        ? 'home' 
+        : section.type === 'about' 
+          ? 'profile' 
+          : 'experience';
+
+  const isProfile = section.type === 'profile_header';
+  const items = section.items || [];
+
+  let itemsHTML = '';
+  if (section.type === 'simple_list' || section.type === 'skills') {
+    itemsHTML = `
+      <ul style="padding: 0; margin: 0; list-style: none;">
+        ${items.map(item => renderItemHTML(item, section.type)).join('')}
+      </ul>
+    `;
+  } else {
+    itemsHTML = items.map(item => renderItemHTML(item, section.type)).join('');
+  }
+
+  return `
+    <section class="${sectionClass} section cv-section" id="${escapeHTML(section.id)}">
+      ${!isProfile && section.title ? `<h2 class="section-title">${escapeHTML(section.title)}</h2>` : ''}
+      <div class="${isProfile || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}">
+        ${itemsHTML}
+      </div>
+    </section>
+  `;
+};
+
+/**
+ * Generates standalone clean static HTML for printing and PDF rendering.
+ * Strips all interactive editor UI artifacts and guarantees 2-page print layout.
+ * @param {Object} cvData 
+ * @returns {string} Standalone HTML document string
+ */
+export const generateCleanPrintHTML = (cvData) => {
+  const data = cvData || {};
+  const layout = data.layout || {};
+  let rawSections = Array.isArray(data.sections) ? data.sections : [];
+
+  let sections = rawSections;
+  if (data.profile) {
+    sections = rawSections.map(sec => {
+      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+        const firstItem = (sec.items && sec.items[0]) ? { ...sec.items[0] } : {};
+        const mergedItem = {
+          ...firstItem,
+          ...(data.profile.name !== undefined ? { name: data.profile.name } : {}),
+          ...(data.profile.subtitle !== undefined ? { subtitle: data.profile.subtitle } : {}),
+          ...(data.profile.location !== undefined ? { location: data.profile.location } : {}),
+          ...(data.profile.email !== undefined ? { email: data.profile.email } : {}),
+          ...(data.profile.phone !== undefined ? { phone: data.profile.phone } : {}),
+          ...(data.profile.linkedin !== undefined ? { linkedin: data.profile.linkedin } : {}),
+          ...(data.profile.github !== undefined ? { github: data.profile.github } : {}),
+        };
+        return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
+      }
+      return sec;
+    });
+  }
+
+  const is2Col = layout.type !== '1-column';
+  const pagePadding = Number(layout.pagePadding ?? 24);
+  const sectionGap = Number(layout.sectionGap ?? 20);
+  const itemGap = Number(layout.itemGap ?? 8);
+
+  const fontFamilies = {
+    'Poppins': "'Poppins', sans-serif",
+    'Inter': "'Inter', sans-serif",
+    'Roboto': "'Roboto', sans-serif",
+    'Merriweather': "'Merriweather', serif",
+    'JetBrains Mono': "'JetBrains Mono', monospace"
+  };
+  const fontFamily = fontFamilies[layout.fontFamily] || layout.fontFamily || "'Poppins', sans-serif";
+  const fontScale = layout.fontScale || 1.0;
+  const lineHeight = layout.lineHeight || 1.45;
+
+  const leftBg = layout.leftBg || '#fafafa';
+  const rightBg = layout.rightBg || '#ffffff';
+  const leftColors = getDynamicTextColors(leftBg);
+  const rightColors = getDynamicTextColors(rightBg);
+
+  const leftSections = sections.filter(s => s.column === 'left');
+  const rightSections = sections.filter(s => s.column === 'right');
+
+  let bodyContent = '';
+  if (is2Col) {
+    bodyContent = `
+      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: 1fr 2fr; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none;">
+        <div class="resume__left" style="background: ${leftBg}; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
+          ${leftSections.map(renderSectionHTML).join('')}
+        </div>
+        <div class="resume__right" style="background: ${rightBg}; padding: var(--page-padding, 1.5rem 1.5rem); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
+          ${rightSections.map(renderSectionHTML).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    bodyContent = `
+      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; margin: 0 auto; padding: var(--page-padding, 24px); background: #ffffff;">
+        ${sections.map(renderSectionHTML).join('')}
+      </div>
+    `;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHTML(data.profile?.name || 'Curriculum Vitae')}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --page-padding: ${pagePadding}px;
+      --section-gap: ${sectionGap}px;
+      --item-gap: ${itemGap}px;
+      --title-color: #0f172a;
+      --text-color: #334155;
+      --text-color-light: #64748b;
+      --body-font: ${fontFamily};
+      --font-scale: ${fontScale};
+      --line-height: ${lineHeight};
+      --h1-font-size: calc(1.45rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.15rem * var(--font-scale, 1));
+      --h3-font-size: calc(0.95rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.88rem * var(--font-scale, 1));
+      --small-font-size: calc(0.82rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.75rem * var(--font-scale, 1));
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    *, ::before, ::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: var(--body-font);
+      font-size: var(--normal-font-size);
+      color: var(--text-color);
+      background-color: #ffffff;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4, p, ul {
+      margin: 0;
+    }
+
+    h1, h2, h3 {
+      color: var(--title-color);
+      font-weight: 600;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .resume {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .bd-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .section {
+      padding: 0;
+      margin-bottom: var(--section-gap, 18px);
+    }
+
+    .section-title {
+      font-size: var(--h2-font-size);
+      color: var(--title-color);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .2rem;
+      margin-bottom: 0.6rem;
+      text-align: left;
+    }
+
+    .home__title {
+      font-size: var(--h1-font-size);
+      margin-bottom: 0.2rem;
+    }
+
+    .home__subtitle {
+      font-size: var(--normal-font-size);
+      color: var(--text-color-light);
+      margin-bottom: 0.4rem;
+    }
+
+    .social__container {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .social__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--small-font-size);
+      color: var(--text-color);
+    }
+
+    .education__time,
+    .experience__time {
+      padding-right: 0.75rem;
+      position: relative;
+    }
+
+    .education__rounder,
+    .experience__rounder {
+      display: block;
+      width: 13px;
+      height: 13px;
+      background-color: var(--text-color-light);
+      border-radius: 50%;
+      margin-top: 0.25rem;
+    }
+
+    .education__line,
+    .experience__line {
+      display: block;
+      width: 2px;
+      height: 100%;
+      background-color: var(--text-color-light);
+      transform: translate(5.5px, 0);
+    }
+
+    .education__title,
+    .experience__title {
+      font-size: var(--h3-font-size);
+      color: var(--title-color);
+    }
+
+    .education__studies,
+    .experience__company {
+      font-size: var(--small-font-size);
+      color: var(--title-color);
+    }
+
+    .education__year {
+      font-size: var(--smaller-font-size);
+      color: var(--text-color-light);
+    }
+
+    .experience__description,
+    .profile__description {
+      font-size: var(--normal-font-size);
+      margin-top: 0.25rem;
+    }
+
+    /* Super-container CSS Page Break & Splitting Prevention */
+    .cv-section,
+    .cv-block,
+    .section,
+    .experience__content,
+    .education__content,
+    .skills__name {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        background-color: #ffffff !important;
+      }
+      #area-cv {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${bodyContent}
+</body>
+</html>`;
+};
+
+/**
+ * Creates an isolated iframe, writes clean print HTML, calculates auto-scale,
+ * triggers browser native print, and cleans up the DOM.
+ * @param {Object} cvData 
+ */
+export const executeCleanPrint = (cvData) => {
+  const html = generateCleanPrintHTML(cvData);
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-10000px';
+  iframe.style.left = '-10000px';
+  iframe.style.width = '0px';
+  iframe.style.height = '0px';
+  iframe.style.border = '0';
+  iframe.setAttribute('title', 'Ressume Print Preview');
+
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (!doc) {
+    window.print();
+    return;
+  }
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const triggerPrint = () => {
+    try {
+      if (iframe.contentWindow) {
+        const renderedHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
+        const scale = calculatePrintScale(renderedHeight);
+        if (scale < 1.0 && doc.body) {
+          doc.body.style.zoom = scale;
+        }
+
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }
+    } catch (e) {
+      console.warn('Iframe print failed, falling back to window.print()', e);
+      window.print();
+    } finally {
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
+      }, 1000);
+    }
+  };
+
+  if (iframe.contentWindow?.document?.readyState === 'complete') {
+    triggerPrint();
+  } else {
+    iframe.onload = triggerPrint;
+  }
+};

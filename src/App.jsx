@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import ActionMenu from './components/Editor/ActionMenu';
 import { useCV } from './context/CVContext';
 import CVSection from './components/CV/CVSection';
-import CVBlock from './components/CV/CVBlock';
 import { 
   DndContext, 
   closestCorners, 
@@ -10,7 +9,8 @@ import {
   KeyboardSensor, 
   useSensor, 
   useSensors,
-  DragOverlay 
+  DragOverlay,
+  useDroppable
 } from '@dnd-kit/core';
 import { 
   SortableContext, 
@@ -19,12 +19,29 @@ import {
   sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
 
+function DroppableColumn({ id, column, className, style, children }) {
+  const { setNodeRef } = useDroppable({
+    id,
+    data: {
+      type: 'column',
+      column
+    }
+  });
+
+  return (
+    <div ref={setNodeRef} className={className} style={style}>
+      {children}
+    </div>
+  );
+}
+
 function App() {
   const { 
     cvData, 
     reorderSections, 
     updateSectionColumn, 
     moveItemBetweenSections, 
+    moveSectionToColumnAndIndex,
     addSection 
   } = useCV();
 
@@ -56,28 +73,7 @@ function App() {
   };
 
   const handleDragOver = (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeData = active.data.current;
-    const overData = over.data.current;
-
-    // Handle section cross-column drag
-    if (activeData?.type === 'section') {
-      const activeSection = cvData.sections.find(s => s.id === active.id);
-      let targetColumn = null;
-
-      if (overData?.type === 'section') {
-        const overSection = cvData.sections.find(s => s.id === over.id);
-        if (overSection && activeSection && activeSection.column !== overSection.column) {
-          targetColumn = overSection.column;
-        }
-      }
-
-      if (targetColumn && activeSection.column !== targetColumn) {
-        updateSectionColumn(active.id, targetColumn);
-      }
-    }
+    // Keep drag over lightweight to avoid re-rendering layout during active drag gesture
   };
 
   const handleDragEnd = (event) => {
@@ -90,24 +86,33 @@ function App() {
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    // 1. Moving an Item (Within same section or cross-section polymorphic drop)
+    // 1. Moving an Item (Within same section, cross-section, or cross-column)
     if (activeData?.type === 'item') {
       const activeItemId = active.id;
       const activeSectionId = activeData.sectionId;
 
       let targetSectionId = null;
-      let overItemId = over.id;
+      let overItemId = null;
 
       if (overData?.type === 'item') {
         targetSectionId = overData.sectionId;
+        overItemId = over.id;
       } else if (overData?.type === 'section') {
         targetSectionId = over.id;
         overItemId = null;
+      } else if (overData?.type === 'column') {
+        const colSections = cvData.sections.filter(s => s.column === overData.column);
+        if (colSections.length > 0) {
+          targetSectionId = colSections[colSections.length - 1].id;
+        }
       } else {
         // Find which section contains over.id
-        const foundSec = cvData.sections.find(s => (s.items || []).some(i => i.id === over.id) || s.id === over.id);
+        const foundSec = cvData.sections.find(s => s.id === over.id || (s.items || []).some(i => i.id === over.id));
         if (foundSec) {
           targetSectionId = foundSec.id;
+          if (foundSec.id !== over.id) {
+            overItemId = over.id;
+          }
         }
       }
 
@@ -117,21 +122,68 @@ function App() {
       return;
     }
 
-    // 2. Moving a Section
+    // 2. Moving a Section (Cross-column or intra-column reordering)
     if (activeData?.type === 'section') {
-      if (active.id !== over.id) {
-        const oldIndex = cvData.sections.findIndex((s) => s.id === active.id);
-        const newIndex = cvData.sections.findIndex((s) => s.id === over.id);
-        if (oldIndex !== -1 && newIndex !== -1) {
-          reorderSections(arrayMove(cvData.sections, oldIndex, newIndex));
+      const activeSectionId = active.id;
+      const activeSection = cvData.sections.find(s => s.id === activeSectionId);
+      if (!activeSection) return;
+
+      let targetColumn = activeSection.column;
+      let overSectionId = null;
+
+      if (overData?.type === 'column') {
+        targetColumn = overData.column;
+        overSectionId = null;
+      } else if (overData?.type === 'section') {
+        const overSection = cvData.sections.find(s => s.id === over.id);
+        if (overSection) {
+          targetColumn = overSection.column;
+          overSectionId = overSection.id;
+        }
+      } else if (overData?.type === 'item') {
+        const overSection = cvData.sections.find(s => s.id === overData.sectionId);
+        if (overSection) {
+          targetColumn = overSection.column;
+          overSectionId = overSection.id;
+        }
+      } else {
+        const foundSec = cvData.sections.find(s => s.id === over.id || (s.items || []).some(i => i.id === over.id));
+        if (foundSec) {
+          targetColumn = foundSec.column;
+          overSectionId = foundSec.id;
         }
       }
+
+      moveSectionToColumnAndIndex(activeSectionId, targetColumn, overSectionId);
     }
   };
 
   const is2Col = cvData.layout?.type === '2-column';
   const leftSections = cvData.sections.filter(s => s.column === 'left');
   const rightSections = cvData.sections.filter(s => s.column === 'right');
+
+  const fontFamilies = {
+    'Poppins': "'Poppins', sans-serif",
+    'Inter': "'Inter', sans-serif",
+    'Roboto': "'Roboto', sans-serif",
+    'Merriweather': "'Merriweather', serif",
+    'JetBrains Mono': "'JetBrains Mono', monospace"
+  };
+  const currentFontFamily = fontFamilies[cvData.layout?.fontFamily] || cvData.layout?.fontFamily || "'Poppins', sans-serif";
+  const fontScale = cvData.layout?.fontScale ?? 1.0;
+  const lineHeight = cvData.layout?.lineHeight ?? 1.45;
+  const pagePadding = cvData.layout?.pagePadding ?? 24;
+  const sectionGap = cvData.layout?.sectionGap ?? 20;
+  const itemGap = cvData.layout?.itemGap ?? 8;
+
+  const dynamicSpacing = {
+    '--body-font': currentFontFamily,
+    '--font-scale': `${fontScale}`,
+    '--line-height': `${lineHeight}`,
+    '--page-padding': `${pagePadding}px`,
+    '--section-gap': `${sectionGap}px`,
+    '--item-gap': `${itemGap}px`
+  };
 
   // YIQ Contrast Intelligence
   const getDynamicTextColors = (hexcolor) => {
@@ -185,13 +237,23 @@ function App() {
           className={`resume ${is2Col ? 'bd-grid' : ''}`} 
           id="area-cv" 
           style={is2Col 
-            ? { gridTemplateColumns: '1fr 2fr', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto' } 
-            : { padding: '2.5rem 2rem', background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto' }
+            ? { display: 'grid', gridTemplateColumns: '1fr 2fr', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto', ...dynamicSpacing } 
+            : { display: 'block', padding: `var(--page-padding, 24px)`, background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
           }
         >
           {is2Col ? (
             <>
-              <div className="resume__left" style={{ background: cvData.layout?.leftBg || 'var(--container-color-alt)', padding: '2rem 1.5rem', ...getDynamicTextColors(cvData.layout?.leftBg) }}>
+              <DroppableColumn 
+                id="column-left" 
+                column="left" 
+                className="resume__left" 
+                style={{ 
+                  background: cvData.layout?.leftBg || 'var(--container-color-alt)', 
+                  padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`, 
+                  minHeight: '200px',
+                  ...getDynamicTextColors(cvData.layout?.leftBg) 
+                }}
+              >
                 <SortableContext items={leftSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                   {leftSections.map(section => (
                     <CVSection key={section.id} section={section} />
@@ -208,9 +270,19 @@ function App() {
                     <i className='bx bx-plus-circle'></i> Agregar Sección Lateral
                   </button>
                 </div>
-              </div>
+              </DroppableColumn>
 
-              <div className="resume__right" style={{ background: cvData.layout?.rightBg || 'var(--container-color)', padding: '2rem 1.5rem', ...getDynamicTextColors(cvData.layout?.rightBg) }}>
+              <DroppableColumn 
+                id="column-right" 
+                column="right" 
+                className="resume__right" 
+                style={{ 
+                  background: cvData.layout?.rightBg || 'var(--container-color)', 
+                  padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`, 
+                  minHeight: '200px',
+                  ...getDynamicTextColors(cvData.layout?.rightBg) 
+                }}
+              >
                 <SortableContext items={rightSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                   {rightSections.map(section => (
                     <CVSection key={section.id} section={section} />
@@ -227,10 +299,10 @@ function App() {
                     <i className='bx bx-plus-circle'></i> Agregar Sección Principal
                   </button>
                 </div>
-              </div>
+              </DroppableColumn>
             </>
           ) : (
-            <div className="resume__single-column" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+            <div className="resume__single-column" style={{ width: '100%', maxWidth: '840px', margin: '0 auto' }}>
               <SortableContext items={cvData.sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                 {cvData.sections.map(section => (
                   <CVSection key={section.id} section={section} />
@@ -251,7 +323,6 @@ function App() {
           )}
         </div>
       </main>
-
 
         {/* Drag Overlay for smooth 60fps ghost preview without DOM clipping */}
         <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>

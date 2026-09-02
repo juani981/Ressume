@@ -7,6 +7,22 @@ import {
   sanitizeAndParseAIResponse,
   validateKeyCoverage
 } from '../../utils/translationEngine';
+import { 
+  Globe, 
+  Upload, 
+  Download, 
+  FolderArchive, 
+  Target, 
+  Plus, 
+  Eye, 
+  Clipboard, 
+  Search, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Sparkles, 
+  XCircle, 
+  X 
+} from 'lucide-react';
 
 const TranslationModal = ({ isOpen, onClose }) => {
   const {
@@ -127,7 +143,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.8rem' }}>🌐</span>
+            <Globe size={28} color="#10b981" />
             <div>
               <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
                 Motor de Traducción IA & Slots de Idioma
@@ -139,6 +155,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
           </div>
           <button 
             onClick={onClose}
+            aria-label="Cerrar modal"
             style={{
               background: 'none',
               border: 'none',
@@ -146,10 +163,12 @@ const TranslationModal = ({ isOpen, onClose }) => {
               cursor: 'pointer',
               color: 'var(--text-color-light, #888)',
               padding: '0.25rem 0.5rem',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
@@ -176,7 +195,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
               gap: '0.4rem'
             }}
           >
-            📤 1. Generar Prompt para IA
+            <Upload size={16} /> 1. Generar Prompt para IA
           </button>
           <button
             onClick={() => setActiveTab('import')}
@@ -194,7 +213,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
               gap: '0.4rem'
             }}
           >
-            📥 2. Importar & Validar Respuesta IA
+            <Download size={16} /> 2. Importar & Validar Respuesta IA
           </button>
           <button
             onClick={() => setActiveTab('slots')}
@@ -212,7 +231,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
               gap: '0.4rem'
             }}
           >
-            🗂️ 3. Administrar Idiomas ({availableLangKeys.length})
+            <FolderArchive size={16} /> 3. Administrar Idiomas ({availableLangKeys.length})
           </button>
         </div>
 
@@ -240,8 +259,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                    🎯 Idioma Destino (Slot a Traducir):
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    <Target size={15} color="#3874ff" /> Idioma Destino (Slot a Traducir):
                   </label>
                   <select
                     value={targetLangCode}
@@ -259,18 +278,18 @@ const TranslationModal = ({ isOpen, onClose }) => {
                   >
                     {SUPPORTED_LANGUAGES.filter(l => l.code !== activeLanguage).map(l => (
                       <option key={l.code} value={l.code}>
-                        {l.flag} {l.name} ({l.code})
+                        {l.name} ({l.code})
                       </option>
                     ))}
-                    <option value="custom">➕ Otro Idioma (Código ISO personalizado)</option>
+                    <option value="custom">Otro Idioma (Código ISO personalizado)</option>
                   </select>
                 </div>
               </div>
 
               {targetLangCode === 'custom' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                    Código de Idioma Personalizado (ej. "nl", "sv", "pl", "it"):
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    <Plus size={15} /> Código de Idioma Personalizado (ej. "nl", "sv", "pl", "it"):
                   </label>
                   <input
                     type="text"
@@ -312,8 +331,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                    👁️ Prompt Rígido Ensamblado (Directrices + Diccionario de Texto):
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
+                    <Eye size={15} color="#3874ff" /> Prompt Rígido Ensamblado (Directrices + Diccionario de Texto):
                   </label>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #888)' }}>
                     {Object.keys(currentDict).length} claves a traducir
@@ -342,8 +361,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
           {activeTab === 'import' && (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                  📋 Pegar Respuesta Completa de la IA (JSON o Bloque de Código):
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                  <Clipboard size={15} color="#3874ff" /> Pegar Respuesta Completa de la IA (JSON o Bloque de Código):
                 </label>
                 <textarea
                   rows={7}
@@ -383,7 +402,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                     gap: '0.4rem'
                   }}
                 >
-                  🔍 Analizar & Validar Estructura JSON
+                  <Search size={16} /> Analizar & Validar Estructura JSON
                 </button>
               </div>
 
@@ -398,8 +417,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
                   {parseResult.success ? (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ fontWeight: 600, color: '#27ae60', fontSize: '0.95rem' }}>
-                          ✅ JSON Válido — Slot Detectado: "{parseResult.languageCode?.toUpperCase()}"
+                        <span style={{ fontWeight: 600, color: '#27ae60', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <CheckCircle2 size={18} /> JSON Válido — Slot Detectado: "{parseResult.languageCode?.toUpperCase()}"
                         </span>
                         <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>
                           Cobertura: {parseResult.stats.matchPercentage}% ({parseResult.stats.matchedCount}/{parseResult.stats.totalSource} claves)
@@ -407,8 +426,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
                       </div>
 
                       {parseResult.stats.missingKeys?.length > 0 && (
-                        <div style={{ fontSize: '0.8rem', color: '#d35400', marginTop: '0.5rem' }}>
-                          ⚠️ Claves faltantes ({parseResult.stats.missingKeys.length}): {parseResult.stats.missingKeys.slice(0, 5).join(', ')}...
+                        <div style={{ fontSize: '0.8rem', color: '#d35400', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertTriangle size={15} /> Claves faltantes ({parseResult.stats.missingKeys.length}): {parseResult.stats.missingKeys.slice(0, 5).join(', ')}...
                         </div>
                       )}
 
@@ -423,17 +442,20 @@ const TranslationModal = ({ isOpen, onClose }) => {
                             color: '#ffffff',
                             fontWeight: 600,
                             fontSize: '0.85rem',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
                           }}
                         >
-                          ✨ Importar y Activar Idioma "{parseResult.languageCode?.toUpperCase()}"
+                          <Sparkles size={16} /> Importar y Activar Idioma "{parseResult.languageCode?.toUpperCase()}"
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <span style={{ fontWeight: 600, color: '#c0392b' }}>
-                        ❌ Error al procesar JSON:
+                      <span style={{ fontWeight: 600, color: '#c0392b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <XCircle size={18} /> Error al procesar JSON:
                       </span>
                       <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.85rem', color: '#c0392b' }}>
                         {parseResult.error}
@@ -462,7 +484,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
                   {availableLangKeys.map(langKey => {
                     const isActive = activeLanguage === langKey;
-                    const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === langKey) || { name: langKey, flag: '🌐' };
+                    const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === langKey) || { name: langKey, flag: '' };
                     const keyCount = Object.keys(languagePacks[langKey] || {}).length;
 
                     return (
@@ -479,7 +501,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '1.4rem' }}>{langInfo.flag}</span>
+                          <Globe size={22} color="#3874ff" />
                           {isActive && (
                             <span style={{ background: '#3874ff', color: 'white', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
                               ACTIVO
@@ -510,7 +532,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                             cursor: isActive ? 'default' : 'pointer'
                           }}
                         >
-                          {isActive ? '✓ Idioma en Pantalla' : 'Cambiar a este Idioma'}
+                          {isActive ? 'Idioma en Pantalla' : 'Cambiar a este Idioma'}
                         </button>
                       </div>
                     );
@@ -535,7 +557,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                     gap: '0.5rem'
                   }}
                 >
-                  💾 Descargar content.json Completo (Multi-Idioma)
+                  <Download size={16} /> Descargar content.json Completo (Multi-Idioma)
                 </button>
               </div>
             </>
@@ -554,8 +576,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
             alignItems: 'center'
           }}>
             {copiedPrompt && (
-              <span style={{ color: '#2ecc71', fontSize: '0.85rem', fontWeight: 600 }}>
-                ✓ ¡Prompt copiado al portapapeles!
+              <span style={{ color: '#2ecc71', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 size={16} /> ¡Prompt copiado al portapapeles!
               </span>
             )}
             <button
@@ -575,7 +597,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                 gap: '0.5rem'
               }}
             >
-              📋 Copiar Prompt para IA Externa
+              <Clipboard size={16} /> Copiar Prompt para IA Externa
             </button>
           </div>
         )}
