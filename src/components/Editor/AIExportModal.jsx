@@ -44,6 +44,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(compiledPayload);
@@ -174,6 +175,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
                     {p.name}
                   </option>
                 ))}
+
               </select>
             </div>
 

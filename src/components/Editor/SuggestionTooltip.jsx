@@ -74,6 +74,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
         ];
       }
 
+
       // Regex matching based on content with critical severity prioritization
       const sectionText = JSON.stringify(section || {}).toLowerCase();
       const scoredMatches = allMatching.map(rule => {

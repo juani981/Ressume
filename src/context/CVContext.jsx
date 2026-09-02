@@ -86,6 +86,7 @@ export const CVProvider = ({ children }) => {
     return baseDefaultContent;
   });
 
+
   const [activeLanguage, setActiveLanguage] = useState(() => {
     return localStorage.getItem('cvActiveLanguage') || 'es';
   });
