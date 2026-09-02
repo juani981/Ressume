@@ -2,7 +2,17 @@ export const defaultSchema = {
   layout: {
     type: '2-column', // '1-column' (ATS Optimized) or '2-column' (Visual Recruiter)
     leftBg: '', // empty means it uses CSS defaults
-    rightBg: ''
+    rightBg: '',
+    leftColumnWidth: null, // null defaults to 1fr 2fr (approx 33% / 67%)
+    fontFamily: 'Poppins', // 'Poppins' | 'Inter' | 'Roboto' | 'Merriweather' | 'JetBrains Mono'
+    fontScale: 1.0, // 0.85 to 1.25 (Master overall scale)
+    titleScale: 1.0, // 0.80 to 1.40 (Global Titles scale)
+    bodyScale: 1.0, // 0.80 to 1.30 (Global Body text scale)
+    listScale: 1.0, // 0.80 to 1.30 (Global Lists and bullets scale)
+    lineHeight: 1.45, // 1.25 to 1.85
+    pagePadding: 24,
+    sectionGap: 20,
+    itemGap: 8
   },
   profile: {
     name: "JUAN IGNACIO CARRIZO",
@@ -171,3 +181,5 @@ export const defaultSchema = {
     }
   ]
 };
+
+export const defaultLayout = defaultSchema.layout;

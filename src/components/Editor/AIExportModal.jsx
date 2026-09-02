@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getPrompts, getUI } from '../../locales/index';
-import { buildAIPromptPayload, exportToAIMarkdown, exportToAIXML, exportToATSPlainText } from '../../utils/aiExporter';
+import { buildAIPromptPayload } from '../../utils/aiExporter';
+import { Bot, Target, Layout, FileText, Briefcase, Eye, Download, Copy, Check, X } from 'lucide-react';
 
 const AIExportModal = ({ isOpen, onClose }) => {
   const { cvData, activeLanguage } = useCV();
@@ -117,7 +118,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.6rem' }}>🤖</span>
+            <Bot size={28} color="#3874ff" />
             <div>
               <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Hub de Prompts de IA & Abstracción de CV</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color-light, #777)' }}>
@@ -127,6 +128,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
           </div>
           <button 
             onClick={onClose}
+            aria-label="Cerrar modal"
             style={{
               background: 'none',
               border: 'none',
@@ -134,10 +136,12 @@ const AIExportModal = ({ isOpen, onClose }) => {
               cursor: 'pointer',
               color: 'var(--text-color-light, #888)',
               padding: '0.25rem 0.5rem',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
@@ -149,8 +153,8 @@ const AIExportModal = ({ isOpen, onClose }) => {
             
             {/* Prompt Selector */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                🎯 Seleccionar Objetivo del Prompt:
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                <Target size={15} color="#3874ff" /> Seleccionar Objetivo del Prompt:
               </label>
               <select 
                 value={selectedPromptId} 
@@ -177,8 +181,8 @@ const AIExportModal = ({ isOpen, onClose }) => {
 
             {/* Layout Mode Selector */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                📐 Disposición de Abstracción:
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                <Layout size={15} color="#6366f1" /> Disposición de Abstracción:
               </label>
               <select 
                 value={layoutMode} 
@@ -194,15 +198,15 @@ const AIExportModal = ({ isOpen, onClose }) => {
                   cursor: 'pointer'
                 }}
               >
-                <option value="1-column">🟢 1 Columna — Lineal ATS (&gt;95 Pts)</option>
-                <option value="2-column">🎨 2 Columnas — Visual para Reclutador</option>
+                <option value="1-column">1 Columna — Lineal ATS (&gt;95 Pts)</option>
+                <option value="2-column">2 Columnas — Visual para Reclutador</option>
               </select>
             </div>
 
             {/* Abstraction Format Selector */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                📄 Formato de Abstracción:
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                <FileText size={15} color="#10b981" /> Formato de Abstracción:
               </label>
               <select 
                 value={selectedFormat} 
@@ -226,7 +230,6 @@ const AIExportModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-
           {/* Description of Selected Prompt */}
           <div style={{
             background: 'rgba(56, 116, 255, 0.08)',
@@ -241,8 +244,8 @@ const AIExportModal = ({ isOpen, onClose }) => {
           {/* Optional Job Description Input for job_matcher */}
           {selectedPrompt.required_inputs?.includes('job_description') && (
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                💼 Pegar Descripción de la Oferta Laboral (Job Description):
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                <Briefcase size={15} color="#e11d48" /> Pegar Descripción de la Oferta Laboral (Job Description):
               </label>
               <textarea
                 rows={4}
@@ -267,8 +270,8 @@ const AIExportModal = ({ isOpen, onClose }) => {
           {/* Live Preview Container */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                👁️ Vista Previa del Payload Completo (Prompt + Datos Estáticos):
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
+                <Eye size={15} color="#3874ff" /> Vista Previa del Payload Completo (Prompt + Datos Estáticos):
               </label>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #888)' }}>
                 {compiledPayload.length} caracteres (~{Math.round(compiledPayload.length / 4)} tokens)
@@ -303,7 +306,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
         }}>
           {copied && (
             <span style={{ color: '#2ecc71', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-              ✓ ¡Copiado al portapapeles!
+              <Check size={16} /> ¡Copiado al portapapeles!
             </span>
           )}
           <button
@@ -322,7 +325,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
               gap: '0.5rem'
             }}
           >
-            💾 Descargar Archivo
+            <Download size={16} /> Descargar Archivo
           </button>
           <button
             onClick={handleCopy}
@@ -341,7 +344,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
               gap: '0.5rem'
             }}
           >
-            📋 Copiar Prompt + CV para IA
+            <Copy size={16} /> Copiar Prompt + CV para IA
           </button>
         </div>
       </div>

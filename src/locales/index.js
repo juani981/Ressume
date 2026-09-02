@@ -28,8 +28,13 @@ export const SUPPORTED_LOCALES = [
   { code: 'en', name: 'English (US Tech)', region: 'United States / Global Tech', flag: '🇺🇸' }
 ];
 
+import { defaultSchema } from '../utils/schema';
+import { applyDictionaryToCVState } from '../utils/translationEngine';
+
 export const getContent = (lang = 'es') => {
-  return LOCALES[lang]?.content || LOCALES.es.content;
+  const dict = LOCALES[lang]?.content || LOCALES.es.content || {};
+  const cvStructure = applyDictionaryToCVState(defaultSchema, dict);
+  return { ...dict, ...cvStructure };
 };
 
 export const getPrompts = (lang = 'es') => {
