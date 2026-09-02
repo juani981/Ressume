@@ -30,11 +30,15 @@ const ContextHarness = ({ onStateChange }) => {
     <div data-testid="context-harness">
       <span data-testid="font-family">{cv.cvData?.layout?.fontFamily || 'Poppins'}</span>
       <span data-testid="font-scale">{cv.cvData?.layout?.fontScale ?? 1.0}</span>
+      <span data-testid="title-scale">{cv.cvData?.layout?.titleScale ?? 1.0}</span>
+      <span data-testid="body-scale">{cv.cvData?.layout?.bodyScale ?? 1.0}</span>
+      <span data-testid="list-scale">{cv.cvData?.layout?.listScale ?? 1.0}</span>
       <span data-testid="line-height">{cv.cvData?.layout?.lineHeight ?? 1.45}</span>
       <span data-testid="page-padding">{cv.cvData?.layout?.pagePadding ?? 24}</span>
       <span data-testid="section-gap">{cv.cvData?.layout?.sectionGap ?? 20}</span>
       <span data-testid="item-gap">{cv.cvData?.layout?.itemGap ?? 8}</span>
       <span data-testid="layout-type">{cv.cvData?.layout?.type || '2-column'}</span>
+      <span data-testid="column-width">{cv.cvData?.layout?.leftColumnWidth ?? 'default'}</span>
       <span data-testid="active-language">{cv.activeLanguage}</span>
       <span data-testid="section-count">{cv.cvData?.sections?.length || 0}</span>
 
@@ -45,10 +49,15 @@ const ContextHarness = ({ onStateChange }) => {
       <button data-testid="btn-set-font-poppins" onClick={() => cv.updateLayout('fontFamily', 'Poppins')}>Set Poppins</button>
 
       <button data-testid="btn-set-font-scale" onClick={() => cv.updateLayout('fontScale', 1.15)}>Scale 1.15</button>
+      <button data-testid="btn-set-title-scale" onClick={() => cv.updateLayout('titleScale', 1.25)}>Title 1.25</button>
+      <button data-testid="btn-set-body-scale" onClick={() => cv.updateLayout('bodyScale', 0.95)}>Body 0.95</button>
+      <button data-testid="btn-set-list-scale" onClick={() => cv.updateLayout('listScale', 1.10)}>List 1.10</button>
+      <button data-testid="btn-reset-typography" onClick={() => cv.updateLayout({ fontScale: 1.0, titleScale: 1.0, bodyScale: 1.0, listScale: 1.0, lineHeight: 1.45 })}>Reset Typo</button>
       <button data-testid="btn-set-line-height" onClick={() => cv.updateLayout('lineHeight', 1.65)}>Line Height 1.65</button>
       <button data-testid="btn-set-page-padding" onClick={() => cv.updateLayout('pagePadding', 36)}>Padding 36</button>
       <button data-testid="btn-set-section-gap" onClick={() => cv.updateLayout('sectionGap', 28)}>Section Gap 28</button>
       <button data-testid="btn-set-item-gap" onClick={() => cv.updateLayout('itemGap', 14)}>Item Gap 14</button>
+      <button data-testid="btn-set-column-width" onClick={() => cv.updateLayout('leftColumnWidth', 42)}>Width 42</button>
       <button data-testid="btn-toggle-1col" onClick={() => cv.updateLayout('type', '1-column')}>Toggle 1-Col</button>
       <button data-testid="btn-toggle-2col" onClick={() => cv.updateLayout('type', '2-column')}>Toggle 2-Col</button>
       <button data-testid="btn-delete-profile" onClick={() => cv.deleteSection('profile_header')}>Del Profile</button>
@@ -133,6 +142,71 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
         const saved = JSON.parse(localStorage.getItem('cvData'));
         expect(saved.layout.lineHeight).toBe(1.65);
       });
+
+      it('F2.6: defaultLayout defines distinct categorical scales (titleScale, bodyScale, listScale)', () => {
+        expect(defaultLayout.titleScale ?? 1.0).toBe(1.0);
+        expect(defaultLayout.bodyScale ?? 1.0).toBe(1.0);
+        expect(defaultLayout.listScale ?? 1.0).toBe(1.0);
+      });
+
+      it('F2.7: updateLayout updates titleScale, bodyScale, and listScale independently', () => {
+        render(<CVProvider><ContextHarness /></CVProvider>);
+        fireEvent.click(screen.getByTestId('btn-set-title-scale'));
+        expect(screen.getByTestId('title-scale').textContent).toBe('1.25');
+
+        fireEvent.click(screen.getByTestId('btn-set-body-scale'));
+        expect(screen.getByTestId('body-scale').textContent).toBe('0.95');
+
+        fireEvent.click(screen.getByTestId('btn-set-list-scale'));
+        expect(screen.getByTestId('list-scale').textContent).toBe('1.1');
+      });
+
+      it('F2.8: Categorical typography scale changes persist to localStorage', () => {
+        render(<CVProvider><ContextHarness /></CVProvider>);
+        fireEvent.click(screen.getByTestId('btn-set-title-scale'));
+        fireEvent.click(screen.getByTestId('btn-set-body-scale'));
+        fireEvent.click(screen.getByTestId('btn-set-list-scale'));
+
+        const saved = JSON.parse(localStorage.getItem('cvData'));
+        expect(saved.layout.titleScale).toBe(1.25);
+        expect(saved.layout.bodyScale).toBe(0.95);
+        expect(saved.layout.listScale).toBe(1.1);
+      });
+
+      it('F2.9: Batch updateLayout atomically updates multiple typography properties', () => {
+        render(<CVProvider><ContextHarness /></CVProvider>);
+        fireEvent.click(screen.getByTestId('btn-set-title-scale'));
+        expect(screen.getByTestId('title-scale').textContent).toBe('1.25');
+
+        fireEvent.click(screen.getByTestId('btn-reset-typography'));
+        expect(screen.getByTestId('title-scale').textContent).toBe('1');
+        expect(screen.getByTestId('body-scale').textContent).toBe('1');
+        expect(screen.getByTestId('list-scale').textContent).toBe('1');
+        expect(screen.getByTestId('font-scale').textContent).toBe('1');
+      });
+
+      it('F2.10: ActionMenu typography popover renders dedicated Title, Body, and List sliders', () => {
+        render(
+          <CVProvider>
+            <ActionMenu />
+          </CVProvider>
+        );
+
+        // Open Design & Typography Popover
+        const designBtn = screen.getByLabelText('Ajustes de Diseño y Tipografía');
+        fireEvent.click(designBtn);
+
+        expect(screen.getByTestId('slider-title-scale')).toBeInTheDocument();
+        expect(screen.getByTestId('slider-body-scale')).toBeInTheDocument();
+        expect(screen.getByTestId('slider-list-scale')).toBeInTheDocument();
+        expect(screen.getByTestId('slider-font-scale')).toBeInTheDocument();
+        expect(screen.getByTestId('slider-line-height')).toBeInTheDocument();
+
+        // Adjust title scale slider
+        fireEvent.change(screen.getByTestId('slider-title-scale'), { target: { value: '1.20' } });
+        const saved = JSON.parse(localStorage.getItem('cvData'));
+        expect(saved.layout.titleScale).toBe(1.2);
+      });
     });
 
     // Feature 3: Independent Spacing Controls (5 tests)
@@ -172,6 +246,83 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
         expect(saved.layout.pagePadding).toBe(36);
         expect(saved.layout.sectionGap).toBe(28);
         expect(saved.layout.itemGap).toBe(14);
+      });
+
+      it('F3.6: ActionMenu renders Ancho Columna Lateral slider in 2-column mode', () => {
+        render(
+          <CVProvider>
+            <ActionMenu />
+          </CVProvider>
+        );
+
+        // Open Spacing & Margins Popover
+        const spacingBtn = screen.getByLabelText('Ajustes de Márgenes y Espaciado');
+        fireEvent.click(spacingBtn);
+
+        expect(screen.getByTestId('slider-column-width')).toBeInTheDocument();
+      });
+
+      it('F3.7: Adjusting Ancho Columna Lateral slider updates leftColumnWidth in state and localStorage', () => {
+        render(
+          <CVProvider>
+            <ActionMenu />
+          </CVProvider>
+        );
+
+        const spacingBtn = screen.getByLabelText('Ajustes de Márgenes y Espaciado');
+        fireEvent.click(spacingBtn);
+
+        const slider = screen.getByTestId('slider-column-width');
+        fireEvent.change(slider, { target: { value: '40' } });
+
+        const saved = JSON.parse(localStorage.getItem('cvData'));
+        expect(saved.layout.leftColumnWidth).toBe(40);
+      });
+
+      it('F3.8: App renders draggable column-resizer in 2-column mode, and omits it in 1-column mode', () => {
+        let cvContext;
+        const { container } = render(
+          <CVProvider>
+            <ContextHarness onStateChange={(c) => { cvContext = c; }} />
+            <App />
+          </CVProvider>
+        );
+
+        // In 2-column mode (default), the column-resizer should exist
+        expect(container.querySelector('[data-testid="column-resizer"]')).not.toBeNull();
+
+        // Switch to 1-column mode via context
+        act(() => {
+          cvContext.updateLayout('type', '1-column');
+        });
+
+        expect(container.querySelector('[data-testid="column-resizer"]')).toBeNull();
+      });
+
+      it('F3.9: Changing leftColumnWidth dynamically updates #area-cv gridTemplateColumns', () => {
+        localStorage.setItem('cvData', JSON.stringify({
+          ...defaultSchema,
+          layout: { ...defaultLayout, type: '2-column', leftColumnWidth: 38 }
+        }));
+
+        const { container } = render(
+          <CVProvider>
+            <App />
+          </CVProvider>
+        );
+
+        const areaCV = container.querySelector('#area-cv');
+        expect(areaCV.style.gridTemplateColumns).toBe('38% 62%');
+      });
+
+      it('F3.10: generateCleanPrintHTML outputs dynamic grid-template-columns when leftColumnWidth is customized', () => {
+        const customData = {
+          ...defaultSchema,
+          layout: { ...defaultLayout, type: '2-column', leftColumnWidth: 45 }
+        };
+
+        const html = generateCleanPrintHTML(customData);
+        expect(html).toContain('grid-template-columns: 45% 55%');
       });
     });
 

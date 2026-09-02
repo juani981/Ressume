@@ -70,7 +70,7 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
       <li
         ref={setNodeRef}
         style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', ...baseStyle }}
-        className="editable-item-container cv-block"
+        className="editable-item-container cv-block simple-list-item"
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}

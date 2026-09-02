@@ -188,16 +188,17 @@ export const CVProvider = ({ children }) => {
     });
   }, [applyStateWithHistory]);
 
-  // Layout updates
+  // Layout updates (supports key/value or batch object)
   const updateLayout = (key, value) => {
     applyStateWithHistory(prev => {
       const prevLayout = prev.layout || defaultSchema.layout;
+      const updates = typeof key === 'object' && key !== null ? key : { [key]: value };
       return {
         ...prev,
         layout: {
           ...defaultSchema.layout,
           ...prevLayout,
-          [key]: value
+          ...updates
         }
       };
     });
@@ -228,7 +229,8 @@ export const CVProvider = ({ children }) => {
           ...sec,
           items: (sec.items || []).map(item => {
             if (item.id !== itemId) return item;
-            return { ...item, [key]: value };
+            const updates = typeof key === 'object' && key !== null ? key : { [key]: value };
+            return { ...item, ...updates };
           })
         };
       })

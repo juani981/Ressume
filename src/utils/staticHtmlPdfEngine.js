@@ -132,7 +132,7 @@ const renderItemHTML = (item, sectionType) => {
 
   if (sectionType === 'simple_list') {
     return `
-      <li class="cv-block" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px); list-style: none;">
+      <li class="cv-block simple-list-item" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px); list-style: none;">
         <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
         <span style="flex: 1;">${escapeHTML(item.text)}</span>
       </li>
@@ -149,10 +149,10 @@ const renderItemHTML = (item, sectionType) => {
       <div class="experience__data bd-grid" style="width: 100%;">
         <h3 class="experience__title">${escapeHTML(item.title)}</h3>
         <span class="experience__company">${escapeHTML(item.date)}${item.subtitle || item.date ? ' | ' : ''}${escapeHTML(item.subtitle)}</span>
-        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${escapeHTML(item.link)}</a></span>` : ''}
+        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></span>` : ''}
         ${item.description ? `<p class="experience__description">${escapeHTML(item.description)}</p>` : ''}
         ${item.bullets && item.bullets.length > 0 ? `
-          <ul style="padding-left: 1.15rem; margin-top: 0.35rem; list-style-type: disc;">
+          <ul class="experience__bullets" style="padding-left: 1.15rem; margin-top: 0.35rem; list-style-type: disc;">
             ${item.bullets.map(b => `<li style="margin-bottom: 0.2rem; line-height: 1.45;">${escapeHTML(b)}</li>`).join('')}
           </ul>
         ` : ''}
@@ -247,6 +247,9 @@ export const generateCleanPrintHTML = (cvData) => {
   };
   const fontFamily = fontFamilies[layout.fontFamily] || layout.fontFamily || "'Poppins', sans-serif";
   const fontScale = layout.fontScale || 1.0;
+  const titleScale = layout.titleScale || 1.0;
+  const bodyScale = layout.bodyScale || 1.0;
+  const listScale = layout.listScale || 1.0;
   const lineHeight = layout.lineHeight || 1.45;
 
   const leftBg = layout.leftBg || '#fafafa';
@@ -257,10 +260,13 @@ export const generateCleanPrintHTML = (cvData) => {
   const leftSections = sections.filter(s => s.column === 'left');
   const rightSections = sections.filter(s => s.column === 'right');
 
+  const leftColWidth = layout.leftColumnWidth;
+  const gridColumns = leftColWidth ? `${leftColWidth}% ${100 - leftColWidth}%` : '1fr 2fr';
+
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: 1fr 2fr; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none;">
+      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none;">
         <div class="resume__left" style="background: ${leftBg}; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
@@ -297,6 +303,9 @@ export const generateCleanPrintHTML = (cvData) => {
       --text-color-light: #64748b;
       --body-font: ${fontFamily};
       --font-scale: ${fontScale};
+      --title-scale: ${titleScale};
+      --body-scale: ${bodyScale};
+      --list-scale: ${listScale};
       --line-height: ${lineHeight};
       --h1-font-size: calc(1.45rem * var(--font-scale, 1));
       --h2-font-size: calc(1.15rem * var(--font-scale, 1));
@@ -304,6 +313,17 @@ export const generateCleanPrintHTML = (cvData) => {
       --normal-font-size: calc(0.88rem * var(--font-scale, 1));
       --small-font-size: calc(0.82rem * var(--font-scale, 1));
       --smaller-font-size: calc(0.75rem * var(--font-scale, 1));
+
+      --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
+      --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
+      --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
+      --title-subtitle-size: calc(var(--normal-font-size) * var(--title-scale, 1));
+
+      --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
+      --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
+      --body-smaller-font-size: calc(var(--smaller-font-size) * var(--body-scale, 1));
+
+      --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
     }
 
     @page {
@@ -365,7 +385,7 @@ export const generateCleanPrintHTML = (cvData) => {
     }
 
     .section-title {
-      font-size: var(--h2-font-size);
+      font-size: var(--title-h2-size, var(--h2-font-size));
       color: var(--title-color);
       font-weight: 600;
       text-transform: uppercase;
@@ -375,12 +395,12 @@ export const generateCleanPrintHTML = (cvData) => {
     }
 
     .home__title {
-      font-size: var(--h1-font-size);
+      font-size: var(--title-h1-size, var(--h1-font-size));
       margin-bottom: 0.2rem;
     }
 
     .home__subtitle {
-      font-size: var(--normal-font-size);
+      font-size: var(--title-subtitle-size, var(--normal-font-size));
       color: var(--text-color-light);
       margin-bottom: 0.4rem;
     }
@@ -395,7 +415,7 @@ export const generateCleanPrintHTML = (cvData) => {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: var(--small-font-size);
+      font-size: var(--body-small-font-size, var(--small-font-size));
       color: var(--text-color);
     }
 
@@ -426,25 +446,31 @@ export const generateCleanPrintHTML = (cvData) => {
 
     .education__title,
     .experience__title {
-      font-size: var(--h3-font-size);
+      font-size: var(--title-h3-size, var(--h3-font-size));
       color: var(--title-color);
     }
 
     .education__studies,
     .experience__company {
-      font-size: var(--small-font-size);
+      font-size: var(--body-small-font-size, var(--small-font-size));
       color: var(--title-color);
     }
 
     .education__year {
-      font-size: var(--smaller-font-size);
+      font-size: var(--body-smaller-font-size, var(--smaller-font-size));
       color: var(--text-color-light);
     }
 
     .experience__description,
     .profile__description {
-      font-size: var(--normal-font-size);
+      font-size: var(--body-font-size, var(--normal-font-size));
       margin-top: 0.25rem;
+    }
+
+    .experience__bullets li,
+    .skills__name,
+    .simple-list-item {
+      font-size: var(--list-font-size, var(--normal-font-size));
     }
 
     /* Super-container CSS Page Break & Splitting Prevention */

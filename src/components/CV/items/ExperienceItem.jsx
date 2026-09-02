@@ -1,5 +1,6 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
+import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 
 const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
   return (
@@ -28,20 +29,13 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
           />
         </span>
         {item.link && (
-          <span className="social__container bd-grid">
-            <a 
-              href={`https://${item.link.replace(/^https?:\/\//, '')}`} 
-              className="social__link" 
-              target="_blank" 
-              rel="noreferrer" 
-              style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}
-            >
-              <i className='bx bx-link-external'></i>{' '}
-              <InlineEdit 
-                value={item.link} 
-                onSave={(val) => onUpdateItem(sectionId, item.id, 'link', val)} 
-              />
-            </a>
+          <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+            <HyperlinkEdit 
+              url={item.link} 
+              text={item.linkText || item.link} 
+              onSave={({ url, text }) => onUpdateItem(sectionId, item.id, { link: url, linkText: text })} 
+              onRemove={() => onUpdateItem(sectionId, item.id, { link: '', linkText: '' })} 
+            />
           </span>
         )}
         {item.description && (

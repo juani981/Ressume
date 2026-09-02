@@ -15,6 +15,9 @@
 
   /*========== Font and typography ==========*/
   --font-scale: 1;
+  --title-scale: 1;
+  --body-scale: 1;
+  --list-scale: 1;
   --line-height: 1.45;
   --body-font: 'Poppins', sans-serif;
   --page-padding: 24px;
@@ -164,6 +167,26 @@ body {
 #area-cv {
   font-family: var(--body-font);
   line-height: var(--line-height);
+
+  /* Scoped typography re-declaration to guarantee immediate cascading when inline props update */
+  --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+  --h3-font-size: calc(1rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+  --small-font-size: calc(0.875rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+
+  /* Categorical typography variables (Titles, Body, Lists) */
+  --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
+  --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
+  --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
+  --title-subtitle-size: calc(1.05rem * var(--font-scale, 1) * var(--title-scale, 1));
+
+  --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
+  --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
+  --body-smaller-font-size: calc(var(--smaller-font-size) * var(--body-scale, 1));
+
+  --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
 }
 
 h1, h2, h3, ul, p {
@@ -196,7 +219,7 @@ img {
 }
 
 .section-title {
-  font-size: var(--h2-font-size);
+  font-size: var(--title-h2-size, var(--h2-font-size));
   color: var(--title-color);
   font-weight: var(--font-semi-bold);
   text-transform: uppercase;
@@ -317,11 +340,17 @@ img {
 }
 
 .home__title {
-  font-size: var(--h1-font-size);
+  font-size: var(--title-h1-size, var(--h1-font-size));
+}
+
+.home__subtitle {
+  font-size: var(--title-subtitle-size, var(--normal-font-size));
+  font-weight: var(--font-medium);
+  margin-bottom: var(--mb-1);
 }
 
 .home__profession {
-  font-size: var(--normal-font-size);
+  font-size: var(--body-font-size, var(--normal-font-size));
   margin-bottom: var(--mb-1);
 }
 
@@ -332,7 +361,7 @@ img {
 .home__information {
   display: flex;
   align-items: center;
-  font-size: var(--small-font-size);
+  font-size: var(--body-small-font-size, var(--small-font-size));
 }
 
 .home__icon {
@@ -365,7 +394,7 @@ img {
 .social__link {
   display: inline-flex;
   align-items: center;
-  font-size: var(--small-font-size);
+  font-size: var(--body-small-font-size, var(--small-font-size));
   color: var(--text-color);
 }
 
@@ -381,6 +410,8 @@ img {
 /*========== PROFILE ==========*/
 .profile__description {
   text-align: center;
+  font-size: var(--body-font-size, var(--normal-font-size));
+  line-height: var(--line-height, 1.45);
 }
 
 /*========== EDUCATION AND EXPERIENCE ==========*/
@@ -421,17 +452,23 @@ img {
 
 .education__title,
 .experience__title {
-  font-size: var(--h3-font-size);
+  font-size: var(--title-h3-size, var(--h3-font-size));
 }
 
 .education__studies,
 .experience__company {
-  font-size: var(--small-font-size);
+  font-size: var(--body-small-font-size, var(--small-font-size));
   color: var(--title-color);
 }
 
 .education__year {
-  font-size: var(--smaller-font-size);
+  font-size: var(--body-smaller-font-size, var(--smaller-font-size));
+}
+
+.experience__description {
+  font-size: var(--body-font-size, var(--normal-font-size));
+  line-height: var(--line-height, 1.45);
+  margin-top: 0.25rem;
 }
 
 /*========== SKILLS AND LANGUAGES ==========*/
@@ -446,6 +483,7 @@ img {
   display: flex;
   align-items: center;
   margin-bottom: var(--mb-3);
+  font-size: var(--list-font-size, var(--normal-font-size));
 }
 
 .skills__circle,
@@ -460,7 +498,7 @@ img {
 
 /*========== CERTIFICATES ==========*/
 .certificates__title {
-  font-size: var(--h3-font-size);
+  font-size: var(--title-h3-size, var(--h3-font-size));
   margin-bottom: var(--mb-1);
 }
 
@@ -475,11 +513,11 @@ img {
 
 .references__subtitle,
 .references__contact {
-  font-size: var(--smaller-font-size);
+  font-size: var(--body-smaller-font-size, var(--smaller-font-size));
 }
 
 .references__title {
-  font-size: var(--h3-font-size);
+  font-size: var(--title-h3-size, var(--h3-font-size));
 }
 
 /*========== INTERESTS ==========*/
@@ -657,6 +695,27 @@ img {
   opacity: 0.9;
 }
 
+/*========== COLUMN RESIZER (DRAGGABLE DIVIDER) ==========*/
+.column-resizer {
+  touch-action: none;
+}
+
+.column-resizer:hover .column-resizer-bar,
+.column-resizer-bar.active {
+  background: #3874ff !important;
+  width: 3px !important;
+  box-shadow: 0 0 8px rgba(56, 116, 255, 0.5) !important;
+}
+
+.column-resizer:hover .column-resizer-handle,
+.column-resizer-bar.active .column-resizer-handle {
+  background: #ffffff !important;
+  color: #3874ff !important;
+  border-color: #3874ff !important;
+  box-shadow: 0 3px 10px rgba(56, 116, 255, 0.3) !important;
+  transform: translateY(-50%) scale(1.12) !important;
+}
+
 .inline-input {
   border: 1px dashed transparent;
   background: transparent;
@@ -713,6 +772,12 @@ img {
 .experience__bullets li {
   margin-bottom: 0.2rem;
   line-height: 1.45;
+  font-size: var(--list-font-size, var(--normal-font-size));
+}
+
+#area-cv ul:not(.nav__list) li,
+.simple-list-item {
+  font-size: var(--list-font-size, var(--normal-font-size));
 }
 
 /*========== ROUND ACTION BUTTONS (GREEN ADD / RED DELETE) ==========*/

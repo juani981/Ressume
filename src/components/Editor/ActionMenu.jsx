@@ -63,10 +63,14 @@ const ActionMenu = () => {
   const is2Col = cvData.layout?.type === '2-column';
   const currentFontFamily = cvData.layout?.fontFamily || 'Poppins';
   const fontScale = cvData.layout?.fontScale ?? 1.0;
+  const titleScale = cvData.layout?.titleScale ?? 1.0;
+  const bodyScale = cvData.layout?.bodyScale ?? 1.0;
+  const listScale = cvData.layout?.listScale ?? 1.0;
   const lineHeight = cvData.layout?.lineHeight ?? 1.45;
   const pagePadding = cvData.layout?.pagePadding ?? 24;
   const sectionGap = cvData.layout?.sectionGap ?? 20;
   const itemGap = cvData.layout?.itemGap ?? 8;
+  const leftColumnWidth = cvData.layout?.leftColumnWidth || 33;
 
   return (
     <>
@@ -337,7 +341,7 @@ const ActionMenu = () => {
           style={{
             position: 'fixed',
             left: '4.75rem',
-            top: '40%',
+            top: '50%',
             transform: 'translateY(-50%)',
             background: 'var(--container-color, #ffffff)',
             borderRadius: '12px',
@@ -345,7 +349,9 @@ const ActionMenu = () => {
             boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
             border: '1px solid rgba(0,0,0,0.08)',
             zIndex: 1000,
-            width: '260px',
+            width: '290px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem'
@@ -392,41 +398,147 @@ const ActionMenu = () => {
             </select>
           </div>
 
-          {/* Font Scale Control */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
-              <span>Escala de Fuente</span>
-              <b>{fontScale.toFixed(2)}x</b>
+          {/* Categorized Global Font Sizing */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(99, 102, 241, 0.04)', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Tamaño por Categoría
             </div>
-            <input 
-              type="range" 
-              min={0.85} 
-              max={1.25} 
-              step={0.05}
-              value={fontScale} 
-              onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
-              style={{ width: '100%', cursor: 'pointer' }}
-              aria-label="Control de Escala de Fuente"
-            />
+
+            {/* Titles Scale */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span style={{ fontWeight: 500 }}>Títulos (Encabezados)</span>
+                <b style={{ color: '#4f46e5' }}>{titleScale.toFixed(2)}x</b>
+              </div>
+              <input 
+                type="range" 
+                min={0.80} 
+                max={1.40} 
+                step={0.05}
+                value={titleScale} 
+                onChange={(e) => updateLayout('titleScale', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Tamaño de Títulos"
+                data-testid="slider-title-scale"
+              />
+            </div>
+
+            {/* Body Scale */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span style={{ fontWeight: 500 }}>Cuerpo (Descripciones)</span>
+                <b style={{ color: '#4f46e5' }}>{bodyScale.toFixed(2)}x</b>
+              </div>
+              <input 
+                type="range" 
+                min={0.80} 
+                max={1.30} 
+                step={0.05}
+                value={bodyScale} 
+                onChange={(e) => updateLayout('bodyScale', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Tamaño de Cuerpo de Texto"
+                data-testid="slider-body-scale"
+              />
+            </div>
+
+            {/* List Scale */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span style={{ fontWeight: 500 }}>Listas (Viñetas / Habilidades)</span>
+                <b style={{ color: '#4f46e5' }}>{listScale.toFixed(2)}x</b>
+              </div>
+              <input 
+                type="range" 
+                min={0.80} 
+                max={1.30} 
+                step={0.05}
+                value={listScale} 
+                onChange={(e) => updateLayout('listScale', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Tamaño de Listas"
+                data-testid="slider-list-scale"
+              />
+            </div>
           </div>
 
-          {/* Line Height Control */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
-              <span>Altura de Línea</span>
-              <b>{lineHeight.toFixed(2)}x</b>
+          {/* General Scale & Line Height */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Ajustes Generales
             </div>
-            <input 
-              type="range" 
-              min={1.25} 
-              max={1.85} 
-              step={0.05}
-              value={lineHeight} 
-              onChange={(e) => updateLayout('lineHeight', Number(e.target.value))}
-              style={{ width: '100%', cursor: 'pointer' }}
-              aria-label="Control de Altura de Línea"
-            />
+
+            {/* Master Font Scale Control */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span>Escala General (Multiplicador)</span>
+                <b>{fontScale.toFixed(2)}x</b>
+              </div>
+              <input 
+                type="range" 
+                min={0.85} 
+                max={1.25} 
+                step={0.05}
+                value={fontScale} 
+                onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Escala de Fuente"
+                data-testid="slider-font-scale"
+              />
+            </div>
+
+            {/* Line Height Control */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span>Altura de Línea</span>
+                <b>{lineHeight.toFixed(2)}x</b>
+              </div>
+              <input 
+                type="range" 
+                min={1.25} 
+                max={1.85} 
+                step={0.05}
+                value={lineHeight} 
+                onChange={(e) => updateLayout('lineHeight', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Altura de Línea"
+                data-testid="slider-line-height"
+              />
+            </div>
           </div>
+
+          {/* Reset Typography Button */}
+          <button
+            type="button"
+            onClick={() => {
+              updateLayout({
+                fontScale: 1.0,
+                titleScale: 1.0,
+                bodyScale: 1.0,
+                listScale: 1.0,
+                lineHeight: 1.45
+              });
+            }}
+            style={{
+              padding: '0.4rem 0.6rem',
+              borderRadius: '6px',
+              border: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              color: '#64748b',
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'background 0.15s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
+          >
+            <RotateCcw size={13} /> Restablecer Tipografía
+          </button>
         </div>
       )}
 
@@ -517,6 +629,27 @@ const ActionMenu = () => {
               aria-label="Control de Espacio entre Elementos"
             />
           </div>
+
+          {/* Left Column Width Control (2-Column Mode) */}
+          {is2Col && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                <span>Ancho Columna Lateral</span>
+                <b style={{ color: '#3874ff' }}>{leftColumnWidth}% / {100 - leftColumnWidth}%</b>
+              </div>
+              <input 
+                type="range" 
+                min={20} 
+                max={55} 
+                step={1}
+                value={leftColumnWidth} 
+                onChange={(e) => updateLayout('leftColumnWidth', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+                aria-label="Control de Ancho de Columna Lateral"
+                data-testid="slider-column-width"
+              />
+            </div>
+          )}
         </div>
       )}
 

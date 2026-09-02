@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ActionMenu from './components/Editor/ActionMenu';
 import { useCV } from './context/CVContext';
 import CVSection from './components/CV/CVSection';
@@ -42,8 +42,12 @@ function App() {
     updateSectionColumn, 
     moveItemBetweenSections, 
     moveSectionToColumnAndIndex,
-    addSection 
+    addSection,
+    updateLayout 
   } = useCV();
+
+  const areaCvRef = useRef(null);
+  const [isResizing, setIsResizing] = useState(false);
 
   const [activeDragItem, setActiveDragItem] = useState(null);
   const [activeDragSection, setActiveDragSection] = useState(null);
@@ -171,6 +175,9 @@ function App() {
   };
   const currentFontFamily = fontFamilies[cvData.layout?.fontFamily] || cvData.layout?.fontFamily || "'Poppins', sans-serif";
   const fontScale = cvData.layout?.fontScale ?? 1.0;
+  const titleScale = cvData.layout?.titleScale ?? 1.0;
+  const bodyScale = cvData.layout?.bodyScale ?? 1.0;
+  const listScale = cvData.layout?.listScale ?? 1.0;
   const lineHeight = cvData.layout?.lineHeight ?? 1.45;
   const pagePadding = cvData.layout?.pagePadding ?? 24;
   const sectionGap = cvData.layout?.sectionGap ?? 20;
@@ -179,6 +186,9 @@ function App() {
   const dynamicSpacing = {
     '--body-font': currentFontFamily,
     '--font-scale': `${fontScale}`,
+    '--title-scale': `${titleScale}`,
+    '--body-scale': `${bodyScale}`,
+    '--list-scale': `${listScale}`,
     '--line-height': `${lineHeight}`,
     '--page-padding': `${pagePadding}px`,
     '--section-gap': `${sectionGap}px`,
@@ -221,6 +231,45 @@ function App() {
     }
   };
 
+  const leftColumnWidth = cvData.layout?.leftColumnWidth;
+  const leftColPercent = leftColumnWidth || 33.33;
+  const gridTemplateColumns = is2Col 
+    ? (leftColumnWidth ? `${leftColumnWidth}% ${100 - leftColumnWidth}%` : '1fr 2fr') 
+    : undefined;
+
+  const handleResizerMouseDown = (e) => {
+    e.preventDefault();
+    if (!areaCvRef.current) return;
+    setIsResizing(true);
+
+    const handleMove = (moveEvent) => {
+      if (!areaCvRef.current) return;
+      const rect = areaCvRef.current.getBoundingClientRect();
+      const clientX = moveEvent.clientX ?? (moveEvent.touches && moveEvent.touches[0] ? moveEvent.touches[0].clientX : 0);
+      const offsetX = clientX - rect.left;
+      const rawPercent = (offsetX / rect.width) * 100;
+      const clamped = Math.round(Math.min(55, Math.max(20, rawPercent)));
+      updateLayout('leftColumnWidth', clamped);
+    };
+
+    const handleUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    window.addEventListener('touchmove', handleMove);
+    window.addEventListener('touchend', handleUp);
+  };
+
   return (
     <>
       <ActionMenu />
@@ -236,9 +285,10 @@ function App() {
         <div 
           className={`resume ${is2Col ? 'bd-grid' : ''}`} 
           id="area-cv" 
+          ref={areaCvRef}
           style={is2Col 
-            ? { display: 'grid', gridTemplateColumns: '1fr 2fr', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto', ...dynamicSpacing } 
-            : { display: 'block', padding: `var(--page-padding, 24px)`, background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
+            ? { display: 'grid', gridTemplateColumns, position: 'relative', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto', ...dynamicSpacing } 
+            : { display: 'block', position: 'relative', padding: `var(--page-padding, 24px)`, background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
           }
         >
           {is2Col ? (
@@ -271,6 +321,69 @@ function App() {
                   </button>
                 </div>
               </DroppableColumn>
+
+              {/* Draggable Column Divider / Resizer */}
+              <div
+                className="column-resizer no-print"
+                onMouseDown={handleResizerMouseDown}
+                onTouchStart={handleResizerMouseDown}
+                title="Arrastra para ajustar el ancho de las columnas"
+                aria-label="Divisor de columnas arrastrable"
+                data-testid="column-resizer"
+                style={{
+                  position: 'absolute',
+                  left: `calc(${leftColPercent}% - 7px)`,
+                  top: 0,
+                  bottom: 0,
+                  width: '14px',
+                  cursor: 'col-resize',
+                  zIndex: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  userSelect: 'none',
+                  touchAction: 'none'
+                }}
+              >
+                <div 
+                  className={`column-resizer-bar ${isResizing ? 'active' : ''}`}
+                  style={{
+                    width: isResizing ? '3px' : '2px',
+                    height: '100%',
+                    background: isResizing ? '#3874ff' : 'rgba(56, 116, 255, 0.25)',
+                    boxShadow: isResizing ? '0 0 8px rgba(56, 116, 255, 0.6)' : 'none',
+                    transition: 'background 0.15s ease, width 0.15s ease',
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <div 
+                    className="column-resizer-handle"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '18px',
+                      height: '32px',
+                      borderRadius: '6px',
+                      background: isResizing ? '#3874ff' : '#ffffff',
+                      color: isResizing ? '#ffffff' : '#64748b',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                      border: isResizing ? '1px solid #3874ff' : '1px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '13px',
+                      cursor: 'col-resize',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <i className='bx bx-dots-vertical-rounded'></i>
+                  </div>
+                </div>
+              </div>
 
               <DroppableColumn 
                 id="column-right" 
