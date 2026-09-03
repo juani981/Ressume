@@ -6,6 +6,7 @@
  * and enforces dynamic auto-scaling to fit within a maximum of 2 A4 pages.
  */
 
+const A4_PAGE_HEIGHT_PX = 1123; // 1 A4 page at 96 DPI
 const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246px)
 const MIN_SCALE_FLOOR = 0.75;
 
@@ -26,15 +27,81 @@ export const escapeHTML = (str) => {
 };
 
 /**
- * Calculates auto-scale factor adhering to max 2 A4 pages limit
+ * Computes adaptive print scale and target page count without hardcoded limits.
+ * Optimizes for 1-page and 2-page documents, and gracefully supports 3+ pages.
  * @param {number} renderedHeight 
- * @returns {number} Scale factor between 0.82 and 1.0
+ * @returns {{ scale: number, totalPages: number, targetHeightMm: number }}
  */
-export const calculatePrintScale = (renderedHeight) => {
-  if (!renderedHeight || renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX) {
+export const computeAdaptivePrintLayout = (renderedHeight) => {
+  if (!renderedHeight || renderedHeight <= 0 || isNaN(renderedHeight)) {
+    return { scale: 1.0, totalPages: 1, targetHeightMm: 297 };
+  }
+
+  // 1. Fits in 1 page (up to 1123px)
+  if (renderedHeight <= A4_PAGE_HEIGHT_PX) {
+    return { scale: 1.0, totalPages: 1, targetHeightMm: 297 };
+  }
+
+  // 2. Overflows page 1 slightly (1124px - 1260px) -> optimize to 1 full page
+  if (renderedHeight <= A4_PAGE_HEIGHT_PX * 1.12) {
+    const scale = +( (A4_PAGE_HEIGHT_PX / renderedHeight).toFixed(3) );
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 1, targetHeightMm: 297 };
+  }
+
+  // 3. Clearly 2 pages (1261px - 2246px)
+  if (renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX) {
+    return { scale: 1.0, totalPages: 2, targetHeightMm: 594 };
+  }
+
+  // 4. Overflows page 2 slightly (2247px - 2580px) -> optimize to 2 full pages
+  if (renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX * 1.15) {
+    const scale = +( (MAX_A4_2PAGE_HEIGHT_PX / renderedHeight).toFixed(3) );
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 2, targetHeightMm: 594 };
+  }
+
+  // 5. Clearly 3 pages (2581px - 3369px) -> 3 full pages, scale 1.0 (no arbitrary clamping)
+  if (renderedHeight <= A4_PAGE_HEIGHT_PX * 3) {
+    return { scale: 1.0, totalPages: 3, targetHeightMm: 891 };
+  }
+
+  // 6. Overflows page 3 slightly (3370px - 3870px) -> optimize to 3 full pages
+  if (renderedHeight <= (A4_PAGE_HEIGHT_PX * 3) * 1.15) {
+    const scale = +( ((A4_PAGE_HEIGHT_PX * 3) / renderedHeight).toFixed(3) );
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 3, targetHeightMm: 891 };
+  }
+
+  // 7. General multi-page handling for >= 4 pages
+  const pages = Math.ceil(renderedHeight / A4_PAGE_HEIGHT_PX);
+  return { scale: 1.0, totalPages: pages, targetHeightMm: pages * 297 };
+};
+
+/**
+ * Calculates auto-scale factor adhering to smart multi-page fitting.
+ * Backwards-compatible signature supporting legacy unit tests.
+ * @param {number} renderedHeight 
+ * @param {number|null} maxPages Optional explicit max page constraint (default: 2 for legacy tests)
+ * @returns {number} Scale factor between 0.75 and 1.0
+ */
+export const calculatePrintScale = (renderedHeight, maxPages = 2) => {
+  if (!renderedHeight || renderedHeight <= 0 || isNaN(renderedHeight)) {
     return 1.0;
   }
-  const calculated = MAX_A4_2PAGE_HEIGHT_PX / renderedHeight;
+
+  if (renderedHeight <= A4_PAGE_HEIGHT_PX) {
+    return 1.0;
+  }
+
+  if (maxPages === 1 && renderedHeight <= A4_PAGE_HEIGHT_PX * 1.15) {
+    const calculated = A4_PAGE_HEIGHT_PX / renderedHeight;
+    return Math.max(MIN_SCALE_FLOOR, +(calculated.toFixed(3)));
+  }
+
+  const maxAllowedHeight = maxPages ? maxPages * A4_PAGE_HEIGHT_PX : MAX_A4_2PAGE_HEIGHT_PX;
+  if (renderedHeight <= maxAllowedHeight) {
+    return 1.0;
+  }
+
+  const calculated = maxAllowedHeight / renderedHeight;
   return Math.max(MIN_SCALE_FLOOR, +(calculated.toFixed(3)));
 };
 
@@ -372,18 +439,18 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none;">
-        <div class="resume__left" style="background: ${leftBg}; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
+      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box;">
+        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; padding: var(--page-padding, 1.5rem 1.5rem); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.5rem); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
           ${rightSections.map(renderSectionHTML).join('')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
-      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; margin: 0 auto; padding: var(--page-padding, 24px); background: #ffffff;">
+      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff;">
         ${sections.map(renderSectionHTML).join('')}
       </div>
     `;
@@ -485,10 +552,33 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       width: 100% !important;
       max-width: 100% !important;
       margin: 0 !important;
+      min-height: 297mm !important;
       box-shadow: none !important;
+      box-sizing: border-box !important;
+      -webkit-box-decoration-break: clone !important;
+      box-decoration-break: clone !important;
+    }
+${is2Col ? `
+    .resume__left {
+      min-height: 297mm;
+      height: 100%;
+      box-sizing: border-box;
+      -webkit-box-decoration-break: clone !important;
+      box-decoration-break: clone !important;
     }
 
+    .resume__right {
+      min-height: 297mm;
+      height: 100%;
+      box-sizing: border-box;
+      -webkit-box-decoration-break: clone !important;
+      box-decoration-break: clone !important;
+    }
+` : ''}
+
     .resume__single-column {
+      min-height: 297mm !important;
+      box-sizing: border-box !important;
       padding: var(--page-padding, ${pagePadding}px) !important;
     }
 
@@ -653,9 +743,24 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
         width: 100% !important;
         margin: 0 !important;
         padding: 0;
+        min-height: 297mm !important;
+        box-sizing: border-box !important;
       }
+${is2Col ? `
+      .resume__left,
+      .resume__right {
+        min-height: 297mm !important;
+        height: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        -webkit-box-decoration-break: clone !important;
+        box-decoration-break: clone !important;
+      }
+` : ''}
       #area-cv.resume__single-column,
       .resume__single-column {
+        min-height: 297mm !important;
+        box-sizing: border-box !important;
         padding: var(--page-padding, ${pagePadding}px) !important;
       }
       .cv-section,
@@ -740,10 +845,34 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
             ]);
           }
 
-          const renderedHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
-          const scale = calculatePrintScale(renderedHeight);
-          if (scale < 1.0 && doc.body) {
+          const rawHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
+          const scale = calculatePrintScale(rawHeight);
+          if (scale < 1.0 && doc.body?.style) {
             doc.body.style.zoom = scale;
+          }
+
+          const { totalPages, targetHeightMm } = computeAdaptivePrintLayout(rawHeight);
+
+          const areaCv = typeof doc.getElementById === 'function' 
+            ? doc.getElementById('area-cv') 
+            : (doc.body?.querySelector?.('#area-cv') || doc.body?.firstElementChild);
+
+          if (areaCv && areaCv.style) {
+            areaCv.style.minHeight = `${targetHeightMm}mm`;
+            const leftCol = areaCv.querySelector?.('.resume__left');
+            const rightCol = areaCv.querySelector?.('.resume__right');
+            if (leftCol && leftCol.style) {
+              leftCol.style.minHeight = `${targetHeightMm}mm`;
+              leftCol.style.height = '100%';
+            }
+            if (rightCol && rightCol.style) {
+              rightCol.style.minHeight = `${targetHeightMm}mm`;
+              rightCol.style.height = '100%';
+            }
+          }
+
+          if (iframe && iframe.style) {
+            iframe.style.height = `${totalPages * 1123}px`;
           }
 
           if (typeof iframe.contentWindow.focus === 'function') {

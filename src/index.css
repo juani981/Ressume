@@ -1328,11 +1328,25 @@ img {
     width: 100% !important;
     margin: 0 !important;
     padding: 0;
+    min-height: 297mm !important;
     box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .resume__left,
+  .resume__right {
+    min-height: 297mm !important;
+    height: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
   }
 
   #area-cv.resume__single-column,
   .resume__single-column {
+    min-height: 297mm !important;
+    box-sizing: border-box !important;
     padding: var(--page-padding, 24px) !important;
   }
 
