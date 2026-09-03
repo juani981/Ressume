@@ -3,6 +3,7 @@ import { defaultSchema } from '../utils/schema';
 import { LOCALES } from '../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
+import { sanitizeAndValidateCVSnapshot } from '../utils/versionValidator';
 
 const CVContext = createContext();
 
@@ -85,7 +86,6 @@ export const CVProvider = ({ children }) => {
     }
     return baseDefaultContent;
   });
-
 
   const [activeLanguage, setActiveLanguage] = useState(() => {
     return localStorage.getItem('cvActiveLanguage') || 'es';
@@ -248,6 +248,22 @@ export const CVProvider = ({ children }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [past, future, undo, redo]);
+
+  // Load a complete CV snapshot into state with history tracking and auto-save
+  const loadVersionSnapshot = useCallback((snapshot, { clearHistory = false } = {}) => {
+    const sanitized = sanitizeAndValidateCVSnapshot(snapshot);
+    if (!sanitized) {
+      throw new Error('Invalid snapshot structure');
+    }
+    if (clearHistory) {
+      setPast([]);
+      setFuture([]);
+      setCvData(sanitized);
+    } else {
+      applyStateWithHistory(() => sanitized);
+    }
+    return sanitized;
+  }, [applyStateWithHistory]);
 
   // Reset entire CV back to original placeholder state
   const resetToDefault = useCallback(() => {
@@ -529,6 +545,7 @@ export const CVProvider = ({ children }) => {
       redo,
       canUndo: past.length > 0,
       canRedo: future.length > 0,
+      loadVersionSnapshot,
       resetToDefault,
       restoreContactSection,
       activeTooltip,
@@ -547,3 +564,5 @@ export const CVProvider = ({ children }) => {
     </CVContext.Provider>
   );
 };
+
+export default CVContext;

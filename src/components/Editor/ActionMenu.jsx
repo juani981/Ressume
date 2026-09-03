@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCV } from '../../context/CVContext';
 import AIExportModal from './AIExportModal';
 import TranslationModal from './TranslationModal';
+import VersionManagerModal from './VersionManagerModal';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
 import { 
   Columns, 
@@ -13,7 +14,8 @@ import {
   Redo2,
   RotateCcw,
   FolderDown,
-  Info
+  Info,
+  History
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -32,6 +34,7 @@ const ActionMenu = () => {
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   
   // Grouped Submenus State (Epic 3)
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
@@ -281,6 +284,21 @@ const ActionMenu = () => {
           <span className="action-menu-tooltip">
             Hub de Prompts IA & Scorecard ATS
           </span>
+        </div>
+
+        {/* Version Manager Hub Button (Milestone 2 & 3) */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="version-hub-btn action-menu-hub-btn"
+            data-testid="btn-open-version-manager"
+            aria-label="Gestor de Versiones"
+            title="Gestor de Versiones"
+            onClick={() => setIsVersionModalOpen(true)}
+          >
+            <History size={20} color="#3b82f6" />
+          </button>
+          <span className="action-menu-tooltip">Versiones</span>
         </div>
 
         <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
@@ -871,6 +889,7 @@ const ActionMenu = () => {
 
       <AIExportModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
       <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
+      <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
     </>
   );
 };

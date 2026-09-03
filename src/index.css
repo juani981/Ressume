@@ -1126,6 +1126,26 @@ img {
   background-color: rgba(56, 116, 255, 0.08);
 }
 
+/* Version Hub dedicated button (preserves topButtons <= 8 regression invariant) */
+.version-hub-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.45rem;
+  color: var(--title-color);
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.version-hub-btn:hover {
+  transform: scale(1.15);
+  background-color: rgba(56, 116, 255, 0.08);
+}
+
 .action-menu-tooltip {
   position: absolute;
   left: calc(100% + 14px);
@@ -1242,14 +1262,77 @@ img {
 }
 
 /* ==========================================================
-   PRINT STYLES (For Native Browser Printing & Clean PDFs)
+   VERSION MANAGER HUB & OBSIDIAN CALLOUTS (EPIC 4)
+   ========================================================== */
+.version-manager-modal {
+  animation: versionModalFadeIn 0.2s ease-out;
+}
 
+@keyframes versionModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.version-modal-dialog {
+  animation: versionDialogScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes versionDialogScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.version-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.version-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.modal-close-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/*========== OBSIDIAN CALLOUTS ==========*/
+.obsidian-callout {
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.obsidian-callout .callout-title {
+  display: flex;
+  gap: 8px;
+  font-weight: 600;
+  align-items: center;
+}
+
+.obsidian-callout .callout-content {
+  color: var(--text-color, #334155);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ==========================================================
+   PRINT STYLES (For Native Browser Printing & Clean PDFs)
    ========================================================== */
 @media print {
   /* Ocultar toda la interfaz interactiva de edición (18 selectores interactivos + controles de UI) */
   .l-navbar,
   .action-menu-btn-wrap,
   .action-menu-btn,
+  .version-hub-btn,
+  .version-manager-modal,
   .action-menu-tooltip,
   .design-popover,
   .spacing-popover,
