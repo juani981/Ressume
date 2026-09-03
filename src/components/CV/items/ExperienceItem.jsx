@@ -1,8 +1,129 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
+import SimpleListItem from './SimpleListItem';
+import DragHandle from '../../Editor/DragHandle';
+import { 
+  DndContext, 
+  closestCorners, 
+  PointerSensor, 
+  KeyboardSensor, 
+  useSensor, 
+  useSensors 
+} from '@dnd-kit/core';
+import { 
+  SortableContext, 
+  verticalListSortingStrategy, 
+  arrayMove, 
+  sortableKeyboardCoordinates, 
+  useSortable 
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+const SortableBulletItem = ({ 
+  bulletId, 
+  bulletText, 
+  bulletIndex, 
+  sectionId, 
+  itemId, 
+  bullets, 
+  onUpdateItem, 
+  onDeleteBullet 
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: bulletId,
+    data: {
+      type: 'bullet',
+      bulletIndex
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    position: 'relative',
+    opacity: isDragging ? 0.35 : 1,
+    display: 'flex',
+    alignItems: 'flex-start',
+    marginBottom: 'var(--item-gap, 6px)',
+    paddingRight: '1.5rem',
+    paddingLeft: '1.25rem'
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="bullet-item-row editable-item-container cv-block"
+    >
+      <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
+      <SimpleListItem 
+        item={{ id: bulletIndex, text: bulletText }} 
+        sectionId={sectionId} 
+        onUpdateItem={(secId, bIdx, field, val) => {
+          const newBullets = [...bullets];
+          newBullets[bIdx] = val;
+          onUpdateItem(sectionId, itemId, 'bullets', newBullets);
+        }}
+      />
+      <button
+        type="button"
+        className="round-btn-del bullet-del-btn no-print"
+        title="Eliminar esta viñeta"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDeleteBullet(bulletIndex);
+        }}
+      >
+        <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
+      </button>
+    </li>
+  );
+};
 
 const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
+  const bullets = item.bullets || [];
+
+  const bulletItems = bullets.map((b, idx) => ({
+    id: `${item.id}_bullet_${idx}`,
+    text: typeof b === 'string' ? b : (b?.text || ''),
+    index: idx
+  }));
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4
+      }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
+
+  const handleAddBullet = () => {
+    const newBullets = [...bullets, 'Nuevo logro o responsabilidad'];
+    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+  };
+
+  const handleDeleteBullet = (bulletIndex) => {
+    const newBullets = bullets.filter((_, idx) => idx !== bulletIndex);
+    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+  };
+
+  const handleBulletDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = bulletItems.findIndex(b => b.id === active.id);
+    const newIndex = bulletItems.findIndex(b => b.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      const newBullets = arrayMove(bullets, oldIndex, newIndex);
+      onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+    }
+  };
+
   return (
     <>
       <div className="experience__time">
@@ -47,23 +168,51 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
             />
           </p>
         )}
-        {item.bullets && item.bullets.length > 0 && (
-          <ul className="experience__bullets">
-            {item.bullets.map((bullet, idx) => (
-              <li key={idx}>
-                <InlineEdit 
-                  value={bullet} 
-                  onSave={(val) => {
-                    const newBullets = [...item.bullets];
-                    newBullets[idx] = val;
-                    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
-                  }} 
-                  multiline
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+
+        {/* Draggable Bullets List with Add/Delete capabilities */}
+        <div className="experience__bullets-container" style={{ marginTop: '0.35rem' }}>
+          {bullets.length > 0 && (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragEnd={handleBulletDragEnd}
+            >
+              <SortableContext
+                items={bulletItems.map(b => b.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                  {bulletItems.map((bulletObj) => (
+                    <SortableBulletItem
+                      key={bulletObj.id}
+                      bulletId={bulletObj.id}
+                      bulletText={bulletObj.text}
+                      bulletIndex={bulletObj.index}
+                      sectionId={sectionId}
+                      itemId={item.id}
+                      bullets={bullets}
+                      onUpdateItem={onUpdateItem}
+                      onDeleteBullet={handleDeleteBullet}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+          )}
+
+          {/* Add Bullet Button */}
+          <div className="bullet-add-row no-print" style={{ marginTop: '0.25rem', paddingLeft: '1.25rem' }}>
+            <button
+              type="button"
+              className="add-bullet-btn no-print"
+              onClick={handleAddBullet}
+              title="Agregar viñeta / logro a este puesto"
+            >
+              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
+              <span>Agregar viñeta</span>
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { defaultSchema } from '../utils/schema';
 import { LOCALES } from '../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
@@ -91,6 +91,43 @@ export const CVProvider = ({ children }) => {
     return localStorage.getItem('cvActiveLanguage') || 'es';
   });
 
+  // AI Suggestions Toggle State (enabled by default)
+  const [showAITips, setShowAITips] = useState(() => {
+    const saved = localStorage.getItem('cv_show_ai_tips');
+    return saved !== 'false';
+  });
+
+  // Ephemeral toast notification state: { id, text, type } or null
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
+
+  const showToast = useCallback((text, type = 'info') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    const newToast = { id: Date.now(), text, type };
+    setToast(newToast);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(null);
+    }, 2800);
+  }, []);
+
+  // Active singleton tooltip state: { section, rect } or null
+  const [activeTooltip, setActiveTooltip] = useState(null);
+  const clearActiveTooltip = useCallback(() => {
+    setActiveTooltip(null);
+  }, []);
+  const closeTooltip = clearActiveTooltip;
+
+  const toggleTooltipForSection = useCallback((section, rect) => {
+    setActiveTooltip(current => {
+      if (current && current.section && current.section.id === section.id) {
+        return null;
+      }
+      return { section, rect };
+    });
+  }, []);
+
   // Persistence
   useEffect(() => {
     localStorage.setItem('cvData', JSON.stringify(cvData));
@@ -102,7 +139,23 @@ export const CVProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('cvActiveLanguage', activeLanguage);
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = activeLanguage || 'es';
+    }
   }, [activeLanguage]);
+
+  // Keep active language pack in sync with live user edits
+  useEffect(() => {
+    try {
+      const currentDict = extractDictionaryFromCV(cvData);
+      setLanguagePacks(prev => ({
+        ...prev,
+        [activeLanguage]: currentDict
+      }));
+    } catch (e) {
+      console.warn('Error extracting dictionary on cvData update', e);
+    }
+  }, [cvData, activeLanguage]);
 
   // Push state to past history before applying update
   const applyStateWithHistory = useCallback((updater) => {
@@ -454,7 +507,15 @@ export const CVProvider = ({ children }) => {
       canUndo: past.length > 0,
       canRedo: future.length > 0,
       resetToDefault,
-      restoreContactSection
+      restoreContactSection,
+      activeTooltip,
+      setActiveTooltip,
+      clearActiveTooltip,
+      closeTooltip,
+      toggleTooltipForSection,
+      showAITips,
+      toast,
+      showToast
     }}>
       {children}
     </CVContext.Provider>

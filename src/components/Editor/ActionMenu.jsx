@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCV } from '../../context/CVContext';
 import AIExportModal from './AIExportModal';
 import TranslationModal from './TranslationModal';
-import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
+import { executeCleanPrint, downloadPDF } from '../../utils/staticHtmlPdfEngine';
 import { 
   Globe, 
   Bot, 
@@ -38,10 +38,10 @@ const ActionMenu = () => {
   const [isSpacingMenuOpen, setIsSpacingMenuOpen] = useState(false);
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     setLoading(true);
     try {
-      executeCleanPrint(cvData);
+      await executeCleanPrint(cvData, activeLanguage);
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
       window.print();

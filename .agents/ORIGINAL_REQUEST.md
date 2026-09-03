@@ -117,3 +117,50 @@ Integrity mode: development
 ### System Polish & Stability
 - [ ] Full build (`npm run build`) and test suite pass with 0 errors.
 - [ ] All CV data (contact, experience, education, skills, projects, certifications, languages) remains fully intact and editable.
+
+## 2026-09-03T01:50:08Z
+
+Implement a bulletproof, zero-artifact, 1:1 vector/text PDF print and export engine for the Ressume CV editor. The print output must strictly capture only the contents of the main editing paper (`#area-cv`), rendering 100% selectable text (never rasterized canvas images) with exact typography, active layout rules, custom spacings, colors, and inner icons, completely stripped of all interactive editor artifacts.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: development
+
+## Requirements
+
+### R1. True 1:1 Vector & Selectable Text PDF Generation
+Implement a dedicated print/export engine that produces a high-fidelity PDF with 100% selectable text and crisp vector icons (never a raster canvas screenshot like `html2canvas`). The exported document must exactly replicate the visual presentation, grid/column widths, custom font families, font scale, line height, section gap, item gap, page padding, and background colors active in the `#area-cv` paper.
+
+### R2. Complete Interactive Artifact Stripping
+Ensure that every interactive editor UI artifact is strictly removed from the print and export output, including:
+- Section and item drag handles (`.section-drag-handle`, `.item-drag-handle`)
+- Circular delete buttons (`.round-btn-del`, `.section-del-btn`, `.item-del-btn`, `.bullet-del-btn`)
+- Circular and row add buttons (`.round-btn-add`, `.add-bullet-btn`, `.section-add-container`, `.column-add-section`)
+- AI suggestion toggle lightbulbs (`.section-tips-toggle-btn`) and floating tooltips (`.suggestion-tooltip`)
+- Column resizer divider (`.column-resizer`) and action menu UI (`.l-navbar`)
+- Input placeholders and raw textarea outlines (content must render as pure semantic typography)
+
+### R3. Strict Zero-Split Super-Container Pagination
+Enforce strict page-break avoidance rules (`break-inside: avoid !important; page-break-inside: avoid !important;`) on all `.cv-section` and `.cv-block` containers. Section headers must never be orphaned at the bottom of a page without their corresponding content, and individual job/education/project blocks must never be fractured mid-sentence across page splits.
+
+### R4. Reliable Native & Client-Side Execution Pipeline
+Connect the PDF generator to both the top/side ActionMenu export triggers (`executeCleanPrint` and PDF download). Provide a zero-failure execution path (isolated clean iframe printing or direct downloadable PDF stream) that works across modern browsers without layout shifts, missing font glitches, or CSS variable evaluation failures.
+
+## Acceptance Criteria
+
+### Visual Fidelity & Typography
+- [ ] Exported PDF matches `#area-cv` layout 1:1 (column proportions, custom colors, fonts, margins, and gaps).
+- [ ] PDF contains 100% selectable, copyable text across all sections, titles, and bullets (0% canvas rasterization).
+- [ ] Inner icons (contact BoxIcons, badges, timeline dots) render cleanly and in their exact spatial positions.
+
+### Zero Editor Artifacts
+- [ ] 0 editor controls (`.drag-handle`, `.round-btn-del`, `.round-btn-add`, `.section-tips-toggle-btn`, `.suggestion-tooltip`, `.column-resizer`) appear in the print output or iframe.
+- [ ] Inline editable fields render as plain semantic text nodes without borders or focus rings.
+
+### Page Breaks & Pagination
+- [ ] Super-containers (`.cv-section` and `.cv-block`) adhere to `break-inside: avoid` preventing awkward mid-block page cuts.
+- [ ] Section titles stay bound to their respective child items.
+
+### System Verification & Tests
+- [ ] Automated tests verify that `executeCleanPrint` / `generateCleanPrintHTML` produces a clean HTML document adhering to all CSS variable bindings and containing 0 interactive class selectors.
+- [ ] Full build (`npm run build`) and test suite pass with 0 errors.
+

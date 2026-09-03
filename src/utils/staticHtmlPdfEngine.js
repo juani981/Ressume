@@ -119,7 +119,7 @@ const renderItemHTML = (item, sectionType) => {
       <div class="education__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
         <div class="education__time" style="padding-right: 0.75rem;">
           <span class="education__rounder"></span>
-          <span class="education__line"></span>
+          ${!isLast ? '<span class="education__line"></span>' : ''}
         </div>
         <div class="education__data bd-grid" style="width: 100%;">
           <h3 class="education__title">${escapeHTML(item.title)}</h3>
@@ -139,21 +139,123 @@ const renderItemHTML = (item, sectionType) => {
     `;
   }
 
-  // default 'list' (experience / projects / custom)
+  if (sectionType === 'languages') {
+    return `
+      <div class="cv-block" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: var(--item-gap, 6px);">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; flex-shrink: 0;"></span>
+          <div>
+            <span style="font-weight: 600; font-size: var(--normal-font-size); color: var(--title-color);">${escapeHTML(item.title || item.language)}</span>
+            ${item.description ? `<div style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.description)}</div>` : ''}
+          </div>
+        </div>
+        <span style="font-size: var(--small-font-size); font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); border: 1px solid rgba(0, 0, 0, 0.08); white-space: nowrap;">
+          ${escapeHTML(item.subtitle || item.level || 'Intermedio')}
+        </span>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'certificates') {
+    return `
+      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
+          <i class='bx bx-badge-check' style="font-size: 14px;"></i>
+        </span>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+          </div>
+          <div style="font-size: var(--small-font-size); color: var(--text-color);">
+            ${escapeHTML(item.subtitle)}${item.credentialId ? ` · <span style="color: var(--text-color-light); font-size: var(--smaller-font-size);">ID: ${escapeHTML(item.credentialId)}</span>` : ''}
+          </div>
+          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'awards') {
+    return `
+      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
+          <i class='bx bx-trophy' style="font-size: 14px;"></i>
+        </span>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+          </div>
+          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle)}</div>` : ''}
+          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${escapeHTML(item.description)}</p>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'publications') {
+    return `
+      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
+          <i class='bx bx-book-open' style="font-size: 14px;"></i>
+        </span>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+          </div>
+          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle)}</div>` : ''}
+          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></div>` : ''}
+          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${escapeHTML(item.description)}</p>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  if (sectionType === 'references') {
+    return `
+      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
+          <i class='bx bx-user-check' style="font-size: 14px;"></i>
+        </span>
+        <div style="flex: 1;">
+          <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title || item.name)}</h3>
+          <div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle || item.position)}</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.2rem; font-size: var(--smaller-font-size); color: var(--text-color-light);">
+            ${item.email ? `<span><i class='bx bx-envelope'></i> ${escapeHTML(item.email)}</span>` : ''}
+            ${item.phone ? `<span><i class='bx bx-phone'></i> ${escapeHTML(item.phone)}</span>` : ''}
+            ${item.relationship ? `<span>(${escapeHTML(item.relationship)})</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // default 'list', 'projects', 'volunteering', or custom
+  const rounderColor = 'var(--circle-color, var(--text-color-light))';
   return `
     <div class="experience__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
       <div class="experience__time" style="padding-right: 0.75rem;">
-        <span class="experience__rounder"></span>
-        <span class="experience__line"></span>
+        <span class="experience__rounder" style="background-color: ${rounderColor};"></span>
+        ${!isLast ? '<span class="experience__line"></span>' : ''}
       </div>
       <div class="experience__data bd-grid" style="width: 100%;">
-        <h3 class="experience__title">${escapeHTML(item.title)}</h3>
-        <span class="experience__company">${escapeHTML(item.date)}${item.subtitle || item.date ? ' | ' : ''}${escapeHTML(item.subtitle)}</span>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+          <h3 class="experience__title" style="margin: 0;">${escapeHTML(item.title)}</h3>
+          ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+        </div>
+        ${item.subtitle ? `<span class="experience__company" style="font-weight: 500; color: var(--title-color);">${escapeHTML(item.subtitle)}</span>` : ''}
         ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></span>` : ''}
         ${item.description ? `<p class="experience__description">${escapeHTML(item.description)}</p>` : ''}
         ${item.bullets && item.bullets.length > 0 ? `
-          <ul class="experience__bullets" style="padding-left: 1.15rem; margin-top: 0.35rem; list-style-type: disc;">
-            ${item.bullets.map(b => `<li style="margin-bottom: 0.2rem; line-height: 1.45;">${escapeHTML(b)}</li>`).join('')}
+          <ul style="padding: 0; margin-top: 0.35rem; list-style: none;">
+            ${item.bullets.map(b => `
+              <li class="cv-block" style="display: flex; align-items: flex-start; margin-bottom: calc(var(--item-gap, 6px) / 2); list-style: none;">
+                <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
+                <span style="flex: 1;">${escapeHTML(b)}</span>
+              </li>
+            `).join('')}
           </ul>
         ` : ''}
       </div>
@@ -184,11 +286,11 @@ const renderSectionHTML = (section) => {
   if (section.type === 'simple_list' || section.type === 'skills') {
     itemsHTML = `
       <ul style="padding: 0; margin: 0; list-style: none;">
-        ${items.map(item => renderItemHTML(item, section.type)).join('')}
+        ${items.map((item, index) => renderItemHTML(item, section.type, index === items.length - 1)).join('')}
       </ul>
     `;
   } else {
-    itemsHTML = items.map(item => renderItemHTML(item, section.type)).join('');
+    itemsHTML = items.map((item, index) => renderItemHTML(item, section.type, index === items.length - 1)).join('');
   }
 
   return `
@@ -207,9 +309,10 @@ const renderSectionHTML = (section) => {
  * @param {Object} cvData 
  * @returns {string} Standalone HTML document string
  */
-export const generateCleanPrintHTML = (cvData) => {
+export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   const data = cvData || {};
   const layout = data.layout || {};
+  const docLang = lang || layout.language || data.activeLanguage || 'es';
   let rawSections = Array.isArray(data.sections) ? data.sections : [];
 
   let sections = rawSections;
@@ -284,7 +387,7 @@ export const generateCleanPrintHTML = (cvData) => {
   }
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${escapeHTML(docLang)}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -356,6 +459,8 @@ export const generateCleanPrintHTML = (cvData) => {
     h1, h2, h3 {
       color: var(--title-color);
       font-weight: 600;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
     }
 
     ul {
@@ -379,9 +484,13 @@ export const generateCleanPrintHTML = (cvData) => {
       gap: 0.75rem;
     }
 
-    .section {
+    .section, .cv-section {
       padding: 0;
-      margin-bottom: var(--section-gap, 18px);
+      margin-bottom: max(10px, var(--section-gap, 18px)) !important;
+    }
+
+    .section:last-of-type, .cv-section:last-of-type {
+      margin-bottom: 0 !important;
     }
 
     .section-title {
@@ -392,6 +501,8 @@ export const generateCleanPrintHTML = (cvData) => {
       letter-spacing: .2rem;
       margin-bottom: 0.6rem;
       text-align: left;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
     }
 
     .home__title {
@@ -444,6 +555,20 @@ export const generateCleanPrintHTML = (cvData) => {
       transform: translate(5.5px, 0);
     }
 
+    /* Global rule: Suppress timeline connector line on the last item of any list */
+    .cv-block:last-child .experience__line,
+    .cv-block:last-child .education__line,
+    .cv-block:last-child [class*="__line"],
+    .cv-block:last-of-type .experience__line,
+    .cv-block:last-of-type .education__line,
+    .cv-block:last-of-type [class*="__line"],
+    .experience__content:last-child .experience__line,
+    .experience__content:last-of-type .experience__line,
+    .education__content:last-child .education__line,
+    .education__content:last-of-type .education__line {
+      display: none !important;
+    }
+
     .education__title,
     .experience__title {
       font-size: var(--title-h3-size, var(--h3-font-size));
@@ -484,6 +609,20 @@ export const generateCleanPrintHTML = (cvData) => {
       page-break-inside: avoid !important;
     }
 
+    /* Orphan Header Protection */
+    .section-title,
+    h1,
+    h2,
+    h3 {
+      break-after: avoid !important;
+      page-break-after: avoid !important;
+    }
+
+    p, h1, h2, h3, li {
+      orphans: 3;
+      widows: 3;
+    }
+
     @media print {
       @page {
         size: A4;
@@ -502,6 +641,22 @@ export const generateCleanPrintHTML = (cvData) => {
         margin: 0 !important;
         padding: 0 !important;
       }
+      .cv-section,
+      .cv-block,
+      .section,
+      .experience__content,
+      .education__content,
+      .skills__name {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+      .section-title,
+      h1,
+      h2,
+      h3 {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+      }
     }
   </style>
 </head>
@@ -516,57 +671,130 @@ export const generateCleanPrintHTML = (cvData) => {
  * triggers browser native print, and cleans up the DOM.
  * @param {Object} cvData 
  */
-export const executeCleanPrint = (cvData) => {
-  const html = generateCleanPrintHTML(cvData);
+export const executeCleanPrint = (cvData, lang = 'es') => {
+  return new Promise((resolve) => {
+    const html = generateCleanPrintHTML(cvData, lang);
 
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.top = '-10000px';
-  iframe.style.left = '-10000px';
-  iframe.style.width = '0px';
-  iframe.style.height = '0px';
-  iframe.style.border = '0';
-  iframe.setAttribute('title', 'Ressume Print Preview');
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-10000px';
+    iframe.style.left = '-10000px';
+    iframe.style.width = '794px';
+    iframe.style.minWidth = '794px';
+    iframe.style.height = '1123px';
+    iframe.style.visibility = 'hidden';
+    iframe.style.border = '0';
+    iframe.setAttribute('title', 'Ressume Print Preview');
 
-  document.body.appendChild(iframe);
+    document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow?.document || iframe.contentDocument;
-  if (!doc) {
-    window.print();
-    return;
-  }
-
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  const triggerPrint = () => {
-    try {
-      if (iframe.contentWindow) {
-        const renderedHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
-        const scale = calculatePrintScale(renderedHeight);
-        if (scale < 1.0 && doc.body) {
-          doc.body.style.zoom = scale;
-        }
-
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      }
-    } catch (e) {
-      console.warn('Iframe print failed, falling back to window.print()', e);
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (!doc) {
       window.print();
-    } finally {
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
-        }
-      }, 1000);
+      resolve();
+      return;
     }
-  };
 
-  if (iframe.contentWindow?.document?.readyState === 'complete') {
-    triggerPrint();
-  } else {
-    iframe.onload = triggerPrint;
-  }
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const triggerPrint = async () => {
+      try {
+        if (iframe.contentWindow) {
+          // Await font readiness with timeout fallback (max 1000ms)
+          if (doc.fonts && typeof doc.fonts.ready?.then === 'function') {
+            await Promise.race([
+              doc.fonts.ready,
+              new Promise((res) => setTimeout(res, 1000))
+            ]);
+          }
+
+          const renderedHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
+          const scale = calculatePrintScale(renderedHeight);
+          if (scale < 1.0 && doc.body) {
+            doc.body.style.zoom = scale;
+          }
+
+          if (typeof iframe.contentWindow.focus === 'function') {
+            iframe.contentWindow.focus();
+          }
+          if (typeof iframe.contentWindow.print === 'function') {
+            iframe.contentWindow.print();
+          } else {
+            window.print();
+          }
+        }
+      } catch (e) {
+        console.warn('Iframe print failed, falling back to window.print()', e);
+        window.print();
+      } finally {
+        resolve();
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+          }
+        }, 1000);
+      }
+    };
+
+    if (iframe.contentWindow?.document?.readyState === 'complete') {
+      triggerPrint();
+    } else {
+      iframe.onload = () => {
+        triggerPrint();
+      };
+    }
+  });
 };
+
+/**
+ * Initiates direct PDF download triggering the browser's download manager animation.
+ * Attempts serverless PDF compilation with seamless fallback to isolated vector print.
+ * @param {Object} cvData 
+ * @param {string} lang 
+ */
+export const downloadPDF = async (cvData, lang = 'es') => {
+  const cleanName = (cvData.profile?.name || 'Curriculum_Vitae')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, '_');
+  const filename = `CV_${cleanName}.pdf`;
+
+  try {
+    const response = await fetch('/.netlify/functions/generate-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cv_state: cvData, url: typeof window !== 'undefined' ? window.location.href : '' })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.pdfBase64) {
+        const byteCharacters = atob(result.pdfBase64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+        return true;
+      }
+    }
+  } catch (err) {
+    console.info('Direct PDF endpoint unavailable, using vector print pipeline', err);
+  }
+
+  // Seamless fallback to 1:1 vector print engine
+  return executeCleanPrint(cvData, lang);
+};
+

@@ -213,9 +213,24 @@ img {
 }
 
 /*========== CLASS CSS ==========*/
-.section {
-  padding: calc(var(--section-gap, 20px) / 2) 0;
-  margin-bottom: var(--section-gap, 1.5rem);
+.section,
+.cv-section,
+.editable-section-container {
+  margin-bottom: max(10px, var(--section-gap, 20px)) !important;
+  position: relative;
+}
+
+.cv-section:last-of-type,
+.editable-section-container:last-of-type,
+.section:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+.cv-block,
+.editable-item-container,
+.experience__content,
+.simple-list-item {
+  margin-bottom: max(4px, var(--item-gap, 8px));
 }
 
 .section-title {
@@ -443,6 +458,26 @@ img {
   height: 110%;
   background-color: var(--text-color-light);
   transform: translate(7px, 0);
+}
+
+/* Global rule: Hide timeline line if it is the last item in the list/container */
+.editable-item-container:last-child .experience__line,
+.editable-item-container:last-child .education__line,
+.editable-item-container:last-child [class*="__line"],
+.editable-item-container:last-of-type .experience__line,
+.editable-item-container:last-of-type .education__line,
+.editable-item-container:last-of-type [class*="__line"],
+.cv-block:last-child .experience__line,
+.cv-block:last-child .education__line,
+.cv-block:last-child [class*="__line"],
+.cv-block:last-of-type .experience__line,
+.cv-block:last-of-type .education__line,
+.cv-block:last-of-type [class*="__line"],
+.experience__content:last-child .experience__line,
+.experience__content:last-of-type .experience__line,
+.education__content:last-child .education__line,
+.education__content:last-of-type .education__line {
+  display: none !important;
 }
 
 .education__data,
@@ -806,39 +841,203 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #ef4444;
   color: #ffffff;
   border: none;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
-  transition: transform 0.15s ease, opacity 0.2s ease, background 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.2s ease, visibility 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  z-index: 15;
+  z-index: 25;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .round-btn-del:hover {
   transform: scale(1.18);
   background: #dc2626;
-  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
+  opacity: 1 !important;
 }
 
 .section-del-btn {
-  top: 0.5rem;
-  right: 0.25rem;
+  top: 0.35rem;
+  right: 0.35rem;
+}
+
+.editable-section-container:hover > .section-del-btn {
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* AI Tips Section Toggle Lightbulb Button (Visible on Section Hover) */
+.section-tips-toggle-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 2.45rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(234, 179, 8, 0.14);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.2);
+}
+
+.section-tips-toggle-btn.disabled {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: none;
+}
+
+.section-tips-toggle-btn.active {
+  background: #eab308;
+  color: #ffffff;
+  border-color: #ca8a04;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+}
+
+.editable-section-container:hover > .section-tips-toggle-btn {
+  opacity: 0.95;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.section-tips-toggle-btn:hover {
+  transform: scale(1.18);
+  opacity: 1 !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.55);
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .item-del-btn {
-  top: 0.25rem;
-  right: 0.25rem;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 20px;
+  height: 20px;
 }
 
-.editable-section-container:hover > .section-del-btn,
 .editable-item-container:hover > .item-del-btn {
-  opacity: 0.85;
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Section add item button container (Visible on Section Hover) */
+.section-add-container {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.editable-section-container:hover .section-add-container {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Bullet item hover delete and drag handle */
+.bullet-item-row {
+  position: relative;
+  padding-right: 1.5rem;
+  padding-left: 1.15rem;
+  border-radius: 4px;
+}
+
+.bullet-item-row .item-drag-handle {
+  top: 0.1rem;
+  left: 0.05rem;
+}
+
+.bullet-item-row .bullet-del-btn {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  right: 0.1rem;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
+}
+
+.bullet-item-row:hover .bullet-del-btn {
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.bullet-item-row .bullet-del-btn:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Add bullet button (Visible on Item Hover) */
+.bullet-add-row {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.editable-item-container:hover .bullet-add-row {
+  opacity: 1;
+  visibility: visible;
+}
+
+.add-bullet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px dashed rgba(16, 185, 129, 0.4);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-top: 0.2rem;
+}
+
+.add-bullet-btn:hover {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  transform: translateY(-1px);
+}
+
+.column-add-section {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+.resume__left:hover .column-add-section,
+.resume__right:hover .column-add-section,
+.resume__single-column:hover .column-add-section {
+  opacity: 1;
 }
 
 .add-section-btn {
@@ -931,19 +1130,37 @@ img {
 
    ========================================================== */
 @media print {
-  /* Ocultar toda la interfaz interactiva de edición */
-  .l-navbar, 
-  .change-theme, 
+  /* Ocultar toda la interfaz interactiva de edición (18 selectores interactivos + controles de UI) */
+  .l-navbar,
+  .action-menu-btn-wrap,
+  .action-menu-btn,
+  .action-menu-tooltip,
+  .design-popover,
+  .spacing-popover,
+  .change-theme,
   .generate-pdf,
   .section-drag-handle,
   .item-drag-handle,
   .drag-handle,
   .round-btn-add,
   .round-btn-del,
+  .section-del-btn,
+  .item-del-btn,
+  .bullet-del-btn,
   .add-section-btn,
   .section-add-container,
   .column-add-section,
-  .no-print {
+  .add-bullet-btn,
+  .bullet-add-row,
+  .section-tips-toggle-btn,
+  .suggestion-tooltip,
+  .obsidian-callout,
+  .column-resizer,
+  .column-resizer-bar,
+  .column-resizer-handle,
+  .toast-notification,
+  .no-print,
+  button {
     display: none !important;
   }
 
@@ -952,6 +1169,15 @@ img {
   .editable-item-container {
     outline: none !important;
     background-color: transparent !important;
+    border: none !important;
+  }
+
+  /* Neutralizar inputs editables */
+  .inline-input {
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   /* Forzar renderizado exacto de colores de fondo */
@@ -996,8 +1222,17 @@ img {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+
+  /* Prevención de encabezados huérfanos */
+  .section-title,
+  h1,
+  h2,
+  h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
   
-  p, h2, h3, li {
+  p, h1, h2, h3, li {
     orphans: 3;
     widows: 3;
   }

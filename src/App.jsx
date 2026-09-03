@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
 import ActionMenu from './components/Editor/ActionMenu';
+import AddSectionModal from './components/Editor/AddSectionModal';
+import SuggestionTooltip from './components/Editor/SuggestionTooltip';
+import ToastNotification from './components/Editor/ToastNotification';
 import { useCV } from './context/CVContext';
 import CVSection from './components/CV/CVSection';
 import { 
@@ -43,7 +46,9 @@ function App() {
     moveItemBetweenSections, 
     moveSectionToColumnAndIndex,
     addSection,
-    updateLayout 
+    updateLayout,
+    activeTooltip,
+    clearActiveTooltip
   } = useCV();
 
   const areaCvRef = useRef(null);
@@ -51,6 +56,14 @@ function App() {
 
   const [activeDragItem, setActiveDragItem] = useState(null);
   const [activeDragSection, setActiveDragSection] = useState(null);
+
+  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
+  const [addSectionTargetColumn, setAddSectionTargetColumn] = useState('right');
+
+  const handleOpenAddSection = (column = 'right') => {
+    setAddSectionTargetColumn(column);
+    setIsAddSectionModalOpen(true);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -281,7 +294,10 @@ function App() {
         onDragOver={handleDragOver} 
         onDragEnd={handleDragEnd}
       >
-      <main className="l-main bd-container" style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', padding: '2rem 1rem' }}>
+      <main 
+        className="l-main bd-container" 
+        style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', padding: '2rem 1rem' }}
+      >
         <div 
           className={`resume ${is2Col ? 'bd-grid' : ''}`} 
           id="area-cv" 
@@ -314,8 +330,8 @@ function App() {
                   <button 
                     type="button" 
                     className="add-section-btn no-print"
-                    onClick={() => addSection('left', 'simple_list', 'NUEVA SECCIÓN')}
-                    title="Agregar nueva sección a la columna izquierda"
+                    onClick={() => handleOpenAddSection('left')}
+                    title="Agregar nueva sección a la columna lateral"
                   >
                     <i className='bx bx-plus-circle'></i> Agregar Sección Lateral
                   </button>
@@ -406,7 +422,7 @@ function App() {
                   <button 
                     type="button" 
                     className="add-section-btn no-print"
-                    onClick={() => addSection('right', 'list', 'NUEVA SECCIÓN')}
+                    onClick={() => handleOpenAddSection('right')}
                     title="Agregar nueva sección a la columna principal"
                   >
                     <i className='bx bx-plus-circle'></i> Agregar Sección Principal
@@ -426,7 +442,7 @@ function App() {
                 <button 
                   type="button" 
                   className="add-section-btn no-print"
-                  onClick={() => addSection('left', 'list', 'NUEVA SECCIÓN')}
+                  onClick={() => handleOpenAddSection('left')}
                   title="Agregar nueva sección"
                 >
                   <i className='bx bx-plus-circle'></i> Agregar Nueva Sección
@@ -478,6 +494,26 @@ function App() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Add Section Selection Modal */}
+      <AddSectionModal 
+        isOpen={isAddSectionModalOpen} 
+        onClose={() => setIsAddSectionModalOpen(false)} 
+        targetColumn={addSectionTargetColumn} 
+      />
+
+      {/* Global Singleton AI Suggestion Tooltip (Fixed to Container Right, Non-obstructive) */}
+      {activeTooltip && activeTooltip.section && activeTooltip.rect && (
+        <SuggestionTooltip 
+          section={activeTooltip.section} 
+          isHovered={true} 
+          layoutType={cvData.layout?.type === '1-column' ? 1 : 2} 
+          rect={activeTooltip.rect} 
+        />
+      )}
+
+      {/* Ephemeral Toast Notification */}
+      <ToastNotification />
     </>
   );
 }
