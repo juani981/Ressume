@@ -830,7 +830,7 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
 
       it('F13.4: ActionMenu contains native PDF print export button', () => {
         render(<CVProvider><ActionMenu /></CVProvider>);
-        expect(screen.getByRole('button', { name: /generar pdf nativo/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /descargar \/ imprimir pdf|generar pdf nativo/i })).toBeInTheDocument();
       });
 
       it('F13.5: Clicking spacing button opens Espaciado y Márgenes popover with range sliders', () => {

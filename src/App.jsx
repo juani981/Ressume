@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ActionMenu from './components/Editor/ActionMenu';
 import AddSectionModal from './components/Editor/AddSectionModal';
 import SuggestionTooltip from './components/Editor/SuggestionTooltip';
@@ -50,6 +50,20 @@ function App() {
     activeTooltip,
     clearActiveTooltip
   } = useCV();
+
+  useEffect(() => {
+    const name = (cvData.profile?.name || '').replace(/<[^>]*>?/gm, '').trim();
+    const subtitle = (cvData.profile?.subtitle || '').replace(/<[^>]*>?/gm, '').trim();
+    if (name && subtitle) {
+      document.title = `${name} - ${subtitle}`;
+    } else if (name) {
+      document.title = name;
+    } else if (subtitle) {
+      document.title = subtitle;
+    } else {
+      document.title = 'Curriculum Vitae';
+    }
+  }, [cvData.profile?.name, cvData.profile?.subtitle]);
 
   const areaCvRef = useRef(null);
   const [isResizing, setIsResizing] = useState(false);

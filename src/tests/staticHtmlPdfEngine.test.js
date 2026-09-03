@@ -193,5 +193,40 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         expect(true).toBe(true);
       }
     });
+
+    it('T2.6: Preserves pagePadding in single-column mode in @media print rules without overriding to 0', () => {
+      const singleColData = {
+        ...sampleCVData,
+        layout: {
+          type: '1-column',
+          pagePadding: 36,
+          sectionGap: 24,
+          itemGap: 10,
+        }
+      };
+
+      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
+        const html = staticPdfEngine.generateCleanPrintHTML(singleColData);
+        expect(html).toContain('--page-padding: 36px');
+        expect(html).toContain('padding: var(--page-padding, 36px) !important');
+        expect(html).toContain('resume__single-column');
+      } else {
+        expect(true).toBe(true);
+      }
+    });
+
+    it('T2.7: Sets dynamic title in format "Nombre - Subtitulo" for default PDF naming', () => {
+      const cvWithNameAndSubtitle = {
+        ...sampleCVData,
+        profile: {
+          name: 'Jane Doe',
+          subtitle: 'Full Stack Engineer'
+        }
+      };
+
+      const html = staticPdfEngine.generateCleanPrintHTML(cvWithNameAndSubtitle);
+      expect(html).toContain('<title>Jane Doe - Full Stack Engineer</title>');
+    });
   });
 });
+

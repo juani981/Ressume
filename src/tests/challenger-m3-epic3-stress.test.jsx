@@ -6,7 +6,6 @@ import ActionMenu from '../components/Editor/ActionMenu';
 import AddSectionModal from '../components/Editor/AddSectionModal';
 import { CVProvider, useCV } from '../context/CVContext';
 import * as printEngineModule from '../utils/staticHtmlPdfEngine';
-import * as reactPdfEngineModule from '../utils/reactPdfEngine';
 
 // Inspector helper to check state transitions and invariants
 const InvariantInspector = ({ onState }) => {
@@ -455,17 +454,13 @@ describe('Empirical Challenger M3-1: Epic 3 Stress & Invariant Verification', ()
       fireEvent.click(screen.getByTestId('btn-action-native-print'));
       expect(cleanPrintSpy).toHaveBeenCalledTimes(1);
 
-      // Vector PDF trigger
-      fireEvent.click(screen.getByTestId('btn-action-vector-pdf'));
-      await waitFor(() => {
-        expect(createObjectURLSpy).toHaveBeenCalled();
-      }, { timeout: 3000 });
+      // Verify Vector PDF button is completely removed
+      expect(screen.queryByTestId('btn-action-vector-pdf')).toBeNull();
 
       // JSON export trigger
       fireEvent.click(screen.getByTestId('btn-action-export-json'));
-      expect(clickedLinks.length).toBe(2);
-      expect(clickedLinks[0].download).toMatch(/\.pdf$/);
-      expect(clickedLinks[1].download).toMatch(/cv-state-.*\.json/);
+      expect(clickedLinks.length).toBe(1);
+      expect(clickedLinks[0].download).toMatch(/cv-state-.*\.json/);
 
       createObjectURLSpy.mockRestore();
       revokeObjectURLSpy.mockRestore();

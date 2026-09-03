@@ -45,6 +45,7 @@ const SortableBulletItem = ({
     opacity: isDragging ? 0.35 : 1,
     display: 'flex',
     alignItems: 'flex-start',
+    marginTop: 0,
     marginBottom: 'var(--item-gap, 6px)',
     paddingRight: '1.5rem',
     paddingLeft: '1.15rem'
@@ -183,7 +184,7 @@ const ProjectsItem = ({ item, sectionId, onUpdateItem }) => {
         )}
 
         {/* Draggable Bullets List */}
-        <div className="experience__bullets-container" style={{ marginTop: '0.35rem' }}>
+        <div className="experience__bullets-container">
           {bullets.length > 0 && (
             <DndContext
               sensors={sensors}
@@ -214,7 +215,7 @@ const ProjectsItem = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div className="bullet-add-row no-print" style={{ marginTop: '0.25rem', paddingLeft: '1.15rem' }}>
+          <div className="bullet-add-row no-print" style={{ paddingLeft: '1.15rem' }}>
             <button
               type="button"
               className="add-bullet-btn no-print"

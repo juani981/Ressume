@@ -6,7 +6,6 @@ import AddSectionModal from '../components/Editor/AddSectionModal';
 import App from '../App';
 import { CVProvider, useCV } from '../context/CVContext';
 import * as printEngineModule from '../utils/staticHtmlPdfEngine';
-import * as reactPdfEngineModule from '../utils/reactPdfEngine';
 
 // Helper component for observing CVContext state
 const StateInspector = ({ onState }) => {
@@ -320,10 +319,8 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(designSubmenu.style.opacity).toBe('0');
     });
 
-    it('T3.3: Acciones submenu renders all 3 export options and triggers them correctly', async () => {
+    it('T3.3: Acciones submenu renders clean PDF export and JSON export options and triggers them correctly', async () => {
       const executeCleanPrintSpy = vi.spyOn(printEngineModule, 'executeCleanPrint').mockResolvedValue();
-      const createObjectURLSpy = vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:http://localhost/test-pdf');
-      const revokeObjectURLSpy = vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
 
       render(
         <CVProvider>
@@ -333,26 +330,17 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
 
       fireEvent.click(screen.getByTestId('btn-open-actions'));
 
-      const vectorPdfBtn = screen.getByTestId('btn-action-vector-pdf');
       const nativePrintBtn = screen.getByTestId('btn-action-native-print');
       const jsonExportBtn = screen.getByTestId('btn-action-export-json');
+      const vectorPdfBtn = screen.queryByTestId('btn-action-vector-pdf');
 
-      expect(vectorPdfBtn).toBeInTheDocument();
+      expect(vectorPdfBtn).toBeNull();
       expect(nativePrintBtn).toBeInTheDocument();
       expect(jsonExportBtn).toBeInTheDocument();
 
-      // Trigger native print
+      // Trigger native clean print
       fireEvent.click(nativePrintBtn);
       expect(executeCleanPrintSpy).toHaveBeenCalledTimes(1);
-
-      // Trigger vector PDF download
-      fireEvent.click(vectorPdfBtn);
-      await waitFor(() => {
-        expect(createObjectURLSpy).toHaveBeenCalled();
-      }, { timeout: 3000 });
-
-      createObjectURLSpy.mockRestore();
-      revokeObjectURLSpy.mockRestore();
     });
   });
 

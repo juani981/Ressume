@@ -7,22 +7,6 @@ import ActionMenu from '../components/Editor/ActionMenu';
 import InlineEdit from '../components/Editor/InlineEdit';
 import RichTextToolbar from '../components/Editor/RichTextToolbar';
 import AddSectionModal from '../components/Editor/AddSectionModal';
-import CVDocument from '../components/PDF/CVDocument';
-import { CVSectionPdf } from '../components/PDF/CVSectionPdf';
-import { CVItemPdf } from '../components/PDF/CVItemPdf';
-import { RichTextPdf } from '../components/PDF/richTextPdf';
-import { 
-  getDynamicTextColors, 
-  mapFontFamilyToPdf, 
-  computePdfFontSizes, 
-  computePdfSpacing, 
-  createCvStyles 
-} from '../components/PDF/pdfStyleFactory';
-import { 
-  renderPdfBlob, 
-  generateAndDownloadPdf, 
-  normalizeCvDataForPdf 
-} from '../utils/reactPdfEngine';
 import { 
   generateCleanPrintHTML, 
   executeCleanPrint 
@@ -125,10 +109,6 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
       // Verify rich formatting is intact after layout mode change
       expect(contextRef.cvData.profile.subtitle).toBe(savedSubtitle);
 
-      // 6. Test React-PDF Engine export with this ATS rich-text state
-      const pdfBlob = await renderPdfBlob(contextRef.cvData, 'es');
-      expect(pdfBlob).toBeInstanceOf(Blob);
-      expect(pdfBlob.size).toBeGreaterThan(500);
 
       // Validate tokenization into RichTextPdf
       const parsedTokens = parseHtmlToTokens(savedSubtitle);
@@ -235,62 +215,6 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
   // =========================================================================
   describe('Suite 3: Super-Container Pagination & Zero-Split Invariants', () => {
 
-    it('E2E-3.1: Enforces atomic super-container wrapping on CVSectionPdf across 1-col and 2-col modes', () => {
-      const complexSection = {
-        id: 'experience_heavy',
-        type: 'list',
-        title: 'EXPERIENCIA PROFESIONAL',
-        column: 'right',
-        items: [
-          {
-            id: 'item_1',
-            title: 'Staff Infrastructure Architect',
-            subtitle: 'Global Cloud Systems',
-            date: '2022 - Present',
-            description: 'Leading <b>distributed cloud</b> infrastructure migrations.',
-            bullets: ['Spearheaded zero-downtime Kubernetes deployments', 'Architected multi-region failover protocols']
-          },
-          {
-            id: 'item_2',
-            title: 'Senior Site Reliability Engineer',
-            subtitle: 'Enterprise SaaS Solutions',
-            date: '2019 - 2022',
-            description: 'Maintained 99.999% SLA across 400+ microservices.',
-            bullets: ['Implemented automated anomaly detection pipelines']
-          },
-          {
-            id: 'item_3',
-            title: 'DevOps Engineer',
-            subtitle: 'FinTech Group',
-            date: '2017 - 2019',
-            description: 'Automated CI/CD release engineering.',
-            bullets: ['Reduced build times by 70%']
-          }
-        ]
-      };
-
-      const layout = { ...defaultSchema.layout, type: '2-column' };
-      const colors = getDynamicTextColors('#ffffff');
-      const fontSizes = computePdfFontSizes(layout);
-      const spacing = computePdfSpacing(layout);
-      const styles = createCvStyles(layout);
-
-      const { container } = render(
-        <CVSectionPdf 
-          section={complexSection}
-          colors={colors}
-          fontSizes={fontSizes}
-          spacing={spacing}
-          styles={styles}
-        />
-      );
-
-      // In CVSectionPdf:
-      // The super-container combines section title + item_1 in a <View wrap={false}>
-      // And subsequent items (item_2, item_3) are each wrapped in <View wrap={false}>
-      expect(container).toBeTruthy();
-    });
-
     it('E2E-3.2: Static HTML generator preserves break-inside: avoid on all sections and blocks', () => {
       const html = generateCleanPrintHTML(defaultSchema, 'es');
       expect(html).toContain('break-inside: avoid !important');
@@ -301,55 +225,7 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
 
   });
 
-  // =========================================================================
-  // SUITE 4: Dynamic Contrast Across Dark/Light Themes and ATS White Override
-  // =========================================================================
-  describe('Suite 4: Dynamic Contrast & Color Boundaries', () => {
 
-    it('E2E-4.1: Correctly calculates high-contrast palette across extreme color hex codes', () => {
-      // Pure dark
-      const darkBlack = getDynamicTextColors('#000000');
-      expect(darkBlack.titleColor).toBe('#fcfcfc');
-      expect(darkBlack.textColor).toBe('#f0efef');
-
-      // 3-digit hex dark
-      const dark3 = getDynamicTextColors('#111');
-      expect(dark3.titleColor).toBe('#fcfcfc');
-
-      // Deep navy
-      const navy = getDynamicTextColors('#0f172a');
-      expect(navy.titleColor).toBe('#fcfcfc');
-
-      // Pure white
-      const pureWhite = getDynamicTextColors('#ffffff');
-      expect(pureWhite.titleColor).toBe('#0f172a');
-      expect(pureWhite.textColor).toBe('#334155');
-
-      // 3-digit hex light
-      const white3 = getDynamicTextColors('#fff');
-      expect(white3.titleColor).toBe('#0f172a');
-
-      // Subtle light slate
-      const lightSlate = getDynamicTextColors('#f8fafc');
-      expect(lightSlate.titleColor).toBe('#0f172a');
-
-      // Boundary mid-tones
-      const mid1 = getDynamicTextColors('#7f7f7f'); // YIQ ~127 (dark text threshold)
-      const mid2 = getDynamicTextColors('#808080'); // YIQ ~128 (light text threshold)
-      expect(mid1).toBeDefined();
-      expect(mid2).toBeDefined();
-    });
-
-    it('E2E-4.2: Font family correctly maps to standard Type 1 PDF fonts with 0 network latency', () => {
-      expect(mapFontFamilyToPdf('Poppins')).toBe('Helvetica');
-      expect(mapFontFamilyToPdf('Inter')).toBe('Helvetica');
-      expect(mapFontFamilyToPdf('Roboto')).toBe('Helvetica');
-      expect(mapFontFamilyToPdf('Merriweather')).toBe('Times-Roman');
-      expect(mapFontFamilyToPdf('JetBrains Mono')).toBe('Courier');
-      expect(mapFontFamilyToPdf('UnknownFont')).toBe('Helvetica');
-    });
-
-  });
 
   // =========================================================================
   // SUITE 5: ActionMenu Topology, Submenu Mutual Exclusion & Modal Viewport Docking
@@ -506,22 +382,7 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
       expect(adaptedToList.text).toBe('<b>Principal Architect</b> — Enterprise Systems Inc.');
     });
 
-    it('E2E-6.2: Complete CV normalization handles malformed data gracefully without breaking PDF engine', () => {
-      const malformedData = {
-        profile: null,
-        layout: { type: 'invalid-type' },
-        sections: 'not-an-array'
-      };
 
-      const normalized = normalizeCvDataForPdf(malformedData);
-      expect(Array.isArray(normalized.sections)).toBe(true);
-      expect(normalized.profile).toBeDefined();
-      expect(normalized.layout).toBeDefined();
-
-      const nullNormalized = normalizeCvDataForPdf(null);
-      expect(nullNormalized).toBeDefined();
-      expect(Array.isArray(nullNormalized.sections)).toBe(true);
-    });
 
   });
 

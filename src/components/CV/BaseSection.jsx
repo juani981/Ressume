@@ -33,7 +33,7 @@ const BaseSection = ({ section }) => {
     transition,
     position: 'relative',
     opacity: isDragging ? 0.4 : 1,
-    marginBottom: 'max(10px, var(--section-gap, 20px))'
+    marginBottom: 'var(--section-gap, 20px)'
   };
 
   const sectionClass = section.type === 'skills' 
@@ -125,7 +125,7 @@ const BaseSection = ({ section }) => {
 
       {/* Add Item Button below Container */}
       {allowAddItem && (
-        <div className="section-add-container no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '0.75rem' }}>
+        <div className="section-add-container no-print">
           <button 
             type="button"
             className="round-btn-add no-print"

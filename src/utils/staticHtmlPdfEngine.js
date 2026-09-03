@@ -389,12 +389,18 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     `;
   }
 
+  const profileName = stripHtml(data.profile?.name || '').trim();
+  const profileSubtitle = stripHtml(data.profile?.subtitle || '').trim();
+  const dynamicDocumentTitle = profileName && profileSubtitle
+    ? `${profileName} - ${profileSubtitle}`
+    : (profileName || profileSubtitle || 'Curriculum Vitae');
+
   return `<!DOCTYPE html>
 <html lang="${escapeHTML(docLang)}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHTML(stripHtml(data.profile?.name) || 'Curriculum Vitae')}</title>
+  <title>${escapeHTML(dynamicDocumentTitle)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -482,6 +488,10 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       box-shadow: none !important;
     }
 
+    .resume__single-column {
+      padding: var(--page-padding, ${pagePadding}px) !important;
+    }
+
     .bd-grid {
       display: grid;
       gap: 0.75rem;
@@ -489,7 +499,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
 
     .section, .cv-section {
       padding: 0;
-      margin-bottom: max(10px, var(--section-gap, 18px)) !important;
+      margin-bottom: var(--section-gap, 18px) !important;
     }
 
     .section:last-of-type, .cv-section:last-of-type {
@@ -642,7 +652,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
         max-width: 100% !important;
         width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0;
+      }
+      #area-cv.resume__single-column,
+      .resume__single-column {
+        padding: var(--page-padding, ${pagePadding}px) !important;
       }
       .cv-section,
       .cv-block,
@@ -676,6 +690,16 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
  */
 export const executeCleanPrint = (cvData, lang = 'es') => {
   return new Promise((resolve) => {
+    const profileName = stripHtml(cvData?.profile?.name || '').trim();
+    const profileSubtitle = stripHtml(cvData?.profile?.subtitle || '').trim();
+    const dynamicDocumentTitle = profileName && profileSubtitle
+      ? `${profileName} - ${profileSubtitle}`
+      : (profileName || profileSubtitle || 'Curriculum Vitae');
+
+    if (typeof document !== 'undefined' && dynamicDocumentTitle) {
+      document.title = dynamicDocumentTitle;
+    }
+
     const html = generateCleanPrintHTML(cvData, lang);
 
     const iframe = document.createElement('iframe');
@@ -705,6 +729,9 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
     const triggerPrint = async () => {
       try {
         if (iframe.contentWindow) {
+          if (doc) {
+            doc.title = dynamicDocumentTitle;
+          }
           // Await font readiness with timeout fallback (max 1000ms)
           if (doc.fonts && typeof doc.fonts.ready?.then === 'function') {
             await Promise.race([
@@ -752,52 +779,11 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
 };
 
 /**
- * Initiates direct PDF download triggering the browser's download manager animation.
- * Attempts serverless PDF compilation with seamless fallback to isolated vector print.
+ * Generates and triggers clean native PDF print dialog via executeCleanPrint.
  * @param {Object} cvData 
  * @param {string} lang 
  */
 export const downloadPDF = async (cvData, lang = 'es') => {
-  const cleanName = (cvData.profile?.name || 'Curriculum_Vitae')
-    .trim()
-    .replace(/[^a-zA-Z0-9_-]+/g, '_');
-  const filename = `CV_${cleanName}.pdf`;
-
-  try {
-    const response = await fetch('/.netlify/functions/generate-pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cv_state: cvData, url: typeof window !== 'undefined' ? window.location.href : '' })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.pdfBase64) {
-        const byteCharacters = atob(result.pdfBase64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'application/pdf' });
-        const blobUrl = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-        return true;
-      }
-    }
-  } catch (err) {
-    console.info('Direct PDF endpoint unavailable, using vector print pipeline', err);
-  }
-
-  // Seamless fallback to 1:1 vector print engine
   return executeCleanPrint(cvData, lang);
 };
 

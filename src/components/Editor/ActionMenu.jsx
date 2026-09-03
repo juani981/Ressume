@@ -13,7 +13,6 @@ import {
   Redo2,
   RotateCcw,
   FolderDown,
-  FileDown,
   Info
 } from 'lucide-react';
 
@@ -31,7 +30,6 @@ const ActionMenu = () => {
   } = useCV();
 
   const [loading, setLoading] = useState(false);
-  const [vectorPdfLoading, setVectorPdfLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   
@@ -48,31 +46,6 @@ const ActionMenu = () => {
       updateLayout({ type: '2-column', isAtsMode: false });
     } else {
       updateLayout({ type: '1-column', isAtsMode: true });
-    }
-  };
-
-  const handleDownloadVectorPDF = async () => {
-    if (vectorPdfLoading) return;
-    setVectorPdfLoading(true);
-    try {
-      const { generateAndDownloadPdf } = await import('../../utils/reactPdfEngine');
-      await generateAndDownloadPdf(cvData, activeLanguage);
-      if (typeof showToast === 'function') {
-        showToast(
-          activeLanguage === 'en' ? 'PDF generated successfully' : '¡PDF vectorial descargado con éxito!',
-          'success'
-        );
-      }
-    } catch (e) {
-      console.error('Error generating vector PDF:', e);
-      if (typeof showToast === 'function') {
-        showToast(
-          activeLanguage === 'en' ? 'Error generating PDF. Please try again.' : 'Error al generar PDF. Intente nuevamente.',
-          'warning'
-        );
-      }
-    } finally {
-      setVectorPdfLoading(false);
     }
   };
 
@@ -830,47 +803,14 @@ const ActionMenu = () => {
           </button>
         </div>
 
-        {/* Action 1: Vector PDF Download (@react-pdf/renderer) */}
-        <button
-          type="button"
-          className="action-popover-item"
-          onClick={handleDownloadVectorPDF}
-          disabled={vectorPdfLoading}
-          aria-label="Descargar PDF Vectorial"
-          title="Descargar PDF Vectorial (@react-pdf/renderer)"
-          data-testid="btn-action-vector-pdf"
-        >
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: '#ecfdf5',
-            color: '#059669',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            {vectorPdfLoading ? <i className='bx bx-loader-alt bx-spin' style={{ fontSize: '18px' }}></i> : <FileDown size={20} />}
-          </div>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
-              Descargar PDF Vectorial
-            </div>
-            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '1px' }}>
-              Texto seleccionable y paginación A4 (@react-pdf)
-            </div>
-          </div>
-        </button>
-
-        {/* Action 2: Native Print / Static HTML PDF */}
+        {/* Action 1: Native Print / Clean PDF Export */}
         <button
           type="button"
           className="action-popover-item"
           onClick={handleGeneratePDF}
           disabled={loading}
-          aria-label="Generar PDF Nativo (A4 Imprimible)"
-          title="Generar PDF Nativo (A4 Imprimible)"
+          aria-label="Descargar / Imprimir PDF"
+          title="Descargar / Imprimir PDF (Impresión A4 Limpia)"
           data-testid="btn-action-native-print"
         >
           <div style={{
@@ -888,10 +828,10 @@ const ActionMenu = () => {
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
-              Generar PDF Nativo
+              Descargar / Imprimir PDF
             </div>
             <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '1px' }}>
-              Impresión limpia directa del navegador
+              Documento A4 limpio y optimizado
             </div>
           </div>
         </button>

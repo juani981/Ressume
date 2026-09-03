@@ -310,7 +310,7 @@ describe('Empirical Challenger: Clean Print Engine & Lifecycle Boundary Stress T
         </CVProvider>
       );
 
-      const pdfButton = screen.getByRole('button', { name: /generar pdf nativo/i });
+      const pdfButton = screen.getByRole('button', { name: /descargar \/ imprimir pdf|generar pdf nativo/i });
       expect(pdfButton).toBeDefined();
 
       fireEvent.click(pdfButton);
@@ -336,7 +336,7 @@ describe('Empirical Challenger: Clean Print Engine & Lifecycle Boundary Stress T
         </CVProvider>
       );
 
-      const pdfButton = screen.getByRole('button', { name: /generar pdf nativo/i });
+      const pdfButton = screen.getByRole('button', { name: /descargar \/ imprimir pdf|generar pdf nativo/i });
       fireEvent.click(pdfButton);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(

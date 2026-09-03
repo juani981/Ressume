@@ -6,7 +6,6 @@ import InlineEdit from '../components/Editor/InlineEdit';
 import { CVProvider, useCV } from '../context/CVContext';
 import { defaultSchema } from '../utils/schema';
 import { generateCleanPrintHTML } from '../utils/staticHtmlPdfEngine';
-import { RichTextPdf } from '../components/PDF/richTextPdf';
 import { 
   extractAlignment, 
   applyAlignment, 
@@ -579,15 +578,11 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
       expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
     });
 
-    it('T5.3: RichTextPdf parses bold, italic, and alignment cleanly for React-PDF', () => {
-      const rendered = RichTextPdf({
-        text: '<div style="text-align: center;"><b>Senior</b> <i>Developer</i></div>'
-      });
-
-      expect(rendered).toBeDefined();
-      expect(rendered.props.style).toEqual(expect.arrayContaining([
-        expect.objectContaining({ textAlign: 'center' })
-      ]));
+    it('T5.3: parseHtmlToTokens tokenizes bold, italic, and alignment cleanly', () => {
+      const parsed = parseHtmlToTokens('<div style="text-align: center;"><b>Senior</b> <i>Developer</i></div>');
+      expect(parsed.align).toBe('center');
+      expect(parsed.tokens.some(t => t.text.includes('Senior') && t.bold)).toBe(true);
+      expect(parsed.tokens.some(t => t.text.includes('Developer') && t.italic)).toBe(true);
     });
 
     it('T5.4: richTextEngine utility functions correctly handle edge cases', () => {

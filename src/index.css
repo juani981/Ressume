@@ -216,7 +216,7 @@ img {
 .section,
 .cv-section,
 .editable-section-container {
-  margin-bottom: max(10px, var(--section-gap, 20px)) !important;
+  margin-bottom: var(--section-gap, 20px) !important;
   position: relative;
 }
 
@@ -229,8 +229,21 @@ img {
 .cv-block,
 .editable-item-container,
 .experience__content,
-.simple-list-item {
-  margin-bottom: max(4px, var(--item-gap, 8px));
+.education__content,
+.simple-list-item,
+.skills__name,
+.languages__name {
+  margin-top: 0 !important;
+  margin-bottom: var(--item-gap, 8px);
+}
+
+.cv-block:last-child,
+.cv-block:last-of-type,
+.editable-item-container:last-child,
+.editable-item-container:last-of-type,
+.bullet-item-row:last-child,
+.bullet-item-row:last-of-type {
+  margin-bottom: 0 !important;
 }
 
 .section-title {
@@ -254,6 +267,19 @@ img {
 .bd-grid {
   display: grid;
   gap: 1.5rem;
+}
+
+.experience__container,
+.education__container,
+.projects__container,
+.certificates__container,
+.awards__container,
+.publications__container,
+.volunteering__container,
+.references__container,
+.editable-section-container .bd-grid,
+.editable-section-container [class*="__container"] {
+  gap: 0 !important;
 }
 
 .l-header {
@@ -455,7 +481,7 @@ img {
 .experience__line {
   display: block;
   width: 2px;
-  height: 110%;
+  height: 100%;
   background-color: var(--text-color-light);
   transform: translate(7px, 0);
 }
@@ -517,7 +543,7 @@ img {
 .languages__name {
   display: flex;
   align-items: center;
-  margin-bottom: var(--mb-3);
+  margin-bottom: var(--item-gap, 8px);
   font-size: var(--list-font-size, var(--normal-font-size));
 }
 
@@ -774,17 +800,17 @@ img {
   position: relative;
   outline: 2px solid transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
-  border-radius: 8px;
-  padding: 0.25rem 0.25rem 0.25rem 0.35rem;
-  margin-bottom: 0.35rem;
+  border-radius: 6px;
+  padding: 0 0.25rem;
 }
 
 .editable-item-container {
   position: relative;
   outline: 1px dashed transparent;
   transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
-  border-radius: 6px;
-  padding: 0.15rem 0.25rem 0.15rem 0.25rem;
+  border-radius: 4px;
+  padding: 0 0.25rem;
+  margin-top: 0 !important;
 }
 
 .editable-section-container:hover {
@@ -820,14 +846,14 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #10b981;
   color: #ffffff;
-  border: none;
+  border: 2px solid #ffffff;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.45);
   transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -951,16 +977,27 @@ img {
   pointer-events: auto;
 }
 
-/* Section add item button container (Visible on Section Hover) */
+/* Section add item button container (Positioned at bottom edge) */
 .section-add-container {
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
 }
 
 .editable-section-container:hover .section-add-container {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 /* Bullet item hover delete and drag handle */
@@ -969,6 +1006,7 @@ img {
   padding-right: 1.5rem;
   padding-left: 1.15rem;
   border-radius: 4px;
+  margin-top: 0 !important;
 }
 
 .bullet-item-row .item-drag-handle {
@@ -1289,8 +1327,13 @@ img {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0;
     box-shadow: none !important;
+  }
+
+  #area-cv.resume__single-column,
+  .resume__single-column {
+    padding: var(--page-padding, 24px) !important;
   }
 
   /* Control de Saltos de Página (Page Breaks) */
