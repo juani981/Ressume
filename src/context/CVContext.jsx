@@ -128,6 +128,12 @@ export const CVProvider = ({ children }) => {
     });
   }, []);
 
+  // Active singleton formatting toolbar state: { activeElement, onFormat, activeFormats, visible, rect } or null
+  const [activeToolbar, setActiveToolbar] = useState(null);
+  const clearActiveToolbar = useCallback(() => {
+    setActiveToolbar(null);
+  }, []);
+
   // Persistence
   useEffect(() => {
     localStorage.setItem('cvData', JSON.stringify(cvData));
@@ -212,6 +218,23 @@ export const CVProvider = ({ children }) => {
 
       const isUndo = e.key.toLowerCase() === 'z' && !e.shiftKey;
       const isRedo = e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z');
+
+      if (!isUndo && !isRedo) return;
+
+      // Prevent global window Ctrl+Z/Y listener from hijacking text editing in editable fields
+      const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+      const targetEl = e.target;
+      const isEditable = (el) => el && (
+        el.isContentEditable ||
+        el.getAttribute?.('contenteditable') === 'true' ||
+        el.tagName === 'INPUT' ||
+        el.tagName === 'TEXTAREA' ||
+        el.classList?.contains('inline-edit-active')
+      );
+
+      if (isEditable(activeEl) || isEditable(targetEl)) {
+        return;
+      }
 
       if (isUndo && past.length > 0) {
         e.preventDefault();
@@ -513,6 +536,9 @@ export const CVProvider = ({ children }) => {
       clearActiveTooltip,
       closeTooltip,
       toggleTooltipForSection,
+      activeToolbar,
+      setActiveToolbar,
+      clearActiveToolbar,
       showAITips,
       toast,
       showToast

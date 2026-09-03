@@ -1,64 +1,53 @@
-# BRIEFING — 2026-09-02T05:27:00Z
+# BRIEFING — 2026-09-03T05:57:00Z
 
 ## Mission
-Adversarially challenge and verify the Ressume transformation project across all 6 requirements (R1-R6), execute full automated test suite, verify production build, perform white-box DOM & boundary QA, and produce handoff report.
+Adversarial stress-testing and empirical verification of cross-epic multi-feature lifecycle interactions across all 3 epics in Ressume CV editor.
 
 ## 🔒 My Identity
-- Archetype: Empirical Challenger
+- Archetype: empirical challenger
 - Roles: critic, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final
-- Original parent: 9f225140-8cfc-49ee-8211-252cfcb60bd3
-- Milestone: FINAL
+- Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
+- Milestone: final verification / cross-epic integration
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
-- Run verification code directly and empirically test all claims
-- Layout compliance: .agents/ holds only metadata (plans, progress, handoffs)
-- All findings backed by concrete observations and reproduction scripts/tests
+- Must write tests and execute them directly via test runner (empirical verification).
+- Do not trust claims or logs without reproducing.
+- Test file target: `src/tests/cross-epic-e2e-integration.test.jsx`.
+- Run `npm test` and `npm run build` directly.
+- Must not write source or test files inside `.agents/`.
+- Handoff report with APPROVE or CHALLENGE_FAILED verdict.
 
 ## Current Parent
-- Conversation ID: 9f225140-8cfc-49ee-8211-252cfcb60bd3
-- Updated: 2026-09-02T05:27:00Z
+- Conversation ID: 2c65867e-7bbe-40ab-b346-34c64b943ca4
+- Updated: not yet
 
 ## Review Scope
-- **Files to review**:
-  - `src/context/CVContext.jsx`
-  - `src/utils/schema.js`
-  - `src/utils/staticHtmlPdfEngine.js`
-  - `src/registry/sectionRegistry.js`
-  - `src/components/Editor/ActionMenu.jsx`
-  - `src/components/Editor/SuggestionTooltip.jsx`
-  - `src/components/Editor/DragHandle.jsx`
-  - `src/components/CV/BaseSection.jsx`
-  - `src/components/CV/BaseItem.jsx`
-  - `src/index.css`
-  - `src/tests/*`
-- **Interface contracts**: PROJECT.md and ORIGINAL_REQUEST.md
-- **Review criteria**: Correctness, adversarial robustness, DOM positioning, build/test health, data integrity, layout compliance
+- **Files to review**: `src/App.jsx`, `src/components/`, `src/utils/`, `src/styles/`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`
+- **Review criteria**: Multi-feature interaction across Epic 1, Epic 2, Epic 3:
+  1. ATS toggle transition
+  2. Rich text formatting (TipTap / formatting)
+  3. Right-docked AddSectionModal
+  4. Vector PDF export
+  5. Native clean print
+  6. dnd-kit item dragging
+  7. Undo/redo lifecycle
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - R1: Font switching, scale, line-height, padding, gaps, 0px boundary, negative values, corrupted localStorage JSON recovery (PASS).
-  - R2: 1-column 840px centering, responsive behavior, 50x rapid toggle between 1-col and 2-col (PASS).
-  - R3: DnD grab handles, hover affordance, ghost overlays, polymorphic item adaptation between all 6 block types (PASS).
-  - R4: Zero-split PDF printing, break-inside avoid !important, static HTML generator stripping 100% editor artifacts, auto-scaler floor clamping at 0.75 (PASS).
-  - R5: Obsidian callout themes, 0 unicode emojis (100% lucide-react), tooltip dynamic positioning and bounding rect clamping (PASS).
-  - R6: ActionMenu categorized toolbar, bilingual i18n dictionary fidelity, profile_header deletion protection (PASS).
-- **Vulnerabilities found**: None. Full test suite (224/224 tests passing) and production build (0 errors) verified.
-- **Untested angles**: All requirements fully exercised across Tiers 1-5.
+- **Hypotheses tested**: [TBD]
+- **Vulnerabilities found**: [TBD]
+- **Untested angles**: [TBD]
 
 ## Loaded Skills
-- None required
+- None specified in dispatch.
 
 ## Key Decisions Made
-- Executed full vitest suite (11 test files, 224 unit/e2e/stress tests, 100% passing).
-- Executed production build (`npm run build`), generating dist artifacts cleanly.
-- Verified empirical test results across all 6 requirements.
-- Final Verdict: APPROVE.
+- Initial setup completed.
 
 ## Artifact Index
-- `handoff.md` — Final QA report and verdict
-- `progress.md` — Liveness heartbeat and step-by-step progress
-- `BRIEFING.md` — Working memory and status
-- `DISPATCH.md` — Incoming dispatch log
+- `.agents/teamwork_preview_challenger_final/DISPATCH.md` — Initial dispatch message
+- `.agents/teamwork_preview_challenger_final/BRIEFING.md` — Situational awareness
+- `.agents/teamwork_preview_challenger_final/progress.md` — Progress log and liveness heartbeat
+- `src/tests/cross-epic-e2e-integration.test.jsx` — Comprehensive cross-epic integration test suite

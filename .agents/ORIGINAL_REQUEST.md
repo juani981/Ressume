@@ -164,3 +164,129 @@ Connect the PDF generator to both the top/side ActionMenu export triggers (`exec
 - [ ] Automated tests verify that `executeCleanPrint` / `generateCleanPrintHTML` produces a clean HTML document adhering to all CSS variable bindings and containing 0 interactive class selectors.
 - [ ] Full build (`npm run build`) and test suite pass with 0 errors.
 
+## 2026-09-03T03:17:21Z
+
+Implement 3 feature epics in an existing Vite + React CV editor app ("Ressume"). The app renders a live-editable CV inside `#area-cv` with dynamic layout, fonts, colors, and spacing controlled by CSS custom properties and React state (managed via `CVContext.jsx`). All work is client-side only — no server-side changes. The existing codebase uses React 18, Vite 5, `@dnd-kit` for drag-and-drop, `lucide-react` for icons, and BoxIcons via CDN. The state schema is defined in `src/utils/schema.js`.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: benchmark
+
+## Codebase Context
+
+The project structure:
+```
+src/
+  App.jsx                          — Main app shell, renders #area-cv
+  main.jsx                         — Vite entry
+  index.css                        — Global styles, CSS variables for theming
+  context/CVContext.jsx             — Central state: cvData, layout, undo/redo, save to localStorage
+  utils/schema.js                  — Default CV data schema with layout options
+  utils/staticHtmlPdfEngine.js     — Current print engine (iframe-based, to be supplemented, NOT replaced)
+  utils/itemAdapter.js             — Item creation helpers
+  utils/translationEngine.js       — i18n helpers
+  components/CV/BaseSection.jsx    — Renders each draggable section
+  components/CV/BaseItem.jsx       — Renders each draggable item
+  components/CV/items/             — Item renderers: ExperienceItem, EducationItem, SkillsItem, etc.
+  components/Editor/ActionMenu.jsx — Floating toolbar (24KB, the most complex UI component)
+  components/Editor/InlineEdit.jsx — Current inline text editing (plain text, no formatting)
+  components/Editor/AddSectionModal.jsx — Modal for adding new sections
+  components/Editor/ToastNotification.jsx — Toast system
+  locales/                         — i18n language packs
+```
+
+Key layout variables tracked in `cvData.layout`:
+- `type`: '2-column' | '1-column'
+- `fontFamily`, `fontScale`, `titleScale`, `bodyScale`, `listScale`, `lineHeight`
+- `pagePadding`, `sectionGap`, `itemGap`
+- `leftBg`, `rightBg`, `leftColumnWidth`
+
+CSS custom properties applied on `#area-cv`:
+- `--title-color`, `--text-color`, `--text-color-light`, `--container-color`, `--container-color-alt`, `--body-color`
+- `--circle-color`, `--section-gap`, `--item-gap`
+- `--h1-font-size` through `--smaller-font-size`
+- `--title-h1-size`, `--title-h2-size`, `--title-h3-size`, `--title-subtitle-size`
+- `--body-font-size`, `--body-small-font-size`
+
+## AGENTS.md Rules (MUST be followed)
+
+1. All suggestion cards/alerts use Obsidian Callout visual design (danger/caution/info with specific rgba colors and left borders).
+2. Drag-and-drop MUST use `@dnd-kit` — never `swapy`.
+3. Tooltips must dynamically track `getBoundingClientRect()` of the active element, flip when approaching viewport boundary, clamp vertically.
+4. AI suggestion knowledge bases are in `src/ai-knowledge/` — current domain focus is Tech only.
+
+## Requirements
+
+### R1. Client-Side PDF Generation via @react-pdf/renderer (Epic 1)
+
+The user specified `@react-pdf/renderer` as the library. Build a JIT template mirror that captures every layout variable affecting `#area-cv` — text content, font families, font sizes, colors, padding, margins, section order, column assignment, section gaps, item gaps, and all CSS custom properties — and maps them into `@react-pdf/renderer` components to produce a downloadable PDF. The PDF must:
+- Contain selectable vector text (no canvas rasterization)
+- Automatically paginate into multiple A4 pages, breaking between sections (never mid-item)
+- Match the on-screen rendering 1:1 in layout, fonts, colors, and spacing
+- Show a loading spinner during generation
+- Show a success toast notification when the download completes
+- Be entirely client-side — no server calls
+- NOT replace the existing `staticHtmlPdfEngine.js` — supplement it as a new export option
+
+### R2. Rich Inline Text Editing Toolbar with Persistent State (Epic 2)
+
+When the user is editing any text field inside the CV, display a floating formatting toolbar. The toolbar must:
+- Appear near the active text element without obscuring it
+- Include buttons for text-align: left, center, right, justify
+- Bold and italic formatting must be toggleable via toolbar buttons AND keyboard shortcuts (Ctrl+B / Ctrl+I)
+- Support native keyboard shortcuts: cut (Ctrl+X), copy (Ctrl+C), paste (Ctrl+V), undo (Ctrl+Z), redo (Ctrl+Shift+Z / Ctrl+Y)
+- All formatting (bold, italic, alignment) must persist in the CV state JSON (saved to localStorage) — when the user reloads, formatting is preserved
+- The current `InlineEdit.jsx` component must be extended or replaced to support rich text
+- The PDF engine (both the existing staticHtmlPdfEngine and the new @react-pdf one) must render bold/italic/alignment correctly
+
+### R3. Floating Panel Reorganization & ATS Mode (Epic 3)
+
+Reorganize the existing `ActionMenu.jsx` floating toolbar:
+- Reduce the number of top-level visible buttons by grouping related functions
+- Color picking, layout settings (padding, spacing sliders), and text/font settings must be accessible from a single grouped entry point (e.g., a "Diseño" button that opens a submenu)
+- Add a layout toggle at the top of the panel, visually similar to a dark-mode toggle switch — two-column is the default, "ATS" mode switches to single-column layout with a clean white background and soberer visual accents (removing decorative elements, simplifying borders)
+- Group all export-related actions (JSON export, PDF download) under a single "Acciones" button
+- The "add new section" modal (`AddSectionModal.jsx`) must render floating to the right of the `#area-cv` container, using available viewport space, instead of overlaying the document center
+
+## Acceptance Criteria
+
+### Epic 1 — PDF Generation
+- [ ] `@react-pdf/renderer` is installed and used client-side
+- [ ] Clicking the new PDF button produces a downloaded `.pdf` file
+- [ ] Text in the PDF is selectable (not rasterized)
+- [ ] The PDF correctly renders 2-column and 1-column layouts matching the on-screen `#area-cv`
+- [ ] Section order, spacing, and colors in the PDF match the editor
+- [ ] Content exceeding one A4 page paginates across multiple pages, breaking between sections
+- [ ] A loading spinner is visible during PDF generation
+- [ ] A success toast appears when the download completes
+- [ ] No network requests are made during PDF generation
+- [ ] The existing `staticHtmlPdfEngine.js` still functions unchanged
+- [ ] `npm run build` completes without errors
+
+### Epic 2 — Text Editing Toolbar
+- [ ] A floating toolbar appears when any inline text field inside the CV is focused
+- [ ] The toolbar includes alignment buttons (left, center, right, justify) that apply to the current field
+- [ ] Ctrl+B toggles bold on selected text; the bold state is visible in the editor
+- [ ] Ctrl+I toggles italic on selected text; the italic state is visible in the editor
+- [ ] Ctrl+Z undoes the last text edit; Ctrl+Shift+Z or Ctrl+Y redoes
+- [ ] The toolbar does not overlap/obscure the text being edited
+- [ ] Bold, italic, and alignment values persist in `cvData` (can be verified by inspecting localStorage after reload)
+- [ ] The PDF output (both engines) correctly renders bold and italic text
+- [ ] `npm run build` completes without errors
+
+### Epic 3 — Panel Reorganization
+- [ ] The floating panel has fewer top-level buttons than the current version
+- [ ] Color, layout spacing, and text/font settings are accessible from a single grouped menu
+- [ ] A toggle switch at the top of the panel switches between two-column (default) and ATS single-column mode
+- [ ] ATS mode renders a clean white background with soberer accents (no dark/decorative elements)
+- [ ] Export actions (JSON, PDF) are grouped under an "Acciones" button
+- [ ] The "add section" modal renders floating to the right of `#area-cv` without overlaying the document
+- [ ] The modal uses the available space between `#area-cv` right edge and viewport right edge
+- [ ] `npm run build` completes without errors
+
+### Cross-cutting
+- [ ] The app starts with `npm run dev` and all 3 features function together
+- [ ] No regressions in drag-and-drop (sections and items remain draggable and reorderable)
+- [ ] No regressions in the existing undo/redo system
+- [ ] No regressions in the existing toast notification system
+
+

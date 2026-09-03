@@ -175,7 +175,8 @@ function App() {
     }
   };
 
-  const is2Col = cvData.layout?.type === '2-column';
+  const isAtsMode = cvData.layout?.isAtsMode === true || cvData.layout?.type === '1-column';
+  const is2Col = cvData.layout?.type === '2-column' && !cvData.layout?.isAtsMode;
   const leftSections = cvData.sections.filter(s => s.column === 'left');
   const rightSections = cvData.sections.filter(s => s.column === 'right');
 
@@ -299,12 +300,12 @@ function App() {
         style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', padding: '2rem 1rem' }}
       >
         <div 
-          className={`resume ${is2Col ? 'bd-grid' : ''}`} 
+          className={`resume ${is2Col ? 'bd-grid' : 'resume__single-column'} ${isAtsMode ? 'resume--ats-mode' : ''}`} 
           id="area-cv" 
           ref={areaCvRef}
           style={is2Col 
             ? { display: 'grid', gridTemplateColumns, position: 'relative', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto', ...dynamicSpacing } 
-            : { display: 'block', position: 'relative', padding: `var(--page-padding, 24px)`, background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
+            : { display: 'block', position: 'relative', padding: `var(--page-padding, 24px)`, background: '#ffffff', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
           }
         >
           {is2Col ? (

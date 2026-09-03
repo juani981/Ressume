@@ -1,6 +1,7 @@
 export const defaultSchema = {
   layout: {
     type: '2-column', // '1-column' (ATS Optimized) or '2-column' (Visual Recruiter)
+    isAtsMode: false, // true when ATS 1-column mode is activated
     leftBg: '', // empty means it uses CSS defaults
     rightBg: '',
     leftColumnWidth: null, // null defaults to 1fr 2fr (approx 33% / 67%)

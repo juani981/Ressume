@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getAllSectionDescriptors } from '../../registry/sectionRegistry';
 import { 
@@ -34,8 +34,94 @@ const iconMap = {
   'simple_list': ListCheck
 };
 
+/**
+ * AddSectionModal — Floating Section Selection Panel (Epic 3)
+ *
+ * Positions floating to the right of #area-cv container using available viewport space
+ * instead of centering over the CV document. Strictly follows AGENTS.md Rule 3.
+ */
 const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
   const { addSection } = useCV();
+  const [panelStyle, setPanelStyle] = useState({
+    position: 'fixed',
+    right: '20px',
+    top: '20px',
+    width: '360px',
+    maxHeight: 'calc(100vh - 40px)',
+    zIndex: 1000
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const computePosition = () => {
+      const areaCv = document.getElementById('area-cv');
+      const winWidth = window.innerWidth || 1024;
+      const winHeight = window.innerHeight || 768;
+
+      if (areaCv) {
+        const cvRect = areaCv.getBoundingClientRect();
+        const availableRight = winWidth - cvRect.right;
+
+        // If sufficient space exists between #area-cv and viewport right edge
+        if (availableRight >= 260) {
+          // Float to the right of #area-cv without overlaying it
+          const left = cvRect.right + 16;
+          const width = Math.min(380, Math.max(260, availableRight - 32));
+          const top = Math.max(16, Math.min(cvRect.top, winHeight - 480));
+          const maxHeight = Math.min(winHeight - top - 16, 720);
+
+          setPanelStyle({
+            position: 'fixed',
+            left: `${left}px`,
+            top: `${top}px`,
+            width: `${width}px`,
+            maxHeight: `${maxHeight}px`,
+            zIndex: 1000
+          });
+        } else {
+          // Narrow viewport fallback: dock to the right side of the screen
+          setPanelStyle({
+            position: 'fixed',
+            right: '16px',
+            top: '16px',
+            width: 'min(360px, calc(100vw - 32px))',
+            maxHeight: 'calc(100vh - 32px)',
+            zIndex: 1000
+          });
+        }
+      } else {
+        setPanelStyle({
+          position: 'fixed',
+          right: '24px',
+          top: '24px',
+          width: '360px',
+          maxHeight: 'calc(100vh - 48px)',
+          zIndex: 1000
+        });
+      }
+    };
+
+    computePosition();
+    window.addEventListener('resize', computePosition);
+    window.addEventListener('scroll', computePosition);
+    return () => {
+      window.removeEventListener('resize', computePosition);
+      window.removeEventListener('scroll', computePosition);
+    };
+  }, [isOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -48,52 +134,59 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.75)',
-      backdropFilter: 'blur(6px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10000,
-      padding: '1.25rem'
-    }}>
-      <div style={{
-        background: 'var(--container-color, #ffffff)',
-        color: 'var(--title-color, #0f172a)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '820px',
-        maxHeight: '90vh',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
-        border: '1px solid rgba(150, 150, 150, 0.2)',
-        overflow: 'hidden'
-      }}>
+    <>
+      {/* Non-obstructive transparent backdrop for closing on outside click */}
+      <div 
+        onClick={onClose}
+        data-testid="add-section-backdrop"
+        className="add-section-backdrop no-print"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.05)',
+          zIndex: 999
+        }}
+      />
+
+      {/* Floating Panel Docked to the Right of #area-cv */}
+      <div 
+        data-testid="add-section-modal"
+        className="add-section-floating-panel no-print"
+        style={{
+          ...panelStyle,
+          background: 'var(--container-color, #ffffff)',
+          color: 'var(--title-color, #0f172a)',
+          borderRadius: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 20px 48px -8px rgba(0, 0, 0, 0.22)',
+          border: '1px solid rgba(0, 0, 0, 0.12)',
+          overflow: 'hidden'
+        }}
+      >
         {/* Header */}
         <div style={{
-          padding: '1.25rem 1.5rem',
+          padding: '1rem 1.25rem',
           borderBottom: '1px solid rgba(150, 150, 150, 0.15)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(56, 116, 255, 0.03)'
+          background: 'rgba(56, 116, 255, 0.04)'
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Plus size={22} color="#3874ff" /> Añadir Nueva Sección al CV
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Plus size={18} color="#3874ff" /> Añadir Sección al CV
             </h3>
-            <p style={{ margin: '3px 0 0 0', fontSize: '0.85rem', color: 'var(--text-color-light, #64748b)' }}>
-              Elige el bloque que mejor se adapte a tu perfil (columna destino: {targetColumn === 'left' ? 'Columna Izquierda / Lateral' : 'Columna Derecha / Principal'})
+            <p style={{ margin: '2px 0 0 0', fontSize: '0.76rem', color: 'var(--text-color-light, #64748b)' }}>
+              Destino: {targetColumn === 'left' ? 'Columna Lateral' : 'Columna Principal'}
             </p>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             aria-label="Cerrar modal"
             style={{
@@ -107,17 +200,17 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
               alignItems: 'center'
             }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Section Cards Grid */}
+        {/* Section Cards List */}
         <div style={{
-          padding: '1.5rem',
+          padding: '1rem',
           overflowY: 'auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
-          gap: '1rem'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.65rem'
         }}>
           {descriptors.map((desc) => {
             const IconComp = iconMap[desc.type] || Briefcase;
@@ -126,71 +219,65 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
               <div
                 key={desc.type}
                 onClick={() => handleSelectType(desc)}
+                data-testid={`add-section-card-${desc.type}`}
+                className="add-section-card"
                 style={{
-                  padding: '1.15rem',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(150, 150, 150, 0.2)',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(150, 150, 150, 0.18)',
                   background: 'var(--body-color, #fafafa)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.18s ease',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.5rem'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#3874ff';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(56, 116, 255, 0.12)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(150, 150, 150, 0.2)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  gap: '0.35rem'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: 'rgba(56, 116, 255, 0.1)',
-                    color: '#3874ff',
-                    flexShrink: 0
-                  }}>
-                    <IconComp size={18} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '6px',
+                      background: 'rgba(56, 116, 255, 0.1)',
+                      color: '#3874ff',
+                      flexShrink: 0
+                    }}>
+                      <IconComp size={16} />
+                    </div>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--title-color)' }}>
+                      {desc.label}
+                    </span>
                   </div>
-                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--title-color)' }}>
-                    {desc.label}
-                  </h4>
+
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '0.74rem', color: '#3874ff', fontWeight: 600 }}>
+                    <Plus size={13} /> Añadir
+                  </span>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-color-light)', lineHeight: 1.4 }}>
-                  {desc.type === 'projects' && 'Muestra desarrollos destacados, apps, repositorios GitHub, stack y logros.'}
+                <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-color-light, #64748b)', lineHeight: 1.35 }}>
+                  {desc.type === 'projects' && 'Muestra desarrollos destacados, apps, repositorios GitHub y stack.'}
                   {desc.type === 'list' && 'Historial laboral, puestos de trabajo, funciones y responsabilidades.'}
                   {desc.type === 'education' && 'Titulaciones universitarias, carreras, posgrados y academias.'}
                   {desc.type === 'skills' && 'Agrupación de habilidades técnicas, frameworks y herramientas.'}
-                  {desc.type === 'certificates' && 'Licencias oficiales, certificaciones de la industria e IDs de verificación.'}
+                  {desc.type === 'certificates' && 'Licencias oficiales, certificaciones de la industria e IDs.'}
                   {desc.type === 'languages' && 'Idiomas dominados con badges de nivel de fluidez (CEFR / EF SET).'}
-                  {desc.type === 'awards' && 'Premios, reconocimientos en hackathons, becas y distinciones.'}
-                  {desc.type === 'publications' && 'Papers científicos, artículos técnicos, conferencias y enlaces DOI.'}
-                  {desc.type === 'volunteering' && 'Experiencia comunitaria, causas sociales y mentoría.'}
-                  {desc.type === 'references' && 'Contactos de confianza, cargos y datos de recomendación profesional.'}
+                  {desc.type === 'awards' && 'Premios, reconocimientos en hackathons y distinciones.'}
+                  {desc.type === 'publications' && 'Papers científicos, artículos técnicos y conferencias.'}
+                  {desc.type === 'volunteering' && 'Experiencia comunitaria, voluntariado y causas sociales.'}
+                  {desc.type === 'references' && 'Contactos de confianza y datos de recomendación.'}
                   {desc.type === 'about' && 'Resumen profesional sobre tu perfil y objetivos.'}
                   {desc.type === 'simple_list' && 'Lista simple con viñetas limpias para cursos rápidos o menciones.'}
                 </p>
-
-                <div style={{ marginTop: 'auto', paddingTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: '#3874ff', fontWeight: 600 }}>
-                  <Plus size={14} /> Insertar sección
-                </div>
               </div>
             );
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

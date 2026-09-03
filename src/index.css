@@ -1126,6 +1126,84 @@ img {
 }
 
 /* ==========================================================
+   ATS 1-COLUMN MODE & SOBER ACCENTS STYLES (EPIC 3)
+   ========================================================== */
+.resume--ats-mode {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  max-width: 840px !important;
+  margin: 0 auto !important;
+}
+
+.resume--ats-mode .resume__single-column {
+  background-color: #ffffff !important;
+  max-width: 840px !important;
+}
+
+.resume--ats-mode .section-title {
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 4px;
+  letter-spacing: 0.12rem;
+  text-align: left;
+  font-weight: 700;
+}
+
+.resume--ats-mode .section-drag-handle,
+.resume--ats-mode .item-drag-handle {
+  opacity: 0.2;
+}
+
+.resume--ats-mode:hover .section-drag-handle,
+.resume--ats-mode:hover .item-drag-handle {
+  opacity: 0.7;
+}
+
+.resume--ats-mode .skills__name,
+.resume--ats-mode .badge {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.resume--ats-mode .editable-item-container,
+.resume--ats-mode .experience__content,
+.resume--ats-mode .education__content {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================
+   ACTION POPUP & FLOATING MODAL STYLES (EPIC 3)
+   ========================================================== */
+.action-popover-item {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.action-popover-item:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #3874ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 116, 255, 0.08);
+}
+
+.action-popover-item:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* ==========================================================
    PRINT STYLES (For Native Browser Printing & Clean PDFs)
 
    ========================================================== */
@@ -1137,6 +1215,10 @@ img {
   .action-menu-tooltip,
   .design-popover,
   .spacing-popover,
+  .actions-popover,
+  .add-section-floating-panel,
+  .add-section-backdrop,
+  .ats-toggle-container,
   .change-theme,
   .generate-pdf,
   .section-drag-handle,

@@ -9,6 +9,9 @@
 const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246px)
 const MIN_SCALE_FLOOR = 0.75;
 
+import { renderRichHTML, stripHtml } from './richTextEngine';
+export { renderRichHTML, stripHtml };
+
 /**
  * Escapes HTML characters to prevent XSS and malformed HTML
  */
@@ -76,20 +79,20 @@ const getDynamicTextColors = (hexcolor) => {
 /**
  * Renders an item to clean static HTML
  */
-const renderItemHTML = (item, sectionType) => {
+const renderItemHTML = (item, sectionType, isLast = false) => {
   if (!item) return '';
 
   if (sectionType === 'profile_header') {
     return `
       <div class="home__data bd-grid cv-block">
-        <h1 class="home__title">${escapeHTML(item.name)}</h1>
-        <h2 class="home__subtitle">${escapeHTML(item.subtitle)}</h2>
+        <h1 class="home__title">${renderRichHTML(item.name)}</h1>
+        <h2 class="home__subtitle">${renderRichHTML(item.subtitle)}</h2>
         <div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.75rem;">
-          ${item.location ? `<span class="social__link"><i class='bx bx-map'></i> ${escapeHTML(item.location)}</span>` : ''}
-          ${item.email ? `<span class="social__link"><i class='bx bx-envelope'></i> ${escapeHTML(item.email)}</span>` : ''}
-          ${item.phone ? `<span class="social__link"><i class='bx bx-phone'></i> ${escapeHTML(item.phone)}</span>` : ''}
-          ${item.linkedin ? `<span class="social__link"><i class='bx bxl-linkedin-square'></i> ${escapeHTML(item.linkedin)}</span>` : ''}
-          ${item.github ? `<span class="social__link"><i class='bx bxl-github'></i> ${escapeHTML(item.github)}</span>` : ''}
+          ${item.location ? `<span class="social__link"><i class='bx bx-map'></i> ${renderRichHTML(item.location)}</span>` : ''}
+          ${item.email ? `<span class="social__link"><i class='bx bx-envelope'></i> ${renderRichHTML(item.email)}</span>` : ''}
+          ${item.phone ? `<span class="social__link"><i class='bx bx-phone'></i> ${renderRichHTML(item.phone)}</span>` : ''}
+          ${item.linkedin ? `<span class="social__link"><i class='bx bxl-linkedin-square'></i> ${renderRichHTML(item.linkedin)}</span>` : ''}
+          ${item.github ? `<span class="social__link"><i class='bx bxl-github'></i> ${renderRichHTML(item.github)}</span>` : ''}
         </div>
       </div>
     `;
@@ -98,7 +101,7 @@ const renderItemHTML = (item, sectionType) => {
   if (sectionType === 'about') {
     return `
       <div class="profile__description cv-block">
-        <p>${escapeHTML(item.description)}</p>
+        <p>${renderRichHTML(item.description)}</p>
       </div>
     `;
   }
@@ -108,7 +111,7 @@ const renderItemHTML = (item, sectionType) => {
       <li class="skills__name cv-block" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px);">
         <span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span>
         <span style="flex: 1;">
-          <b>${escapeHTML(item.title)}:</b> ${escapeHTML(item.description)}
+          <b>${renderRichHTML(item.title)}:</b> ${renderRichHTML(item.description)}
         </span>
       </li>
     `;
@@ -122,9 +125,9 @@ const renderItemHTML = (item, sectionType) => {
           ${!isLast ? '<span class="education__line"></span>' : ''}
         </div>
         <div class="education__data bd-grid" style="width: 100%;">
-          <h3 class="education__title">${escapeHTML(item.title)}</h3>
-          <span class="education__studies">${escapeHTML(item.subtitle)}</span>
-          <span class="education__year">${escapeHTML(item.date)}</span>
+          <h3 class="education__title">${renderRichHTML(item.title)}</h3>
+          <span class="education__studies">${renderRichHTML(item.subtitle)}</span>
+          <span class="education__year">${renderRichHTML(item.date)}</span>
         </div>
       </div>
     `;
@@ -134,7 +137,7 @@ const renderItemHTML = (item, sectionType) => {
     return `
       <li class="cv-block simple-list-item" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px); list-style: none;">
         <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
-        <span style="flex: 1;">${escapeHTML(item.text)}</span>
+        <span style="flex: 1;">${renderRichHTML(item.text)}</span>
       </li>
     `;
   }
@@ -145,12 +148,12 @@ const renderItemHTML = (item, sectionType) => {
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; flex-shrink: 0;"></span>
           <div>
-            <span style="font-weight: 600; font-size: var(--normal-font-size); color: var(--title-color);">${escapeHTML(item.title || item.language)}</span>
-            ${item.description ? `<div style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.description)}</div>` : ''}
+            <span style="font-weight: 600; font-size: var(--normal-font-size); color: var(--title-color);">${renderRichHTML(item.title || item.language)}</span>
+            ${item.description ? `<div style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.description)}</div>` : ''}
           </div>
         </div>
         <span style="font-size: var(--small-font-size); font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); border: 1px solid rgba(0, 0, 0, 0.08); white-space: nowrap;">
-          ${escapeHTML(item.subtitle || item.level || 'Intermedio')}
+          ${renderRichHTML(item.subtitle || item.level || 'Intermedio')}
         </span>
       </div>
     `;
@@ -164,13 +167,13 @@ const renderItemHTML = (item, sectionType) => {
         </span>
         <div style="flex: 1;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
           </div>
           <div style="font-size: var(--small-font-size); color: var(--text-color);">
-            ${escapeHTML(item.subtitle)}${item.credentialId ? ` · <span style="color: var(--text-color-light); font-size: var(--smaller-font-size);">ID: ${escapeHTML(item.credentialId)}</span>` : ''}
+            ${renderRichHTML(item.subtitle)}${item.credentialId ? ` · <span style="color: var(--text-color-light); font-size: var(--smaller-font-size);">ID: ${renderRichHTML(item.credentialId)}</span>` : ''}
           </div>
-          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></div>` : ''}
+          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></div>` : ''}
         </div>
       </div>
     `;
@@ -184,11 +187,11 @@ const renderItemHTML = (item, sectionType) => {
         </span>
         <div style="flex: 1;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
           </div>
-          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle)}</div>` : ''}
-          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${escapeHTML(item.description)}</p>` : ''}
+          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle)}</div>` : ''}
+          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${renderRichHTML(item.description)}</p>` : ''}
         </div>
       </div>
     `;
@@ -202,12 +205,12 @@ const renderItemHTML = (item, sectionType) => {
         </span>
         <div style="flex: 1;">
           <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
+            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
           </div>
-          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle)}</div>` : ''}
-          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></div>` : ''}
-          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${escapeHTML(item.description)}</p>` : ''}
+          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle)}</div>` : ''}
+          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></div>` : ''}
+          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${renderRichHTML(item.description)}</p>` : ''}
         </div>
       </div>
     `;
@@ -220,12 +223,12 @@ const renderItemHTML = (item, sectionType) => {
           <i class='bx bx-user-check' style="font-size: 14px;"></i>
         </span>
         <div style="flex: 1;">
-          <h3 class="education__title" style="margin: 0; font-weight: 600;">${escapeHTML(item.title || item.name)}</h3>
-          <div style="font-size: var(--small-font-size); color: var(--text-color);">${escapeHTML(item.subtitle || item.position)}</div>
+          <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title || item.name)}</h3>
+          <div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle || item.position)}</div>
           <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.2rem; font-size: var(--smaller-font-size); color: var(--text-color-light);">
-            ${item.email ? `<span><i class='bx bx-envelope'></i> ${escapeHTML(item.email)}</span>` : ''}
-            ${item.phone ? `<span><i class='bx bx-phone'></i> ${escapeHTML(item.phone)}</span>` : ''}
-            ${item.relationship ? `<span>(${escapeHTML(item.relationship)})</span>` : ''}
+            ${item.email ? `<span><i class='bx bx-envelope'></i> ${renderRichHTML(item.email)}</span>` : ''}
+            ${item.phone ? `<span><i class='bx bx-phone'></i> ${renderRichHTML(item.phone)}</span>` : ''}
+            ${item.relationship ? `<span>(${renderRichHTML(item.relationship)})</span>` : ''}
           </div>
         </div>
       </div>
@@ -242,18 +245,18 @@ const renderItemHTML = (item, sectionType) => {
       </div>
       <div class="experience__data bd-grid" style="width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-          <h3 class="experience__title" style="margin: 0;">${escapeHTML(item.title)}</h3>
-          ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${escapeHTML(item.date)}</span>` : ''}
+          <h3 class="experience__title" style="margin: 0;">${renderRichHTML(item.title)}</h3>
+          ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
         </div>
-        ${item.subtitle ? `<span class="experience__company" style="font-weight: 500; color: var(--title-color);">${escapeHTML(item.subtitle)}</span>` : ''}
-        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${escapeHTML(item.linkText || item.link)}</a></span>` : ''}
-        ${item.description ? `<p class="experience__description">${escapeHTML(item.description)}</p>` : ''}
+        ${item.subtitle ? `<span class="experience__company" style="font-weight: 500; color: var(--title-color);">${renderRichHTML(item.subtitle)}</span>` : ''}
+        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></span>` : ''}
+        ${item.description ? `<p class="experience__description">${renderRichHTML(item.description)}</p>` : ''}
         ${item.bullets && item.bullets.length > 0 ? `
           <ul style="padding: 0; margin-top: 0.35rem; list-style: none;">
             ${item.bullets.map(b => `
               <li class="cv-block" style="display: flex; align-items: flex-start; margin-bottom: calc(var(--item-gap, 6px) / 2); list-style: none;">
                 <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
-                <span style="flex: 1;">${escapeHTML(b)}</span>
+                <span style="flex: 1;">${renderRichHTML(b)}</span>
               </li>
             `).join('')}
           </ul>
@@ -295,7 +298,7 @@ const renderSectionHTML = (section) => {
 
   return `
     <section class="${sectionClass} section cv-section" id="${escapeHTML(section.id)}">
-      ${!isProfile && section.title ? `<h2 class="section-title">${escapeHTML(section.title)}</h2>` : ''}
+      ${!isProfile && section.title ? `<h2 class="section-title">${renderRichHTML(section.title)}</h2>` : ''}
       <div class="${isProfile || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}">
         ${itemsHTML}
       </div>
@@ -391,7 +394,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHTML(data.profile?.name || 'Curriculum Vitae')}</title>
+  <title>${escapeHTML(stripHtml(data.profile?.name) || 'Curriculum Vitae')}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
