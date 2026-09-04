@@ -1092,10 +1092,6 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
       ? `${profileName} - ${profileSubtitle}`
       : (profileName || profileSubtitle || 'Curriculum Vitae');
 
-    if (typeof document !== 'undefined' && dynamicDocumentTitle) {
-      document.title = dynamicDocumentTitle;
-    }
-
     const html = generateCleanPrintHTML(cvData, lang);
 
     const iframe = document.createElement('iframe');

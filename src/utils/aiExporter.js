@@ -43,11 +43,12 @@ export const exportToAIMarkdown = (cvData) => {
   // ==========================================
   // YAML Frontmatter (Zero-Ambiguity Metadata)
   // ==========================================
+  lines.push('```markdown');
   lines.push('---');
   if (is1Col) {
-    lines.push('layout_type: "1-column (Single-Column Linear ATS Optimized)"');
+    lines.push('layout_type: "1-column"');
     lines.push('target_audience: "ATS Parsers (Workday, Taleo, Greenhouse, Lever) & Technical Recruiters"');
-    lines.push('reading_flow: "strictly_linear_top_to_bottom"');
+    lines.push('reading_flow: "top to bottom"');
     lines.push('section_order:');
     CANONICAL_ATS_ORDER.forEach(secId => {
       const sec = cvData.sections?.find(s => s.id === secId || s.type === secId);
@@ -57,7 +58,7 @@ export const exportToAIMarkdown = (cvData) => {
       }
     });
   } else {
-    lines.push('layout_type: "2-column (Human Portfolio & Visual Review)"');
+    lines.push('layout_type: "2-column"');
     lines.push('target_audience: "Human Hiring Managers & Portfolio Visual Review"');
     lines.push('visual_theme:');
     lines.push(`  left_sidebar_color: "${layout.leftBg || 'default'}"`);
@@ -82,7 +83,6 @@ export const exportToAIMarkdown = (cvData) => {
   lines.push(`    linkedin: "https://${(profileItem.linkedin || '').replace(/^https?:\/\//, '')}"`);
   lines.push(`    github: "https://${(profileItem.github || '').replace(/^https?:\/\//, '')}"`);
   lines.push('---');
-  lines.push('');
 
   // ==========================================
   // Header Block
@@ -146,7 +146,7 @@ export const exportToAIMarkdown = (cvData) => {
         const meta = [];
         if (item.subtitle) meta.push(`**${item.subtitle}**`);
         if (item.date) meta.push(`\`${item.date}\``);
-        if (item.link) meta.push(`🔗 [Enlace](${item.link.startsWith('http') ? item.link : `https://${item.link}`})`);
+        if (item.link) meta.push(`[Enlace](${item.link.startsWith('http') ? item.link : `https://${item.link}`})`);
         if (meta.length > 0) lines.push(meta.join(' | '));
 
         if (item.description) {
@@ -202,7 +202,7 @@ export const exportToAIMarkdown = (cvData) => {
       renderSection(sec);
     });
   }
-
+  lines.push('```');
   return lines.join('\n');
 };
 
@@ -233,7 +233,7 @@ export const exportToAIXML = (cvData) => {
   const xml = [];
   xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   xml.push('<curriculum_vitae schema_version="2.0">');
-  
+
   if (is1Col) {
     xml.push('  <layout type="1-column" mode="strictly_linear_ats" />');
   } else {
@@ -278,10 +278,10 @@ export const exportToAIXML = (cvData) => {
 
   sectionsToRender.forEach((sec, idx) => {
     if (sec.type === 'profile_header' || sec.type === 'about') return;
-    
+
     const colAttr = is1Col ? `order="${idx + 1}"` : `column="${escapeXML(sec.column || 'left')}"`;
     xml.push(`    <section id="${escapeXML(sec.id)}" type="${escapeXML(sec.type)}" title="${escapeXML(sec.title)}" ${colAttr}>`);
-    
+
     (sec.items || []).forEach(item => {
       if (sec.type === 'list') {
         xml.push(`      <entry id="${escapeXML(item.id)}" title="${escapeXML(item.title)}" subtitle="${escapeXML(item.subtitle)}" date="${escapeXML(item.date)}" link="${escapeXML(item.link || '')}">`);
@@ -327,7 +327,7 @@ export const exportToATSPlainText = (cvData) => {
   const lines = [];
   lines.push((profileItem.name || cvData.profile?.name || 'CURRICULUM VITAE').toUpperCase());
   if (profileItem.subtitle) lines.push(profileItem.subtitle);
-  
+
   const contacts = [];
   if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
     profileItem.contacts.forEach(c => {
@@ -411,7 +411,7 @@ export const exportToATSPlainText = (cvData) => {
  */
 export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', options = {}) => {
   const { format = 'markdown', jobDescription = '', lang = 'es' } = options;
-  
+
   const localizedPrompts = getPrompts(lang);
   const promptDef = localizedPrompts.find(p => p.id === promptId) || localizedPrompts[0];
 
@@ -428,18 +428,24 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
 
 
   const payload = [];
-  payload.push(promptDef.system_instruction);
+  /*Instrucciones del sistema*/
+  payload.push("---");
+  payload.push('role: ' + promptDef.system_instruction);
   payload.push('');
-  payload.push(promptDef.task);
+  /*Tarea a realizar*/
+  payload.push('task: ' + promptDef.task);
   payload.push('');
-
+  /*Formato de salida*/
+  payload.push('output_format: ' + promptDef.output_format);
+  payload.push('');
+  /*Datos de entrada*/
   if (jobDescription && jobDescription.trim()) {
-    payload.push(`--- DESCRIPCIÓN DE LA OFERTA LABORAL (JOB DESCRIPTION) ---`);
-    payload.push(jobDescription.trim());
+    payload.push('job_description: ' + jobDescription.trim());
     payload.push('');
   }
-
-  payload.push(`--- CONTENIDO Y ABSTRACCIÓN DEL CURRÍCULUM VITAE (${format.toUpperCase()}) ---`);
+  payload.push('---');
+  payload.push(`# DATOS DE ENTRADA DEL CURRÍCULUM VITAE (${format.toUpperCase()})`);
+  payload.push('A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:');
   payload.push(cvFormatted);
 
   return payload.join('\n');
