@@ -348,9 +348,7 @@ const steps = [
       <>
               <p>Editá tu CV una vez, y siempre podés tenerlo en dos formatos.</p>
               <p>Para humanos, que pueden entender el diseño y personalidad que intentas demostrar. Y para Sistemas Automáticos que sólo deben leer los datos de manera directa y ordenada</p>
-        <Tip iconSize={24}>
-          This step's <Code color="primary">blockTargetInteraction</Code> prevents interactions.
-        </Tip>
+        
       </>
     ),
     blockTargetInteraction: true,
@@ -363,23 +361,56 @@ const steps = [
       },
     },
     target: '.layout-mode-toggle-pill',
+
   },
-  { content: 'This is another awesome feature!', target: '.my-other-step' },
+  { content: 'Podés generar prompts para refinar el contenido y orden de tu CV con un sólo click!', target: '#ia-prompts-item' },
+  { content: 'Gestioná tus versiones para tener múltiples idiomas, enfoques, o diseños', target: '#versiones-item' },
 ];
 
   const { controls, on, Tour } = useJoyride({
     continuous: true,
     steps,
   });
-
   useEffect(() => {
     return on('tour:end', () => {
       console.log('Tour finished!');
     });
   }, [on]);
 
+  function GuideTour() {
+  useEffect(() => {
+    // 1. Obtener de manera segura las entradas de navegación del navegador
+    const navigationEntries = performance.getEntriesByType('navigation');
+
+    // 2. Verificar si hay entradas y si la primera fue una recarga (F5 / Ctrl+F5)
+    if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
+      localStorage.removeItem('hasSeenTour');
+    }
+
+    // 3. Validar si el usuario ya completó el tour
+    const hasSeenTour = localStorage.getItem('hasSeenTour');
+
+    if (!hasSeenTour) {
+      startGuideTour();
+      // Guardar el estado para evitar que se repita al cambiar de página
+      localStorage.setItem('hasSeenTour', 'true');
+    }
+  }, []);
+
+  const startGuideTour = () => {
+    console.log("¡Tour iniciado!");
+    controls.start();
+  };
+
+  return null;
+  }
+
+  
+
+
   return (
-    <><button onClick={() => controls.start()}>Start Tour</button>
+    <>
+      <button hidden onClick={GuideTour()}>Start Tour</button>
       {Tour}
       <ActionMenu />
       

@@ -168,6 +168,7 @@ const ActionMenu = () => {
           <button 
             type="button"
             className="action-menu-btn"
+            id='ia-prompts-item'
             onClick={() => setIsAIModalOpen(true)} 
             style={{ color: '#BE00F7' }}
             aria-label="Generar Prompts de IA"
@@ -185,6 +186,7 @@ const ActionMenu = () => {
           <button
             type="button"
             className="version-hub-btn action-menu-hub-btn"
+            id='versiones-item'
             data-testid="btn-open-version-manager"
             aria-label="Gestor de Versiones"
             title="Gestor de Versiones"
