@@ -24,7 +24,8 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.35 : 1
+    opacity: isDragging ? 0.35 : 1,
+    color: 'var(--text-color)'
   };
 
   const renderDeleteButton = () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCV } from '../../context/CVContext';
-import { Lightbulb, CheckCircle2, Info, AlertCircle } from 'lucide-react';
+import { Lightbulb, CheckCircle2, Info, AlertCircle, Loader2 } from 'lucide-react';
 
 const ToastNotification = () => {
   const { toast } = useCV();
@@ -9,10 +9,12 @@ const ToastNotification = () => {
 
   const isSuccess = toast.type === 'success';
   const isWarning = toast.type === 'warning';
+  const isLoading = toast.type === 'loading';
 
   return (
     <div
       className="toast-notification no-print"
+      data-testid="toast-notification"
       style={{
         position: 'fixed',
         bottom: '1.5rem',
@@ -39,9 +41,15 @@ const ToastNotification = () => {
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        color: isSuccess ? '#22c55e' : isWarning ? '#eab308' : '#3874ff'
+        color: isSuccess ? '#22c55e' : isWarning ? '#eab308' : isLoading ? '#3874ff' : '#3874ff'
       }}>
-        {isSuccess ? <CheckCircle2 size={18} /> : <Lightbulb size={18} color="#eab308" />}
+        {isLoading ? (
+          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+        ) : isSuccess ? (
+          <CheckCircle2 size={18} />
+        ) : (
+          <Lightbulb size={18} color="#eab308" />
+        )}
       </div>
       <span style={{ lineHeight: 1.4 }}>{toast.text}</span>
     </div>

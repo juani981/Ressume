@@ -448,19 +448,12 @@ describe('Empirical Challenger M3-1: Epic 3 Stress & Invariant Verification', ()
         </CVProvider>
       );
 
-      fireEvent.click(screen.getByTestId('btn-open-actions'));
-
-      // Native print trigger
+      // Native print trigger directly from toolbar
       fireEvent.click(screen.getByTestId('btn-action-native-print'));
       expect(cleanPrintSpy).toHaveBeenCalledTimes(1);
 
       // Verify Vector PDF button is completely removed
       expect(screen.queryByTestId('btn-action-vector-pdf')).toBeNull();
-
-      // JSON export trigger
-      fireEvent.click(screen.getByTestId('btn-action-export-json'));
-      expect(clickedLinks.length).toBe(1);
-      expect(clickedLinks[0].download).toMatch(/cv-state-.*\.json/);
 
       createObjectURLSpy.mockRestore();
       revokeObjectURLSpy.mockRestore();

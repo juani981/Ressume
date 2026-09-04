@@ -18,7 +18,8 @@ import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vite
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { CVProvider, useCV } from '../context/CVContext';
 import ActionMenu from '../components/Editor/ActionMenu';
-import { defaultSchema } from '../utils/schema';
+import ToastNotification from '../components/Editor/ToastNotification';
+import { defaultSchema, blankSchema } from '../utils/schema';
 
 // ============================================================================
 // Robust In-Memory IndexedDB Mock for jsdom Environment
@@ -926,29 +927,22 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       }
     });
 
-    it('T3.3: Existing "Acciones" popover (PDF, JSON export) and 8 toolbar buttons remain untouched', () => {
+    it('T3.3: Direct "Descargar como PDF" button in toolbar and <= 8 buttons regression invariant', () => {
       render(
         <CVProvider>
           <ActionMenu />
         </CVProvider>
       );
 
-      // Verify Acciones button exists and opens popover
-      const actionsBtn = screen.getByTestId('btn-open-actions');
-      expect(actionsBtn).toBeInTheDocument();
+      // Verify native print button exists directly in lateral toolbar
+      const pdfBtn = screen.getByTestId('btn-action-native-print');
+      expect(pdfBtn).toBeInTheDocument();
+      expect(pdfBtn.getAttribute('title') || pdfBtn.getAttribute('aria-label')).toMatch(/pdf/i);
 
-      fireEvent.click(actionsBtn);
-
-      const popover = document.querySelector('.actions-popover');
-      expect(popover).toBeInTheDocument();
-
-      // Verify PDF and JSON export buttons exist inside popover
-      const exportBtns = screen.getAllByRole('button');
-      const hasJsonExport = exportBtns.some(b => b.textContent?.includes('JSON') || b.getAttribute('title')?.includes('JSON'));
-      const hasPdfExport = exportBtns.some(b => b.textContent?.includes('PDF') || b.getAttribute('title')?.includes('PDF'));
-
-      expect(hasJsonExport).toBe(true);
-      expect(hasPdfExport).toBe(true);
+      // Verify toolbar count adheres to invariant <= 8
+      const navbar = document.querySelector('.l-navbar');
+      const buttons = navbar.querySelectorAll('.action-menu-btn');
+      expect(buttons.length).toBeLessThanOrEqual(8);
     });
 
     it('T3.4: Obsidian Callouts strictly adhere to AGENTS.md visual invariants and zero unicode emojis', async () => {
@@ -1046,6 +1040,234 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       expect(names).toContain('v1');
       expect(names).toContain('v1-final');
       expect(names).not.toContain('v2');
+    });
+  });
+
+  // ==========================================================================
+  // TIER 5: INTEGRATED JSON EXPORT AND IMPORT ACTIONS
+  // ==========================================================================
+  describe('Tier 5: Integrated JSON Export and Import Actions in Version Manager', () => {
+    it('T5.1: renders JSON Backup toolbar with Import and Download buttons', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('btn-export-active-json')).toBeInTheDocument();
+        expect(screen.getByTestId('btn-import-json')).toBeInTheDocument();
+        expect(screen.getByTestId('input-import-json-file')).toBeInTheDocument();
+      });
+    });
+
+    it('T5.2: clicking export active JSON triggers file download', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      const exportBtn = screen.getByTestId('btn-export-active-json');
+      fireEvent.click(exportBtn);
+
+      expect(clickSpy).toHaveBeenCalled();
+      clickSpy.mockRestore();
+    });
+
+    it('T5.3: version cards display dedicated JSON download button', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      await versionStorage.saveVersion('Snapshot Download Test', defaultSchema, 'thumb_test');
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      await waitFor(() => {
+        const downloadBtns = screen.getAllByTestId('btn-download-version-json');
+        expect(downloadBtns.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('T5.4: importing valid JSON file parses, saves version and notifies user', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      const fileInput = screen.getByTestId('input-import-json-file');
+      const testCV = {
+        ...defaultSchema,
+        profile: { ...defaultSchema.profile, name: 'Imported User Profile' }
+      };
+
+      const mockFile = new Blob([JSON.stringify(testCV)], { type: 'application/json' });
+      mockFile.name = 'imported_cv_backup.json';
+      mockFile.text = async () => JSON.stringify(testCV);
+
+      await act(async () => {
+        fireEvent.change(fileInput, { target: { files: [mockFile] } });
+      });
+
+      await waitFor(async () => {
+        const versions = await versionStorage.getAllVersions();
+        const found = versions.find(v => v.name.includes('imported cv backup') || v.name.includes('Importado'));
+        expect(found).toBeDefined();
+      });
+    });
+  });
+
+  // ==========================================================================
+  // TIER 6: DIRECT PDF EXPORT & LIFECYCLE SPINNER TOAST CONFIRMATION
+  // ==========================================================================
+  describe('Tier 6: Direct PDF Export & Lifecycle Spinner Toast Confirmation', () => {
+    it('T6.1: clicking direct PDF button starts loading spinner toast and enters loading state', async () => {
+      const cleanPrintModule = await import('../utils/staticHtmlPdfEngine');
+      const cleanPrintSpy = vi.spyOn(cleanPrintModule, 'executeCleanPrint').mockReturnValue(new Promise(() => {}));
+
+      render(
+        <CVProvider>
+          <ActionMenu />
+          <ToastNotification />
+        </CVProvider>
+      );
+
+      const pdfBtn = screen.getByTestId('btn-action-native-print');
+      fireEvent.click(pdfBtn);
+
+      // Verify button is disabled during generation
+      expect(pdfBtn).toBeDisabled();
+
+      // Verify loading toast is visible with spinner message
+      const toast = screen.getByTestId('toast-notification');
+      expect(toast).toBeInTheDocument();
+      expect(toast.textContent).toMatch(/generando|preparando/i);
+
+      cleanPrintSpy.mockRestore();
+    });
+
+    it('T6.2: when print dialog closes (afterprint event), loading state finishes and success toast appears', async () => {
+      const cleanPrintModule = await import('../utils/staticHtmlPdfEngine');
+      const cleanPrintSpy = vi.spyOn(cleanPrintModule, 'executeCleanPrint').mockResolvedValue();
+
+      render(
+        <CVProvider>
+          <ActionMenu />
+          <ToastNotification />
+        </CVProvider>
+      );
+
+      const pdfBtn = screen.getByTestId('btn-action-native-print');
+      fireEvent.click(pdfBtn);
+
+      expect(cleanPrintSpy).toHaveBeenCalledTimes(1);
+
+      // Simulate browser native print dialog closing (afterprint event)
+      act(() => {
+        window.dispatchEvent(new Event('afterprint'));
+      });
+
+      await waitFor(() => {
+        const toast = screen.getByTestId('toast-notification');
+        expect(toast.textContent).toMatch(/procesado|éxito|preparado/i);
+        expect(pdfBtn).not.toBeDisabled();
+      });
+
+      cleanPrintSpy.mockRestore();
+    });
+  });
+
+  // ==========================================================================
+  // TIER 7: START BLANK CV TEMPLATE WITH PLACEHOLDERS
+  // ==========================================================================
+  describe('Tier 7: Start Blank CV Template with Placeholders', () => {
+    it('T7.1: renders "Empezar CV en Blanco" button in Version Manager action bar', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('btn-start-blank-cv')).toBeInTheDocument();
+        expect(screen.getByTestId('btn-start-blank-cv').textContent).toMatch(/blanco/i);
+      });
+    });
+
+    it('T7.2: clicking "Empezar CV en Blanco" triggers Obsidian Callout confirmation', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      fireEvent.click(screen.getByTestId('btn-start-blank-cv'));
+
+      await waitFor(() => {
+        const callout = screen.getByTestId('callout-confirm-blank');
+        expect(callout).toBeInTheDocument();
+        expect(callout.textContent).toMatch(/plantilla limpia|placeholders/i);
+      });
+    });
+
+    it('T7.3: clicking cancel in confirmation dismisses the callout without loading', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      render(
+        <CVProvider>
+          <VersionManagerModal isOpen={true} onClose={() => {}} />
+        </CVProvider>
+      );
+
+      fireEvent.click(screen.getByTestId('btn-start-blank-cv'));
+      expect(screen.getByTestId('callout-confirm-blank')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('btn-cancel-blank'));
+      expect(screen.queryByTestId('callout-confirm-blank')).toBeNull();
+    });
+
+    it('T7.4: confirming "Empezar CV en Blanco" loads blankSchema placeholders into state', async () => {
+      if (!VersionManagerModal || !versionStorage) return;
+
+      let currentState = null;
+      const StateProbe = () => {
+        const { cvData } = useCV();
+        currentState = cvData;
+        return <div data-testid="probe-name">{cvData.profile?.name}</div>;
+      };
+
+      const onCloseSpy = vi.fn();
+
+      render(
+        <CVProvider>
+          <StateProbe />
+          <VersionManagerModal isOpen={true} onClose={onCloseSpy} />
+        </CVProvider>
+      );
+
+      fireEvent.click(screen.getByTestId('btn-start-blank-cv'));
+      fireEvent.click(screen.getByTestId('btn-confirm-blank'));
+
+      await waitFor(() => {
+        expect(onCloseSpy).toHaveBeenCalledTimes(1);
+        expect(currentState.profile.name).toBe(blankSchema.profile.name);
+      });
     });
   });
 });

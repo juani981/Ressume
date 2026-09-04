@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getPrompts, getUI } from '../../locales/index';
 import { buildAIPromptPayload } from '../../utils/aiExporter';
-import { Bot, Target, Layout, FileText, Briefcase, Eye, Download, Copy, Check, X } from 'lucide-react';
+import { BrainCircuit, Target, Layout, FileText, Briefcase, Eye, Download, Copy, Check, X } from 'lucide-react';
 
 const AIExportModal = ({ isOpen, onClose }) => {
   const { cvData, activeLanguage } = useCV();
@@ -118,9 +118,9 @@ const AIExportModal = ({ isOpen, onClose }) => {
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Bot size={28} color="#3874ff" />
+            <BrainCircuit size={28} color="#3874ff" />
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Hub de Prompts de IA & Abstracción de CV</h3>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Generar Prompts de IA & Abstracción de CV</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color-light, #777)' }}>
                 Reemplazo semántico del PDF para modelos de lenguaje (GPT, Claude, Gemini, DeepSeek) y ATS
               </p>

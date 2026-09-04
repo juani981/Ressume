@@ -43,7 +43,7 @@ const PublicationsItem = ({ item, sectionId, onUpdateItem }) => {
         </div>
 
         {item.subtitle && (
-          <div style={{ fontSize: 'var(--small-font-size)', color: 'var(--text-color)', marginTop: '1px' }}>
+          <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
             <InlineEdit 
               value={item.subtitle || ''} 
               onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 

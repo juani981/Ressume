@@ -30,7 +30,7 @@ const ReferencesItem = ({ item, sectionId, onUpdateItem }) => {
           />
         </h3>
 
-        <div style={{ fontSize: 'var(--small-font-size)', color: 'var(--text-color)', marginTop: '1px' }}>
+        <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
           <InlineEdit 
             value={item.subtitle || item.position || ''} 
             onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 

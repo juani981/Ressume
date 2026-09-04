@@ -48,7 +48,8 @@ const SortableBulletItem = ({
     marginTop: 0,
     marginBottom: 'var(--item-gap, 6px)',
     paddingRight: '1.5rem',
-    paddingLeft: '1.25rem'
+    paddingLeft: '1.25rem',
+    color: 'inherit'
   };
 
   return (

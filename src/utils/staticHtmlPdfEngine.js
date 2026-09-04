@@ -11,6 +11,8 @@ const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246p
 const MIN_SCALE_FLOOR = 0.75;
 
 import { renderRichHTML, stripHtml } from './richTextEngine';
+import { normalizeItemContacts, getContactConfig } from './contactTypes';
+import { getBulletClasses } from './bulletStyles';
 export { renderRichHTML, stripHtml };
 
 /**
@@ -150,16 +152,21 @@ const renderItemHTML = (item, sectionType, isLast = false) => {
   if (!item) return '';
 
   if (sectionType === 'profile_header') {
+    const contacts = normalizeItemContacts(item);
+    const contactsHtml = contacts
+      .filter(c => c && c.value && String(c.value).trim() !== '')
+      .map(c => {
+        const cfg = getContactConfig(c.type);
+        return `<span class="social__link"><i class='${cfg.icon}'></i> ${renderRichHTML(c.value)}</span>`;
+      })
+      .join('\n');
+
     return `
       <div class="home__data bd-grid cv-block">
         <h1 class="home__title">${renderRichHTML(item.name)}</h1>
         <h2 class="home__subtitle">${renderRichHTML(item.subtitle)}</h2>
         <div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.75rem;">
-          ${item.location ? `<span class="social__link"><i class='bx bx-map'></i> ${renderRichHTML(item.location)}</span>` : ''}
-          ${item.email ? `<span class="social__link"><i class='bx bx-envelope'></i> ${renderRichHTML(item.email)}</span>` : ''}
-          ${item.phone ? `<span class="social__link"><i class='bx bx-phone'></i> ${renderRichHTML(item.phone)}</span>` : ''}
-          ${item.linkedin ? `<span class="social__link"><i class='bx bxl-linkedin-square'></i> ${renderRichHTML(item.linkedin)}</span>` : ''}
-          ${item.github ? `<span class="social__link"><i class='bx bxl-github'></i> ${renderRichHTML(item.github)}</span>` : ''}
+          ${contactsHtml}
         </div>
       </div>
     `;
@@ -364,7 +371,7 @@ const renderSectionHTML = (section) => {
   }
 
   return `
-    <section class="${sectionClass} section cv-section" id="${escapeHTML(section.id)}">
+    <section class="${sectionClass} section cv-section ${getBulletClasses(section.bulletStyle)}" id="${escapeHTML(section.id)}">
       ${!isProfile && section.title ? `<h2 class="section-title">${renderRichHTML(section.title)}</h2>` : ''}
       <div class="${isProfile || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}">
         ${itemsHTML}
@@ -436,14 +443,16 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   const leftColWidth = layout.leftColumnWidth;
   const gridColumns = leftColWidth ? `${leftColWidth}% ${100 - leftColWidth}%` : '1fr 2fr';
 
+  const leftColPercent = leftColWidth || 33.33;
+
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box;">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
+      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; height: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%);">
+        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.5rem); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
           ${rightSections.map(renderSectionHTML).join('')}
         </div>
       </div>
@@ -707,9 +716,20 @@ ${is2Col ? `
     .section,
     .experience__content,
     .education__content,
-    .skills__name {
+    .skills__name,
+    .profile__description,
+    .home__data,
+    .simple-list-item,
+    li.cv-block,
+    .contact__item {
       break-inside: avoid !important;
       page-break-inside: avoid !important;
+      -webkit-column-break-inside: avoid !important;
+    }
+
+    .force-page-break-before {
+      break-before: page !important;
+      page-break-before: always !important;
     }
 
     /* Orphan Header Protection */
@@ -719,11 +739,101 @@ ${is2Col ? `
     h3 {
       break-after: avoid !important;
       page-break-after: avoid !important;
+      break-inside: avoid !important;
     }
 
     p, h1, h2, h3, li {
       orphans: 3;
       widows: 3;
+    }
+
+    /* Dynamic Text & Bullet Contrast via Base Element Inheritance */
+    ${is2Col ? `.resume__left,
+    .resume__right,` : ''}
+    .cv-section,
+    .cv-block,
+    .profile__description,
+    .experience__description {
+      color: var(--text-color);
+    }
+
+    .profile__description p,
+    .profile__description span,
+    .profile__description div,
+    .experience__description p,
+    .experience__description span,
+    .experience__description div,
+    .cv-block p,
+    .cv-block span,
+    .cv-block div,
+    .cv-block li,
+    .experience__bullets,
+    .experience__bullets li,
+    .experience__bullets-container,
+    .bullet-item-row,
+    .simple-list-item,
+    .skills__name {
+      color: var(--text-color) !important;
+    }
+
+    .experience__bullets li span,
+    .bullet-item-row span,
+    .simple-list-item span,
+    .skills__name span {
+      color: inherit;
+    }
+
+    /* Bullet & Circle Customization (Title Timeline Rounders Only - No Blue) */
+    .bullet-size-normal .experience__rounder,
+    .bullet-size-normal .education__rounder {
+      width: 12px !important;
+      height: 12px !important;
+    }
+    .bullet-size-normal .experience__line,
+    .bullet-size-normal .education__line {
+      transform: translate(5px, 0) !important;
+    }
+
+    .bullet-size-large .experience__rounder,
+    .bullet-size-large .education__rounder {
+      width: 18px !important;
+      height: 18px !important;
+    }
+    .bullet-size-large .experience__line,
+    .bullet-size-large .education__line {
+      transform: translate(8px, 0) !important;
+    }
+
+    /* Variant: Negro / Bold (Solid dark black #0f172a) */
+    .bullet-variant-bold .experience__rounder,
+    .bullet-variant-bold .education__rounder,
+    .bullet-variant-black .experience__rounder,
+    .bullet-variant-black .education__rounder {
+      background-color: #0f172a !important;
+      border: none !important;
+    }
+
+    /* Variant: Gris (Subtle neutral slate gray #94a3b8) */
+    .bullet-variant-gray .experience__rounder,
+    .bullet-variant-gray .education__rounder {
+      background-color: var(--text-color-light, #94a3b8) !important;
+      border: none !important;
+    }
+
+    /* Variant: Anillo / Ring (Hollow ring with solid dark border #0f172a) */
+    .bullet-variant-circle .experience__rounder,
+    .bullet-variant-circle .education__rounder,
+    .bullet-variant-ring .experience__rounder,
+    .bullet-variant-ring .education__rounder {
+      background-color: var(--container-color, #ffffff) !important;
+      border: 2.5px solid #0f172a !important;
+    }
+
+    /* Timeline Connector Line */
+    .bullet-line-none .experience__line,
+    .bullet-line-none .education__line,
+    .bullet-line-none [class*="__line"] {
+      display: none !important;
     }
 
     @media print {
@@ -743,14 +853,15 @@ ${is2Col ? `
         width: 100% !important;
         margin: 0 !important;
         padding: 0;
-        min-height: 297mm !important;
+        min-height: var(--print-target-height-mm, 297mm) !important;
         box-sizing: border-box !important;
       }
 ${is2Col ? `
       .resume__left,
       .resume__right {
-        min-height: 297mm !important;
+        min-height: var(--print-target-height-mm, 297mm) !important;
         height: 100% !important;
+        align-self: stretch !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         -webkit-box-decoration-break: clone !important;
@@ -768,9 +879,15 @@ ${is2Col ? `
       .section,
       .experience__content,
       .education__content,
-      .skills__name {
+      .skills__name,
+      .profile__description,
+      .home__data,
+      .simple-list-item,
+      li.cv-block,
+      .contact__item {
         break-inside: avoid !important;
         page-break-inside: avoid !important;
+        -webkit-column-break-inside: avoid !important;
       }
       .section-title,
       h1,
@@ -778,6 +895,11 @@ ${is2Col ? `
       h3 {
         break-after: avoid !important;
         page-break-after: avoid !important;
+        break-inside: avoid !important;
+      }
+      .force-page-break-before {
+        break-before: page !important;
+        page-break-before: always !important;
       }
     }
   </style>
@@ -786,6 +908,175 @@ ${is2Col ? `
   ${bodyContent}
 </body>
 </html>`;
+};
+
+/**
+ * Enforces strict per-component page break avoidance and left column full-page extension
+ * exclusively for 2-column print layouts.
+ * 
+ * Inspects elements in BOTH columns simultaneously:
+ * - If an element in the left column crosses an A4 page fold, it pushes it cleanly to the next page.
+ * - If an element in the right column crosses an A4 page fold, it pushes it cleanly to the next page.
+ * - Section titles about to be orphaned without child items are also pushed to the next page.
+ * - After pagination settles, if total pages > 1, the left column container (.resume__left) and #area-cv
+ *   are extended to occupy the full length of the current A4 page (N * 297mm).
+ * 
+ * @param {Document} doc The iframe document or DOM document
+ * @param {HTMLElement} areaCv The #area-cv container element
+ * @param {number} pageHeightPx Height of one A4 page in pixels (default: 1123)
+ * @returns {{ totalPages: number, targetHeightMm: number, breaksApplied: Array }}
+ */
+export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = A4_PAGE_HEIGHT_PX) => {
+  if (!areaCv) {
+    return { totalPages: 1, targetHeightMm: 297, breaksApplied: [] };
+  }
+
+  const leftCol = areaCv.querySelector?.('.resume__left');
+  const rightCol = areaCv.querySelector?.('.resume__right');
+
+  // Strictly applicable for 2-column layout
+  if (!leftCol || !rightCol) {
+    const rawH = Math.max(areaCv.scrollHeight || 0, pageHeightPx);
+    const pages = Math.max(1, Math.ceil(rawH / pageHeightPx));
+    const targetMm = pages * 297;
+    if (areaCv.style) {
+      areaCv.style.minHeight = `${targetMm}mm`;
+    }
+    return { totalPages: pages, targetHeightMm: targetMm, breaksApplied: [] };
+  }
+
+  const getRelativeBounds = (el) => {
+    if (typeof el.getBoundingClientRect === 'function' && typeof areaCv.getBoundingClientRect === 'function') {
+      const elRect = el.getBoundingClientRect();
+      const areaRect = areaCv.getBoundingClientRect();
+      return {
+        top: elRect.top - areaRect.top,
+        bottom: elRect.bottom - areaRect.top,
+        height: elRect.height || (el.offsetHeight || 0)
+      };
+    }
+    const top = el.offsetTop || 0;
+    const height = el.offsetHeight || 0;
+    return { top, bottom: top + height, height };
+  };
+
+  const getBreakableComponents = (columnEl) => {
+    const selector = '.section-title, .cv-block, .experience__content, .education__content, .skills__name, .profile__description, .home__data, .simple-list-item, li.cv-block, .contact__item';
+    const rawList = Array.from(columnEl.querySelectorAll(selector));
+    const filtered = rawList.filter((item, idx, arr) => {
+      if (item.classList.contains('section-title')) return true;
+      const hasParentInList = arr.some(other => other !== item && other.contains(item) && !other.classList.contains('section-title'));
+      return !hasParentInList;
+    });
+    return filtered;
+  };
+
+  const breaksApplied = [];
+  let passes = 0;
+  let hasChanges = true;
+
+  while (hasChanges && passes < 6) {
+    passes++;
+    hasChanges = false;
+
+    const currentHeight = Math.max(
+      leftCol.scrollHeight || 0,
+      rightCol.scrollHeight || 0,
+      areaCv.scrollHeight || 0,
+      pageHeightPx
+    );
+    const estimatedPages = Math.max(1, Math.ceil(currentHeight / pageHeightPx));
+
+    for (let pageNum = 1; pageNum <= estimatedPages; pageNum++) {
+      const foldY = pageNum * pageHeightPx;
+
+      const colDefs = [
+        { name: 'left', el: leftCol, items: getBreakableComponents(leftCol) },
+        { name: 'right', el: rightCol, items: getBreakableComponents(rightCol) }
+      ];
+
+      for (const col of colDefs) {
+        for (const item of col.items) {
+          if (item.getAttribute('data-page-break-forced') === 'true') {
+            continue;
+          }
+
+          const { top, bottom, height } = getRelativeBounds(item);
+
+          // If already after fold
+          if (top >= foldY) {
+            continue;
+          }
+
+          // Section title orphaned near fold (less than 60px before fold)
+          const isOrphanTitle = item.classList.contains('section-title') && (top < foldY && bottom > foldY - 60);
+
+          // If safely before fold (non-orphan elements)
+          if (!isOrphanTitle && bottom <= foldY - 4) {
+            continue;
+          }
+
+          // Item straddles fold boundary
+          const isStraddling = (top < foldY && bottom > foldY - 8);
+
+          if (isStraddling || isOrphanTitle) {
+            item.style.setProperty('break-before', 'page', 'important');
+            item.style.setProperty('page-break-before', 'always', 'important');
+            item.classList.add('force-page-break-before');
+            item.setAttribute('data-page-break-forced', 'true');
+            item.setAttribute('data-page-break-column', col.name);
+            item.setAttribute('data-page-break-fold', String(pageNum));
+
+            const pushDistance = Math.max(0, foldY - top);
+            if (pushDistance > 0) {
+              item.style.setProperty('margin-top', `${pushDistance + 10}px`, 'important');
+            }
+
+            breaksApplied.push({
+              column: col.name,
+              element: item,
+              tagName: item.tagName,
+              className: item.className,
+              fold: foldY,
+              pageNum
+            });
+
+            hasChanges = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Final measurement after all component breaks have been resolved
+  const finalMaxHeight = Math.max(
+    leftCol.scrollHeight || 0,
+    rightCol.scrollHeight || 0,
+    areaCv.scrollHeight || 0,
+    pageHeightPx
+  );
+  const totalPages = Math.max(1, Math.ceil(finalMaxHeight / pageHeightPx));
+  const targetHeightMm = totalPages * 297;
+
+  // Extend left column container, right column, and #area-cv to full page length
+  areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+  areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
+  areaCv.style.setProperty('--print-total-pages', String(totalPages));
+  areaCv.style.alignItems = 'stretch';
+
+  leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+  leftCol.style.setProperty('height', '100%', 'important');
+  leftCol.style.setProperty('align-self', 'stretch', 'important');
+  leftCol.style.setProperty('flex', '1', 'important');
+  leftCol.style.setProperty('box-sizing', 'border-box', 'important');
+
+  rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+  rightCol.style.setProperty('height', '100%', 'important');
+  rightCol.style.setProperty('align-self', 'stretch', 'important');
+  rightCol.style.setProperty('box-sizing', 'border-box', 'important');
+
+  return { totalPages, targetHeightMm, breaksApplied };
 };
 
 /**
@@ -845,35 +1136,62 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
             ]);
           }
 
-          const rawHeight = doc.body?.scrollHeight || doc.documentElement?.scrollHeight || 1000;
+          const areaCv = typeof doc.getElementById === 'function' 
+            ? doc.getElementById('area-cv') 
+            : (doc.body?.querySelector?.('#area-cv') || doc.body?.firstElementChild);
+
+          let pageHeightPx = A4_PAGE_HEIGHT_PX;
+          if (doc.createElement && doc.body) {
+            try {
+              const ruler = doc.createElement('div');
+              ruler.style.height = '297mm';
+              ruler.style.position = 'absolute';
+              ruler.style.visibility = 'hidden';
+              ruler.style.top = '-9999px';
+              doc.body.appendChild(ruler);
+              if (ruler.offsetHeight > 0) {
+                pageHeightPx = ruler.offsetHeight;
+              }
+              ruler.parentNode?.removeChild(ruler);
+            } catch (_) {}
+          }
+
+          // Execute 2-column per-component pagination control
+          const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
+
+          const rawHeight = Math.max(
+            doc.body?.scrollHeight || 0,
+            doc.documentElement?.scrollHeight || 0,
+            areaCv?.scrollHeight || 0,
+            pageHeightPx * totalPages
+          );
           const scale = calculatePrintScale(rawHeight);
           if (scale < 1.0 && doc.body?.style) {
             doc.body.style.zoom = scale;
           }
 
-          const { totalPages, targetHeightMm } = computeAdaptivePrintLayout(rawHeight);
-
-          const areaCv = typeof doc.getElementById === 'function' 
-            ? doc.getElementById('area-cv') 
-            : (doc.body?.querySelector?.('#area-cv') || doc.body?.firstElementChild);
-
-          if (areaCv && areaCv.style) {
-            areaCv.style.minHeight = `${targetHeightMm}mm`;
-            const leftCol = areaCv.querySelector?.('.resume__left');
-            const rightCol = areaCv.querySelector?.('.resume__right');
-            if (leftCol && leftCol.style) {
-              leftCol.style.minHeight = `${targetHeightMm}mm`;
-              leftCol.style.height = '100%';
-            }
-            if (rightCol && rightCol.style) {
-              rightCol.style.minHeight = `${targetHeightMm}mm`;
-              rightCol.style.height = '100%';
-            }
-          }
-
           if (iframe && iframe.style) {
-            iframe.style.height = `${totalPages * 1123}px`;
+            iframe.style.height = `${totalPages * pageHeightPx}px`;
           }
+
+          let printClosed = false;
+          const handlePrintClosed = () => {
+            if (printClosed) return;
+            printClosed = true;
+            try {
+              window.dispatchEvent(new CustomEvent('print-dialog-closed'));
+            } catch (_) {}
+            setTimeout(() => {
+              if (iframe.parentNode) {
+                iframe.parentNode.removeChild(iframe);
+              }
+            }, 600);
+          };
+
+          if (iframe.contentWindow) {
+            iframe.contentWindow.addEventListener('afterprint', handlePrintClosed, { once: true });
+          }
+          window.addEventListener('afterprint', handlePrintClosed, { once: true });
 
           if (typeof iframe.contentWindow.focus === 'function') {
             iframe.contentWindow.focus();
@@ -890,10 +1208,10 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
       } finally {
         resolve();
         setTimeout(() => {
-          if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
+          if (!printClosed && iframe.parentNode) {
+            handlePrintClosed();
           }
-        }, 1000);
+        }, 15000);
       }
     };
 

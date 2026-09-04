@@ -4,6 +4,7 @@ import { LOCALES } from '../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
 import { sanitizeAndValidateCVSnapshot } from '../utils/versionValidator';
+import { normalizeItemContacts } from '../utils/contactTypes';
 
 const CVContext = createContext();
 
@@ -38,6 +39,9 @@ export const CVProvider = ({ children }) => {
             ...(data.profile.linkedin !== undefined ? { linkedin: data.profile.linkedin } : {}),
             ...(data.profile.github !== undefined ? { github: data.profile.github } : {}),
           };
+          if (!mergedItem.contacts || !Array.isArray(mergedItem.contacts)) {
+            mergedItem.contacts = normalizeItemContacts(mergedItem);
+          }
           return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
         }
         return sec;
@@ -101,15 +105,24 @@ export const CVProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const toastTimeoutRef = useRef(null);
 
-  const showToast = useCallback((text, type = 'info') => {
+  const showToast = useCallback((text, type = 'info', duration = 2800) => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
     }
     const newToast = { id: Date.now(), text, type };
     setToast(newToast);
-    toastTimeoutRef.current = setTimeout(() => {
-      setToast(null);
-    }, 2800);
+    if (duration > 0) {
+      toastTimeoutRef.current = setTimeout(() => {
+        setToast(null);
+      }, duration);
+    }
+  }, []);
+
+  const hideToast = useCallback(() => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast(null);
   }, []);
 
   // Active singleton tooltip state: { section, rect } or null
@@ -422,8 +435,8 @@ export const CVProvider = ({ children }) => {
   };
 
   // Add a brand new section container
-  const addSection = (column = 'right', type = 'list', title = 'NUEVA SECCIÓN') => {
-    const newSec = createDefaultSection(column, type, title);
+  const addSection = (column = 'right', type = 'list', title = 'NUEVA SECCIÓN', bulletStyle = undefined) => {
+    const newSec = createDefaultSection(column, type, title, bulletStyle);
     applyStateWithHistory(prev => ({
       ...prev,
       sections: [...prev.sections, newSec]
@@ -491,6 +504,17 @@ export const CVProvider = ({ children }) => {
     }));
   };
 
+  const updateSectionBulletStyle = (sectionId, bulletStyle) => {
+    applyStateWithHistory(prev => ({
+      ...prev,
+      sections: prev.sections.map(sec => 
+        sec.id === sectionId 
+          ? { ...sec, bulletStyle: { ...(sec.bulletStyle || {}), ...bulletStyle } }
+          : sec
+      )
+    }));
+  };
+
   // Language management
   const switchLanguage = (langCode) => {
     if (languagePacks[langCode] && Object.keys(languagePacks[langCode]).length > 0) {
@@ -536,6 +560,7 @@ export const CVProvider = ({ children }) => {
       deleteSection,
       reorderSections,
       updateSectionTitle,
+      updateSectionBulletStyle,
       languagePacks,
       activeLanguage,
       switchLanguage,
@@ -558,7 +583,8 @@ export const CVProvider = ({ children }) => {
       clearActiveToolbar,
       showAITips,
       toast,
-      showToast
+      showToast,
+      hideToast
     }}>
       {children}
     </CVContext.Provider>

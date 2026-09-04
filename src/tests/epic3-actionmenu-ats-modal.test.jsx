@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import ActionMenu from '../components/Editor/ActionMenu';
+import LayoutModeToggle from '../components/Editor/LayoutModeToggle';
 import AddSectionModal from '../components/Editor/AddSectionModal';
 import App from '../App';
 import { CVProvider, useCV } from '../context/CVContext';
@@ -59,29 +60,28 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(navbarColorInputs.length).toBe(0);
     });
 
-    it('T1.2: layout toggle switch is positioned at the top of the panel', () => {
+    it('T1.2: layout toggle switch is rendered prominently with dual legends and icons', () => {
       render(
         <CVProvider>
-          <ActionMenu />
+          <LayoutModeToggle />
         </CVProvider>
       );
 
-      const navbar = document.querySelector('.l-navbar');
-      const firstChild = navbar.firstElementChild;
-
-      // The first element container inside .l-navbar is the ATS toggle switch
-      expect(firstChild).toHaveClass('ats-toggle-container');
+      const toggleContainer = document.querySelector('.layout-mode-toggle-container');
+      expect(toggleContainer).toBeInTheDocument();
 
       const toggleBtn = screen.getByTestId('ats-mode-toggle');
       expect(toggleBtn).toBeInTheDocument();
-      expect(toggleBtn).toHaveAttribute('aria-label', expect.stringMatching(/cambiar a 1 columna/i));
+      expect(toggleBtn).toHaveAttribute('aria-label', expect.stringMatching(/optimizado ats|1 columna/i));
+      expect(screen.getByText(/diseño tradicional/i)).toBeInTheDocument();
+      expect(screen.getByText(/optimizado ats/i)).toBeInTheDocument();
     });
 
     it('T1.3: clicking toggle switch activates ATS mode (1-column, isAtsMode: true) and saves to localStorage', () => {
       let currentState = null;
       render(
         <CVProvider>
-          <ActionMenu />
+          <LayoutModeToggle />
           <StateInspector onState={(s) => { currentState = s; }} />
         </CVProvider>
       );
@@ -101,7 +101,7 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       let currentState = null;
       render(
         <CVProvider>
-          <ActionMenu />
+          <LayoutModeToggle />
           <StateInspector onState={(s) => { currentState = s; }} />
         </CVProvider>
       );
@@ -224,6 +224,7 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       render(
         <CVProvider>
           <ActionMenu />
+          <LayoutModeToggle />
           <StateInspector onState={(s) => { currentState = s; }} />
         </CVProvider>
       );
@@ -319,7 +320,7 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(designSubmenu.style.opacity).toBe('0');
     });
 
-    it('T3.3: Acciones submenu renders clean PDF export and JSON export options and triggers them correctly', async () => {
+    it('T3.3: Direct "Descargar como PDF" button in toolbar triggers clean print and vector PDF is absent', async () => {
       const executeCleanPrintSpy = vi.spyOn(printEngineModule, 'executeCleanPrint').mockResolvedValue();
 
       render(
@@ -328,17 +329,13 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
         </CVProvider>
       );
 
-      fireEvent.click(screen.getByTestId('btn-open-actions'));
-
       const nativePrintBtn = screen.getByTestId('btn-action-native-print');
-      const jsonExportBtn = screen.getByTestId('btn-action-export-json');
       const vectorPdfBtn = screen.queryByTestId('btn-action-vector-pdf');
 
       expect(vectorPdfBtn).toBeNull();
       expect(nativePrintBtn).toBeInTheDocument();
-      expect(jsonExportBtn).toBeInTheDocument();
 
-      // Trigger native clean print
+      // Trigger native clean print directly from toolbar
       fireEvent.click(nativePrintBtn);
       expect(executeCleanPrintSpy).toHaveBeenCalledTimes(1);
     });

@@ -608,7 +608,7 @@ export const createDefaultItemForSection = createDefaultItem;
 /**
  * Factory for creating default section container
  */
-export const createDefaultSection = (column = 'right', type = 'list', title) => {
+export const createDefaultSection = (column = 'right', type = 'list', title, bulletStyle) => {
   const descriptor = getSectionDescriptor(type);
   const finalTitle = title !== undefined ? title : descriptor.defaultTitle;
   const sectionId = generateUniqueId('sec');
@@ -618,7 +618,8 @@ export const createDefaultSection = (column = 'right', type = 'list', title) => 
     column: column || descriptor.defaultColumn || 'right',
     type: type || 'list',
     title: finalTitle,
-    items: [createDefaultItem(type)]
+    items: [createDefaultItem(type)],
+    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true }
   };
 };
 

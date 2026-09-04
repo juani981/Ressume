@@ -8,6 +8,8 @@ import {
   duplicateVersion
 } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
+import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
+import { blankSchema } from '../../utils/schema';
 import {
   History,
   X,
@@ -19,7 +21,10 @@ import {
   TriangleAlert,
   OctagonAlert,
   Layers,
-  Calendar
+  Calendar,
+  Download,
+  Upload,
+  FilePlus
 } from 'lucide-react';
 
 /**
@@ -43,10 +48,12 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
   const [editingVersionId, setEditingVersionId] = useState(null);
   const [renameText, setRenameText] = useState('');
   const renameInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Confirmation dialog states
   const [confirmLoadVersion, setConfirmLoadVersion] = useState(null);
   const [confirmDeleteVersion, setConfirmDeleteVersion] = useState(null);
+  const [confirmBlankCV, setConfirmBlankCV] = useState(false);
 
   // Generate suggested version name based on candidate & date
   const generateSuggestedName = useCallback(() => {
@@ -84,6 +91,7 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
       setNewVersionName(generateSuggestedName());
       setConfirmLoadVersion(null);
       setConfirmDeleteVersion(null);
+      setConfirmBlankCV(false);
       setEditingVersionId(null);
 
       // Lock body scroll
@@ -110,13 +118,17 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
           setConfirmDeleteVersion(null);
           return;
         }
+        if (confirmBlankCV) {
+          setConfirmBlankCV(false);
+          return;
+        }
         onClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, editingVersionId, confirmLoadVersion, confirmDeleteVersion, onClose]);
+  }, [isOpen, editingVersionId, confirmLoadVersion, confirmDeleteVersion, confirmBlankCV, onClose]);
 
   // Focus rename input when editing starts
   useEffect(() => {
@@ -217,6 +229,25 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Confirm starting a blank CV with placeholder data
+  const handleConfirmBlankCV = () => {
+    try {
+      if (loadVersionSnapshot) {
+        loadVersionSnapshot(blankSchema);
+      }
+      if (showToast) {
+        showToast('Plantilla en blanco cargada con datos placeholders', 'info');
+      }
+      setConfirmBlankCV(false);
+      onClose();
+    } catch (err) {
+      console.error('Error loading blank CV template:', err);
+      if (showToast) {
+        showToast('Error al inicializar el CV en blanco', 'error');
+      }
+    }
+  };
+
   // Confirm delete version
   const handleConfirmDelete = async (id) => {
     try {
@@ -229,6 +260,99 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
       console.error('Error deleting version:', err);
     } finally {
       setConfirmDeleteVersion(null);
+    }
+  };
+
+  // Download active CV state as JSON
+  const handleDownloadActiveJSON = () => {
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cvData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      const safeName = (cvData?.profile?.name || 'curriculum').toLowerCase().replace(/[^a-z0-9]/g, '_');
+      downloadAnchor.setAttribute("download", `cv_${safeName}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      if (showToast) {
+        showToast('CV actual exportado exitosamente en formato JSON', 'success');
+      }
+    } catch (err) {
+      console.error('Error exporting active CV JSON:', err);
+      if (showToast) {
+        showToast('Error al exportar el archivo JSON', 'error');
+      }
+    }
+  };
+
+  // Download a specific saved version snapshot as JSON
+  const handleDownloadVersionJSON = (version) => {
+    try {
+      const targetData = version.cvData || cvData;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(targetData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      const safeName = (version.name || 'version').toLowerCase().replace(/[^a-z0-9]/g, '_');
+      downloadAnchor.setAttribute("download", `cv_version_${safeName}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      if (showToast) {
+        showToast(`Versión "${version.name}" exportada como JSON`, 'success');
+      }
+    } catch (err) {
+      console.error('Error exporting version JSON:', err);
+      if (showToast) {
+        showToast('Error al exportar la versión como JSON', 'error');
+      }
+    }
+  };
+
+  // Import JSON file from user's disk
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const fileText = await file.text();
+      let parsed;
+      try {
+        parsed = JSON.parse(fileText);
+      } catch (parseErr) {
+        throw new Error('El archivo seleccionado no contiene un JSON válido.');
+      }
+
+      // Handle raw cvData or snapshot structure ({ cvData: ... } or { sections: ... })
+      const rawData = parsed.cvData || parsed;
+      const validated = sanitizeAndValidateCVSnapshot(rawData);
+      if (!validated) {
+        throw new Error('La estructura del archivo JSON no coincide con un CV válido.');
+      }
+
+      // 1. Generate thumbnail and save as a new version snapshot
+      const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+      const suggestedTitle = parsed.name || `${baseName} (Importado)`;
+      const thumbnail = await generateThumbnail(validated);
+      await saveVersion(suggestedTitle, validated, thumbnail);
+      await loadVersions();
+
+      // 2. Load into editor state
+      if (loadVersionSnapshot) {
+        loadVersionSnapshot(validated);
+      }
+
+      if (showToast) {
+        showToast(`CV "${suggestedTitle}" importado y guardado como nueva versión`, 'success');
+      }
+    } catch (err) {
+      console.error('Error importing JSON file:', err);
+      if (showToast) {
+        showToast(err.message || 'Error al importar el archivo JSON', 'error');
+      }
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -346,69 +470,266 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* =====================================================================
-            2. "Save Current as New Version" Action Bar
+            2. Action Bar: Save Version & JSON Transfer
             ===================================================================== */}
-        <form
-          onSubmit={handleSaveCurrent}
+        <div
           style={{
             padding: '1rem 1.5rem',
             backgroundColor: '#f8fafc',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
+            flexDirection: 'column',
             gap: '0.75rem',
-            alignItems: 'center',
           }}
         >
-          <div style={{ position: 'relative', flex: 1 }}>
-            <input
-              type="text"
-              data-testid="input-new-version-name"
-              placeholder="Nombre de la nueva versión (ej: CV Tech Lead 2026)"
-              value={newVersionName}
-              onChange={(e) => setNewVersionName(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.6rem 0.85rem',
-                fontSize: '0.9rem',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                color: '#0f172a',
-                outline: 'none',
-                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            data-testid="btn-save-version"
-            disabled={isSaving}
+          {/* Row 1: Save current version form */}
+          <form
+            onSubmit={handleSaveCurrent}
             style={{
               display: 'flex',
+              gap: '0.75rem',
               alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.6rem 1.25rem',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontSize: '0.88rem',
-              cursor: isSaving ? 'not-allowed' : 'pointer',
-              opacity: isSaving ? 0.7 : 1,
-              transition: 'background-color 0.15s ease',
-              whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
-            <Plus size={16} />
-            {isSaving ? 'Guardando...' : 'Guardar Versión Actual'}
-          </button>
-        </form>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input
+                type="text"
+                data-testid="input-new-version-name"
+                placeholder="Nombre de la nueva versión (ej: CV Tech Lead 2026)"
+                value={newVersionName}
+                onChange={(e) => setNewVersionName(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 0.85rem',
+                  fontSize: '0.9rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  outline: 'none',
+                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              data-testid="btn-save-version"
+              disabled={isSaving}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1.25rem',
+                backgroundColor: '#2563eb',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '0.88rem',
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                opacity: isSaving ? 0.7 : 1,
+                transition: 'background-color 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Plus size={16} />
+              {isSaving ? 'Guardando...' : 'Guardar Versión Actual'}
+            </button>
+          </form>
+
+          {/* Row 2: JSON Backup & Transfer Actions */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingTop: '0.5rem',
+              borderTop: '1px dashed #e2e8f0',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Layers size={14} color="#64748b" />
+              <span>Plantillas, respaldo e importación</span>
+            </span>
+
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={handleImportFile}
+                style={{ display: 'none' }}
+                data-testid="input-import-json-file"
+              />
+
+              {/* Botón Empezar CV en Blanco */}
+              <button
+                type="button"
+                data-testid="btn-start-blank-cv"
+                onClick={() => setConfirmBlankCV(true)}
+                title="Empezar un nuevo CV desde cero con datos placeholders"
+                aria-label="Empezar CV en Blanco"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.45rem 0.9rem',
+                  backgroundColor: '#ffffff',
+                  color: '#4f46e5',
+                  border: '1px solid #c7d2fe',
+                  borderRadius: '7px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <FilePlus size={14} color="#4f46e5" />
+                <span>Empezar CV en Blanco</span>
+              </button>
+
+              {/* Botón Importar JSON */}
+              <button
+                type="button"
+                data-testid="btn-import-json"
+                onClick={() => fileInputRef.current?.click()}
+                title="Importar un archivo de CV en formato JSON"
+                aria-label="Importar archivo JSON"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.45rem 0.9rem',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '7px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Upload size={14} color="#2563eb" />
+                <span>Importar JSON</span>
+              </button>
+
+              {/* Botón Descargar JSON Actual */}
+              <button
+                type="button"
+                data-testid="btn-export-active-json"
+                onClick={handleDownloadActiveJSON}
+                title="Descargar el estado actual del CV como archivo JSON"
+                aria-label="Descargar CV actual como JSON"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.45rem 0.9rem',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '7px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Download size={14} color="#10b981" />
+                <span>Descargar como JSON</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* =====================================================================
             3. Obsidian Callout Confirmation Dialogs (Warning / Danger)
             ===================================================================== */}
+        {confirmBlankCV && (
+          <div
+            className="obsidian-callout"
+            data-testid="callout-confirm-blank"
+            style={{
+              background: 'rgba(219, 139, 0, 0.1)',
+              borderLeft: '4px solid rgba(219, 139, 0, 1)',
+              borderRadius: '8px',
+              padding: '1.25rem',
+              margin: '1.25rem 1.5rem 0',
+              fontSize: '0.9rem',
+            }}
+          >
+            <div
+              className="callout-title"
+              style={{
+                display: 'flex',
+                gap: '8px',
+                fontWeight: 600,
+                color: 'rgba(219, 139, 0, 1)',
+                marginBottom: '8px',
+                alignItems: 'center',
+                fontSize: '1rem',
+              }}
+            >
+              <TriangleAlert size={18} /> Empezar CV en Blanco
+            </div>
+            <div
+              className="callout-content"
+              style={{
+                color: '#334155',
+                fontSize: '0.85rem',
+                lineHeight: 1.5,
+              }}
+            >
+              Esta acción inicializará el editor con una plantilla limpia y datos placeholders listos para rellenar. El CV actual en pantalla será reemplazado (puedes deshacer con Ctrl+Z). ¿Deseas continuar?
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <button
+                type="button"
+                data-testid="btn-cancel-blank"
+                onClick={() => setConfirmBlankCV(false)}
+                style={{
+                  padding: '0.45rem 0.9rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  background: '#ffffff',
+                  color: '#475569',
+                  fontWeight: 500,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                data-testid="btn-confirm-blank"
+                onClick={handleConfirmBlankCV}
+                style={{
+                  padding: '0.45rem 0.9rem',
+                  border: 'none',
+                  borderRadius: '6px',
+                  background: 'rgba(219, 139, 0, 1)',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Sí, Empezar en Blanco
+              </button>
+            </div>
+          </div>
+        )}
+
         {confirmLoadVersion && (
           <div
             className="obsidian-callout"
@@ -870,6 +1191,28 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
                       >
                         <Copy size={14} />
                         <span style={{ fontSize: '0.75rem' }}>Duplicar</span>
+                      </button>
+
+                      {/* Descargar JSON */}
+                      <button
+                        type="button"
+                        data-testid="btn-download-version-json"
+                        aria-label="Descargar esta versión como JSON"
+                        title="Descargar esta versión como JSON"
+                        onClick={() => handleDownloadVersionJSON(version)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0.45rem',
+                          backgroundColor: '#f8fafc',
+                          color: '#475569',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Download size={14} />
                       </button>
 
                       {/* Eliminar */}

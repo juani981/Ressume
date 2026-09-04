@@ -413,7 +413,8 @@ const InlineEdit = ({
             textAlign: currentAlignment,
             cursor: 'text',
             wordBreak: 'break-word',
-            whiteSpace: multiline ? 'pre-wrap' : 'normal'
+            whiteSpace: multiline ? 'pre-wrap' : 'normal',
+            color: 'inherit'
           }}
           onInput={handleInput}
           onBlur={handleBlur}
@@ -451,7 +452,8 @@ const InlineEdit = ({
         display: multiline ? 'block' : 'inline-block',
         minWidth: '20px',
         minHeight: '1em',
-        textAlign: currentAlignment
+        textAlign: currentAlignment,
+        color: 'inherit'
       }}
       dangerouslySetInnerHTML={{ __html: displayHtml }}
     />

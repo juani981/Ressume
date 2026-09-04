@@ -42,6 +42,11 @@ const iconMap = {
  */
 const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
   const { addSection } = useCV();
+  const [initialBulletStyle, setInitialBulletStyle] = useState({
+    size: 'normal',
+    variant: 'bold',
+    showLine: true
+  });
   const [panelStyle, setPanelStyle] = useState({
     position: 'fixed',
     right: '20px',
@@ -129,7 +134,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
 
   const handleSelectType = (desc) => {
     const col = targetColumn || desc.defaultColumn || 'right';
-    addSection(col, desc.type, desc.defaultTitle);
+    addSection(col, desc.type, desc.defaultTitle, initialBulletStyle);
     onClose();
   };
 
@@ -202,6 +207,92 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
           >
             <X size={18} />
           </button>
+        </div>
+
+        {/* Bullet & Timeline Initial Style Selector */}
+        <div 
+          style={{ 
+            padding: '0.5rem 1rem 0.5rem 1rem', 
+            borderBottom: '1px solid rgba(0,0,0,0.06)', 
+            background: 'var(--container-color-alt, #f8fafc)',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '5px' 
+          }}
+        >
+          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-color-light, #64748b)' }}>
+            Estilo del círculo (título timeline):
+          </div>
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+            {/* Size toggle */}
+            <button
+              type="button"
+              onClick={() => setInitialBulletStyle(prev => ({ ...prev, size: prev.size === 'large' ? 'normal' : 'large' }))}
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: initialBulletStyle.size === 'large' ? '1.5px solid #0f172a' : '1px solid rgba(0,0,0,0.12)',
+                background: initialBulletStyle.size === 'large' ? '#0f172a' : 'var(--container-color, #ffffff)',
+                color: initialBulletStyle.size === 'large' ? '#ffffff' : 'var(--text-color, #475569)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Alternar tamaño del círculo"
+            >
+              {initialBulletStyle.size === 'large' ? '● Grande' : '• Normal'}
+            </button>
+            {/* Variant buttons */}
+            {[
+              { id: 'bold', label: 'Negro' },
+              { id: 'gray', label: 'Gris' },
+              { id: 'circle', label: 'Anillo' }
+            ].map(v => {
+              const isActive = initialBulletStyle.variant === v.id || 
+                (v.id === 'bold' && initialBulletStyle.variant === 'black') || 
+                (v.id === 'circle' && initialBulletStyle.variant === 'ring');
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setInitialBulletStyle(prev => ({ ...prev, variant: v.id }))}
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: isActive ? '1.5px solid #0f172a' : '1px solid rgba(0,0,0,0.12)',
+                    background: isActive ? '#0f172a' : 'var(--container-color, #ffffff)',
+                    color: isActive ? '#ffffff' : 'var(--text-color, #475569)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {v.label}
+                </button>
+              );
+            })}
+            {/* Line toggle */}
+            <button
+              type="button"
+              onClick={() => setInitialBulletStyle(prev => ({ ...prev, showLine: !prev.showLine }))}
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: '4px',
+                border: initialBulletStyle.showLine ? '1.5px solid #0f172a' : '1px solid rgba(0,0,0,0.12)',
+                background: initialBulletStyle.showLine ? '#0f172a' : 'var(--container-color, #ffffff)',
+                color: initialBulletStyle.showLine ? '#ffffff' : 'var(--text-color, #475569)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Alternar línea conectora vertical"
+            >
+              {initialBulletStyle.showLine ? 'Con línea' : 'Sin línea'}
+            </button>
+          </div>
         </div>
 
         {/* Section Cards List */}
