@@ -1,7 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+
+import { useJoyride } from 'react-joyride';
+
 import ActionMenu from './components/Editor/ActionMenu';
+import LayoutModeToggle from './components/Editor/LayoutModeToggle';
+import AddSectionModal from './components/Editor/AddSectionModal';
+import SuggestionTooltip from './components/Editor/SuggestionTooltip';
+import ToastNotification from './components/Editor/ToastNotification';
 import { useCV } from './context/CVContext';
 import CVSection from './components/CV/CVSection';
+import { setupDisableNativeTooltips } from './utils/disableNativeTooltips';
 import { 
   DndContext, 
   closestCorners, 
@@ -29,7 +37,7 @@ function DroppableColumn({ id, column, className, style, children }) {
   });
 
   return (
-    <div ref={setNodeRef} className={className} style={style}>
+    <div ref={setNodeRef} id={id} className={className} style={style}>
       {children}
     </div>
   );
@@ -43,14 +51,65 @@ function App() {
     moveItemBetweenSections, 
     moveSectionToColumnAndIndex,
     addSection,
-    updateLayout 
+    updateLayout,
+    activeTooltip,
+    clearActiveTooltip
   } = useCV();
+
+  useEffect(() => {
+    setupDisableNativeTooltips();
+  }, []);
+
+  useEffect(() => {
+    const name = (cvData.profile?.name || '').replace(/<[^>]*>?/gm, '').trim();
+    const subtitle = (cvData.profile?.subtitle || '').replace(/<[^>]*>?/gm, '').trim();
+    if (name && subtitle) {
+      document.title = `${name} - ${subtitle}`;
+    } else if (name) {
+      document.title = name;
+    } else if (subtitle) {
+      document.title = subtitle;
+    } else {
+      document.title = 'Curriculum Vitae';
+    }
+  }, [cvData.profile?.name, cvData.profile?.subtitle]);
 
   const areaCvRef = useRef(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    if (!areaCvRef.current) return;
+    const calculatePages = () => {
+      if (!areaCvRef.current) return;
+      const scrollH = areaCvRef.current.scrollHeight || 1123;
+      const pages = Math.max(1, Math.ceil(scrollH / 1123));
+      setTotalPages(pages);
+    };
+
+    calculatePages();
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        calculatePages();
+      });
+      ro.observe(areaCvRef.current);
+    }
+    return () => {
+      if (ro) ro.disconnect();
+    };
+  }, [cvData]);
 
   const [activeDragItem, setActiveDragItem] = useState(null);
   const [activeDragSection, setActiveDragSection] = useState(null);
+
+  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
+  const [addSectionTargetColumn, setAddSectionTargetColumn] = useState('right');
+
+  const handleOpenAddSection = (column = 'right') => {
+    setAddSectionTargetColumn(column);
+    setIsAddSectionModalOpen(true);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -162,7 +221,19 @@ function App() {
     }
   };
 
-  const is2Col = cvData.layout?.type === '2-column';
+  const isAtsMode = cvData.layout?.isAtsMode === true || cvData.layout?.type === '1-column';
+  const is2Col = cvData.layout?.type === '2-column' && !cvData.layout?.isAtsMode;
+
+  useEffect(() => {
+    if (isAtsMode) {
+      document.body.classList.add('ats-mode-active');
+    } else {
+      document.body.classList.remove('ats-mode-active');
+    }
+    return () => {
+      document.body.classList.remove('ats-mode-active');
+    };
+  }, [isAtsMode]);
   const leftSections = cvData.sections.filter(s => s.column === 'left');
   const rightSections = cvData.sections.filter(s => s.column === 'right');
 
@@ -270,8 +341,77 @@ function App() {
     window.addEventListener('touchend', handleUp);
   };
 
+
+const steps = [
+  {
+    content: (
+      <>
+              <p>Editá tu CV una vez, y siempre podés tenerlo en dos formatos.</p>
+              <p>Para humanos, que pueden entender el diseño y personalidad que intentas demostrar. Y para Sistemas Automáticos que sólo deben leer los datos de manera directa y ordenada</p>
+        
+      </>
+    ),
+    blockTargetInteraction: true,
+    id: 'disabled-interaction',
+    placement: 'right',
+    skipBeacon: true,
+    styles: {
+      tooltipContent: {
+        paddingTop: 0,
+      },
+    },
+    target: '.layout-mode-toggle-pill',
+
+  },
+  { content: 'Podés generar prompts para refinar el contenido y orden de tu CV con un sólo click!', target: '#ia-prompts-item' },
+  { content: 'Gestioná tus versiones para tener múltiples idiomas, enfoques, o diseños', target: '#versiones-item' },
+];
+
+  const { controls, on, Tour } = useJoyride({
+    continuous: true,
+    steps,
+  });
+  useEffect(() => {
+    return on('tour:end', () => {
+      console.log('Tour finished!');
+    });
+  }, [on]);
+
+  function GuideTour() {
+  useEffect(() => {
+    // 1. Obtener de manera segura las entradas de navegación del navegador
+    const navigationEntries = performance.getEntriesByType('navigation');
+
+    // 2. Verificar si hay entradas y si la primera fue una recarga (F5 / Ctrl+F5)
+    if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
+      localStorage.removeItem('hasSeenTour');
+    }
+
+    // 3. Validar si el usuario ya completó el tour
+    const hasSeenTour = localStorage.getItem('hasSeenTour');
+
+    if (!hasSeenTour) {
+      startGuideTour();
+      // Guardar el estado para evitar que se repita al cambiar de página
+      localStorage.setItem('hasSeenTour', 'true');
+    }
+  }, []);
+
+  const startGuideTour = () => {
+    console.log("¡Tour iniciado!");
+    controls.start();
+  };
+
+  return null;
+  }
+
+  
+
+
   return (
     <>
+      <button hidden onClick={GuideTour()}>Start Tour</button>
+      {Tour}
       <ActionMenu />
       
       <DndContext 
@@ -281,14 +421,33 @@ function App() {
         onDragOver={handleDragOver} 
         onDragEnd={handleDragEnd}
       >
-      <main className="l-main bd-container" style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', padding: '2rem 1rem' }}>
+      <main 
+        className="l-main bd-container" 
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', margin: '0 auto', padding: '1rem 1rem 3rem 1rem' }}
+      >
+        {/* Top Center Layout Mode Switcher (Diseño Tradicional vs Optimizado ATS) */}
+        <LayoutModeToggle />
+
         <div 
-          className={`resume ${is2Col ? 'bd-grid' : ''}`} 
+          className={`resume ${is2Col ? 'bd-grid' : 'resume__single-column'} ${isAtsMode ? 'resume--ats-mode' : ''}`} 
           id="area-cv" 
           ref={areaCvRef}
           style={is2Col 
-            ? { display: 'grid', gridTemplateColumns, position: 'relative', padding: '0', maxWidth: '1024px', width: '100%', margin: '0 auto', ...dynamicSpacing } 
-            : { display: 'block', position: 'relative', padding: `var(--page-padding, 24px)`, background: 'var(--container-color)', maxWidth: '840px', width: '100%', margin: '0 auto', ...dynamicSpacing }
+            ? { 
+                display: 'grid', 
+                gridTemplateColumns, 
+                position: 'relative', 
+                padding: '0', 
+                maxWidth: '1024px', 
+                width: '100%', 
+                minHeight: `${totalPages * 297}mm`,
+                alignItems: 'stretch',
+                margin: '0 auto', 
+                color: 'var(--text-color)',
+                background: `linear-gradient(to right, ${cvData.layout?.leftBg || 'var(--container-color-alt)'} 0%, ${cvData.layout?.leftBg || 'var(--container-color-alt)'} ${leftColPercent}%, ${cvData.layout?.rightBg || '#ffffff'} ${leftColPercent}%, ${cvData.layout?.rightBg || '#ffffff'} 100%)`,
+                ...dynamicSpacing 
+              } 
+            : { display: 'block', position: 'relative', padding: `var(--page-padding, 24px)`, background: '#ffffff', color: 'var(--text-color)', maxWidth: '840px', width: '100%', minHeight: '297mm', margin: '0 auto', ...dynamicSpacing }
           }
         >
           {is2Col ? (
@@ -300,7 +459,12 @@ function App() {
                 style={{ 
                   background: cvData.layout?.leftBg || 'var(--container-color-alt)', 
                   padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`, 
-                  minHeight: '200px',
+                  minHeight: '100%',
+                  height: '100%',
+                  alignSelf: 'stretch',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  color: 'var(--text-color)',
                   ...getDynamicTextColors(cvData.layout?.leftBg) 
                 }}
               >
@@ -314,8 +478,8 @@ function App() {
                   <button 
                     type="button" 
                     className="add-section-btn no-print"
-                    onClick={() => addSection('left', 'simple_list', 'NUEVA SECCIÓN')}
-                    title="Agregar nueva sección a la columna izquierda"
+                    onClick={() => handleOpenAddSection('left')}
+                    title="Agregar nueva sección a la columna lateral"
                   >
                     <i className='bx bx-plus-circle'></i> Agregar Sección Lateral
                   </button>
@@ -392,7 +556,12 @@ function App() {
                 style={{ 
                   background: cvData.layout?.rightBg || 'var(--container-color)', 
                   padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`, 
-                  minHeight: '200px',
+                  minHeight: '100%',
+                  height: '100%',
+                  alignSelf: 'stretch',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  color: 'var(--text-color)',
                   ...getDynamicTextColors(cvData.layout?.rightBg) 
                 }}
               >
@@ -406,7 +575,7 @@ function App() {
                   <button 
                     type="button" 
                     className="add-section-btn no-print"
-                    onClick={() => addSection('right', 'list', 'NUEVA SECCIÓN')}
+                    onClick={() => handleOpenAddSection('right')}
                     title="Agregar nueva sección a la columna principal"
                   >
                     <i className='bx bx-plus-circle'></i> Agregar Sección Principal
@@ -426,7 +595,7 @@ function App() {
                 <button 
                   type="button" 
                   className="add-section-btn no-print"
-                  onClick={() => addSection('left', 'list', 'NUEVA SECCIÓN')}
+                  onClick={() => handleOpenAddSection('left')}
                   title="Agregar nueva sección"
                 >
                   <i className='bx bx-plus-circle'></i> Agregar Nueva Sección
@@ -478,6 +647,26 @@ function App() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Add Section Selection Modal */}
+      <AddSectionModal 
+        isOpen={isAddSectionModalOpen} 
+        onClose={() => setIsAddSectionModalOpen(false)} 
+        targetColumn={addSectionTargetColumn} 
+      />
+
+      {/* Global Singleton AI Suggestion Tooltip (Fixed to Container Right, Non-obstructive) */}
+      {activeTooltip && activeTooltip.section && activeTooltip.rect && (
+        <SuggestionTooltip 
+          section={activeTooltip.section} 
+          isHovered={true} 
+          layoutType={cvData.layout?.type === '1-column' ? 1 : 2} 
+          rect={activeTooltip.rect} 
+        />
+      )}
+
+      {/* Ephemeral Toast Notification */}
+      <ToastNotification />
     </>
   );
 }

@@ -71,3 +71,11 @@ window.print = vi.fn();
 
 // Mock window.scrollTo
 window.scrollTo = vi.fn();
+
+// Polyfill window.URL createObjectURL and revokeObjectURL
+if (!window.URL.createObjectURL) {
+  window.URL.createObjectURL = vi.fn((blob) => `blob:http://localhost/${Math.random().toString(36).substring(2, 9)}`);
+}
+if (!window.URL.revokeObjectURL) {
+  window.URL.revokeObjectURL = vi.fn();
+}

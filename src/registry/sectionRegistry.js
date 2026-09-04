@@ -5,6 +5,13 @@ import SkillsItem from '../components/CV/items/SkillsItem';
 import SimpleListItem from '../components/CV/items/SimpleListItem';
 import AboutItem from '../components/CV/items/AboutItem';
 import ProfileHeaderItem from '../components/CV/items/ProfileHeaderItem';
+import ProjectsItem from '../components/CV/items/ProjectsItem';
+import CertificatesItem from '../components/CV/items/CertificatesItem';
+import LanguagesItem from '../components/CV/items/LanguagesItem';
+import AwardsItem from '../components/CV/items/AwardsItem';
+import PublicationsItem from '../components/CV/items/PublicationsItem';
+import VolunteeringItem from '../components/CV/items/VolunteeringItem';
+import ReferencesItem from '../components/CV/items/ReferencesItem';
 
 let uniqueIdCounter = 0;
 const generateUniqueId = (prefix = 'item') => {
@@ -47,9 +54,10 @@ export const getSectionDescriptor = (type) => {
   // Fallback descriptor for custom or unrecognized section types
   return {
     type: type || 'custom',
-    label: type ? type.toUpperCase() : 'SECCIÓN',
+    label: type ? type.toUpperCase() : 'SECCIÓN PERSONALIZADA',
     defaultTitle: type ? type.toUpperCase() : 'NUEVA SECCIÓN',
     defaultColumn: 'right',
+    icon: 'bx-folder-plus',
     allowDelete: true,
     allowAddItem: true,
     containerTag: 'div',
@@ -58,7 +66,7 @@ export const getSectionDescriptor = (type) => {
     createDefaultItem: () => ({
       id: generateUniqueId('custom'),
       title: 'Nuevo Elemento',
-      subtitle: 'Detalle adicional',
+      subtitle: 'Detalle o rol',
       date: '2025',
       bullets: ['Descripción o logro relevante']
     }),
@@ -94,14 +102,213 @@ export const getAllSectionTypes = () => {
 };
 
 /**
- * Standard section descriptors
+ * Standard section descriptors covering multiple professional disciplines
  */
 const standardDescriptors = [
+  // 1. Cabecera de Contacto
+  {
+    type: 'profile_header',
+    label: 'Cabecera de Perfil',
+    defaultTitle: '',
+    defaultColumn: 'left',
+    icon: 'bx-id-card',
+    allowDelete: false,
+    allowAddItem: false,
+    containerTag: 'div',
+    containerClass: 'home__container bd-grid',
+    itemComponent: ProfileHeaderItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('prof'),
+      name: '',
+      subtitle: '',
+      location: '',
+      email: '',
+      phone: '',
+      linkedin: '',
+      github: ''
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('prof'),
+        name: src.name || src.title || '',
+        subtitle: src.subtitle || '',
+        location: src.location || '',
+        email: src.email || '',
+        phone: src.phone || '',
+        linkedin: src.linkedin || '',
+        github: src.github || ''
+      };
+    },
+    schema: { name: 'string', subtitle: 'string', location: 'string', email: 'string', phone: 'string', linkedin: 'string', github: 'string' }
+  },
+
+  // 2. Perfil Profesional / Sobre Mí
+  {
+    type: 'about',
+    label: 'Perfil Profesional',
+    defaultTitle: 'Perfil Profesional',
+    defaultColumn: 'left',
+    icon: 'bx-user',
+    allowDelete: true,
+    allowAddItem: false,
+    containerTag: 'div',
+    containerClass: '',
+    itemComponent: AboutItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('about'),
+      description: 'Ingresa aquí un resumen profesional conciso enfocado en tus fortalezas técnicas y objetivos.'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      let desc = src.description;
+      if (!desc) {
+        if (src.bullets && Array.isArray(src.bullets) && src.bullets.length > 0) {
+          desc = src.bullets.join('. ');
+        } else if (src.text) {
+          desc = src.text;
+        } else if (src.title) {
+          desc = src.subtitle ? `${src.title} — ${src.subtitle}` : src.title;
+        } else {
+          desc = 'Perfil profesional orientado a resultados y buenas prácticas.';
+        }
+      }
+      return {
+        id: src.id || generateUniqueId('about'),
+        description: desc
+      };
+    },
+    schema: { description: 'string' }
+  },
+
+  // 3. Experiencia Laboral
+  {
+    type: 'list',
+    label: 'Experiencia Laboral',
+    defaultTitle: 'EXPERIENCIA LABORAL',
+    defaultColumn: 'right',
+    icon: 'bx-briefcase',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'experience__container bd-grid',
+    itemComponent: ExperienceItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('exp'),
+      title: 'Nuevo Cargo / Rol Profesional',
+      subtitle: 'Empresa / Institución | Ubicación',
+      date: '2025 – Presente',
+      bullets: [
+        'Liderazgo y ejecución técnica con resultados medibles e impacto directo.',
+        'Diseñé y automaticé flujos de trabajo con metodologías ágiles.'
+      ]
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      let bullets = [];
+      if (src.bullets && Array.isArray(src.bullets) && src.bullets.length > 0) {
+        bullets = [...src.bullets];
+      } else if (src.description) {
+        bullets = src.description.split('\n').filter(b => b.trim());
+        if (bullets.length === 0) bullets = [src.description];
+      } else if (src.text) {
+        bullets = [src.text];
+      } else {
+        bullets = ['Liderazgo y ejecución técnica con resultados medibles e impacto directo.'];
+      }
+
+      return {
+        id: src.id || generateUniqueId('exp'),
+        title: src.title || src.name || src.text || 'Nuevo Cargo / Rol',
+        subtitle: src.subtitle || 'Organización / Empresa',
+        date: src.date || '2024 – Actualidad',
+        link: src.link || '',
+        linkText: src.linkText || '',
+        description: src.description || '',
+        bullets
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', date: 'string', bullets: 'array' }
+  },
+
+  // 4. Proyectos Destacados (Portfolio & Open Source)
+  {
+    type: 'projects',
+    label: 'Proyectos Destacados',
+    defaultTitle: 'PROYECTOS DESTACADOS',
+    defaultColumn: 'right',
+    icon: 'bx-folder',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'experience__container bd-grid',
+    itemComponent: ProjectsItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('proj'),
+      title: 'Plataforma SaaS de Automatización',
+      subtitle: 'React · Node.js · PostgreSQL · Docker',
+      date: '2025',
+      link: 'github.com/usuario/proyecto',
+      linkText: 'Demo / Repositorio GitHub',
+      description: 'Arquitectura escalable de microservicios con sincronización en tiempo real y tests integrados.',
+      bullets: [
+        'Implementé pipelines de CI/CD automatizados reduciendo tiempos de despliegue en un 50%.',
+        'Diseñé una interfaz reactiva accesible optimizada para altos volúmenes de usuarios.'
+      ]
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('proj'),
+        title: src.title || src.name || 'Proyecto Destacado',
+        subtitle: src.subtitle || 'Stack Tecnológico / Herramientas',
+        date: src.date || '2025',
+        link: src.link || '',
+        linkText: src.linkText || 'Ver Proyecto',
+        description: src.description || '',
+        bullets: Array.isArray(src.bullets) ? src.bullets : ['Logro clave del proyecto con impacto directo.']
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', date: 'string', link: 'string', bullets: 'array' }
+  },
+
+  // 5. Educación y Formación
+  {
+    type: 'education',
+    label: 'Educación y Formación',
+    defaultTitle: 'EDUCACIÓN',
+    defaultColumn: 'left',
+    icon: 'bx-book-bookmark',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'education__container bd-grid',
+    itemComponent: EducationItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('edu'),
+      title: 'Nueva Titulación / Grado',
+      subtitle: 'Universidad / Instituto',
+      date: '2024 – Actualidad'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('edu'),
+        title: src.title || src.name || src.text || 'Título / Certificación Académica',
+        subtitle: src.subtitle || src.description || 'Institución Universitaria / Centro de Estudios',
+        date: src.date || '2024 – Actualidad'
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', date: 'string' }
+  },
+
+  // 6. Habilidades Técnicas y Especialidades
   {
     type: 'skills',
     label: 'Habilidades Técnicas',
     defaultTitle: 'HABILIDADES TÉCNICAS',
     defaultColumn: 'left',
+    icon: 'bx-wrench',
     allowDelete: true,
     allowAddItem: true,
     containerTag: 'ul',
@@ -137,84 +344,219 @@ const standardDescriptors = [
     },
     schema: { title: 'string', description: 'string' }
   },
+
+  // 7. Certificaciones y Licencias Detalladas
   {
-    type: 'education',
-    label: 'Educación',
-    defaultTitle: 'EDUCACIÓN',
+    type: 'certificates',
+    label: 'Certificaciones y Credenciales',
+    defaultTitle: 'CERTIFICACIONES',
     defaultColumn: 'left',
+    icon: 'bx-badge-check',
     allowDelete: true,
     allowAddItem: true,
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
-    itemComponent: EducationItem,
+    itemComponent: CertificatesItem,
     createDefaultItem: () => ({
-      id: generateUniqueId('edu'),
-      title: 'Nueva Titulación / Grado',
-      subtitle: 'Universidad / Instituto',
-      date: '2024 – Actualidad'
+      id: generateUniqueId('cert'),
+      title: 'AWS Certified Solutions Architect',
+      subtitle: 'Amazon Web Services',
+      date: '2025',
+      credentialId: 'AWS-PSA-98214',
+      link: 'aws.amazon.com/verification',
+      linkText: 'Ver credencial oficial'
     }),
     adaptItem: (item) => {
       const src = item || {};
       return {
-        id: src.id || generateUniqueId('edu'),
-        title: src.title || src.name || src.text || 'Título / Certificación Académica',
-        subtitle: src.subtitle || src.description || 'Institución Universitaria / Centro de Estudios',
-        date: src.date || '2024 – Actualidad'
+        id: src.id || generateUniqueId('cert'),
+        title: src.title || src.name || src.text || 'Certificación Profesional',
+        subtitle: src.subtitle || 'Entidad Emisora',
+        date: src.date || '2025',
+        credentialId: src.credentialId || '',
+        link: src.link || '',
+        linkText: src.linkText || 'Verificar'
       };
     },
-    schema: { title: 'string', subtitle: 'string', date: 'string' }
+    schema: { title: 'string', subtitle: 'string', date: 'string', credentialId: 'string', link: 'string' }
   },
+
+  // 8. Idiomas con Nivel de Fluidez
   {
-    type: 'list',
-    label: 'Experiencia / Lista Estructurada',
-    defaultTitle: 'EXPERIENCIA LABORAL',
+    type: 'languages',
+    label: 'Idiomas',
+    defaultTitle: 'IDIOMAS',
+    defaultColumn: 'left',
+    icon: 'bx-globe',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'skills__content bd-grid',
+    itemComponent: LanguagesItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('lang'),
+      title: 'Inglés',
+      subtitle: 'C2 Avanzado / Profesional',
+      description: 'Certificación Internacional EF SET 75/100 · Fluidez técnica oral y escrita'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('lang'),
+        title: src.title || src.language || src.name || src.text || 'Idioma',
+        subtitle: src.subtitle || src.level || 'B2 Intermedio Avanzado',
+        description: src.description || ''
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', description: 'string' }
+  },
+
+  // 9. Premios y Reconocimientos
+  {
+    type: 'awards',
+    label: 'Premios y Distinciones',
+    defaultTitle: 'PREMIOS Y RECONOCIMIENTOS',
     defaultColumn: 'right',
+    icon: 'bx-trophy',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'education__container bd-grid',
+    itemComponent: AwardsItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('award'),
+      title: '1er Puesto — Hackathon Nacional de IA e Innovación',
+      subtitle: 'Ministerio de Ciencia y Tecnología & IEEE',
+      date: '2024',
+      description: 'Desarrollo de un sistema de diagnóstico predictivo en tiempo real premiado por impacto e innovación.'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('award'),
+        title: src.title || src.name || 'Premio / Distinción de Honor',
+        subtitle: src.subtitle || 'Institución Otorgante',
+        date: src.date || '2024',
+        description: src.description || ''
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', date: 'string', description: 'string' }
+  },
+
+  // 10. Publicaciones y Artículos
+  {
+    type: 'publications',
+    label: 'Publicaciones y Artículos',
+    defaultTitle: 'PUBLICACIONES',
+    defaultColumn: 'right',
+    icon: 'bx-book-open',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'education__container bd-grid',
+    itemComponent: PublicationsItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('pub'),
+      title: 'Optimización de Arquitecturas de Microservicios con Event-Driven Design',
+      subtitle: 'IEEE Latin America Transactions / Conferencia Regional',
+      date: '2024',
+      link: 'doi.org/10.1109/sample-paper',
+      linkText: 'Leer Paper / DOI',
+      description: 'Análisis empírico de rendimiento en backends distribuidos bajo alta concurrencia.'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('pub'),
+        title: src.title || src.name || 'Título de Publicación o Artículo',
+        subtitle: src.subtitle || 'Revista, Editorial o Medio',
+        date: src.date || '2024',
+        link: src.link || '',
+        linkText: src.linkText || 'Leer Artículo',
+        description: src.description || ''
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', date: 'string', link: 'string', description: 'string' }
+  },
+
+  // 11. Voluntariado y Liderazgo Comunitario
+  {
+    type: 'volunteering',
+    label: 'Voluntariado y Liderazgo',
+    defaultTitle: 'VOLUNTARIADO Y LIDERAZGO',
+    defaultColumn: 'right',
+    icon: 'bx-heart',
     allowDelete: true,
     allowAddItem: true,
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
-    itemComponent: ExperienceItem,
+    itemComponent: VolunteeringItem,
     createDefaultItem: () => ({
-      id: generateUniqueId('exp'),
-      title: 'Nuevo Cargo / Rol Profesional',
-      subtitle: 'Empresa / Institución | Ubicación',
-      date: '2025 – Presente',
+      id: generateUniqueId('vol'),
+      title: 'Mentor y Organizador Comunitario',
+      subtitle: 'Comunidad Tecnológica / Open Source Argentina',
+      date: '2023 – Presente',
+      description: 'Capacitación gratuita en programación y desarrollo web para más de 120 jóvenes estudiantes.',
       bullets: [
-        'Liderazgo y ejecución técnica con resultados medibles e impacto directo.',
-        'Diseñé y automaticé flujos de trabajo con metodologías ágiles.'
+        'Coordiné talleres prácticos sobre Git, Linux y desarrollo web moderno.',
+        'Contribuí activamente a repositorios de código abierto de la comunidad.'
       ]
     }),
     adaptItem: (item) => {
       const src = item || {};
-      let bullets = [];
-      if (src.bullets && Array.isArray(src.bullets) && src.bullets.length > 0) {
-        bullets = [...src.bullets];
-      } else if (src.description) {
-        bullets = src.description.split('\n').filter(b => b.trim());
-        if (bullets.length === 0) bullets = [src.description];
-      } else if (src.text) {
-        bullets = [src.text];
-      } else {
-        bullets = ['Liderazgo y ejecución técnica con resultados medibles e impacto directo.'];
-      }
-
       return {
-        id: src.id || generateUniqueId('exp'),
-        title: src.title || src.name || src.text || 'Nuevo Cargo / Proyecto',
-        subtitle: src.subtitle || 'Organización / Empresa',
-        date: src.date || '2024 – Actualidad',
-        link: src.link || '',
+        id: src.id || generateUniqueId('vol'),
+        title: src.title || src.name || 'Rol de Voluntariado',
+        subtitle: src.subtitle || 'Organización / Comunidad',
+        date: src.date || '2024',
         description: src.description || '',
-        bullets
+        bullets: Array.isArray(src.bullets) ? src.bullets : ['Contribución comunitaria con impacto positivo.']
       };
     },
     schema: { title: 'string', subtitle: 'string', date: 'string', bullets: 'array' }
   },
+
+  // 12. Referencias Profesionales
+  {
+    type: 'references',
+    label: 'Referencias Profesionales',
+    defaultTitle: 'REFERENCIAS',
+    defaultColumn: 'left',
+    icon: 'bx-user-check',
+    allowDelete: true,
+    allowAddItem: true,
+    containerTag: 'div',
+    containerClass: 'skills__content bd-grid',
+    itemComponent: ReferencesItem,
+    createDefaultItem: () => ({
+      id: generateUniqueId('ref'),
+      title: 'Ing. Martín González',
+      subtitle: 'Líder de Arquitectura & DevOps en Globant',
+      email: 'martin.gonzalez@ejemplo.com',
+      phone: '+54 9 381 555-1234',
+      relationship: 'Ex-Líder Técnico Directo'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('ref'),
+        title: src.title || src.name || 'Nombre de Referencia',
+        subtitle: src.subtitle || 'Cargo y Empresa',
+        email: src.email || '',
+        phone: src.phone || '',
+        relationship: src.relationship || 'Referencia Laboral'
+      };
+    },
+    schema: { title: 'string', subtitle: 'string', email: 'string', phone: 'string', relationship: 'string' }
+  },
+
+  // 13. Lista Simple / Certificaciones / Otros
   {
     type: 'simple_list',
-    label: 'Lista Simple',
-    defaultTitle: 'CERTIFICACIONES',
+    label: 'Lista Simple / Cursos',
+    defaultTitle: 'CURSOS Y CERTIFICACIONES',
     defaultColumn: 'right',
+    icon: 'bx-list-ul',
     allowDelete: true,
     allowAddItem: true,
     containerTag: 'ul',
@@ -222,7 +564,7 @@ const standardDescriptors = [
     itemComponent: SimpleListItem,
     createDefaultItem: () => ({
       id: generateUniqueId('item'),
-      text: 'Nueva Certificación / Idioma — Institución (2025)'
+      text: 'Nueva Certificación / Curso — Institución (2025)'
     }),
     adaptItem: (item) => {
       const src = item || {};
@@ -241,76 +583,6 @@ const standardDescriptors = [
       };
     },
     schema: { text: 'string' }
-  },
-  {
-    type: 'about',
-    label: 'Perfil Profesional',
-    defaultTitle: 'Perfil Profesional',
-    defaultColumn: 'left',
-    allowDelete: true,
-    allowAddItem: false,
-    containerTag: 'div',
-    containerClass: '',
-    itemComponent: AboutItem,
-    createDefaultItem: () => ({
-      id: generateUniqueId('about'),
-      description: 'Ingresa aquí un resumen profesional conciso enfocado en tus fortalezas técnicas y objetivos.'
-    }),
-    adaptItem: (item) => {
-      const src = item || {};
-      let desc = src.description;
-      if (!desc) {
-        if (src.bullets && Array.isArray(src.bullets) && src.bullets.length > 0) {
-          desc = src.bullets.join('. ');
-        } else if (src.text) {
-          desc = src.text;
-        } else if (src.title) {
-          desc = src.subtitle ? `${src.title} — ${src.subtitle}` : src.title;
-        } else {
-          desc = 'Perfil profesional orientado a resultados y buenas prácticas.';
-        }
-      }
-      return {
-        id: src.id || generateUniqueId('about'),
-        description: desc
-      };
-    },
-    schema: { description: 'string' }
-  },
-  {
-    type: 'profile_header',
-    label: 'Cabecera de Perfil',
-    defaultTitle: '',
-    defaultColumn: 'left',
-    allowDelete: false,
-    allowAddItem: false,
-    containerTag: 'div',
-    containerClass: 'home__container bd-grid',
-    itemComponent: ProfileHeaderItem,
-    createDefaultItem: () => ({
-      id: generateUniqueId('prof'),
-      name: '',
-      subtitle: '',
-      location: '',
-      email: '',
-      phone: '',
-      linkedin: '',
-      github: ''
-    }),
-    adaptItem: (item) => {
-      const src = item || {};
-      return {
-        id: src.id || generateUniqueId('prof'),
-        name: src.name || src.title || '',
-        subtitle: src.subtitle || '',
-        location: src.location || '',
-        email: src.email || '',
-        phone: src.phone || '',
-        linkedin: src.linkedin || '',
-        github: src.github || ''
-      };
-    },
-    schema: { name: 'string', subtitle: 'string', location: 'string', email: 'string', phone: 'string', linkedin: 'string', github: 'string' }
   }
 ];
 
@@ -336,7 +608,7 @@ export const createDefaultItemForSection = createDefaultItem;
 /**
  * Factory for creating default section container
  */
-export const createDefaultSection = (column = 'right', type = 'list', title) => {
+export const createDefaultSection = (column = 'right', type = 'list', title, bulletStyle) => {
   const descriptor = getSectionDescriptor(type);
   const finalTitle = title !== undefined ? title : descriptor.defaultTitle;
   const sectionId = generateUniqueId('sec');
@@ -346,7 +618,8 @@ export const createDefaultSection = (column = 'right', type = 'list', title) => 
     column: column || descriptor.defaultColumn || 'right',
     type: type || 'list',
     title: finalTitle,
-    items: [createDefaultItem(type)]
+    items: [createDefaultItem(type)],
+    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true }
   };
 };
 

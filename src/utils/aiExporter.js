@@ -91,11 +91,21 @@ export const exportToAIMarkdown = (cvData) => {
   if (profileItem.subtitle) lines.push(`**${profileItem.subtitle}**\n`);
 
   const contacts = [];
-  if (profileItem.location) contacts.push(profileItem.location);
-  if (profileItem.email) contacts.push(profileItem.email);
-  if (profileItem.phone) contacts.push(profileItem.phone);
-  if (profileItem.linkedin) contacts.push(`[LinkedIn](https://${profileItem.linkedin.replace(/^https?:\/\//, '')})`);
-  if (profileItem.github) contacts.push(`[GitHub](https://${profileItem.github.replace(/^https?:\/\//, '')})`);
+  if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
+    profileItem.contacts.forEach(c => {
+      if (!c || !c.value) return;
+      if (c.type === 'linkedin') contacts.push(`[LinkedIn](https://${c.value.replace(/^https?:\/\//, '')})`);
+      else if (c.type === 'github') contacts.push(`[GitHub](https://${c.value.replace(/^https?:\/\//, '')})`);
+      else if (c.type === 'leetcode') contacts.push(`[LeetCode](https://${c.value.replace(/^https?:\/\//, '')})`);
+      else contacts.push(c.value);
+    });
+  } else {
+    if (profileItem.location) contacts.push(profileItem.location);
+    if (profileItem.email) contacts.push(profileItem.email);
+    if (profileItem.phone) contacts.push(profileItem.phone);
+    if (profileItem.linkedin) contacts.push(`[LinkedIn](https://${profileItem.linkedin.replace(/^https?:\/\//, '')})`);
+    if (profileItem.github) contacts.push(`[GitHub](https://${profileItem.github.replace(/^https?:\/\//, '')})`);
+  }
 
   if (contacts.length > 0) {
     lines.push(contacts.join(' | '));
@@ -319,11 +329,17 @@ export const exportToATSPlainText = (cvData) => {
   if (profileItem.subtitle) lines.push(profileItem.subtitle);
   
   const contacts = [];
-  if (profileItem.location) contacts.push(profileItem.location);
-  if (profileItem.email) contacts.push(profileItem.email);
-  if (profileItem.phone) contacts.push(profileItem.phone);
-  if (profileItem.linkedin) contacts.push(profileItem.linkedin);
-  if (profileItem.github) contacts.push(profileItem.github);
+  if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
+    profileItem.contacts.forEach(c => {
+      if (c && c.value) contacts.push(c.value);
+    });
+  } else {
+    if (profileItem.location) contacts.push(profileItem.location);
+    if (profileItem.email) contacts.push(profileItem.email);
+    if (profileItem.phone) contacts.push(profileItem.phone);
+    if (profileItem.linkedin) contacts.push(profileItem.linkedin);
+    if (profileItem.github) contacts.push(profileItem.github);
+  }
   if (contacts.length > 0) lines.push(contacts.join(' | '));
   lines.push('\n' + '='.repeat(60) + '\n');
 

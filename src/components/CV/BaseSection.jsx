@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
 import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
-import SuggestionTooltip from '../Editor/SuggestionTooltip';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
+import { Lightbulb, MoreHorizontal } from 'lucide-react';
+import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
+import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 
 const BaseSection = ({ section }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [rect, setRect] = useState(null);
-
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: section.id,
     data: {
@@ -20,14 +19,28 @@ const BaseSection = ({ section }) => {
     }
   });
 
-  const { cvData, updateSectionTitle, addSectionItem, deleteSection } = useCV();
+  const { 
+    cvData, 
+    updateSectionTitle, 
+    updateSectionBulletStyle,
+    addSectionItem, 
+    deleteSection, 
+    activeTooltip,
+    toggleTooltipForSection
+  } = useCV();
+
+  const [isBulletPopoverOpen, setIsBulletPopoverOpen] = React.useState(false);
+  const [bulletTriggerRect, setBulletTriggerRect] = React.useState(null);
+  
   const descriptor = getSectionDescriptor(section.type);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.4 : 1
+    opacity: isDragging ? 0.4 : 1,
+    marginBottom: 'var(--section-gap, 20px)',
+    color: 'var(--text-color)'
   };
 
   const sectionClass = section.type === 'skills' 
@@ -40,45 +53,75 @@ const BaseSection = ({ section }) => {
           ? 'profile' 
           : 'experience';
 
-  const handleMouseEnter = (e) => {
-    setRect(e.currentTarget.getBoundingClientRect());
-    setIsHovered(true);
-  };
-
+  const isTooltipOpen = activeTooltip?.section?.id === section.id;
   const allowDelete = section.type !== 'profile_header' && descriptor.allowDelete !== false;
   const allowAddItem = section.type !== 'profile_header' && descriptor.allowAddItem !== false;
+  const allowBulletCustomization = supportsBulletCustomization(section.type);
 
   return (
     <section 
       ref={setNodeRef} 
       style={style} 
-      className={`${sectionClass} section editable-section-container cv-section`} 
+      className={`${sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
       id={section.id}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      <SuggestionTooltip 
-        section={section} 
-        isHovered={isHovered} 
-        layoutType={cvData.layout?.type === '1-column' ? 1 : 2} 
-        rect={rect} 
-      />
       <DragHandle listeners={listeners} attributes={attributes} />
       
-      {/* Delete Section Button in Top-Right */}
-      {allowDelete && (
+      {/* Floating Action Buttons Group: TOOLTIPS - 3 PUNTITOS - ELIMINAR */}
+      <div 
+        className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+        data-testid={`section-actions-${section.id}`}
+      >
+        {/* 1. TOOLTIPS Button */}
         <button 
           type="button"
-          className="round-btn-del section-del-btn no-print"
-          title={`Eliminar sección ${section.title || section.id}`}
+          className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
+          title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
           onClick={(e) => {
             e.stopPropagation();
-            deleteSection(section.id);
+            const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
+            if (typeof toggleTooltipForSection === 'function') {
+              toggleTooltipForSection(section, bounding);
+            }
           }}
         >
-          <i className='bx bx-trash' style={{ fontSize: '14px' }}></i>
+          <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
         </button>
-      )}
+
+        {/* 2. 3 PUNTITOS Button (Timeline Circle Styling) */}
+        {allowBulletCustomization && (
+          <button
+            type="button"
+            className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
+            title="Personalizar círculo del título"
+            aria-label="Personalizar círculo del título"
+            data-testid={`btn-bullet-style-${section.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setBulletTriggerRect(rect);
+              setIsBulletPopoverOpen(prev => !prev);
+            }}
+          >
+            <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
+          </button>
+        )}
+
+        {/* 3. ELIMINAR Button */}
+        {allowDelete && (
+          <button 
+            type="button"
+            className="round-btn-del section-del-btn"
+            title={`Eliminar sección ${section.title || section.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteSection(section.id);
+            }}
+          >
+            <i className='bx bx-trash' style={{ fontSize: '13px' }}></i>
+          </button>
+        )}
+      </div>
 
       {/* Section Title */}
       {section.type !== 'profile_header' && (
@@ -115,7 +158,7 @@ const BaseSection = ({ section }) => {
 
       {/* Add Item Button below Container */}
       {allowAddItem && (
-        <div className="section-add-container no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '0.75rem' }}>
+        <div className="section-add-container no-print">
           <button 
             type="button"
             className="round-btn-add no-print"
@@ -128,6 +171,17 @@ const BaseSection = ({ section }) => {
             <i className='bx bx-plus' style={{ fontSize: '18px', fontWeight: 'bold' }}></i>
           </button>
         </div>
+      )}
+
+      {/* Bullet & Timeline Styling Popover */}
+      {allowBulletCustomization && (
+        <SectionBulletStylePopover
+          isOpen={isBulletPopoverOpen}
+          onClose={() => setIsBulletPopoverOpen(false)}
+          bulletStyle={section.bulletStyle}
+          onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.id, newStyle)}
+          triggerRect={bulletTriggerRect}
+        />
       )}
     </section>
   );

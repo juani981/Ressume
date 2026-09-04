@@ -24,7 +24,8 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.35 : 1
+    opacity: isDragging ? 0.35 : 1,
+    color: 'var(--text-color)'
   };
 
   const renderDeleteButton = () => {
@@ -49,38 +50,6 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     updateSectionItem(secId, itemId, key, val);
   };
 
-  if (sectionType === 'skills') {
-    return (
-      <li
-        ref={setNodeRef}
-        style={{ alignItems: 'flex-start', ...baseStyle }}
-        className="skills__name editable-item-container cv-block"
-      >
-        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-        {renderDeleteButton()}
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </li>
-    );
-  }
-
-  if (sectionType === 'simple_list') {
-    return (
-      <li
-        ref={setNodeRef}
-        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', ...baseStyle }}
-        className="editable-item-container cv-block simple-list-item"
-      >
-        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-        {renderDeleteButton()}
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </li>
-    );
-  }
-
   if (sectionType === 'profile_header') {
     return (
       <div
@@ -92,6 +61,24 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
           <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
         )}
       </div>
+    );
+  }
+
+  const isListItem = descriptor.containerTag === 'ul' || sectionType === 'skills' || sectionType === 'simple_list';
+
+  if (isListItem) {
+    return (
+      <li
+        ref={setNodeRef}
+        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', ...baseStyle }}
+        className={`editable-item-container cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
+      >
+        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
+        {renderDeleteButton()}
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
+        )}
+      </li>
     );
   }
 
@@ -127,7 +114,7 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     );
   }
 
-  // Default to list / experience or custom registered item
+  // Default container for list, projects, certificates, languages, awards, publications, volunteering, references, custom
   return (
     <div
       ref={setNodeRef}

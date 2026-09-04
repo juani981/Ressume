@@ -1,8 +1,10 @@
-import { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { defaultSchema } from '../utils/schema';
 import { LOCALES } from '../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
+import { sanitizeAndValidateCVSnapshot } from '../utils/versionValidator';
+import { normalizeItemContacts } from '../utils/contactTypes';
 
 const CVContext = createContext();
 
@@ -37,6 +39,9 @@ export const CVProvider = ({ children }) => {
             ...(data.profile.linkedin !== undefined ? { linkedin: data.profile.linkedin } : {}),
             ...(data.profile.github !== undefined ? { github: data.profile.github } : {}),
           };
+          if (!mergedItem.contacts || !Array.isArray(mergedItem.contacts)) {
+            mergedItem.contacts = normalizeItemContacts(mergedItem);
+          }
           return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
         }
         return sec;
@@ -86,10 +91,61 @@ export const CVProvider = ({ children }) => {
     return baseDefaultContent;
   });
 
-
   const [activeLanguage, setActiveLanguage] = useState(() => {
     return localStorage.getItem('cvActiveLanguage') || 'es';
   });
+
+  // AI Suggestions Toggle State (enabled by default)
+  const [showAITips, setShowAITips] = useState(() => {
+    const saved = localStorage.getItem('cv_show_ai_tips');
+    return saved !== 'false';
+  });
+
+  // Ephemeral toast notification state: { id, text, type } or null
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
+
+  const showToast = useCallback((text, type = 'info', duration = 2800) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    const newToast = { id: Date.now(), text, type };
+    setToast(newToast);
+    if (duration > 0) {
+      toastTimeoutRef.current = setTimeout(() => {
+        setToast(null);
+      }, duration);
+    }
+  }, []);
+
+  const hideToast = useCallback(() => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast(null);
+  }, []);
+
+  // Active singleton tooltip state: { section, rect } or null
+  const [activeTooltip, setActiveTooltip] = useState(null);
+  const clearActiveTooltip = useCallback(() => {
+    setActiveTooltip(null);
+  }, []);
+  const closeTooltip = clearActiveTooltip;
+
+  const toggleTooltipForSection = useCallback((section, rect) => {
+    setActiveTooltip(current => {
+      if (current && current.section && current.section.id === section.id) {
+        return null;
+      }
+      return { section, rect };
+    });
+  }, []);
+
+  // Active singleton formatting toolbar state: { activeElement, onFormat, activeFormats, visible, rect } or null
+  const [activeToolbar, setActiveToolbar] = useState(null);
+  const clearActiveToolbar = useCallback(() => {
+    setActiveToolbar(null);
+  }, []);
 
   // Persistence
   useEffect(() => {
@@ -102,7 +158,23 @@ export const CVProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('cvActiveLanguage', activeLanguage);
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = activeLanguage || 'es';
+    }
   }, [activeLanguage]);
+
+  // Keep active language pack in sync with live user edits
+  useEffect(() => {
+    try {
+      const currentDict = extractDictionaryFromCV(cvData);
+      setLanguagePacks(prev => ({
+        ...prev,
+        [activeLanguage]: currentDict
+      }));
+    } catch (e) {
+      console.warn('Error extracting dictionary on cvData update', e);
+    }
+  }, [cvData, activeLanguage]);
 
   // Push state to past history before applying update
   const applyStateWithHistory = useCallback((updater) => {
@@ -160,6 +232,23 @@ export const CVProvider = ({ children }) => {
       const isUndo = e.key.toLowerCase() === 'z' && !e.shiftKey;
       const isRedo = e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z');
 
+      if (!isUndo && !isRedo) return;
+
+      // Prevent global window Ctrl+Z/Y listener from hijacking text editing in editable fields
+      const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+      const targetEl = e.target;
+      const isEditable = (el) => el && (
+        el.isContentEditable ||
+        el.getAttribute?.('contenteditable') === 'true' ||
+        el.tagName === 'INPUT' ||
+        el.tagName === 'TEXTAREA' ||
+        el.classList?.contains('inline-edit-active')
+      );
+
+      if (isEditable(activeEl) || isEditable(targetEl)) {
+        return;
+      }
+
       if (isUndo && past.length > 0) {
         e.preventDefault();
         undo();
@@ -172,6 +261,22 @@ export const CVProvider = ({ children }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [past, future, undo, redo]);
+
+  // Load a complete CV snapshot into state with history tracking and auto-save
+  const loadVersionSnapshot = useCallback((snapshot, { clearHistory = false } = {}) => {
+    const sanitized = sanitizeAndValidateCVSnapshot(snapshot);
+    if (!sanitized) {
+      throw new Error('Invalid snapshot structure');
+    }
+    if (clearHistory) {
+      setPast([]);
+      setFuture([]);
+      setCvData(sanitized);
+    } else {
+      applyStateWithHistory(() => sanitized);
+    }
+    return sanitized;
+  }, [applyStateWithHistory]);
 
   // Reset entire CV back to original placeholder state
   const resetToDefault = useCallback(() => {
@@ -330,8 +435,8 @@ export const CVProvider = ({ children }) => {
   };
 
   // Add a brand new section container
-  const addSection = (column = 'right', type = 'list', title = 'NUEVA SECCIÓN') => {
-    const newSec = createDefaultSection(column, type, title);
+  const addSection = (column = 'right', type = 'list', title = 'NUEVA SECCIÓN', bulletStyle = undefined) => {
+    const newSec = createDefaultSection(column, type, title, bulletStyle);
     applyStateWithHistory(prev => ({
       ...prev,
       sections: [...prev.sections, newSec]
@@ -399,6 +504,17 @@ export const CVProvider = ({ children }) => {
     }));
   };
 
+  const updateSectionBulletStyle = (sectionId, bulletStyle) => {
+    applyStateWithHistory(prev => ({
+      ...prev,
+      sections: prev.sections.map(sec => 
+        sec.id === sectionId 
+          ? { ...sec, bulletStyle: { ...(sec.bulletStyle || {}), ...bulletStyle } }
+          : sec
+      )
+    }));
+  };
+
   // Language management
   const switchLanguage = (langCode) => {
     if (languagePacks[langCode] && Object.keys(languagePacks[langCode]).length > 0) {
@@ -444,6 +560,7 @@ export const CVProvider = ({ children }) => {
       deleteSection,
       reorderSections,
       updateSectionTitle,
+      updateSectionBulletStyle,
       languagePacks,
       activeLanguage,
       switchLanguage,
@@ -453,10 +570,25 @@ export const CVProvider = ({ children }) => {
       redo,
       canUndo: past.length > 0,
       canRedo: future.length > 0,
+      loadVersionSnapshot,
       resetToDefault,
-      restoreContactSection
+      restoreContactSection,
+      activeTooltip,
+      setActiveTooltip,
+      clearActiveTooltip,
+      closeTooltip,
+      toggleTooltipForSection,
+      activeToolbar,
+      setActiveToolbar,
+      clearActiveToolbar,
+      showAITips,
+      toast,
+      showToast,
+      hideToast
     }}>
       {children}
     </CVContext.Provider>
   );
 };
+
+export default CVContext;

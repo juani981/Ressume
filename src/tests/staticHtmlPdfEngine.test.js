@@ -193,5 +193,108 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         expect(true).toBe(true);
       }
     });
+
+    it('T2.6: Preserves pagePadding in single-column mode in @media print rules without overriding to 0', () => {
+      const singleColData = {
+        ...sampleCVData,
+        layout: {
+          type: '1-column',
+          pagePadding: 36,
+          sectionGap: 24,
+          itemGap: 10,
+        }
+      };
+
+      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
+        const html = staticPdfEngine.generateCleanPrintHTML(singleColData);
+        expect(html).toContain('--page-padding: 36px');
+        expect(html).toContain('padding: var(--page-padding, 36px) !important');
+        expect(html).toContain('resume__single-column');
+      } else {
+        expect(true).toBe(true);
+      }
+    });
+
+    it('T2.7: Sets dynamic title in format "Nombre - Subtitulo" for default PDF naming', () => {
+      const cvWithNameAndSubtitle = {
+        ...sampleCVData,
+        profile: {
+          name: 'Jane Doe',
+          subtitle: 'Full Stack Engineer'
+        }
+      };
+
+      const html = staticPdfEngine.generateCleanPrintHTML(cvWithNameAndSubtitle);
+      expect(html).toContain('<title>Jane Doe - Full Stack Engineer</title>');
+    });
+
+    it('T2.8: Guarantees min-height: 297mm (full A4 sheet) for both 1-column and 2-column print layouts', () => {
+      // 2-column mode
+      const html2Col = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
+      expect(html2Col).toContain('min-height: 297mm');
+      expect(html2Col).toContain('resume__left');
+      expect(html2Col).toContain('resume__right');
+
+      // 1-column mode
+      const singleColData = {
+        ...sampleCVData,
+        layout: { ...sampleCVData.layout, type: '1-column', isAtsMode: true }
+      };
+      const html1Col = staticPdfEngine.generateCleanPrintHTML(singleColData);
+      expect(html1Col).toContain('min-height: 297mm !important');
+      expect(html1Col).toContain('resume__single-column');
+      expect(html1Col).not.toContain('resume__left');
+    });
+
+    it('T2.9: computeAdaptivePrintLayout adapts for 1, 2, and 3+ page layouts without hardcoded ceiling', () => {
+      const { computeAdaptivePrintLayout } = staticPdfEngine;
+      expect(typeof computeAdaptivePrintLayout).toBe('function');
+
+      // 1-page document
+      const layout1 = computeAdaptivePrintLayout(950);
+      expect(layout1.totalPages).toBe(1);
+      expect(layout1.targetHeightMm).toBe(297);
+      expect(layout1.scale).toBe(1.0);
+
+      // 1-page document with slight overflow -> scaled to fit 1 page
+      const layout1Spill = computeAdaptivePrintLayout(1200);
+      expect(layout1Spill.totalPages).toBe(1);
+      expect(layout1Spill.targetHeightMm).toBe(297);
+      expect(layout1Spill.scale).toBeCloseTo(1123 / 1200, 2);
+
+      // 2-page document
+      const layout2 = computeAdaptivePrintLayout(1800);
+      expect(layout2.totalPages).toBe(2);
+      expect(layout2.targetHeightMm).toBe(594);
+      expect(layout2.scale).toBe(1.0);
+
+      // 2-page document with slight overflow -> scaled to fit 2 pages
+      const layout2Spill = computeAdaptivePrintLayout(2400);
+      expect(layout2Spill.totalPages).toBe(2);
+      expect(layout2Spill.targetHeightMm).toBe(594);
+      expect(layout2Spill.scale).toBeCloseTo(2246 / 2400, 2);
+
+      // 3-page document -> fits 3 full pages, scale 1.0 (NO hardcoded 2-page ceiling!)
+      const layout3 = computeAdaptivePrintLayout(3000);
+      expect(layout3.totalPages).toBe(3);
+      expect(layout3.targetHeightMm).toBe(891);
+      expect(layout3.scale).toBe(1.0);
+
+      // 3-page document with slight overflow -> scaled to fit 3 pages
+      const layout3Spill = computeAdaptivePrintLayout(3500);
+      expect(layout3Spill.totalPages).toBe(3);
+      expect(layout3Spill.targetHeightMm).toBe(891);
+      expect(layout3Spill.scale).toBeCloseTo(3369 / 3500, 2);
+    });
+
+    it('T2.10: Preserves strict page-break avoidance and box-decoration-break clone across fragmented columns', () => {
+      const html = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
+      expect(html).toContain('break-inside: avoid !important');
+      expect(html).toContain('page-break-inside: avoid !important');
+      expect(html).toContain('break-after: avoid !important');
+      expect(html).toContain('box-decoration-break: clone');
+    });
   });
 });
+
+

@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getRules } from '../../locales/index';
-import { Sparkles, OctagonAlert, TriangleAlert, Info } from 'lucide-react';
+import { Lightbulb, OctagonAlert, TriangleAlert, Info, X } from 'lucide-react';
 
 const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
-  const { activeLanguage } = useCV();
+  const cvContext = useCV();
+  const activeLanguage = cvContext?.activeLanguage || 'es';
+  const closeTooltip = cvContext?.closeTooltip;
   const [suggestions, setSuggestions] = useState([]);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [stylePos, setStylePos] = useState({ top: 100, left: 200, width: 300, maxHeight: 'calc(100vh - 120px)' });
 
   useEffect(() => {
     if (isHovered && rect) {
-      // Calculate tooltip position
-      let top = rect.top;
-      let left = rect.right + 20;
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+      const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+      const TOOLTIP_WIDTH = 300;
+      const TOOLTIP_ESTIMATED_HEIGHT = 360;
 
-      // If it overflows the right edge of the screen, place it on the left of the section
-      if (left + 300 > window.innerWidth) {
-        left = rect.left - 320;
+      // 1. Horizontal position: adjacent to element (rect.right + 20px)
+      let left = Math.round(rect.right + 20);
+
+      // Flip to opposite side (rect.left - 320px) when approaching viewport boundary (window.innerWidth)
+      if (left + TOOLTIP_WIDTH > vw) {
+        left = Math.round(rect.left - 320);
+      }
+      if (left < 20) {
+        left = 20;
       }
 
-      // Keep it within vertical bounds
-      if (top + 400 > window.innerHeight) {
-        top = window.innerHeight - 420;
-      }
-      if (top < 20) top = 20;
+      // 2. Vertical position: anchored directly to hovered element (rect.top)
+      let top = Math.round(rect.top);
 
-      setPos({ top, left });
+      // Clamp vertically to prevent escaping window.innerHeight
+      if (top + 400 > vh) {
+        top = vh - 420;
+      }
+      if (top < 20) {
+        top = 20;
+      }
+
+      setStylePos({
+        top,
+        left,
+        width: TOOLTIP_WIDTH,
+        maxWidth: `calc(100vw - 24px)`,
+        maxHeight: `calc(100vh - ${top + 20}px)`
+      });
 
       // Map section type & id to target_section in our rules
       let targetSection = 'global';
@@ -39,9 +59,9 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
         targetSection = 'skills';
       } else if (section.id === 'projects' || section.type === 'projects') {
         targetSection = 'projects';
-      } else if (section.id === 'certificates' || section.id === 'certifications') {
+      } else if (section.id === 'certificates' || section.id === 'certifications' || section.type === 'certificates') {
         targetSection = 'certificates';
-      } else if (section.id === 'languages') {
+      } else if (section.id === 'languages' || section.type === 'languages') {
         targetSection = 'languages';
       } else if (section.type === 'about' || section.type === 'profile_header' || section.id === 'about_section' || section.id === 'profile_header') {
         targetSection = 'profile';
@@ -74,7 +94,6 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
         ];
       }
 
-
       // Regex matching based on content with critical severity prioritization
       const sectionText = JSON.stringify(section || {}).toLowerCase();
       const scoredMatches = allMatching.map(rule => {
@@ -95,36 +114,63 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
 
   return (
     <div
-      className="suggestion-tooltip"
+      className="suggestion-tooltip no-print"
       style={{
         position: 'fixed',
-        top: `${pos.top}px`,
-        left: `${pos.left}px`,
-        width: '300px',
-        backgroundColor: '#f8fafc',
+        top: `${stylePos.top}px`,
+        left: `${stylePos.left}px`,
+        width: `${stylePos.width}px`,
+        maxWidth: stylePos.maxWidth,
+        maxHeight: stylePos.maxHeight,
+        backgroundColor: '#ffffff',
         border: '1px solid #cbd5e1',
-        borderRadius: '8px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-        padding: '12px',
-        zIndex: 9999,
-        pointerEvents: 'none',
-        transition: 'opacity 0.2s ease-in-out',
-        maxHeight: '80vh',
-        overflowY: 'auto'
+        borderRadius: '10px',
+        boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.16), 0 4px 8px -2px rgba(0, 0, 0, 0.06)',
+        padding: '12px 14px',
+        zIndex: 99999,
+        pointerEvents: 'auto',
+        transition: 'opacity 0.15s ease-out, transform 0.15s ease-out',
+        overflowY: 'auto',
+        boxSizing: 'border-box'
       }}
     >
-      <div style={{ margin: '0 0 10px 0', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
-        <h4 style={{ margin: '0', fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
-          <Sparkles size={16} color="#3874ff" /> AI Suggestions
-        </h4>
-        {section?.type && (
-          <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-            For section: <strong style={{ textTransform: 'capitalize' }}>{section.type.replace('_', ' ')}</strong>
-          </span>
-        )}
+      <div style={{ margin: '0 0 10px 0', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h4 style={{ margin: '0', fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
+            <Lightbulb size={16} color="#eab308" /> Consejos IA
+          </h4>
+          {section?.type && (
+            <span style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', display: 'block' }}>
+              Sección: <strong style={{ textTransform: 'capitalize' }}>{(section.title || section.type).replace('_', ' ')}</strong>
+            </span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => closeTooltip && closeTooltip()}
+          title="Cerrar consejos IA"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#94a3b8',
+            cursor: 'pointer',
+            padding: '2px 4px',
+            fontSize: '11px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+            borderRadius: '4px',
+            transition: 'color 0.15s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; }}
+        >
+          <X size={14} />
+        </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {suggestions.map((s, index) => {
           const isCritical = s.severity === 'critical';
           const isWarning = s.severity === 'warning';
@@ -140,10 +186,10 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
                 backgroundColor: `rgba(${themeColor}, 0.1)`,
                 borderLeft: `4px solid rgba(${themeColor}, 1)`,
                 borderRadius: '4px',
-                padding: '12px 14px',
-                fontSize: '13px',
+                padding: '10px 12px',
+                fontSize: '12.5px',
                 color: '#2e3338',
-                lineHeight: '1.5',
+                lineHeight: '1.45',
                 display: 'flex',
                 flexDirection: 'column'
               }}
@@ -156,22 +202,22 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
                   gap: '8px',
                   color: `rgba(${themeColor}, 1)`,
                   fontWeight: '600',
-                  marginBottom: '6px',
-                  fontSize: '14px'
+                  marginBottom: '4px',
+                  fontSize: '13px'
                 }}
               >
                 <span className="callout-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {isCritical ? (
-                    <OctagonAlert size={16} color={`rgba(${themeColor}, 1)`} />
+                    <OctagonAlert size={15} color={`rgba(${themeColor}, 1)`} />
                   ) : isWarning ? (
-                    <TriangleAlert size={16} color={`rgba(${themeColor}, 1)`} />
+                    <TriangleAlert size={15} color={`rgba(${themeColor}, 1)`} />
                   ) : (
-                    <Info size={16} color={`rgba(${themeColor}, 1)`} />
+                    <Info size={15} color={`rgba(${themeColor}, 1)`} />
                   )}
                 </span>
                 <span>{s.suggestion_title}</span>
               </div>
-              <div className="callout-content">
+              <div className="callout-content" style={{ fontSize: '12px' }}>
                 {s.suggestion_body}
               </div>
             </div>

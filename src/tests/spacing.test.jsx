@@ -259,5 +259,28 @@ describe('R1: Dynamic Margins and Element Spacing Controls', () => {
       expect(saved.layout.pagePadding).toBe(40);
       expect(saved.layout.sectionGap).toBe(30);
     });
+
+    it('T2.6: Zero itemGap (0px) sets --item-gap: 0px without hardcoded minimums', () => {
+      const zeroData = {
+        ...defaultSchema,
+        layout: {
+          ...defaultSchema.layout,
+          itemGap: 0,
+          sectionGap: 0
+        }
+      };
+      localStorage.setItem('cvData', JSON.stringify(zeroData));
+
+      render(
+        <CVProvider>
+          <App />
+        </CVProvider>
+      );
+
+      const areaCV = document.getElementById('area-cv');
+      expect(areaCV).toBeInTheDocument();
+      expect(areaCV.style.getPropertyValue('--item-gap')).toBe('0px');
+      expect(areaCV.style.getPropertyValue('--section-gap')).toBe('0px');
+    });
   });
 });

@@ -1,114 +1,101 @@
-# Project: Ressume CV Editor Transformation
+# Project: Ressume CV Editor - 3 Feature Epics
 
 ## Architecture
-Ressume is a high-performance, client-side React CV editor engineered for modern ATS readability and executive document design. It integrates `@dnd-kit` for drag-and-drop hierarchy, dynamic CSS custom properties for real-time typography and spacing manipulation, an extensible component/section registry, and an isolated static HTML print core for 2-page A4 PDF export.
+Ressume is an interactive Vite + React CV editor rendering a live document inside `#area-cv`.
+State is managed centrally via `CVContext.jsx` (`cvData`, layout parameters, history stack, localStorage sync).
+The three epics augment the architecture:
+1. **Epic 1 (Client-Side Vector PDF Engine)**: Introduces `@react-pdf/renderer` in `src/utils/reactPdfEngine.js` and `src/components/PDF/CVDocument.jsx`, generating selectable vector PDFs completely offline (zero network requests) while preserving `staticHtmlPdfEngine.js` as an alternative native print option.
+2. **Epic 2 (Rich Inline Text Editing Toolbar)**: Enhances `src/components/Editor/InlineEdit.jsx` and introduces a floating formatting toolbar component `src/components/Editor/RichTextToolbar.jsx` with dynamic bounding rectangle tracking (AGENTS.md Rule 3), inline formatting (bold/italic), text alignment, keyboard shortcuts, history integration, and multi-engine rendering support.
+3. **Epic 3 (Floating Panel Reorganization & ATS Mode & Right-Docked Modal)**: Restructures `src/components/Editor/ActionMenu.jsx` into streamlined groups ('Diseño', 'Acciones', ATS mode toggle switch) and repositions `src/components/Editor/AddSectionModal.jsx` to dynamically float to the right of `#area-cv` using viewport geometry.
 
 ```
-                  +----------------------------------------------+
-                  |                 App Root                     |
-                  |     (CVContext, State, Undo/Redo, I18n)      |
-                  +----------------------+-----------------------+
-                                         |
-             +---------------------------+---------------------------+
-             |                                                       |
-             v                                                       v
-+-----------------------------+                         +-----------------------------+
-|    Categorized ActionMenu   |                         |      CV Document Paper      |
-|  - Diseño & Tipografía      |                         |  - 1-Col ATS (max 840px)    |
-|  - Espaciado & Márgenes     |                         |  - 2-Col Visual (max 1024px)|
-|  - Exportación & PDF        |                         |  - Dynamic CSS Variables    |
-|  - Idiomas & Traducción     |                         |  - @dnd-kit Sortable Lists  |
-+-----------------------------+                         +--------------+--------------+
-                                                                       |
-                                                                       v
-                                                        +-----------------------------+
-                                                        | Section & Item Registry     |
-                                                        |  - BaseSection / BaseItem   |
-                                                        |  - Polymorphic Item Adapters|
-                                                        |  - Obsidian Callout Tooltips|
-                                                        +--------------+--------------+
-                                                                       |
-                                                                       v
-                                                        +-----------------------------+
-                                                        | Isolated Static HTML Engine |
-                                                        |  - Zero Editor Artifacts    |
-                                                        |  - break-inside: avoid !imp |
-                                                        |  - Dynamic 2 A4 Auto-Scale  |
-                                                        +-----------------------------+
++-----------------------------------------------------------------------------------+
+|                                   App Shell                                       |
+|                                                                                   |
+|  +---------------------------+  +-------------------+  +-----------------------+  |
+|  |  Reorganized ActionMenu   |  |     #area-cv      |  | Floating Modal Right  |  |
+|  |  - ATS Mode Toggle Switch |  | (Interactive CV)  |  |  (AddSectionModal)    |  |
+|  |  - 'Diseño' Submenu       |  |                   |  +-----------------------+  |
+|  |  - 'Acciones' Submenu     |  | - Rich InlineEdit |                             |
+|  +-------------+-------------+  |   (b/i/align/etc) |                             |
+|                |                +---------+---------+                             |
+|                v                          |                                       |
+|   +--------------------------+            v                                       |
+|   | Export Handlers          |   +--------------------+                           |
+|   | - React-PDF Download     |   | Floating Rich      |                           |
+|   | - Native Clean Print     |   | Text Toolbar       |                           |
+|   | - JSON Export            |   +--------------------+                           |
+|   +------------+-------------+                                                    |
+|                |                                                                  |
+|                +--------> @react-pdf/renderer (Vector PDF)                        |
+|                +--------> staticHtmlPdfEngine.js (Iframe Print)                   |
++-----------------------------------------------------------------------------------+
 ```
 
 ## Feature Inventory
-Every feature from the survey and requirements is assigned to a milestone:
-
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Global Font Selector | Support 5 curated fonts (Poppins, Inter, Roboto, Merriweather, JetBrains Mono) with instant real-time cascade | M1 | ORIGINAL_REQUEST §R1 |
-| 2 | Typography Scale & Line-Height | Real-time independent `--font-scale` (0.85-1.25) and `--line-height` (1.25-1.85) dynamic variables | M1 | ORIGINAL_REQUEST §R1 |
-| 3 | Independent Spacing Controls | Real-time independent `--page-padding`, `--section-gap`, and `--item-gap` dynamic CSS variables | M1 | ORIGINAL_REQUEST §R1 |
-| 4 | State & Persistence Schema | Backward-compatible state schema extension with localStorage persistence across browser reloads | M1 | ORIGINAL_REQUEST §R1 |
-| 5 | ATS 1-Column Layout Overhaul | Expansive standard document container (max-width 840px, centered, optimal visual balance and linear ATS flow) | M2 | ORIGINAL_REQUEST §R2 |
-| 6 | 1-Col / 2-Col Toggle Integrity | Seamless switching between 1-column and 2-column mode preserving section columns and item order | M2 | ORIGINAL_REQUEST §R2 |
-| 7 | Forgiving DnD Ergonomics | Generous grab handles, clear hover affordances, section/item hover zones, smooth ghost overlays, drop indicators | M3 | ORIGINAL_REQUEST §R3 |
-| 8 | Extensible Registry & Base Components | BaseSection & BaseItem architecture with polymorphic item adaptation and protected profile header | M3 | ORIGINAL_REQUEST §R3 |
-| 9 | Obsidian Callouts & Tooltip Bounds | Strict Obsidian Callout styling with `lucide-react` icons, 0 unicode emojis, and dynamic bounding-rect clamping | M3 | ORIGINAL_REQUEST §R4 |
-| 10 | Strict Zero-Split PDF Printing | Enforce `break-inside: avoid !important; page-break-inside: avoid !important;` on all `.cv-section` and `.cv-block` | M4 | ORIGINAL_REQUEST §R4 |
-| 11 | Static HTML Print Generator | `generateCleanPrintHTML` stripping 100% editor UI elements with complete dynamic CSS variable injection | M4 | ORIGINAL_REQUEST §R4 |
-| 12 | Dynamic 2 A4 Auto-Scaling | Auto-calculate height and shrink scale factor (clamped at floor 0.75) to fit strictly within 2 A4 pages | M4 | ORIGINAL_REQUEST §R4 |
-| 13 | Categorized ActionMenu Toolbar | Consolidate ActionMenu into floating categorized toolbar (Diseño & Tipografía, Espaciado, Exportación, Idiomas) | M5 | ORIGINAL_REQUEST §R6 |
-| 14 | CV Data Schema & I18n Fidelity | Preserve 100% of underlying CV data schema, contact fields, and bilingual dictionary translation integrity | M5 | ORIGINAL_REQUEST §R6 |
-| 15 | Automated DOM E2E Test Suite | 4-Tier requirement-driven test suite (Tiers 1-4: Feature, Boundary, Pairwise, Real-World) with Vitest/RTL | E2E_TEST_TRACK | ORIGINAL_REQUEST §R5 |
-| 16 | Adversarial QA & Coverage Hardening | White-box stress testing, DOM geometry audit, and coverage hardening (Tier 5) | FINAL_MILESTONE | ORIGINAL_REQUEST §R5 |
+| 1 | Client-Side @react-pdf JIT Mirror | Capture layout variables, fonts, colors, padding, gaps, and CSS custom properties into React-PDF primitives | M1 | ORIGINAL_REQUEST §R1 |
+| 2 | Selectable Vector Text & Offline Execution | 100% vector text using standard PDF Type 1 fonts without network requests or canvas rasterization | M1 | ORIGINAL_REQUEST §R1 |
+| 3 | Multi-Page A4 Pagination & Zero-Split | Paginate content across A4 pages, breaking strictly between sections / never mid-item | M1 | ORIGINAL_REQUEST §R1 |
+| 4 | Generation Spinner & Toast Feedback | Show loading spinner during PDF generation and success toast upon download | M1 | ORIGINAL_REQUEST §R1 |
+| 5 | Dual-Engine Preservation & Bugfix | Retain `staticHtmlPdfEngine.js` intact and fix parameter `isLast = false` in `renderItemHTML` | M1 | ORIGINAL_REQUEST §R1 |
+| 6 | Floating Formatting Toolbar | Singleton floating toolbar positioned dynamically near active field tracking bounding rect (AGENTS.md Rule 3) | M2 | ORIGINAL_REQUEST §R2 |
+| 7 | Text Alignment Controls | Support left, center, right, justify alignments per text block/field | M2 | ORIGINAL_REQUEST §R2 |
+| 8 | Bold & Italic Shortcuts & Toggles | Toolbar buttons and keyboard shortcuts (Ctrl+B, Ctrl+I) toggle formatting on selections | M2 | ORIGINAL_REQUEST §R2 |
+| 9 | History & Native Editing Shortcuts | Support Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, cut, copy, paste within inline fields | M2 | ORIGINAL_REQUEST §R2 |
+| 10 | State Persistence in cvData | Persist rich formatted strings in `cvData` and `localStorage` without breaking schema or adapters | M2 | ORIGINAL_REQUEST §R2 |
+| 11 | Cross-Engine Rich Text Rendering | Render bold, italic, and alignment accurately in editor DOM, staticHtmlPdfEngine, and React-PDF | M2 | ORIGINAL_REQUEST §R2 |
+| 12 | ActionMenu Button Streamlining | Group top-level buttons into cohesive categories to reduce visual clutter | M3 | ORIGINAL_REQUEST §R3 |
+| 13 | Grouped 'Diseño' Submenu | Single entry point for colors, spacing sliders (padding, gaps), and typography settings | M3 | ORIGINAL_REQUEST §R3 |
+| 14 | ATS Layout Mode Toggle Switch | Top-of-panel switch for ATS single-column layout with clean white background and sober accents | M3 | ORIGINAL_REQUEST §R3 |
+| 15 | Grouped 'Acciones' Submenu | Single dropdown/popover for export options (JSON export, PDF download) | M3 | ORIGINAL_REQUEST §R3 |
+| 16 | Right-Docked Floating AddSectionModal | Render modal floating in the space to the right of `#area-cv` instead of center overlay | M3 | ORIGINAL_REQUEST §R3 |
+| 17 | Comprehensive E2E Verification & Audit | 100% green test suite across Tiers 1-4, zero dnd-kit regressions, and clean forensic audit | FINAL | Acceptance Criteria |
 
 ## Milestones
-
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| E2E | E2E Testing Track | Automated DOM Test Suite (Tiers 1-4), Test Infra, TEST_READY.md | none | DONE |
-| M1 | Typography & Spacing Engine | Features 1, 2, 3, 4: Font selector, font-scale, line-height, spacing variables, schema & persistence | none | DONE |
-| M2 | ATS 1-Column Layout Overhaul | Features 5, 6: 840px centered container, desktop grid fix, 1-col/2-col toggle fidelity | M1 | DONE |
-| M3 | DnD Ergonomics & Registry | Features 7, 8, 9: Drag handles, ghost overlays, drop indicators, polymorphic registry, Obsidian callouts | M1, M2 | DONE |
-| M4 | Zero-Split PDF & Auto-Scaling | Features 10, 11, 12: `break-inside: avoid !important`, `generateCleanPrintHTML` token fix, 0.75 floor scale | M1, M2 | DONE |
-| M5 | Categorized ActionMenu & Data Integrity | Features 13, 14: Categorized toolbar tabs/popovers, bilingual translation, data schema preservation | M1, M2, M3, M4 | DONE |
-| FINAL | E2E Pass & Adversarial QA Hardening | Phase 1: 100% Pass on Tiers 1-4. Phase 2: Tier 5 Adversarial QA Review & DOM Verification | E2E, M1-M5 | DONE |
+| M1 | Epic 1: Client-Side PDF Generation via @react-pdf/renderer | Features 1, 2, 3, 4, 5: React-PDF setup/polyfills, `CVDocument.jsx`, `reactPdfEngine.js`, staticHtml bugfix, toast/spinner | none | COMPLETE |
+| M2 | Epic 2: Rich Inline Text Editing Toolbar with Persistent State | Features 6, 7, 8, 9, 10, 11: `RichTextToolbar.jsx`, `InlineEdit.jsx` rich text upgrade, shortcuts, cross-engine render | M1 | PLANNED |
+| M3 | Epic 3: Floating Panel Reorganization & ATS Mode & Floating Modal | Features 12, 13, 14, 15, 16: ActionMenu restructuring ('Diseño', 'Acciones', ATS toggle), right-docked AddSectionModal | M1, M2 | PLANNED |
+| FINAL | Final Milestone: Full E2E Verification & Adversarial Hardening | Feature 17: Pass all E2E test tiers, challenger edge cases, and forensic integrity audit | M1, M2, M3 | PLANNED |
 
 ## Interface Contracts
-
-### `CVContext` State ↔ Components & Storage
-- `cvData.layout`:
-  ```typescript
-  interface CVLayout {
-    type: '1-column' | '2-column';
-    leftBg: string;
-    rightBg: string;
-    fontFamily: 'Poppins' | 'Inter' | 'Roboto' | 'Merriweather' | 'JetBrains Mono';
-    fontScale: number; // 0.85 to 1.25
-    lineHeight: number; // 1.25 to 1.85
-    pagePadding: number; // 0 to 60 px
-    sectionGap: number; // 0 to 50 px
-    itemGap: number; // 0 to 30 px
-  }
-  ```
-- `updateLayout(key: keyof CVLayout, value: any): void`
-- `updateProfile(key: string, value: string): void`
-- `updateSection(sectionId: string, updatedSection: object): void`
-- `deleteSection(sectionId: string): void` (guarded against `profile_header`)
-
-### Static HTML Print Engine Contract
+### `generateAndDownloadPdf`
 ```typescript
-function generateCleanPrintHTML(cvData: CVData): string;
-function calculatePrintScale(renderedHeightPx: number): number; // Returns 1.0 if <= 2246px; otherwise clamped to [0.75, 1.0]
-function executeCleanPrint(cvData: CVData): Promise<void>;
+function generateAndDownloadPdf(cvData: CVData, lang?: string, options?: { filename?: string; showToast?: (msg: string, type: string) => void }): Promise<Blob>;
+// Renders React-PDF document to blob offline, triggers download as `CV_${name}.pdf`,
+// manages loading state and invokes showToast('PDF generado con éxito', 'success').
+```
+
+### `RichTextToolbar`
+```typescript
+interface RichTextToolbarProps {
+  activeElement: HTMLElement | null;
+  onFormat: (command: 'bold' | 'italic' | 'justifyLeft' | 'justifyCenter' | 'justifyRight' | 'justifyFull') => void;
+  activeFormats: { bold: boolean; italic: boolean; align: 'left' | 'center' | 'right' | 'justify' };
+  visible: boolean;
+}
+```
+
+### `ActionMenu` Mode & Grouping Contracts
+```typescript
+// ATS Mode: cvData.layout.type === '1-column' && cvData.layout.isAtsMode === true
+// 'Diseño' popover controls: Colors, Spacings (pagePadding, sectionGap, itemGap), Fonts
+// 'Acciones' popover controls: Export JSON, Export PDF (React-PDF & Native Print)
 ```
 
 ## Code Layout
-- `src/context/CVContext.jsx`: Core document state, layout tokens, history, and persistence.
-- `src/utils/schema.js`: Default schema definitions, section validators, and layout defaults.
-- `src/utils/staticHtmlPdfEngine.js`: Isolated static HTML generator, print styles, and auto-scaler.
-- `src/registry/sectionRegistry.js`: Extensible section/item descriptors and polymorphic adapters.
-- `src/components/Editor/ActionMenu.jsx`: Categorized floating toolbar with slider popovers and action buttons.
-- `src/components/Editor/SuggestionTooltip.jsx`: Obsidian Callout standard tooltip with `lucide-react`.
-- `src/components/Editor/DragHandle.jsx`: Section and item grab handles with hover affordances.
-- `src/components/CV/BaseSection.jsx`: Base section wrapper with drag listeners and inline title edit.
-- `src/components/CV/BaseItem.jsx`: Base item wrapper with polymorphic component delegation.
-- `src/index.css`: Global styles, CSS variables cascade, layout grid/flex rules, and print styles.
-- `src/tests/`: Automated DOM test suites covering all tiers and interaction scenarios.
+- `src/utils/reactPdfEngine.js`: Core client-side React-PDF generation pipeline.
+- `src/components/PDF/CVDocument.jsx`: Declarative React-PDF layout mirror component.
+- `src/components/PDF/PdfIcons.jsx`: Clean vector SVG icon definitions for PDF output.
+- `src/components/PDF/pdfStyleFactory.js`: Style and point conversion factory with YIQ calculation.
+- `src/components/PDF/CVSectionPdf.jsx`: Super-container pagination and section wrapper.
+- `src/components/PDF/CVItemPdf.jsx`: Universal item renderer for all 13 item types.
+- `src/utils/staticHtmlPdfEngine.js`: Supplemented native iframe print engine + bugfix.
+- `src/components/Editor/InlineEdit.jsx`: Enhanced rich-text inline editable component.
+- `src/components/Editor/RichTextToolbar.jsx`: Floating formatting toolbar with bounding rect tracking.
+- `src/components/Editor/ActionMenu.jsx`: Reorganized floating panel with ATS switch and submenus.
+- `src/components/Editor/AddSectionModal.jsx`: Repositioned modal floating right of `#area-cv`.
+- `src/tests/`: Automated unit, integration, and E2E verification test suites.

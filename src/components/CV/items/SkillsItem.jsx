@@ -21,7 +21,7 @@ const SkillsItem = ({ item, sectionId, onUpdateItem }) => {
           <InlineEdit 
             value={item.title || ''} 
             onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
-          />: 
+          /> 
         </b>{' '}
         <InlineEdit 
           value={item.description || ''} 

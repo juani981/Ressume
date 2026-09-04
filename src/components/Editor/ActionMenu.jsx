@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 import { useCV } from '../../context/CVContext';
 import AIExportModal from './AIExportModal';
-import TranslationModal from './TranslationModal';
+import VersionManagerModal from './VersionManagerModal';
+import ColorPickerSwatch from './ColorPickerSwatch';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
 import { 
-  Globe, 
-  Bot, 
-  FileJson, 
-  FileDown, 
-  Layout, 
   Columns, 
+  FileText,
+  FileDown,
+  Loader2,
   SlidersHorizontal,
   Palette,
-  Type,
   X,
   Undo2,
   Redo2,
-  RotateCcw
+  RotateCcw,
+  Info,
+  History,
+  BotMessageSquare
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -28,39 +29,60 @@ const ActionMenu = () => {
     redo, 
     canUndo, 
     canRedo, 
-    resetToDefault,
-    restoreContactSection 
+    showToast 
   } = useCV();
 
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
-  const [isSpacingMenuOpen, setIsSpacingMenuOpen] = useState(false);
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  
+  // Grouped Submenus State (Epic 3)
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
+  const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
-  const handleGeneratePDF = () => {
+  const isAtsMode = cvData.layout?.isAtsMode === true || cvData.layout?.type === '1-column';
+  const is2Col = cvData.layout?.type === '2-column' && !cvData.layout?.isAtsMode;
+
+  const handleGeneratePDF = async () => {
+    if (loading) return;
     setLoading(true);
+
+    // 1. Inicia toast de carga con spinner
+    showToast('Generando PDF optimizado y preparando impresión...', 'loading', 0);
+
+    let isFinished = false;
+    const onControlReturned = () => {
+      if (isFinished) return;
+      isFinished = true;
+      window.removeEventListener('afterprint', onControlReturned);
+      window.removeEventListener('print-dialog-closed', onControlReturned);
+      window.removeEventListener('focus', onControlReturned);
+      setLoading(false);
+      // 2. Notificación de confirmación tras cerrar el diálogo o retomar el control
+      showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
+    };
+
+    // Escuchar eventos de cierre de impresión y foco del usuario
+    window.addEventListener('afterprint', onControlReturned, { once: true });
+    window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
+
+    const focusTimeout = setTimeout(() => {
+      window.addEventListener('focus', onControlReturned, { once: true });
+    }, 1200);
+
+    // Fallback de seguridad en caso de entornos donde no se disparen eventos de ventana
+    const fallbackTimeout = setTimeout(() => {
+      onControlReturned();
+    }, 8000);
+
     try {
-      executeCleanPrint(cvData);
+      await executeCleanPrint(cvData, activeLanguage);
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
       window.print();
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleExportJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cvData, null, 2));
-    const a = document.createElement('a');
-    a.href = dataStr;
-    a.download = `cv-state-${activeLanguage || 'es'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  const is2Col = cvData.layout?.type === '2-column';
   const currentFontFamily = cvData.layout?.fontFamily || 'Poppins';
   const fontScale = cvData.layout?.fontScale ?? 1.0;
   const titleScale = cvData.layout?.titleScale ?? 1.0;
@@ -74,6 +96,7 @@ const ActionMenu = () => {
 
   return (
     <>
+      {/* Streamlined Floating Action Toolbar (Epic 3) */}
       <div 
         className="l-navbar no-print" 
         style={{ 
@@ -83,16 +106,17 @@ const ActionMenu = () => {
           transform: 'translateY(-50%)', 
           display: 'flex', 
           flexDirection: 'column', 
+          alignItems: 'center',
           gap: '0.65rem', 
           background: 'var(--container-color, #ffffff)', 
-          padding: '0.75rem 0.6rem', 
-          borderRadius: '12px', 
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)', 
-          border: '1px solid rgba(0, 0, 0, 0.06)',
+          padding: '0.85rem 0.65rem', 
+          borderRadius: '14px', 
+          boxShadow: '0 10px 28px rgba(0, 0, 0, 0.14)', 
+          border: '1px solid rgba(0, 0, 0, 0.08)',
           zIndex: 100 
         }}
       >
-        {/* 1. Undo Button */}
+        {/* 1. Deshacer (Undo) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -114,7 +138,7 @@ const ActionMenu = () => {
           </span>
         </div>
 
-        {/* 2. Redo Button */}
+        {/* 2. Rehacer (Redo) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -136,244 +160,215 @@ const ActionMenu = () => {
           </span>
         </div>
 
-        {/* 3. Reset / Restore Default CV Button */}
+        <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
+
+
+        {/* 3. Generar Prompts de IA */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
             className="action-menu-btn"
-            onClick={() => {
-              if (window.confirm('¿Restablecer el CV con los datos y contacto originales de Juan Ignacio? Puedes deshacer con Ctrl+Z.')) {
-                resetToDefault();
-              }
-            }}
-            style={{ color: '#f59e0b' }}
-            aria-label="Restablecer CV original (Juan Ignacio Carrizo)"
-            title="Restablecer CV original (Juan Ignacio Carrizo)"
+            id='ia-prompts-item'
+            onClick={() => setIsAIModalOpen(true)} 
+            style={{ color: '#BE00F7' }}
+            aria-label="Generar Prompts de IA"
+            title="Generar Prompts de IA"
           >
-            <RotateCcw size={20} />
+            <BotMessageSquare/>
           </button>
           <span className="action-menu-tooltip">
-            Restablecer CV original (Juan Ignacio)
+            Generar Prompts para análisis
           </span>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
-
-        {/* 4. Language Translation & Slots Button */}
+        {/* 4. Gestor de Versiones */}
         <div className="action-menu-btn-wrap">
-          <button 
+          <button
             type="button"
-            className="action-menu-btn"
-            onClick={() => setIsTranslationModalOpen(true)} 
-            style={{ color: '#10b981', position: 'relative' }}
-            aria-label={`Gestor de Idiomas (Slot Activo: ${activeLanguage.toUpperCase()})`}
-            title={`Gestor de Idiomas (Slot Activo: ${activeLanguage.toUpperCase()})`}
+            className="version-hub-btn action-menu-hub-btn"
+            id='versiones-item'
+            data-testid="btn-open-version-manager"
+            aria-label="Gestor de Versiones"
+            title="Gestor de Versiones"
+            onClick={() => setIsVersionModalOpen(true)}
           >
-            <i className='bx bx-globe'></i>
-            <span style={{ 
-              position: 'absolute', 
-              bottom: '-2px', 
-              right: '-2px', 
-              background: '#10b981', 
-              color: 'white', 
-              fontSize: '8px', 
-              fontWeight: '700', 
-              padding: '1px 3px', 
-              borderRadius: '4px' 
-            }}>
-              {activeLanguage.toUpperCase()}
-            </span>
+            <History size={20} color="#3b82f6" />
           </button>
-          <span className="action-menu-tooltip">
-            Gestor de Idiomas (Slot Activo: {activeLanguage.toUpperCase()})
-          </span>
+          <span className="action-menu-tooltip">Gestor de Versiones</span>
         </div>
 
-        {/* 5. Design & Typography Popover Button */}
+        <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
+
+        {/* 5. Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
             className="action-menu-btn"
             onClick={() => {
               setIsDesignMenuOpen(prev => !prev);
-              setIsSpacingMenuOpen(false);
             }} 
-            style={{ color: isDesignMenuOpen ? '#3874ff' : '#6366f1' }}
+            style={{ 
+              color: isDesignMenuOpen ? '#3874ff' : '#6366f1',
+              background: isDesignMenuOpen ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+              borderRadius: '8px'
+            }}
             aria-label="Ajustes de Diseño y Tipografía"
-            title="Ajustes de Diseño y Tipografía"
+            title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
+            data-testid="btn-open-design"
           >
             <Palette size={20} />
           </button>
           <span className="action-menu-tooltip">
-            Diseño y Tipografía
+            Diseño (Colores, Espaciado, Tipografía)
           </span>
         </div>
 
-        {/* 6. Spacing Controls Button */}
+        {/* 6. Descargar como PDF (Impresión A4 Limpia Directa) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
             className="action-menu-btn"
-            onClick={() => {
-              setIsSpacingMenuOpen(prev => !prev);
-              setIsDesignMenuOpen(false);
-            }} 
-            style={{ color: isSpacingMenuOpen ? '#3874ff' : '#64748b' }}
-            aria-label="Ajustes de Márgenes y Espaciado"
-            title="Ajustes de Márgenes y Espaciado"
+            onClick={handleGeneratePDF}
+            disabled={loading}
+            style={{ 
+              color: loading ? '#94a3b8' : '#e11d48',
+              cursor: loading ? 'wait' : 'pointer'
+            }}
+            aria-label="Descargar como PDF"
+            title="Descargar como PDF (Impresión A4 Limpia)"
+            data-testid="btn-action-native-print"
           >
-            <SlidersHorizontal size={20} />
+            {loading ? (
+              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <FileDown size={20} />
+            )}
           </button>
           <span className="action-menu-tooltip">
-            Ajustes de Márgenes y Espaciado
+            {loading ? 'Generando PDF...' : 'Descargar como PDF'}
           </span>
         </div>
-
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
-
-        {/* 7. AI Prompts Hub & ATS Scorecard Button */}
-        <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={() => setIsAIModalOpen(true)} 
-            style={{ color: '#3874ff' }}
-            aria-label="Hub de Prompts IA & Scorecard ATS"
-            title="Hub de Prompts IA & Scorecard ATS"
-          >
-            <i className='bx bx-bot'></i>
-          </button>
-          <span className="action-menu-tooltip">
-            Hub de Prompts IA & Scorecard ATS
-          </span>
-        </div>
-
-        {/* 8. Export JSON Button */}
-        <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={handleExportJSON} 
-            style={{ color: 'var(--title-color, #333)' }}
-            aria-label="Exportar Estado (.JSON)"
-            title="Exportar Estado (.JSON)"
-          >
-            <i className='bx bx-export'></i>
-          </button>
-          <span className="action-menu-tooltip">
-            Exportar Estado (.JSON)
-          </span>
-        </div>
-
-        {/* 9. Native PDF Export Button */}
-        <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={handleGeneratePDF} 
-            disabled={loading} 
-            style={{ color: '#e11d48' }}
-            aria-label="Generar PDF Nativo (A4 Imprimible)"
-            title="Generar PDF Nativo (A4 Imprimible)"
-          >
-            {loading ? <i className='bx bx-loader-alt bx-spin'></i> : <i className='bx bxs-file-pdf'></i>}
-          </button>
-          <span className="action-menu-tooltip">
-            Generar PDF Nativo (A4 Imprimible)
-          </span>
-        </div>
-
-        {/* 10. Layout Toggle: 1-Column vs 2-Column */}
-        <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={() => updateLayout('type', is2Col ? '1-column' : '2-column')} 
-            style={{ color: is2Col ? '#6366f1' : '#059669' }}
-            aria-label={is2Col ? 'Cambiar a 1 Columna (Lineal ATS)' : 'Cambiar a 2 Columnas (Visual)'}
-            title={is2Col ? 'Cambiar a 1 Columna (Lineal ATS)' : 'Cambiar a 2 Columnas (Visual)'}
-          >
-            <i className={is2Col ? 'bx bx-layout' : 'bx bx-menu'}></i>
-          </button>
-          <span className="action-menu-tooltip">
-            {is2Col ? 'Cambiar a 1 Columna (Lineal ATS)' : 'Cambiar a 2 Columnas (Visual)'}
-          </span>
-        </div>
-
-        {/* Color Pickers for 2-Column mode in toolbar */}
-        {is2Col && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', marginTop: '0.2rem' }}>
-            <div className="action-menu-btn-wrap">
-              <input 
-                type="color" 
-                value={cvData.layout?.leftBg || '#fafafa'}
-                onChange={(e) => updateLayout('leftBg', e.target.value)}
-                style={{ width: '24px', height: '24px', padding: '0', border: 'none', borderRadius: '50%', cursor: 'pointer' }}
-                aria-label="Fondo Columna Lateral"
-                title="Fondo Columna Lateral"
-              />
-              <span className="action-menu-tooltip">
-                Fondo Columna Lateral
-              </span>
-            </div>
-
-            <div className="action-menu-btn-wrap">
-              <input 
-                type="color" 
-                value={cvData.layout?.rightBg || '#f0efef'}
-                onChange={(e) => updateLayout('rightBg', e.target.value)}
-                style={{ width: '24px', height: '24px', padding: '0', border: 'none', borderRadius: '50%', cursor: 'pointer' }}
-                aria-label="Fondo Columna Principal"
-                title="Fondo Columna Principal"
-              />
-              <span className="action-menu-tooltip">
-                Fondo Columna Principal
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Design & Typography Popover */}
-      {isDesignMenuOpen && (
-        <div 
-          className="design-popover no-print"
-          style={{
-            position: 'fixed',
-            left: '4.75rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'var(--container-color, #ffffff)',
-            borderRadius: '12px',
-            padding: '1.2rem',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            border: '1px solid rgba(0,0,0,0.08)',
-            zIndex: 1000,
-            width: '290px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '0.4rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--title-color, #111)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Palette size={16} color="#6366f1" /> Diseño y Tipografía
-            </span>
-            <button 
-              onClick={() => setIsDesignMenuOpen(false)}
-              aria-label="Cerrar panel de diseño"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}
-            >
-              <X size={16} />
-            </button>
-          </div>
+      {/* =========================================================================
+          Grouped Submenu 1: 'Diseño' Popover (Colors, Spacing, Typography)
+          ========================================================================= */}
+      <div 
+        className="design-popover no-print"
+        style={{
+          position: 'fixed',
+          left: '4.75rem',
+          top: '50%',
+          transform: isDesignMenuOpen ? 'translateY(-50%) scale(1)' : 'translateY(-50%) scale(0.96)',
+          background: 'var(--container-color, #ffffff)',
+          borderRadius: '14px',
+          padding: '1.25rem',
+          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.2)',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+          width: '320px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          opacity: isDesignMenuOpen ? 1 : 0,
+          pointerEvents: isDesignMenuOpen ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease, transform 0.2s ease'
+        }}
+        data-testid="design-submenu"
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.5rem' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--title-color, #111)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Palette size={18} color="#6366f1" /> Ajustes de Diseño
+          </span>
+          <button 
+            type="button"
+            onClick={() => setIsDesignMenuOpen(false)}
+            aria-label="Cerrar panel de diseño"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: '4px', display: 'flex' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
 
+        {/* Submenu Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.04)', padding: '3px', borderRadius: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setActiveDesignTab('typography')}
+            style={{
+              flex: 1,
+              padding: '0.35rem 0.4rem',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeDesignTab === 'typography' ? '#ffffff' : 'transparent',
+              color: activeDesignTab === 'typography' ? '#4f46e5' : '#64748b',
+              fontWeight: activeDesignTab === 'typography' ? 600 : 500,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: activeDesignTab === 'typography' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            data-testid="tab-typography"
+          >
+            Tipografía
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsDesignMenuOpen(true);
+              setActiveDesignTab('spacing');
+            }}
+            aria-label="Ajustes de Márgenes y Espaciado"
+            style={{
+              flex: 1,
+              padding: '0.35rem 0.4rem',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeDesignTab === 'spacing' ? '#ffffff' : 'transparent',
+              color: activeDesignTab === 'spacing' ? '#4f46e5' : '#64748b',
+              fontWeight: activeDesignTab === 'spacing' ? 600 : 500,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: activeDesignTab === 'spacing' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            data-testid="tab-spacing"
+          >
+            Espaciado
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveDesignTab('colors')}
+            style={{
+              flex: 1,
+              padding: '0.35rem 0.4rem',
+              borderRadius: '6px',
+              border: 'none',
+              background: activeDesignTab === 'colors' ? '#ffffff' : 'transparent',
+              color: activeDesignTab === 'colors' ? '#4f46e5' : '#64748b',
+              fontWeight: activeDesignTab === 'colors' ? 600 : 500,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: activeDesignTab === 'colors' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            data-testid="tab-colors"
+          >
+            Colores
+          </button>
+        </div>
+
+        {/* TAB 1: Typography Section */}
+        <div style={{ display: activeDesignTab === 'typography' ? 'flex' : 'none', flexDirection: 'column', gap: '1rem' }}>
           {/* Font Selector */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.35rem', color: 'var(--text-color)' }}>
-              Tipo de Letra (Fuente)
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--text-color)' }}>
+              Tipo de Letra (Fuente Universal)
             </label>
             <select
               value={currentFontFamily}
@@ -381,7 +376,7 @@ const ActionMenu = () => {
               aria-label="Selector de Tipo de Letra"
               style={{
                 width: '100%',
-                padding: '0.4rem 0.6rem',
+                padding: '0.45rem 0.6rem',
                 borderRadius: '6px',
                 border: '1px solid #cbd5e1',
                 fontSize: '0.85rem',
@@ -398,7 +393,7 @@ const ActionMenu = () => {
             </select>
           </div>
 
-          {/* Categorized Global Font Sizing */}
+          {/* Categorized Font Sizing */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(99, 102, 241, 0.04)', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Tamaño por Categoría
@@ -462,13 +457,12 @@ const ActionMenu = () => {
             </div>
           </div>
 
-          {/* General Scale & Line Height */}
+          {/* Master Font Scale & Line Height */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Ajustes Generales
             </div>
 
-            {/* Master Font Scale Control */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span>Escala General (Multiplicador)</span>
@@ -487,7 +481,6 @@ const ActionMenu = () => {
               />
             </div>
 
-            {/* Line Height Control */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span>Altura de Línea</span>
@@ -510,6 +503,8 @@ const ActionMenu = () => {
           {/* Reset Typography Button */}
           <button
             type="button"
+            data-testid="btn-reset-typography"
+            aria-label="Restaurar Tipografía por Defecto"
             onClick={() => {
               updateLayout({
                 fontScale: 1.0,
@@ -520,7 +515,7 @@ const ActionMenu = () => {
               });
             }}
             style={{
-              padding: '0.4rem 0.6rem',
+              padding: '0.45rem 0.6rem',
               borderRadius: '6px',
               border: '1px solid #e2e8f0',
               background: '#f8fafc',
@@ -537,46 +532,17 @@ const ActionMenu = () => {
             onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
             onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
           >
-            <RotateCcw size={13} /> Restablecer Tipografía
+            <RotateCcw size={13} /> Reiniciar Tipografía
           </button>
         </div>
-      )}
 
-      {/* Spacing Controls Popover */}
-      {isSpacingMenuOpen && (
-        <div 
-          className="spacing-popover no-print"
-          style={{
-            position: 'fixed',
-            left: '4.75rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'var(--container-color, #ffffff)',
-            borderRadius: '12px',
-            padding: '1.2rem',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-            border: '1px solid rgba(0,0,0,0.08)',
-            zIndex: 1000,
-            width: '240px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '0.4rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--title-color, #111)' }}>
-              Espaciado y Márgenes
-            </span>
-            <button 
-              onClick={() => setIsSpacingMenuOpen(false)}
-              aria-label="Cerrar panel de espaciado"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}
-            >
-              <X size={16} />
-            </button>
+        {/* TAB 2: Spacing & Margins Section */}
+        <div style={{ display: activeDesignTab === 'spacing' ? 'flex' : 'none', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--title-color, #111)', borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '0.3rem' }}>
+            Espaciado y Márgenes
           </div>
 
-          {/* Page Padding Control */}
+          {/* Page Padding */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
               <span>Margen de Página</span>
@@ -594,7 +560,7 @@ const ActionMenu = () => {
             />
           </div>
 
-          {/* Section Gap Control */}
+          {/* Section Gap */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
               <span>Espacio entre Secciones</span>
@@ -612,7 +578,7 @@ const ActionMenu = () => {
             />
           </div>
 
-          {/* Item Gap Control */}
+          {/* Item Gap */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
               <span>Espacio entre Elementos</span>
@@ -630,7 +596,7 @@ const ActionMenu = () => {
             />
           </div>
 
-          {/* Left Column Width Control (2-Column Mode) */}
+          {/* Left Column Width (2-Column Mode) */}
           {is2Col && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
@@ -651,10 +617,55 @@ const ActionMenu = () => {
             </div>
           )}
         </div>
-      )}
+
+        {/* TAB 3: Color Picking Section */}
+        <div style={{ display: activeDesignTab === 'colors' ? 'flex' : 'none', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--title-color, #111)', borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '0.3rem' }}>
+            Paleta de Colores
+          </div>
+
+          {is2Col ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <ColorPickerSwatch
+                label="Fondo Columna Lateral"
+                ariaLabel="Fondo Columna Lateral"
+                value={cvData.layout?.leftBg || '#fafafa'}
+                onChange={(val) => updateLayout('leftBg', val)}
+                presets={['#ffffff', '#fafafa', '#f1f5f9', '#e2e8f0', '#1e293b', '#0f172a']}
+              />
+
+              <ColorPickerSwatch
+                label="Fondo Columna Principal"
+                ariaLabel="Fondo Columna Principal"
+                value={cvData.layout?.rightBg || '#ffffff'}
+                onChange={(val) => updateLayout('rightBg', val)}
+                presets={['#ffffff', '#fcfcfc', '#f8fafc', '#f1f5f9', '#1e293b', '#0f172a']}
+              />
+            </div>
+          ) : (
+            <div 
+              className="obsidian-callout" 
+              style={{
+                background: 'rgba(8, 109, 221, 0.1)',
+                borderLeft: '4px solid rgba(8, 109, 221, 1)',
+                borderRadius: '6px',
+                padding: '0.65rem 0.8rem',
+                fontSize: '0.8rem'
+              }}
+            >
+              <div className="callout-title" style={{ display: 'flex', gap: '8px', fontWeight: 600, color: 'rgba(8, 109, 221, 1)', marginBottom: '4px', alignItems: 'center' }}>
+                <Info size={15} /> Modo ATS Activo
+              </div>
+              <div className="callout-content" style={{ color: 'var(--text-color, #334155)', fontSize: '0.76rem', lineHeight: 1.45 }}>
+                El modo ATS utiliza un fondo blanco puro (#ffffff) y acentos sobrios optimizados para lectores de escaneo automático. Cambia a Modo 2 Columnas para personalizar colores independientes.
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <AIExportModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
-      <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
+      <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
     </>
   );
 };
