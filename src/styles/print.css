@@ -18,8 +18,18 @@ html, body {
   width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
+  font-family: var(--body-font) !important;
+  font-size: var(--normal-font-size) !important;
+  color: var(--text-color) !important;
   background-color: #ffffff !important;
+  line-height: var(--line-height, 1.45) !important;
   -webkit-font-smoothing: antialiased;
+}
+
+#area-cv {
+  font-family: var(--body-font) !important;
+  line-height: var(--line-height, 1.45) !important;
+  color: var(--text-color);
 }
 
 /* Base Print Container Layout */
@@ -79,8 +89,40 @@ li.cv-block,
   page-break-before: always !important;
 }
 
+/* Section Title in Print (Standard Left-Aligned) */
+.section-title {
+  text-align: left !important;
+  font-size: var(--title-h2-size, var(--h2-font-size));
+  color: var(--title-color);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .2rem;
+  margin-bottom: 0.6rem;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+  break-inside: avoid !important;
+}
+
+/* ATS Mode Section Title in Print */
+.resume--ats-mode .section-title,
+.resume__single-column .section-title {
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  padding-bottom: 4px !important;
+  letter-spacing: 0.12rem !important;
+  text-align: left !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.6rem !important;
+}
+
+/* ATS Paper Container in Print: suppress card shadow & border on physical paper */
+#area-cv.resume--ats-mode,
+.resume--ats-mode {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 /* Orphan Header Protection */
-.section-title,
 h1,
 h2,
 h3 {
@@ -96,8 +138,6 @@ p, h1, h2, h3, li {
 
 /* Interactive Editor Artifact Suppression */
 .no-print,
-.column-resizer,
-.l-navbar,
 .action-menu,
 .floating-rich-toolbar,
 .rich-toolbar {
@@ -200,7 +240,26 @@ ul.simple-list-ul li span.inline-edit-display {
     page-break-inside: avoid !important;
     -webkit-column-break-inside: avoid !important;
   }
-  .section-title,
+  .section-title {
+    text-align: left !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+  }
+  .resume--ats-mode .section-title {
+    color: #0f172a !important;
+    border-bottom: 1.5px solid #0f172a !important;
+    padding-bottom: 4px !important;
+    letter-spacing: 0.12rem !important;
+    text-align: left !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.6rem !important;
+  }
+  #area-cv.resume--ats-mode,
+  .resume--ats-mode {
+    border: none !important;
+    box-shadow: none !important;
+  }
   h1,
   h2,
   h3 {

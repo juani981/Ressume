@@ -5,7 +5,9 @@ import {
   stripOuterAlignment, 
   applyAlignment, 
   sanitizeRichHTML, 
-  renderRichHTML 
+  renderRichHTML,
+  normalizeHtmlEntities,
+  hasMalformedEntities 
 } from '../../utils/richTextEngine';
 import RichTextToolbar from './RichTextToolbar';
 
@@ -16,6 +18,59 @@ import RichTextToolbar from './RichTextToolbar';
  * - Text alignment persistence (left, center, right, justify)
  * - Connects to global singleton RichTextToolbar (and provides fallback if unmounted)
  */
+
+// Caret position measurement and restoration for live contentEditable sanitization
+const getCaretCharacterOffset = (element) => {
+  if (typeof window === 'undefined' || !window.getSelection) return 0;
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return 0;
+
+  const range = sel.getRangeAt(0);
+  const preCaretRange = range.cloneRange();
+  preCaretRange.selectNodeContents(element);
+  preCaretRange.setEnd(range.endContainer, range.endOffset);
+  return preCaretRange.toString().length;
+};
+
+const setCaretCharacterOffset = (element, offset) => {
+  if (typeof window === 'undefined' || !window.getSelection) return;
+  const sel = window.getSelection();
+  if (!sel) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(element);
+
+  let currentOffset = 0;
+  let found = false;
+
+  const traverse = (node) => {
+    if (found) return;
+    if (node.nodeType === 3 /* Node.TEXT_NODE */) {
+      const nextOffset = currentOffset + node.length;
+      if (offset >= currentOffset && offset <= nextOffset) {
+        range.setStart(node, offset - currentOffset);
+        range.collapse(true);
+        found = true;
+        return;
+      }
+      currentOffset = nextOffset;
+    } else {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        traverse(node.childNodes[i]);
+        if (found) return;
+      }
+    }
+  };
+
+  traverse(element);
+  if (!found) {
+    range.selectNodeContents(element);
+    range.collapse(false);
+  }
+
+  sel.removeAllRanges();
+  sel.addRange(range);
+};
 
 const InlineEditPrintView = ({ 
   value, 
@@ -36,7 +91,7 @@ const InlineEditPrintView = ({
         color: 'inherit',
         whiteSpace: multiline ? 'pre-wrap' : 'normal'
       }}
-      dangerouslySetInnerHTML={{ __html: renderRichHTML(parsed.innerHtml || value) }}
+      dangerouslySetInnerHTML={{ __html: renderRichHTML(value) }}
     />
   );
 };
@@ -262,12 +317,13 @@ const InlineEditEditor = ({
   useEffect(() => {
     if (isEditing && contentRef.current) {
       const parsed = stripOuterAlignment(value);
-      contentRef.current.innerHTML = parsed.innerHtml || '';
+      const cleanInner = sanitizeRichHTML(parsed.innerHtml || '');
+      contentRef.current.innerHTML = cleanInner;
       contentRef.current.style.textAlign = parsed.alignment || 'left';
       setCurrentAlignment(parsed.alignment || 'left');
 
       historyRef.current = {
-        past: [parsed.innerHtml || ''],
+        past: [cleanInner],
         future: []
       };
 
@@ -291,7 +347,23 @@ const InlineEditEditor = ({
 
   const handleInput = () => {
     if (!contentRef.current) return;
-    const currentHTML = contentRef.current.innerHTML;
+    let currentHTML = contentRef.current.innerHTML;
+
+    // Live sanitization of malformed entities and unescaped symbols
+    if (hasMalformedEntities(currentHTML)) {
+      const caretOffset = getCaretCharacterOffset(contentRef.current);
+      const textLenBefore = (contentRef.current.textContent || '').length;
+      const cleanHtml = sanitizeRichHTML(currentHTML);
+      if (cleanHtml !== currentHTML) {
+        contentRef.current.innerHTML = cleanHtml;
+        const textLenAfter = (contentRef.current.textContent || '').length;
+        const diff = textLenBefore - textLenAfter;
+        const targetOffset = Math.max(0, caretOffset - diff);
+        setCaretCharacterOffset(contentRef.current, targetOffset);
+        currentHTML = cleanHtml;
+      }
+    }
+
     // Push change to local history stack
     const last = historyRef.current.past[historyRef.current.past.length - 1];
     if (last !== currentHTML) {
@@ -382,7 +454,7 @@ const InlineEditEditor = ({
       isCancelingRef.current = true;
       const parsed = stripOuterAlignment(initialValueRef.current);
       if (contentRef.current) {
-        contentRef.current.innerHTML = parsed.innerHtml || '';
+        contentRef.current.innerHTML = sanitizeRichHTML(parsed.innerHtml || '');
         contentRef.current.style.textAlign = parsed.alignment || 'left';
       }
       setCurrentAlignment(parsed.alignment || 'left');
@@ -392,8 +464,9 @@ const InlineEditEditor = ({
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
-    if (text) {
+    const rawText = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    if (rawText) {
+      const text = normalizeHtmlEntities(rawText);
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         try {
           if (document.execCommand('insertText', false, text)) {

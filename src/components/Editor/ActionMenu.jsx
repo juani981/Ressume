@@ -80,6 +80,7 @@ const ActionMenu = () => {
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
       window.print();
+      onControlReturned();
     }
   };
 
@@ -234,8 +235,8 @@ const ActionMenu = () => {
               color: loading ? '#94a3b8' : '#e11d48',
               cursor: loading ? 'wait' : 'pointer'
             }}
-            aria-label="Descargar como PDF"
-            title="Descargar como PDF (Impresión A4 Limpia)"
+            aria-label="Descargar / Imprimir PDF"
+            title="Descargar / Imprimir PDF (Impresión A4 Limpia)"
             data-testid="btn-action-native-print"
           >
             {loading ? (

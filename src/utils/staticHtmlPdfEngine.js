@@ -210,7 +210,8 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     });
   }
 
-  const is2Col = layout.type !== '1-column';
+  const isAtsMode = layout.isAtsMode === true;
+  const is2Col = layout.type === '2-column' && !layout.isAtsMode;
   const pagePadding = Number(layout.pagePadding ?? 24);
   const sectionGap = Number(layout.sectionGap ?? 20);
   const itemGap = Number(layout.itemGap ?? 8);
@@ -243,10 +244,26 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
 
   const leftColPercent = leftColWidth || 33.33;
 
+  const areaCvClasses = is2Col 
+    ? `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim()
+    : `resume resume__single-column ${isAtsMode ? 'resume--ats-mode' : ''}`.trim();
+
+  const dynamicSpacingStyle = `
+    --body-font: ${fontFamily};
+    --font-scale: ${fontScale};
+    --title-scale: ${titleScale};
+    --body-scale: ${bodyScale};
+    --list-scale: ${listScale};
+    --line-height: ${lineHeight};
+    --page-padding: ${pagePadding}px;
+    --section-gap: ${sectionGap}px;
+    --item-gap: ${itemGap}px;
+  `.replace(/\s+/g, ' ').trim();
+
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; height: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%);">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; height: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
         <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
@@ -257,7 +274,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     `;
   } else {
     bodyContent = `
-      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff;">
+      <div class="${areaCvClasses}" id="area-cv" style="width: 100%; max-width: 840px; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
         ${sections.map(renderSectionHTML).join('')}
       </div>
     `;
@@ -272,18 +289,25 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   let activeBaseStyles = baseStyles || '';
   let activePrintStyles = printStyles || '';
 
+  // Remove static :root block so dynamic variables take effect without collision
+  activeBaseStyles = activeBaseStyles.replace(/:root\s*\{[\s\S]*?\}/, '/* static :root removed */');
+
   // Strip interactive editor artifacts from CSS so they never leak into clean print HTML
+  const editorArtifactsPattern = /(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)/gi;
   activeBaseStyles = activeBaseStyles
-    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip)[^{]*?\{[^}]*?\}/gi, '')
-    .replace(/\b(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip)\b/gi, 'editor-control-stripped');
+    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)[^{]*?\{[^}]*?\}/gi, '')
+    .replace(editorArtifactsPattern, 'editor-control-stripped');
+  activePrintStyles = activePrintStyles
+    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)[^{]*?\{[^}]*?\}/gi, '')
+    .replace(editorArtifactsPattern, 'editor-control-stripped');
 
   if (!is2Col) {
     activeBaseStyles = activeBaseStyles
-      .replace(/[^{}]*?\.resume__left[^{]*?\{[^}]*?\}/g, '')
-      .replace(/\.resume__left\b/g, '.col-left-inactive');
+      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
+      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
     activePrintStyles = activePrintStyles
-      .replace(/[^{}]*?\.resume__left[^{]*?\{[^}]*?\}/g, '')
-      .replace(/\.resume__left\b/g, '.col-left-inactive');
+      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
+      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
   }
 
   return `<!DOCTYPE html>
@@ -296,8 +320,9 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <style id="cv-dynamic-root-variables">
-    :root {
+  <style id="cv-base-styles">
+    :root,
+    #area-cv {
       --page-padding: ${pagePadding}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
@@ -320,7 +345,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
       --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
-      --title-subtitle-size: calc(var(--normal-font-size) * var(--title-scale, 1));
+      --title-subtitle-size: calc(1.05rem * var(--font-scale, 1) * var(--title-scale, 1));
 
       --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
       --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
@@ -334,8 +359,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       box-sizing: border-box !important;
       padding: var(--page-padding, ${pagePadding}px) !important;
     }
-  </style>
-  <style id="cv-base-styles">
+
 ${activeBaseStyles}
   </style>
   <style id="cv-print-styles">
@@ -650,10 +674,13 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
       } finally {
         resolve();
         fallbackTimeout = setTimeout(() => {
-          if (!printClosed && iframe.parentNode) {
+          if (!printClosed) {
             handlePrintClosed();
           }
-        }, 15000);
+          if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+          }
+        }, 1000);
       }
     };
 

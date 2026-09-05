@@ -28,9 +28,11 @@ export const PrintBaseSection = ({ section }) => {
             : 'experience'
   );
 
+  const bulletClasses = section.bulletStyle ? ` ${getBulletClasses(section.bulletStyle)}` : '';
+
   return (
     <section 
-      className={`${sectionClass} section cv-section ${getBulletClasses(section.bulletStyle)}`} 
+      className={`${sectionClass} section cv-section${bulletClasses}`} 
       id={section.id}
       style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
     >
