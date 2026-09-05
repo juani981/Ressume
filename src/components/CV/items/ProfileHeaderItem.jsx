@@ -3,7 +3,57 @@ import InlineEdit from '../../Editor/InlineEdit';
 import ContactTypePicker from '../../Editor/ContactTypePicker';
 import { normalizeItemContacts, getContactConfig, syncFlatContactFields } from '../../../utils/contactTypes';
 
-const ProfileHeaderItem = ({ item, sectionId, onUpdateItem }) => {
+const ProfileHeaderPrintView = ({ item }) => {
+  const contacts = normalizeItemContacts(item);
+
+  return (
+    <>
+      <h1 className="home__title">
+        <InlineEdit 
+          value={item.name || ''} 
+          isPrint={true}
+        />
+      </h1>
+      <h2 className="home__subtitle">
+        <InlineEdit 
+          value={item.subtitle || ''} 
+          isPrint={true}
+        />
+      </h2>
+      
+      <div 
+        className="social__container bd-grid" 
+        style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginTop: '1rem' }}
+      >
+        {contacts
+          .filter(c => c && c.value && String(c.value).trim() !== '')
+          .map((contact, idx) => {
+            const config = getContactConfig(contact.type);
+            return (
+              <span 
+                key={contact.id || `contact_${idx}`} 
+                className="social__link contact-item-pill"
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <i className={config.icon}></i>{' '}
+                <InlineEdit 
+                  value={contact.value || ''} 
+                  isPrint={true}
+                />
+              </span>
+            );
+          })}
+      </div>
+    </>
+  );
+};
+
+const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [triggerRect, setTriggerRect] = useState(null);
 
@@ -131,4 +181,12 @@ const ProfileHeaderItem = ({ item, sectionId, onUpdateItem }) => {
   );
 };
 
+const ProfileHeaderItem = (props) => {
+  if (props.isPrint) {
+    return <ProfileHeaderPrintView {...props} />;
+  }
+  return <ProfileHeaderItemEditView {...props} />;
+};
+
+export { ProfileHeaderPrintView, ProfileHeaderItemEditView };
 export default ProfileHeaderItem;

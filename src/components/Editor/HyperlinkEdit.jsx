@@ -1,7 +1,37 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-const HyperlinkEdit = ({ 
+const HyperlinkPrintView = ({ 
+  url = '', 
+  text = '', 
+  icon = 'bx bx-link-external',
+  className = ''
+}) => {
+  if (!url && !text) return null;
+  const cleanUrl = (url || '').trim();
+  const targetUrl = cleanUrl ? (cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`) : '#';
+  const displayLabel = text || url;
+  return (
+    <a
+      href={targetUrl}
+      className={`social__link ${className}`}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        color: 'inherit',
+        textDecoration: 'none'
+      }}
+    >
+      {icon && <i className={icon}></i>}
+      <span>{displayLabel}</span>
+    </a>
+  );
+};
+
+const HyperlinkEditEditor = ({ 
   url = '', 
   text = '', 
   onSave, 
@@ -376,4 +406,12 @@ const HyperlinkEdit = ({
   );
 };
 
+const HyperlinkEdit = (props) => {
+  if (props.isPrint) {
+    return <HyperlinkPrintView {...props} />;
+  }
+  return <HyperlinkEditEditor {...props} />;
+};
+
+export { HyperlinkPrintView, HyperlinkEditEditor };
 export default HyperlinkEdit;

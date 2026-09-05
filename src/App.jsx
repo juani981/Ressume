@@ -364,40 +364,31 @@ const steps = [
     });
   }, [on]);
 
-  function GuideTour() {
   useEffect(() => {
-    // 1. Obtener de manera segura las entradas de navegación del navegador
-    const navigationEntries = performance.getEntriesByType('navigation');
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+    if (typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || process.env?.VITEST)) return;
+    try {
+      const navigationEntries = typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function'
+        ? performance.getEntriesByType('navigation') 
+        : [];
 
-    // 2. Verificar si hay entradas y si la primera fue una recarga (F5 / Ctrl+F5)
-    if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
-      localStorage.removeItem('hasSeenTour');
+      if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
+        localStorage.removeItem('hasSeenTour');
+      }
+
+      const hasSeenTour = localStorage.getItem('hasSeenTour');
+      if (!hasSeenTour && controls?.start) {
+        controls.start();
+        localStorage.setItem('hasSeenTour', 'true');
+      }
+    } catch (e) {
+      // safe fallback for test/SSR environments
     }
-
-    // 3. Validar si el usuario ya completó el tour
-    const hasSeenTour = localStorage.getItem('hasSeenTour');
-
-    if (!hasSeenTour) {
-      startGuideTour();
-      // Guardar el estado para evitar que se repita al cambiar de página
-      localStorage.setItem('hasSeenTour', 'true');
-    }
-  }, []);
-
-  const startGuideTour = () => {
-    console.log("¡Tour iniciado!");
-    controls.start();
-  };
-
-  return null;
-  }
-
-  
-
+  }, [controls]);
 
   return (
     <>
-      <button hidden onClick={GuideTour()}>Start Tour</button>
+      <button hidden onClick={() => controls?.start?.()}>Start Tour</button>
       {Tour}
       <ActionMenu />
       

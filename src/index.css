@@ -1820,4 +1820,48 @@ body.ats-mode-active {
     orphans: 3;
     widows: 3;
   }
+
+  /* Native Styled Bullet Points (No line breaks, native li marker at beginning) */
+  ul.experience__bullets,
+  .experience__bullets,
+  ul.simple-list-ul {
+    list-style-type: disc !important;
+    padding-left: 1.15rem !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li {
+    display: list-item !important;
+    list-style-type: disc !important;
+    margin-top: 0 !important;
+    margin-bottom: calc(var(--item-gap, 6px) / 2) !important;
+    line-height: 1.45 !important;
+    color: inherit !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: left !important;
+  }
+
+  ul.experience__bullets li::marker,
+  .experience__bullets li::marker,
+  ul.simple-list-ul li::marker {
+    color: var(--circle-color, var(--text-color)) !important;
+    font-size: 0.85em;
+  }
+
+  ul.experience__bullets li p,
+  ul.experience__bullets li div,
+  ul.experience__bullets li span.inline-edit-display,
+  .experience__bullets li p,
+  .experience__bullets li div,
+  .experience__bullets li span.inline-edit-display,
+  ul.simple-list-ul li p,
+  ul.simple-list-ul li div,
+  ul.simple-list-ul li span.inline-edit-display {
+    display: inline !important;
+    margin: 0 !important;
+  }
 }

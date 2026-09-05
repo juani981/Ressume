@@ -5,7 +5,84 @@ import DragHandle from '../Editor/DragHandle';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 
-const BaseItem = ({ item, sectionId, sectionType }) => {
+export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
+  const descriptor = getSectionDescriptor(sectionType);
+  const ItemComponent = descriptor.itemComponent;
+
+  if (sectionType === 'profile_header') {
+    return (
+      <div className="home__data bd-grid cv-block" style={{ position: 'relative', color: 'var(--text-color)' }}>
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        )}
+      </div>
+    );
+  }
+
+  if (sectionType === 'simple_list') {
+    return (
+      <li
+        className="cv-block simple-list-item"
+        style={{
+          display: 'list-item',
+          listStyleType: 'disc',
+          marginBottom: 'calc(var(--item-gap, 6px) / 2)',
+          lineHeight: 1.45,
+          color: 'var(--text-color)',
+          padding: 0
+        }}
+      >
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        )}
+      </li>
+    );
+  }
+
+  const isListItem = descriptor.containerTag === 'ul' || sectionType === 'skills';
+  if (isListItem) {
+    return (
+      <li
+        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' }}
+        className={`cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
+      >
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        )}
+      </li>
+    );
+  }
+
+  if (sectionType === 'about') {
+    return (
+      <div className="profile__description cv-block" style={{ position: 'relative', color: 'var(--text-color)' }}>
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        )}
+      </div>
+    );
+  }
+
+  if (sectionType === 'education') {
+    return (
+      <div className="education__content cv-block" style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}>
+        {ItemComponent && (
+          <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="experience__content cv-block" style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}>
+      {ItemComponent && (
+        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+      )}
+    </div>
+  );
+};
+
+const EditableBaseItem = ({ item, sectionId, sectionType }) => {
   const { updateSectionItem, deleteSectionItem } = useCV();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
@@ -103,7 +180,7 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
       <div
         ref={setNodeRef}
         className="education__content editable-item-container cv-block"
-        style={baseStyle}
+        style={{ ...baseStyle, display: 'flex' }}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}
@@ -119,7 +196,7 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     <div
       ref={setNodeRef}
       className="experience__content editable-item-container cv-block"
-      style={baseStyle}
+      style={{ ...baseStyle, display: 'flex' }}
     >
       <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
       {renderDeleteButton()}
@@ -128,6 +205,13 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
       )}
     </div>
   );
+};
+
+const BaseItem = (props) => {
+  if (props.isPrint) {
+    return <PrintBaseItem {...props} />;
+  }
+  return <EditableBaseItem {...props} />;
 };
 
 export default BaseItem;

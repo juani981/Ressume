@@ -16,7 +16,32 @@ import RichTextToolbar from './RichTextToolbar';
  * - Text alignment persistence (left, center, right, justify)
  * - Connects to global singleton RichTextToolbar (and provides fallback if unmounted)
  */
-const InlineEdit = ({ 
+
+const InlineEditPrintView = ({ 
+  value, 
+  multiline = false, 
+  className = '' 
+}) => {
+  if (!value || String(value).trim() === '') {
+    return null;
+  }
+  const parsed = stripOuterAlignment(value);
+  const alignment = parsed.alignment || 'left';
+  return (
+    <span
+      className={`inline-edit-display ${className}`}
+      style={{
+        display: multiline ? 'block' : 'inline',
+        textAlign: alignment,
+        color: 'inherit',
+        whiteSpace: multiline ? 'pre-wrap' : 'normal'
+      }}
+      dangerouslySetInnerHTML={{ __html: renderRichHTML(parsed.innerHtml || value) }}
+    />
+  );
+};
+
+const InlineEditEditor = ({ 
   value, 
   onSave, 
   multiline = false, 
@@ -460,4 +485,12 @@ const InlineEdit = ({
   );
 };
 
+const InlineEdit = (props) => {
+  if (props.isPrint) {
+    return <InlineEditPrintView {...props} />;
+  }
+  return <InlineEditEditor {...props} />;
+};
+
+export { InlineEditPrintView, InlineEditEditor };
 export default InlineEdit;

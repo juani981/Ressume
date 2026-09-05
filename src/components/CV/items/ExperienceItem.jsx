@@ -83,7 +83,87 @@ const SortableBulletItem = ({
   );
 };
 
-const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
+const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
+  const bullets = item.bullets || [];
+
+  return (
+    <>
+      <div className="experience__time">
+        <span className="experience__rounder"></span>
+        {!isLast && <span className="experience__line"></span>}
+      </div>
+
+      <div className="experience__data bd-grid" style={{ width: '100%' }}>
+        <h3 className="experience__title">
+          <InlineEdit 
+            value={item.title || ''} 
+            isPrint={true}
+          />
+        </h3>
+        <span className="experience__company">
+          <InlineEdit 
+            value={item.date || ''} 
+            isPrint={true}
+          />
+          {(item.subtitle || item.date) && ' | '}
+          <InlineEdit 
+            value={item.subtitle || ''} 
+            isPrint={true}
+          />
+        </span>
+        {item.link && (
+          <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+            <HyperlinkEdit 
+              url={item.link} 
+              text={item.linkText || item.link} 
+              isPrint={true}
+            />
+          </span>
+        )}
+        {item.description && (
+          <p className="experience__description">
+            <InlineEdit 
+              value={item.description} 
+              multiline 
+              isPrint={true}
+            />
+          </p>
+        )}
+
+        {bullets.length > 0 && (
+          <div className="experience__bullets-container">
+            <ul className="experience__bullets" style={{ paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+              {bullets.map((b, idx) => {
+                const bulletText = typeof b === 'string' ? b : (b?.text || '');
+                return (
+                  <li
+                    key={idx}
+                    className="cv-block"
+                    style={{
+                      display: 'list-item',
+                      listStyleType: 'disc',
+                      marginBottom: 'calc(var(--item-gap, 6px) / 2)',
+                      lineHeight: 1.45,
+                      color: 'inherit',
+                      padding: 0
+                    }}
+                  >
+                    <InlineEdit 
+                      value={bulletText} 
+                      isPrint={true}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const bullets = item.bullets || [];
 
   const bulletItems = bullets.map((b, idx) => ({
@@ -220,4 +300,12 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
   );
 };
 
+const ExperienceItem = (props) => {
+  if (props.isPrint) {
+    return <ExperienceItemPrintView {...props} />;
+  }
+  return <ExperienceItemEditView {...props} />;
+};
+
+export { ExperienceItemPrintView, ExperienceItemEditView };
 export default ExperienceItem;

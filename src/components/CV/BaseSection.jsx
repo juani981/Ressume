@@ -10,7 +10,94 @@ import { Lightbulb, MoreHorizontal } from 'lucide-react';
 import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 
-const BaseSection = ({ section }) => {
+export const PrintBaseSection = ({ section }) => {
+  if (!section) return null;
+  const descriptor = getSectionDescriptor(section.type);
+  const items = section.items || [];
+  const isProfile = section.type === 'profile_header';
+
+  const sectionClass = descriptor?.sectionClass || (
+    section.type === 'skills' 
+      ? 'skills' 
+      : section.type === 'education' 
+        ? 'education' 
+        : section.type === 'profile_header' 
+          ? 'home' 
+          : section.type === 'about' 
+            ? 'profile' 
+            : 'experience'
+  );
+
+  return (
+    <section 
+      className={`${sectionClass} section cv-section ${getBulletClasses(section.bulletStyle)}`} 
+      id={section.id}
+      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+    >
+      {!isProfile && section.title && (
+        <h2 className="section-title">
+          <InlineEdit value={section.title || ''} isPrint={true} />
+        </h2>
+      )}
+
+      <div className={isProfile || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}>
+        {section.type === 'simple_list' ? (
+          <ul className="experience__bullets simple-list-ul" style={{ color: 'var(--text-color)', paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+            {items.map((item, index) => (
+              <BaseItem 
+                key={item.id || index} 
+                item={item} 
+                sectionId={section.id} 
+                sectionType={section.type} 
+                isPrint={true} 
+                isLast={index === items.length - 1} 
+              />
+            ))}
+          </ul>
+        ) : section.type === 'skills' ? (
+          <ul className="skills__content bd-grid" style={{ gridTemplateColumns: '1fr', padding: 0, margin: 0, listStyle: 'none' }}>
+            {items.map((item, index) => (
+              <BaseItem 
+                key={item.id || index} 
+                item={item} 
+                sectionId={section.id} 
+                sectionType={section.type} 
+                isPrint={true} 
+                isLast={index === items.length - 1} 
+              />
+            ))}
+          </ul>
+        ) : descriptor?.containerTag === 'ul' ? (
+          <ul className={descriptor.containerClass || ''} style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+            {items.map((item, index) => (
+              <BaseItem 
+                key={item.id || index} 
+                item={item} 
+                sectionId={section.id} 
+                sectionType={section.type} 
+                isPrint={true} 
+                isLast={index === items.length - 1} 
+              />
+            ))}
+          </ul>
+        ) : (
+          items.map((item, index) => (
+            <BaseItem 
+              key={item.id || index} 
+              item={item} 
+              sectionId={section.id} 
+              sectionType={section.type} 
+              isPrint={true} 
+              isLast={index === items.length - 1} 
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+};
+
+const EditableBaseSection = ({ section }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: section.id,
     data: {
@@ -185,6 +272,13 @@ const BaseSection = ({ section }) => {
       )}
     </section>
   );
+};
+
+const BaseSection = (props) => {
+  if (props.isPrint) {
+    return <PrintBaseSection {...props} />;
+  }
+  return <EditableBaseSection {...props} />;
 };
 
 export default BaseSection;
