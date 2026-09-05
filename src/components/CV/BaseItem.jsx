@@ -11,7 +11,12 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
 
   if (sectionType === 'profile_header') {
     return (
-      <div className="home__data bd-grid cv-block" style={{ position: 'relative', color: 'var(--text-color)' }}>
+      <div 
+        className="home__data bd-grid cv-block" 
+        data-item-id={item.id || 'profile_header'} 
+        data-section-id={sectionId}
+        style={{ position: 'relative', color: 'var(--text-color)' }}
+      >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
         )}
@@ -23,6 +28,8 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
     return (
       <li
         className="cv-block simple-list-item"
+        data-item-id={item.id}
+        data-section-id={sectionId}
         style={{
           display: 'list-item',
           listStyleType: 'disc',
@@ -45,6 +52,8 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
       <li
         style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' }}
         className={`cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
+        data-item-id={item.id}
+        data-section-id={sectionId}
       >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
@@ -55,7 +64,12 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
 
   if (sectionType === 'about') {
     return (
-      <div className="profile__description cv-block" style={{ position: 'relative', color: 'var(--text-color)' }}>
+      <div 
+        className="profile__description cv-block" 
+        data-item-id={item.id || 'about'}
+        data-section-id={sectionId}
+        style={{ position: 'relative', color: 'var(--text-color)' }}
+      >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
         )}
@@ -65,7 +79,12 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
 
   if (sectionType === 'education') {
     return (
-      <div className="education__content cv-block" style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}>
+      <div 
+        className="education__content cv-block" 
+        data-item-id={item.id}
+        data-section-id={sectionId}
+        style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}
+      >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
         )}
@@ -74,7 +93,12 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
   }
 
   return (
-    <div className="experience__content cv-block" style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}>
+    <div 
+      className="experience__content cv-block" 
+      data-item-id={item.id}
+      data-section-id={sectionId}
+      style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}
+    >
       {ItemComponent && (
         <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
       )}
@@ -132,6 +156,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
       <div
         ref={setNodeRef}
         className="home__data bd-grid editable-item-container cv-block"
+        data-item-id={item.id || 'profile_header'}
+        data-section-id={sectionId}
         style={baseStyle}
       >
         {ItemComponent && (
@@ -149,6 +175,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         ref={setNodeRef}
         style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', ...baseStyle }}
         className={`editable-item-container cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
+        data-item-id={item.id}
+        data-section-id={sectionId}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}
@@ -164,6 +192,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
       <div
         ref={setNodeRef}
         className="profile__description editable-item-container cv-block"
+        data-item-id={item.id || 'about'}
+        data-section-id={sectionId}
         style={baseStyle}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
@@ -180,6 +210,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
       <div
         ref={setNodeRef}
         className="education__content editable-item-container cv-block"
+        data-item-id={item.id}
+        data-section-id={sectionId}
         style={{ ...baseStyle, display: 'flex' }}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
@@ -196,6 +228,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     <div
       ref={setNodeRef}
       className="experience__content editable-item-container cv-block"
+      data-item-id={item.id}
+      data-section-id={sectionId}
       style={{ ...baseStyle, display: 'flex' }}
     >
       <DragHandle isInner={true} listeners={listeners} attributes={attributes} />

@@ -247,12 +247,83 @@ export const renderSectionHTML = (section) => {
 };
 
 /**
+ * Captures an exact snapshot of the live editor's #area-cv container geometry
+ * and forced page-break element positions.
+ * Guarantees 1:1 identical break locations and zero font shrinkage when passed to the PDF print engine.
+ * @returns {{ width: number, height: number, pageHeightPx: number, brokenElements: Array } | null}
+ */
+export const captureEditorSnapshot = () => {
+  if (typeof document === 'undefined') return null;
+  const areaCv = document.getElementById('area-cv');
+  if (!areaCv) return null;
+
+  const rect = typeof areaCv.getBoundingClientRect === 'function' ? areaCv.getBoundingClientRect() : null;
+  const width = Math.round((rect && rect.width) || areaCv.offsetWidth || 0);
+  const height = Math.round(areaCv.scrollHeight || areaCv.offsetHeight || 0);
+
+  let pageHeightPx = A4_PAGE_HEIGHT_PX;
+  try {
+    const ruler = document.createElement('div');
+    ruler.style.height = '297mm';
+    ruler.style.position = 'absolute';
+    ruler.style.visibility = 'hidden';
+    ruler.style.top = '-9999px';
+    document.body.appendChild(ruler);
+    if (ruler.offsetHeight > 0) {
+      pageHeightPx = ruler.offsetHeight;
+    }
+    ruler.remove();
+  } catch (_) {}
+
+  const brokenElements = [];
+  const brokenNodes = areaCv.querySelectorAll('[data-editor-break-forced="true"]');
+  brokenNodes.forEach((node) => {
+    const isTitle = node.classList.contains('section-title') || node.hasAttribute('data-section-title');
+    const section = node.closest('.cv-section') || node.closest('section');
+    const sectionId = section?.getAttribute('data-section-id') || section?.id || node.getAttribute('data-section-title') || null;
+    const itemId = node.getAttribute('data-item-id') || (!isTitle ? node.id : null);
+    const fold = node.getAttribute('data-editor-break-fold') || '1';
+    const pageNum = parseInt(fold, 10) || 1;
+
+    let relativeTop = 0;
+    try {
+      if (rect && typeof node.getBoundingClientRect === 'function') {
+        const nodeRect = node.getBoundingClientRect();
+        relativeTop = Math.round(nodeRect.top - rect.top);
+      } else {
+        relativeTop = node.offsetTop || 0;
+      }
+    } catch (_) {}
+
+    brokenElements.push({
+      sectionId,
+      itemId: isTitle ? null : itemId,
+      isTitle,
+      fold,
+      pageNum,
+      marginTop: node.style.marginTop || '',
+      relativeTop
+    });
+  });
+
+  return {
+    width: width > 0 ? width : 794,
+    height,
+    pageHeightPx,
+    brokenElements
+  };
+};
+
+/**
  * Generates standalone clean static HTML for printing and PDF rendering.
  * Strips all interactive editor UI artifacts and guarantees 2-page print layout.
  * @param {Object} cvData 
+ * @param {string} lang 
+ * @param {Object|null} customSnapshot 
  * @returns {string} Standalone HTML document string
  */
-export const generateCleanPrintHTML = (cvData, lang = 'es') => {
+export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = undefined) => {
+  const snapshot = customSnapshot !== undefined ? customSnapshot : (typeof document !== 'undefined' ? captureEditorSnapshot() : null);
   const data = cvData || {};
   const layout = data.layout || {};
   const docLang = lang || layout.language || data.activeLanguage || 'es';
@@ -329,10 +400,27 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     --item-gap: ${itemGap}px;
   `.replace(/\s+/g, ' ').trim();
 
+  const containerWidth = snapshot?.width ? `${snapshot.width}px` : null;
+
+  let snapshotBreaksCSS = '';
+  if (snapshot?.brokenElements?.length > 0) {
+    snapshotBreaksCSS = snapshot.brokenElements.map(b => {
+      const selector = b.isTitle
+        ? `[data-section-title="${b.sectionId}"]`
+        : `[data-item-id="${b.itemId}"]`;
+      return `
+        ${selector} {
+          break-before: page !important;
+          page-break-before: always !important;
+        }
+      `;
+    }).join('\n');
+  }
+
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; height: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '100%'}; max-width: ${containerWidth || '100%'}; min-height: 297mm; height: 100%; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
         <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
@@ -343,7 +431,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     `;
   } else {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="width: 100%; max-width: 840px; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
+      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '100%'}; max-width: ${containerWidth || '840px'}; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
         ${sections.map(renderSectionHTML).join('')}
       </div>
     `;
@@ -400,12 +488,12 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       --body-scale: ${bodyScale};
       --list-scale: ${listScale};
       --line-height: ${lineHeight};
-      --h1-font-size: calc(1.45rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.15rem * var(--font-scale, 1));
-      --h3-font-size: calc(0.95rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.88rem * var(--font-scale, 1));
-      --small-font-size: calc(0.82rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.75rem * var(--font-scale, 1));
+      --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+      --h3-font-size: calc(1rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+      --small-font-size: calc(0.875rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
@@ -429,6 +517,9 @@ ${activeBaseStyles}
   </style>
   <style id="cv-print-styles">
 ${activePrintStyles}
+  </style>
+  <style id="cv-snapshot-breaks">
+${snapshotBreaksCSS}
   </style>
 </head>
 <body>
@@ -611,18 +702,20 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
  * triggers browser native print, and cleans up the DOM.
  * @param {Object} cvData 
  */
-export const executeCleanPrint = (cvData, lang = 'es') => {
+export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefined) => {
   return new Promise((resolve) => {
     const dynamicDocumentTitle = getDynamicPdfTitle(cvData);
+    const snapshot = customSnapshot !== undefined ? customSnapshot : captureEditorSnapshot();
 
-    const html = generateCleanPrintHTML(cvData, lang);
+    const html = generateCleanPrintHTML(cvData, lang, snapshot);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
-    iframe.style.width = '794px';
-    iframe.style.minWidth = '794px';
+    const iframeWidth = snapshot?.width ? `${snapshot.width}px` : '794px';
+    iframe.style.width = iframeWidth;
+    iframe.style.minWidth = iframeWidth;
     iframe.style.height = '1123px';
     iframe.style.visibility = 'hidden';
     iframe.style.border = '0';
@@ -695,22 +788,101 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
             } catch (_) {}
           }
 
-          // Execute 2-column per-component pagination control
-          const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
+          if (snapshot && snapshot.brokenElements) {
+            // Apply live editor breaks 1:1 into iframe
+            snapshot.brokenElements.forEach((b) => {
+              let targetEl = null;
+              if (b.isTitle) {
+                targetEl = doc.querySelector(`[data-section-title="${b.sectionId}"]`) ||
+                           doc.querySelector(`[data-section-id="${b.sectionId}"] .section-title`) ||
+                           doc.querySelector(`#${b.sectionId} .section-title`);
+              } else if (b.itemId) {
+                targetEl = doc.querySelector(`[data-item-id="${b.itemId}"]`);
+              }
 
-          const rawHeight = Math.max(
-            doc.body?.scrollHeight || 0,
-            doc.documentElement?.scrollHeight || 0,
-            areaCv?.scrollHeight || 0,
-            pageHeightPx * totalPages
-          );
-          const scale = calculatePrintScale(rawHeight);
-          if (scale < 1.0 && doc.body?.style) {
-            doc.body.style.zoom = scale;
-          }
+              if (targetEl) {
+                targetEl.style.setProperty('break-before', 'page', 'important');
+                targetEl.style.setProperty('page-break-before', 'always', 'important');
+                targetEl.classList.add('force-page-break-before');
+                targetEl.setAttribute('data-page-break-forced', 'true');
+                targetEl.setAttribute('data-page-break-fold', String(b.fold || b.pageNum || 1));
 
-          if (iframe && iframe.style) {
-            iframe.style.height = `${totalPages * pageHeightPx}px`;
+                const pageNum = parseInt(b.fold || b.pageNum, 10) || 1;
+                const foldY = pageNum * pageHeightPx;
+                let top = 0;
+                try {
+                  const elRect = targetEl.getBoundingClientRect();
+                  const areaRect = areaCv.getBoundingClientRect();
+                  top = elRect.top - areaRect.top;
+                } catch (_) {
+                  top = targetEl.offsetTop || b.relativeTop || 0;
+                }
+
+                const pushDistance = Math.max(0, foldY - top);
+                if (pushDistance > 0) {
+                  targetEl.style.setProperty('margin-top', `${pushDistance + 10}px`, 'important');
+                }
+              }
+            });
+
+            const maxFold = snapshot.brokenElements.length > 0
+              ? Math.max(...snapshot.brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
+              : 1;
+            const rawMaxHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0,
+              pageHeightPx * maxFold
+            );
+            const totalPages = Math.max(1, Math.ceil(rawMaxHeight / pageHeightPx));
+            const targetHeightMm = totalPages * 297;
+
+            if (areaCv && areaCv.style) {
+              areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
+              areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            }
+
+            const leftCol = areaCv?.querySelector?.('.resume__left');
+            const rightCol = areaCv?.querySelector?.('.resume__right');
+            if (leftCol && leftCol.style) {
+              leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              leftCol.style.setProperty('height', '100%', 'important');
+              leftCol.style.setProperty('align-self', 'stretch', 'important');
+              leftCol.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+            if (rightCol && rightCol.style) {
+              rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              rightCol.style.setProperty('height', '100%', 'important');
+              rightCol.style.setProperty('align-self', 'stretch', 'important');
+              rightCol.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+
+            // Zero downscaling - Component CSS is sole source of truth!
+            if (doc.body?.style) {
+              doc.body.style.zoom = 1.0;
+            }
+
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            }
+          } else {
+            // Fallback for headless environments without snapshot
+            const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
+
+            const rawHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0,
+              pageHeightPx * totalPages
+            );
+            const scale = calculatePrintScale(rawHeight, Math.max(2, totalPages));
+            if (scale < 1.0 && doc.body?.style) {
+              doc.body.style.zoom = scale;
+            }
+
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            }
           }
 
           if (iframe.contentWindow && typeof iframe.contentWindow.addEventListener === 'function') {
@@ -759,8 +931,9 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
  * Generates and triggers clean native PDF print dialog via executeCleanPrint.
  * @param {Object} cvData 
  * @param {string} lang 
+ * @param {Object|null} customSnapshot 
  */
-export const downloadPDF = async (cvData, lang = 'es') => {
-  return executeCleanPrint(cvData, lang);
+export const downloadPDF = async (cvData, lang = 'es', customSnapshot = undefined) => {
+  return executeCleanPrint(cvData, lang, customSnapshot);
 };
 

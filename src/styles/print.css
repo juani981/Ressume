@@ -19,7 +19,6 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   font-family: var(--body-font) !important;
-  font-size: var(--normal-font-size) !important;
   color: var(--text-color) !important;
   background-color: #ffffff !important;
   line-height: var(--line-height, 1.45) !important;
@@ -84,7 +83,8 @@ li.cv-block,
   -webkit-column-break-inside: avoid !important;
 }
 
-.force-page-break-before {
+.force-page-break-before,
+[data-editor-break-forced="true"] {
   break-before: page !important;
   page-break-before: always !important;
 }
@@ -97,7 +97,7 @@ li.cv-block,
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .2rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--mb-3, 1.5rem);
   break-after: avoid !important;
   page-break-after: avoid !important;
   break-inside: avoid !important;
@@ -112,7 +112,7 @@ li.cv-block,
   letter-spacing: 0.12rem !important;
   text-align: left !important;
   font-weight: 700 !important;
-  margin-bottom: 0.6rem !important;
+  margin-bottom: var(--mb-3, 1.5rem) !important;
 }
 
 /* ATS Paper Container in Print: suppress card shadow & border on physical paper */
@@ -253,7 +253,7 @@ ul.simple-list-ul li span.inline-edit-display {
     letter-spacing: 0.12rem !important;
     text-align: left !important;
     font-weight: 700 !important;
-    margin-bottom: 0.6rem !important;
+    margin-bottom: var(--mb-3, 1.5rem) !important;
   }
   #area-cv.resume--ats-mode,
   .resume--ats-mode {

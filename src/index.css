@@ -4,7 +4,7 @@
 /*===== VARIABLES CSS =====*/
 :root {
   --header-height: 3rem;
-  
+
   /*========== Colors ==========*/
   --title-color: #0f172a;
   --text-color: #334155;
@@ -46,13 +46,16 @@
 }
 
 /*========== BASE ==========*/
-*, ::before, ::after {
+*,
+::before,
+::after {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
 }
+
 body {
   margin: 0;
   padding: 0;
@@ -171,7 +174,16 @@ body {
 #area-cv {
   font-family: var(--body-font);
   line-height: var(--line-height);
-
+  width: 210mm;
+  max-width: 100%;
+  margin: 0 auto;
+  color: var(--text-color);
+  box-sizing: border-box;
+  position: relative;
+  box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
+  border-radius: 4px;
+  overflow-wrap: break-word;
+  word-break: break-word;
   /* Scoped typography re-declaration to guarantee immediate cascading when inline props update */
   --h1-font-size: calc(1.5rem * var(--font-scale, 1));
   --h2-font-size: calc(1.25rem * var(--font-scale, 1));
@@ -193,11 +205,47 @@ body {
   --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
 }
 
-h1, h2, h3, ul, p {
+#area-cv.bd-grid {
+  display: grid;
+  padding: 0 !important;
+  gap: 0 !important;
+  /* CRÍTICO: 0 padding exterior para que el fondo izquierdo toque el borde y 0 gap para evitar desbordes */
+  grid-template-columns: var(--grid-template-columns, 1fr 2fr);
+  align-items: stretch;
+  background: linear-gradient(to right,
+      var(--left-bg, var(--container-color-alt)) 0%,
+      var(--left-bg, var(--container-color-alt)) var(--left-col-percent, 33%),
+      var(--right-bg, #ffffff) var(--left-col-percent, 33%),
+      var(--right-bg, #ffffff) 100%);
+}
+
+#area-cv.bd-grid .resume__left,
+#area-cv.bd-grid .resume__right {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Modo 1 Columna (ATS) */
+#area-cv.resume__single-column {
+  display: block;
+  padding: var(--page-padding, 24px);
+  /* Aquí sí aplica el padding de hoja entera */
+  background: #ffffff;
+}
+
+
+h1,
+h2,
+h3,
+ul,
+p {
   margin: 0;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: var(--title-color);
   font-weight: var(--font-medium);
 }
@@ -293,7 +341,7 @@ img {
   left: 0;
   z-index: var(--z-fixed);
   background-color: var(--body-color);
-  box-shadow: 0 -1px 4px rgba(0,0,0,.1);
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, .1);
   transition: .3s;
 }
 
@@ -313,14 +361,15 @@ img {
     width: 100%;
     padding: 2rem 1.5rem;
     background-color: var(--body-color);
-    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
     border-radius: 1rem 1rem 0 0;
     z-index: var(--z-fixed);
     transition: .3s;
   }
 }
 
-.nav__logo, .nav__toggle {
+.nav__logo,
+.nav__toggle {
   color: var(--title-color);
   font-weight: var(--font-medium);
 }
@@ -739,7 +788,7 @@ img {
   padding: 1px 3px;
   background: rgba(255, 255, 255, 0.92);
   border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .item-drag-handle {
@@ -749,11 +798,11 @@ img {
   padding: 1px 2px;
   background: rgba(255, 255, 255, 0.85);
   border-radius: 3px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-.editable-section-container:hover > .section-drag-handle,
-.editable-item-container:hover > .item-drag-handle {
+.editable-section-container:hover>.section-drag-handle,
+.editable-item-container:hover>.item-drag-handle {
   opacity: 0.9;
 }
 
@@ -787,9 +836,11 @@ img {
   border-radius: 4px;
   padding: 2px 4px;
 }
+
 .inline-input:hover {
   border-color: rgba(56, 116, 255, 0.4);
 }
+
 .inline-input:focus {
   border-color: #3874ff;
   outline: none;
@@ -818,6 +869,7 @@ img {
   outline-color: rgba(56, 116, 255, 0.25);
   background-color: rgba(56, 116, 255, 0.02);
 }
+
 .editable-item-container:hover {
   outline-color: rgba(56, 116, 255, 0.35);
   background-color: rgba(0, 0, 0, 0.03);
@@ -896,7 +948,7 @@ img {
   right: 0.35rem;
 }
 
-.editable-section-container:hover > .section-del-btn {
+.editable-section-container:hover>.section-del-btn {
   opacity: 0.92;
   visibility: visible;
   pointer-events: auto;
@@ -927,7 +979,7 @@ img {
 }
 
 /* Hover: Make all buttons in the group float into view together */
-.editable-section-container:hover > .section-action-buttons,
+.editable-section-container:hover>.section-action-buttons,
 .editable-section-container:hover .section-action-buttons {
   opacity: 1;
   visibility: visible;
@@ -972,11 +1024,13 @@ img {
   border: 1px solid rgba(234, 179, 8, 0.35);
   box-shadow: none;
 }
+
 .section-action-buttons .section-tips-toggle-btn:hover {
   transform: scale(1.15);
   background: rgba(234, 179, 8, 0.25);
   box-shadow: 0 0 8px rgba(234, 179, 8, 0.45);
 }
+
 .section-action-buttons .section-tips-toggle-btn.active {
   background: #eab308 !important;
   color: #ffffff !important;
@@ -991,11 +1045,13 @@ img {
   border: 1px solid rgba(15, 23, 42, 0.15);
   box-shadow: none;
 }
+
 .section-action-buttons .section-bullet-style-btn:hover {
   transform: scale(1.15);
   background: rgba(15, 23, 42, 0.16) !important;
   box-shadow: 0 0 6px rgba(15, 23, 42, 0.25);
 }
+
 .section-action-buttons .section-bullet-style-btn.active {
   background: #0f172a !important;
   color: #ffffff !important;
@@ -1010,6 +1066,7 @@ img {
   border: none;
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
 }
+
 .section-action-buttons .section-del-btn:hover {
   transform: scale(1.15);
   background: #dc2626 !important;
@@ -1056,7 +1113,7 @@ img {
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
 }
 
-.editable-section-container:hover > .section-tips-toggle-btn {
+.editable-section-container:hover>.section-tips-toggle-btn {
   opacity: 0.95;
   visibility: visible;
   pointer-events: auto;
@@ -1073,6 +1130,7 @@ img {
     opacity: 0;
     transform: translateY(12px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1083,6 +1141,7 @@ img {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -1095,7 +1154,7 @@ img {
   height: 20px;
 }
 
-.editable-item-container:hover > .item-del-btn {
+.editable-item-container:hover>.item-del-btn {
   opacity: 0.92;
   visibility: visible;
   pointer-events: auto;
@@ -1315,7 +1374,8 @@ body {
 }
 
 body.ats-mode-active {
-  background-color: #0f172a !important; /* Noticeably darker slate background for ATS mode */
+  background-color: #0f172a !important;
+  /* Noticeably darker slate background for ATS mode */
 }
 
 .resume--ats-mode {
@@ -1401,8 +1461,13 @@ body.ats-mode-active {
 }
 
 @keyframes versionModalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .version-modal-dialog {
@@ -1414,6 +1479,7 @@ body.ats-mode-active {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -1497,7 +1563,7 @@ body.ats-mode-active {
   background-color: #ef4444;
   color: #ffffff;
   transform: scale(1.1);
-} 
+}
 
 .add-contact-btn:hover {
   background-color: rgba(56, 116, 255, 0.12) !important;
@@ -1582,6 +1648,7 @@ body.ats-mode-active {
 .resume.bd-grid {
   min-height: 297mm;
   align-items: stretch;
+  gap: 0 !important;
 }
 
 .resume.bd-grid .resume__left {
@@ -1590,6 +1657,9 @@ body.ats-mode-active {
   align-self: stretch !important;
   display: flex;
   flex-direction: column;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .resume.bd-grid .resume__right {
@@ -1598,6 +1668,9 @@ body.ats-mode-active {
   align-self: stretch !important;
   display: flex;
   flex-direction: column;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* ==========================================================
@@ -1612,6 +1685,7 @@ body.ats-mode-active {
   width: 12px !important;
   height: 12px !important;
 }
+
 .bullet-size-normal .experience__line,
 .bullet-size-normal .education__line {
   transform: translate(5px, 0) !important;
@@ -1622,6 +1696,7 @@ body.ats-mode-active {
   width: 18px !important;
   height: 18px !important;
 }
+
 .bullet-size-large .experience__line,
 .bullet-size-large .education__line {
   transform: translate(8px, 0) !important;
@@ -1666,9 +1741,67 @@ body.ats-mode-active {
 }
 
 /* ==========================================================
+   A4 PAGE FOLD GUIDE (Visual Separation of Pages in Live Editor)
+   ========================================================== */
+.a4-page-fold-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 35;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--body-color, #e2e8f0);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 -2px 4px rgba(0, 0, 0, 0.08);
+}
+
+body.ats-mode-active .a4-page-fold-guide {
+  background-color: #0f172a !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 -2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.a4-page-fold-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed rgba(100, 116, 139, 0.35);
+}
+
+.a4-page-fold-badge {
+  position: relative;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  backdrop-filter: blur(4px);
+}
+
+body.ats-mode-active .a4-page-fold-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+/* ==========================================================
    PRINT STYLES (For Native Browser Printing & Clean PDFs)
    ========================================================== */
 @media print {
+  .a4-page-fold-guide {
+    display: none !important;
+  }
+
+  [data-editor-break-forced="true"] {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
   /* Ocultar toda la interfaz interactiva de edición (18 selectores interactivos + controles de UI) */
   .l-navbar,
   .action-menu-btn-wrap,
@@ -1741,7 +1874,7 @@ body.ats-mode-active {
   /* Formato A4 y márgenes de impresión estándar */
   @page {
     size: A4;
-    margin: 0; 
+    margin: 0;
   }
 
   body {
@@ -1749,8 +1882,10 @@ body.ats-mode-active {
     margin: 0 !important;
     padding: 0 !important;
   }
-  
-  #root, html, body {
+
+  #root,
+  html,
+  body {
     height: auto !important;
     overflow: visible !important;
   }
@@ -1787,7 +1922,7 @@ body.ats-mode-active {
   .cv-section,
   .cv-block,
   .section,
-  .experience__content, 
+  .experience__content,
   .education__content,
   .skills__name,
   .profile__description,
@@ -1814,8 +1949,12 @@ body.ats-mode-active {
     break-before: page !important;
     page-break-before: always !important;
   }
-  
-  p, h1, h2, h3, li {
+
+  p,
+  h1,
+  h2,
+  h3,
+  li {
     orphans: 3;
     widows: 3;
   }

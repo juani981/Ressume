@@ -226,12 +226,12 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
       expect(html).toContain("--body-font: 'JetBrains Mono', monospace;");
       expect(html).toContain('--font-scale: 1.15;');
       expect(html).toContain('--line-height: 1.65;');
-      expect(html).toContain('--h1-font-size: calc(1.45rem * var(--font-scale, 1));');
-      expect(html).toContain('--h2-font-size: calc(1.15rem * var(--font-scale, 1));');
-      expect(html).toContain('--h3-font-size: calc(0.95rem * var(--font-scale, 1));');
-      expect(html).toContain('--normal-font-size: calc(0.88rem * var(--font-scale, 1));');
-      expect(html).toContain('--small-font-size: calc(0.82rem * var(--font-scale, 1));');
-      expect(html).toContain('--smaller-font-size: calc(0.75rem * var(--font-scale, 1));');
+      expect(html).toContain('--h1-font-size: calc(1.5rem * var(--font-scale, 1));');
+      expect(html).toContain('--h2-font-size: calc(1.25rem * var(--font-scale, 1));');
+      expect(html).toContain('--h3-font-size: calc(1rem * var(--font-scale, 1));');
+      expect(html).toContain('--normal-font-size: calc(0.938rem * var(--font-scale, 1));');
+      expect(html).toContain('--small-font-size: calc(0.875rem * var(--font-scale, 1));');
+      expect(html).toContain('--smaller-font-size: calc(0.813rem * var(--font-scale, 1));');
     });
 
     it('EMP-PDF-2: generateCleanPrintHTML contains exactly 0 editor UI artifacts and interactive buttons', () => {

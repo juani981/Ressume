@@ -34,10 +34,11 @@ export const PrintBaseSection = ({ section }) => {
     <section 
       className={`${sectionClass} section cv-section${bulletClasses}`} 
       id={section.id}
+      data-section-id={section.id}
       style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
     >
       {!isProfile && section.title && (
-        <h2 className="section-title">
+        <h2 className="section-title" data-section-title={section.id}>
           <InlineEdit value={section.title || ''} isPrint={true} />
         </h2>
       )}
@@ -153,6 +154,7 @@ const EditableBaseSection = ({ section }) => {
       style={style} 
       className={`${sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
       id={section.id}
+      data-section-id={section.id}
     >
       <DragHandle listeners={listeners} attributes={attributes} />
       
@@ -214,7 +216,7 @@ const EditableBaseSection = ({ section }) => {
 
       {/* Section Title */}
       {section.type !== 'profile_header' && (
-        <h2 className="section-title">
+        <h2 className="section-title" data-section-title={section.id}>
           <InlineEdit 
             value={section.title || ''} 
             onSave={(val) => updateSectionTitle(section.id, val)} 
