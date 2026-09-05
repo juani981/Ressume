@@ -268,6 +268,11 @@ export const CVProvider = ({ children }) => {
     if (!sanitized) {
       throw new Error('Invalid snapshot structure');
     }
+    if (snapshot && typeof snapshot === 'object') {
+      if (snapshot.versionName !== undefined) sanitized.versionName = snapshot.versionName;
+      if (snapshot.activeVersionName !== undefined) sanitized.activeVersionName = snapshot.activeVersionName;
+      if (snapshot.activeVersionId !== undefined) sanitized.activeVersionId = snapshot.activeVersionId;
+    }
     if (clearHistory) {
       setPast([]);
       setFuture([]);
@@ -280,7 +285,12 @@ export const CVProvider = ({ children }) => {
 
   // Reset entire CV back to original placeholder state
   const resetToDefault = useCallback(() => {
-    applyStateWithHistory(() => defaultSchema);
+    applyStateWithHistory(() => ({
+      ...defaultSchema,
+      versionName: null,
+      activeVersionName: null,
+      activeVersionId: null
+    }));
   }, [applyStateWithHistory]);
 
   // Restore the contact section if it was accidentally cleared or removed

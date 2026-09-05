@@ -36,6 +36,75 @@ export const escapeHTML = (str) => {
 };
 
 /**
+ * Sanitizes a string for safe usage as a document/file name across OSs.
+ * Removes/replaces forbidden characters: < > : " / \ | ? * and control chars with '_'.
+ * Normalizes multiple whitespace into single spaces and trims leading/trailing spaces.
+ * @param {string} name 
+ * @returns {string}
+ */
+export const sanitizeFileName = (name) => {
+  if (!name || typeof name !== 'string') return '';
+  return name
+    .replace(/[<>:"/\\|?*\x00-\x1F]+/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^\.+|\.+$/g, '');
+};
+
+/**
+ * Generates standardized PDF filename / document title based on active version or defaults.
+ * Format:
+ * 1. If a saved version name exists: uses sanitized version name.
+ * 2. If not a saved version: by default `CV_${profileName}_${profileSubtitle}`
+ *    (or fallback variants if profile name/subtitle are partially missing).
+ *
+ * @param {Object} cvData 
+ * @returns {string} Safe document title / filename
+ */
+export const getDynamicPdfTitle = (cvData) => {
+  if (!cvData || typeof cvData !== 'object') return 'CV';
+
+  // 1. Check if a saved version name is loaded or active
+  const candidateVersionName = (
+    (typeof cvData.versionName === 'string' && cvData.versionName.trim()) ||
+    (typeof cvData.activeVersionName === 'string' && cvData.activeVersionName.trim()) ||
+    (typeof cvData.layout?.versionName === 'string' && cvData.layout?.versionName.trim()) ||
+    ''
+  );
+
+  if (candidateVersionName) {
+    const sanitized = sanitizeFileName(candidateVersionName);
+    if (sanitized) return sanitized;
+  }
+
+  // 2. Default: "CV_${profileName}_${profileSubtitle}"
+  const rawProfileName = (
+    cvData.profile?.name ||
+    cvData.sections?.find(s => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.name ||
+    ''
+  );
+  const rawProfileSubtitle = (
+    cvData.profile?.subtitle ||
+    cvData.sections?.find(s => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.subtitle ||
+    ''
+  );
+
+  const profileName = stripHtml(rawProfileName).trim();
+  const profileSubtitle = stripHtml(rawProfileSubtitle).trim();
+
+  let defaultTitle = 'CV';
+  if (profileName && profileSubtitle) {
+    defaultTitle = `CV_${profileName}_${profileSubtitle}`;
+  } else if (profileName) {
+    defaultTitle = `CV_${profileName}`;
+  } else if (profileSubtitle) {
+    defaultTitle = `CV_${profileSubtitle}`;
+  }
+
+  return sanitizeFileName(defaultTitle) || 'CV';
+};
+
+/**
  * Computes adaptive print scale and target page count without hardcoded limits.
  * Optimizes for 1-page and 2-page documents, and gracefully supports 3+ pages.
  * @param {number} renderedHeight 
@@ -280,11 +349,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     `;
   }
 
-  const profileName = stripHtml(data.profile?.name || '').trim();
-  const profileSubtitle = stripHtml(data.profile?.subtitle || '').trim();
-  const dynamicDocumentTitle = profileName && profileSubtitle
-    ? `${profileName} - ${profileSubtitle}`
-    : (profileName || profileSubtitle || 'Curriculum Vitae');
+  const dynamicDocumentTitle = getDynamicPdfTitle(data);
 
   let activeBaseStyles = baseStyles || '';
   let activePrintStyles = printStyles || '';
@@ -548,11 +613,7 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
  */
 export const executeCleanPrint = (cvData, lang = 'es') => {
   return new Promise((resolve) => {
-    const profileName = stripHtml(cvData?.profile?.name || '').trim();
-    const profileSubtitle = stripHtml(cvData?.profile?.subtitle || '').trim();
-    const dynamicDocumentTitle = profileName && profileSubtitle
-      ? `${profileName} - ${profileSubtitle}`
-      : (profileName || profileSubtitle || 'Curriculum Vitae');
+    const dynamicDocumentTitle = getDynamicPdfTitle(cvData);
 
     const html = generateCleanPrintHTML(cvData, lang);
 

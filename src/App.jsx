@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-
-import { useJoyride } from 'react-joyride';
+import { Joyride } from 'react-joyride';
+import { CustomTooltip } from './components/CustomTooltip';
 
 import ActionMenu from './components/Editor/ActionMenu';
 import LayoutModeToggle from './components/Editor/LayoutModeToggle';
@@ -354,42 +354,50 @@ const steps = [
   { content: 'Gestioná tus versiones para tener múltiples idiomas, enfoques, o diseños', target: '#versiones-item' },
 ];
 
-  const { controls, on, Tour } = useJoyride({
-    continuous: true,
-    steps,
-  });
-  useEffect(() => {
-    return on('tour:end', () => {
-      console.log('Tour finished!');
-    });
-  }, [on]);
+  const [runTour, setRunTour] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
     if (typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || process.env?.VITEST)) return;
     try {
-      const navigationEntries = typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function'
-        ? performance.getEntriesByType('navigation') 
-        : [];
-
-      if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
-        localStorage.removeItem('hasSeenTour');
-      }
-
-      const hasSeenTour = localStorage.getItem('hasSeenTour');
-      if (!hasSeenTour && controls?.start) {
-        controls.start();
-        localStorage.setItem('hasSeenTour', 'true');
+      const hasSeenTour = localStorage.getItem('skip_onboarding_tour');
+      if (!hasSeenTour) {
+        setRunTour(true);
       }
     } catch (e) {
       // safe fallback for test/SSR environments
     }
-  }, [controls]);
+  }, []);
+
+  // Callback para guardar en localStorage cuando el usuario termine o salte el tour
+  const handleJoyrideCallback = (data) => {
+    const { status, type } = data || {};
+
+    if (status === 'finished' || status === 'skipped' || type === 'tour:end') {
+      if (dontShowAgain || localStorage.getItem('skip_onboarding_tour') === 'true') {
+        localStorage.setItem('skip_onboarding_tour', 'true');
+      }
+      setRunTour(false);
+    }
+  };
 
   return (
     <>
-      <button hidden onClick={() => controls?.start?.()}>Start Tour</button>
-      {Tour}
+      <Joyride
+        run={runTour}
+        steps={steps}
+        continuous={true}
+        onEvent={handleJoyrideCallback}
+        callback={handleJoyrideCallback}
+        tooltipComponent={(props) => (
+          <CustomTooltip 
+            {...props} 
+            dontShowAgain={dontShowAgain} 
+            setDontShowAgain={setDontShowAgain} 
+          />
+        )}
+      />
       <ActionMenu />
       
       <DndContext 

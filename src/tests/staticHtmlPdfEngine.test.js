@@ -215,7 +215,8 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
       }
     });
 
-    it('T2.7: Sets dynamic title in format "Nombre - Subtitulo" for default PDF naming', () => {
+    it('T2.7: Sets standardized title: version name if saved, or CV_${profileName}_${profileSubtitle} by default', () => {
+      // Case 1: Unsaved / default format CV_${profileName}_${profileSubtitle}
       const cvWithNameAndSubtitle = {
         ...sampleCVData,
         profile: {
@@ -225,7 +226,15 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
       };
 
       const html = staticPdfEngine.generateCleanPrintHTML(cvWithNameAndSubtitle);
-      expect(html).toContain('<title>Jane Doe - Full Stack Engineer</title>');
+      expect(html).toContain('<title>CV_Jane Doe_Full Stack Engineer</title>');
+
+      // Case 2: Saved version loaded -> uses version name
+      const cvWithSavedVersion = {
+        ...cvWithNameAndSubtitle,
+        versionName: 'CV Tech Lead 2026'
+      };
+      const htmlVersion = staticPdfEngine.generateCleanPrintHTML(cvWithSavedVersion);
+      expect(htmlVersion).toContain('<title>CV Tech Lead 2026</title>');
     });
 
     it('T2.8: Guarantees min-height: 297mm (full A4 sheet) for both 1-column and 2-column print layouts', () => {
