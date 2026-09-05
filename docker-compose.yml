@@ -1,0 +1,12 @@
+services:
+  vite-app:
+    build: .
+    container_name: ressume_vite
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"

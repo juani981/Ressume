@@ -1,0 +1,402 @@
+[
+  {
+    "id": "tech_001",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Quantify Impact",
+    "suggestion_body": "Instead of just stating what you did, quantify the impact. For example, 'Reduced API response time by 20%' or 'Scaled system to handle 10k concurrent users'.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_002",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Use the STAR Method",
+    "suggestion_body": "Structure your bullet points using the STAR method: Situation, Task, Action, Result. Start with a strong action verb.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_003",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Missing GitHub/GitLab Link",
+    "suggestion_body": "Hiring managers look for code samples. Make sure to include a link to your GitHub, GitLab, or Bitbucket profile.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_004",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Categorize Skills",
+    "suggestion_body": "Group your skills into categories like 'Languages', 'Frameworks', 'Databases', and 'DevOps Tools' for better readability.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_005",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Remove Skill Rating Bars",
+    "suggestion_body": "Avoid rating your skills (e.g., 4/5 stars or 'Expert'). Instead, let your experience section demonstrate your proficiency level.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_006",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Include Tech Stack per Project",
+    "suggestion_body": "Clearly list the primary languages and frameworks used for each project (e.g., 'React, Node.js, MongoDB').",
+    "severity": "info"
+  },
+  {
+    "id": "tech_007",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mention CI/CD and DevOps",
+    "suggestion_body": "Highlight experience with CI/CD pipelines, Docker, Kubernetes, or cloud platforms like AWS/GCP to show you understand deployment.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_008",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Provide Live Demo Links",
+    "suggestion_body": "If your project is hosted, provide a live demo URL alongside the repository link.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_009",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Highlight Agile/Scrum Experience",
+    "suggestion_body": "Mention your participation in Agile/Scrum ceremonies (sprints, standups) to show you fit into modern engineering workflows.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_010",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Don't Mix Frameworks and Languages",
+    "suggestion_body": "Keep programming languages separate from frameworks and libraries to avoid confusion (e.g., separate JavaScript and React).",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_011",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Highlight Testing Practices",
+    "suggestion_body": "Mention experience with unit testing, integration testing, TDD, or specific testing frameworks (e.g., Jest, JUnit, PyTest).",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_012",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Emphasize Code Quality",
+    "suggestion_body": "Include keywords related to code quality, such as code reviews, SOLID principles, linting, or SonarQube.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_013",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Include Version Control",
+    "suggestion_body": "Ensure Git is explicitly mentioned in your skills section. It is a fundamental requirement for almost all dev roles.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_014",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Explain the 'Why'",
+    "suggestion_body": "Briefly explain why you built the project or the specific problem it solves, not just the technical 'how'.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_015",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mentorship and Leadership",
+    "suggestion_body": "If you mentored junior developers, led a squad, or onboarded new hires, explicitly mention it. Soft skills multiply tech skills.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_016",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Security Best Practices",
+    "suggestion_body": "Mention your focus on security, such as mitigating OWASP top 10 vulnerabilities, implementing OAuth, or handling PII securely.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_017",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Keep Tech Relevant",
+    "suggestion_body": "Remove outdated technologies (e.g., Flash, SVN, older CMS platforms) unless explicitly required for the target role.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_018",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Database Optimization",
+    "suggestion_body": "Highlight tasks involving database indexing, query optimization, or migrating between SQL/NoSQL to show deep data understanding.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_019",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Showcase Architecture",
+    "suggestion_body": "Mention the architectural patterns used in your projects (e.g., Microservices, Event-Driven, MVC, Clean Architecture).",
+    "severity": "info"
+  },
+  {
+    "id": "tech_020",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Link to Publications/Talks",
+    "suggestion_body": "If you have given talks or written technical articles (Medium, Dev.to), include links to establish authority.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_021",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "API Development",
+    "suggestion_body": "Specify the types of APIs you have built or integrated with (RESTful, GraphQL, gRPC).",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_022",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Cross-Functional Collaboration",
+    "suggestion_body": "Mention working directly with PMs, Designers, or QA to demonstrate your ability to function in a diverse product team.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_023",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Include Cloud Platforms",
+    "suggestion_body": "Add cloud platforms (AWS, Azure, GCP) to your skills if you have experience with them, as they are highly searched keywords.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_024",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Open Source Contributions",
+    "suggestion_body": "If you've contributed to open source, mention the specific repositories and the impact of your PRs.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_025",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mention the Trade-offs",
+    "suggestion_body": "In project descriptions, briefly mentioning a technical trade-off you navigated shows senior-level engineering maturity.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_026",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Production Support & On-Call",
+    "suggestion_body": "Mention experience with monitoring tools (Datadog, New Relic) and handling on-call rotations or resolving production incidents.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_027",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Order by Proficiency",
+    "suggestion_body": "List the technologies you are most proficient with first within each category. ATS systems and recruiters scan left-to-right.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_028",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Focus on the 'I', not just 'We'",
+    "suggestion_body": "While teamwork is great, ensure your bullet points clearly state your specific individual contribution to the team's success.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_029",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Don't List Basic Software",
+    "suggestion_body": "Avoid listing Microsoft Office, Windows, or macOS as skills unless applying for IT Support. Focus on developer tools.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_030",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Automation",
+    "suggestion_body": "Highlight any manual processes you automated via scripts (Python, Bash) to show a proactive engineering mindset.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_031",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Third-party Integrations",
+    "suggestion_body": "Mention significant third-party APIs you integrated (e.g., Stripe, Twilio, OAuth) as this is highly relevant to modern web dev.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_032",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Performance Optimization",
+    "suggestion_body": "Detail how you improved system performance, reduced memory leaks, or optimized frontend bundle sizes.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_033",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Avoid 'Familiar with'",
+    "suggestion_body": "Instead of saying 'Familiar with Python', just list 'Python'. If you aren't comfortable being interviewed on it, leave it off.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_034",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Code Refactoring",
+    "suggestion_body": "Highlight instances where you refactored legacy code to improve maintainability or reduce technical debt.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_035",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Operating Systems",
+    "suggestion_body": "List Linux/Unix if you are comfortable with the command line and server administration, as it's a huge plus for backend/DevOps.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_036",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Start with Strong Verbs",
+    "suggestion_body": "Begin bullets with action verbs like Architected, Engineered, Developed, Deployed, or Spearheaded instead of 'Worked on'.",
+    "severity": "critical"
+  },
+  {
+    "id": "tech_037",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Avoid Generic Project Names",
+    "suggestion_body": "Instead of 'To-Do App', call it 'Task Management Dashboard'. It sounds more professional and impactful.",
+    "severity": "warning"
+  },
+  {
+    "id": "tech_038",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Data Migration",
+    "suggestion_body": "If you handled zero-downtime data migrations or schema updates at scale, feature this prominently.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_039",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_add_skill",
+    "suggestion_title": "Specify Framework Versions",
+    "suggestion_body": "If you have deep expertise in a major transition (e.g., Angular 14 vs AngularJS, React Hooks, Vue 3), specify it.",
+    "severity": "info"
+  },
+  {
+    "id": "tech_040",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "url_scan",
+    "suggestion_title": "Check Links",
+    "suggestion_body": "Ensure all GitHub, portfolio, and demo links are active and not returning 404 errors.",
+    "severity": "critical"
+  }
+]

@@ -1,0 +1,11 @@
+--- a/src/utils/staticHtmlPdfEngine.js
++++ b/src/utils/staticHtmlPdfEngine.js
+@@ -76,7 +76,7 @@ const getDynamicTextColors = (bgHex) => {
+ /**
+  * Renders an item to clean static HTML
+  */
+-const renderItemHTML = (item, sectionType) => {
++const renderItemHTML = (item, sectionType, isLast = false) => {
+   if (!item) return '';
+ 
+   if (sectionType === 'profile_header') {
