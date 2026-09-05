@@ -413,6 +413,7 @@ const steps = [
           style={is2Col 
             ? { 
                 display: 'grid', 
+                gap: 0,
                 gridTemplateColumns, 
                 position: 'relative', 
                 padding: '0', 

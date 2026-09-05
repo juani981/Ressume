@@ -16,7 +16,6 @@ import { renderRichHTML, stripHtml } from './richTextEngine';
 import { normalizeItemContacts, getContactConfig } from './contactTypes';
 import { getBulletClasses } from './bulletStyles';
 import { getSectionDescriptor } from '../registry/sectionRegistry';
-import { baseItemHTML } from '../registry/itemFormatters';
 import { PrintBaseSection } from '../components/CV/BaseSection';
 import { PrintBaseItem } from '../components/CV/BaseItem';
 import baseStyles from '../index.css?raw';
@@ -154,14 +153,10 @@ const getDynamicTextColors = (hexcolor) => {
 };
 
 /**
- * Renders an item to clean static HTML via real React PrintBaseItem
+ * Renders an item to clean static HTML via real React PrintBaseItem (Single Source of Truth)
  */
 export const renderItemHTML = (item, sectionType, isLast = false) => {
   if (!item) return '';
-  const descriptor = getSectionDescriptor(sectionType);
-  if (descriptor && typeof descriptor.renderHTML === 'function' && descriptor.renderHTML !== baseItemHTML) {
-    return descriptor.renderHTML(item, isLast);
-  }
   return renderToStaticMarkup(
     React.createElement(PrintBaseItem, {
       item,

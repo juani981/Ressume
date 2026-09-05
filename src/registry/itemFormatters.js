@@ -247,6 +247,16 @@ export const simpleListPlainText = (item) => {
   return `* ${stripHtml(item.text || '')}`;
 };
 
+/* ==========================================================================
+ * 4. [DEPRECATED / DEREFERENCED] LEGACY CLEAN HTML FORMATTERS (Variant 3)
+ *
+ * NOTE: These string-based HTML generators are deprecated and dereferenced.
+ * The Single Source of Truth for CV visual structure and print rendering is now
+ * unified in the React component tree (PrintBaseItem / PrintBaseSection in src/components/CV/)
+ * with styles governed by src/index.css (?raw) and src/styles/print.css (?raw).
+ *
+ * Kept commented below for historical reference only.
+ * ==========================================================================
 // ==========================================
 // 4. CLEAN HTML FORMATTERS (Variant 3 - PDF & Print)
 // ==========================================
@@ -425,7 +435,7 @@ export const referencesHTML = (item) => {
 
 /**
  * Universal Base Item HTML Formatter (Fallback)
- */
+ * /
 export const baseItemHTML = (item, isLast = false) => {
   if (!item) return '';
   const rounderColor = 'var(--circle-color, var(--text-color-light))';
@@ -457,3 +467,5 @@ export const baseItemHTML = (item, isLast = false) => {
     </div>
   `;
 };
+
+*/
