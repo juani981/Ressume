@@ -17,15 +17,18 @@ import { MoveVertical, Trash2, Check } from 'lucide-react';
  * In print / PDF:
  *   - Renders pure, pixel-perfect vertical whitespace with zero editor controls or borders.
  */
-export const PrintSpacerBlock = ({ section }) => {
-  const height = Number(section?.height) || Number(section?.items?.[0]?.height) || 40;
-  const isBlack = section?.backgroundColor === '#000000' || section?.backgroundColor === 'black';
+export const PrintSpacerBlock = ({ section, height: propHeight, isBlack: propIsBlack, id: propId }) => {
+  const height = propHeight ?? (Number(section?.height) || Number(section?.items?.[0]?.height) || Number(section?.bottomSpacing) || 40);
+  const isBlack = propIsBlack ?? (section?.backgroundColor === '#000000' || section?.backgroundColor === 'black');
+  const id = propId ?? section?.id;
+
+  if (height <= 0) return null;
 
   return (
     <div
-      id={section?.id}
+      id={id}
       className="cv-section cv-block spacer-section"
-      data-section-id={section?.id}
+      data-section-id={id}
       data-spacer-height={height}
       style={{
         height: `${height}px`,
@@ -47,21 +50,346 @@ export const PrintSpacerBlock = ({ section }) => {
   );
 };
 
+/**
+ * useVerticalSpacerResize
+ *
+ * Shared hook for vertical resize logic (mouse and touch drag, keyboard navigation, min/max clamping).
+ * Completely reutilized across stand-alone spacer blocks and container-concatenated bottom spacers.
+ */
+export const useVerticalSpacerResize = ({
+  initialHeight = 0,
+  min = 0,
+  max = 600,
+  onCommit,
+}) => {
+  const [localHeight, setLocalHeight] = useState(initialHeight);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    if (!isResizing) {
+      setLocalHeight(initialHeight);
+    }
+  }, [initialHeight, isResizing]);
+
+  const handleResizeStart = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsResizing(true);
+    const startY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const startHeight = localHeight;
+
+    const handleMove = (moveEvent) => {
+      const currentY = moveEvent.clientY ?? (moveEvent.touches && moveEvent.touches[0] ? moveEvent.touches[0].clientY : 0);
+      const deltaY = currentY - startY;
+      const nextH = Math.round(Math.max(min, Math.min(max, startHeight + deltaY)));
+      setLocalHeight(nextH);
+    };
+
+    const handleEnd = (endEvent) => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleEnd);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+
+      const endY = endEvent.clientY ?? (endEvent.changedTouches && endEvent.changedTouches[0] ? endEvent.changedTouches[0].clientY : startY);
+      const finalH = Math.round(Math.max(min, Math.min(max, startHeight + (endY - startY))));
+      const clampedFinal = Math.round(Math.max(min, Math.min(max, finalH)));
+      setLocalHeight(clampedFinal);
+      if (typeof onCommit === 'function') {
+        onCommit(clampedFinal);
+      }
+    };
+
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+  }, [localHeight, min, max, onCommit]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 2;
+      const nextH = Math.round(Math.max(min, Math.min(max, localHeight - step)));
+      setLocalHeight(nextH);
+      if (typeof onCommit === 'function') onCommit(nextH);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 2;
+      const nextH = Math.round(Math.max(min, Math.min(max, localHeight + step)));
+      setLocalHeight(nextH);
+      if (typeof onCommit === 'function') onCommit(nextH);
+    }
+  }, [localHeight, min, max, onCommit]);
+
+  return {
+    localHeight,
+    setLocalHeight,
+    isResizing,
+    handleResizeStart,
+    handleKeyDown,
+  };
+};
+
+/**
+ * SpacerResizeHandle
+ *
+ * Shared bottom vertical resize handle bar with ns-resize cursor, handle pill with resize icon, and pixel feedback.
+ */
+export const SpacerResizeHandle = ({
+  testId,
+  height,
+  min = 0,
+  max = 600,
+  isHovered = false,
+  isResizing = false,
+  onMouseDown,
+  onTouchStart,
+  onKeyDown,
+  onMouseEnter,
+  onMouseLeave,
+  style = {},
+  showIndicator = false,
+}) => {
+  return (
+    <div
+      className="spacer-resize-handle no-print"
+      data-testid={testId}
+      role="slider"
+      aria-label="Ajustar altura de espacio en blanco"
+      aria-valuenow={height}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      tabIndex={0}
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+      onKeyDown={onKeyDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      title="Arrastra verticalmente para ajustar la altura del espacio"
+      style={{
+        position: 'absolute',
+        bottom: '-6px',
+        left: 0,
+        right: 0,
+        height: '14px',
+        cursor: 'ns-resize',
+        zIndex: 35,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        userSelect: 'none',
+        touchAction: 'none',
+        ...style,
+      }}
+    >
+      <div
+        style={{
+          width: isHovered || isResizing ? '64px' : '36px',
+          height: isHovered || isResizing ? '12px' : '4px',
+          borderRadius: '6px',
+          position: 'absolute',
+          background: isResizing ? '#3874ff' : (isHovered ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)'),
+          boxShadow: isResizing ? '0 0 6px rgba(56, 116, 255, 0.6)' : 'none',
+          transition: 'all 0.15s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {(isHovered || isResizing) && (
+          <MoveVertical size={10} color="#ffffff" style={{ pointerEvents: 'none' }} />
+        )}
+      </div>
+
+      {showIndicator && (isResizing || (isHovered && height > 0)) && (
+        <span
+          data-testid={`${testId}-indicator`}
+          style={{
+            position: 'absolute',
+            bottom: '16px',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '2px 6px',
+            borderRadius: '4px',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            zIndex: 40,
+          }}
+        >
+          {height}px
+        </span>
+      )}
+    </div>
+  );
+};
+
+/**
+ * EditableIntegratedBottomSpacer
+ *
+ * Concatenated bottom whitespace spacer for any base container.
+ * Initial size: 0px.
+ * On touching / hovering bottom edge: reveals the exact vertical resize handle.
+ * Without any additional menu, presets bar, or delete button ("sin ningún control o menú adicional").
+ */
+export const EditableIntegratedBottomSpacer = ({
+  containerId,
+  height = 0,
+  onUpdateHeight,
+}) => {
+  const rawHeight = Number(height) || 0;
+  const [isHovered, setIsHovered] = useState(false);
+
+  const commitHeight = useCallback((newH) => {
+    const clamped = Math.round(Math.max(0, Math.min(600, newH)));
+    if (typeof onUpdateHeight === 'function') {
+      onUpdateHeight(clamped);
+    }
+  }, [onUpdateHeight]);
+
+  const {
+    localHeight,
+    isResizing,
+    handleResizeStart,
+    handleKeyDown,
+  } = useVerticalSpacerResize({
+    initialHeight: rawHeight,
+    min: 0,
+    max: 600,
+    onCommit: commitHeight,
+  });
+
+  return (
+    <div
+      className="integrated-bottom-spacer no-print"
+      data-testid={`integrated-bottom-spacer-${containerId}`}
+      data-spacer-height={localHeight}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        if (!isResizing) setIsHovered(false);
+      }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: `${localHeight}px`,
+        minHeight: `${localHeight}px`,
+        boxSizing: 'border-box',
+        backgroundColor: 'transparent',
+        border: localHeight > 0
+          ? (isHovered || isResizing ? '1px dashed #3874ff' : '1px dashed rgba(148, 163, 184, 0.35)')
+          : 'none',
+        borderRadius: '3px',
+        transition: isResizing ? 'none' : 'height 0.1s ease, border-color 0.15s ease',
+        userSelect: isResizing ? 'none' : 'auto',
+      }}
+    >
+      <SpacerResizeHandle
+        testId={`spacer-resize-handle-${containerId}-bottom`}
+        height={localHeight}
+        min={0}
+        max={600}
+        isHovered={isHovered}
+        isResizing={isResizing}
+        onMouseDown={handleResizeStart}
+        onTouchStart={handleResizeStart}
+        onKeyDown={handleKeyDown}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          if (!isResizing) setIsHovered(false);
+        }}
+        showIndicator={true}
+        style={{
+          position: 'absolute',
+          bottom: localHeight > 0 ? '-6px' : '-7px',
+          left: 0,
+          right: 0,
+          height: '16px',
+          zIndex: 35,
+          opacity: isHovered || isResizing ? 1 : 0,
+          pointerEvents: 'auto',
+          transition: 'opacity 0.15s ease',
+        }}
+      />
+    </div>
+  );
+};
+
+/**
+ * IntegratedBottomSpacer
+ *
+ * Concatenates bottom whitespace to any container.
+ * In Print: outputs pure PrintSpacerBlock if height > 0, else null.
+ * In Live Editor: renders EditableIntegratedBottomSpacer with bottom edge resize handle.
+ */
+export const IntegratedBottomSpacer = ({
+  containerId,
+  height = 0,
+  onUpdateHeight,
+  isPrint = false,
+}) => {
+  const numHeight = Number(height) || 0;
+  if (isPrint) {
+    if (numHeight <= 0) return null;
+    return (
+      <PrintSpacerBlock
+        id={`${containerId}-bottom-space`}
+        height={numHeight}
+        isBlack={false}
+      />
+    );
+  }
+
+  return (
+    <EditableIntegratedBottomSpacer
+      containerId={containerId}
+      height={numHeight}
+      onUpdateHeight={onUpdateHeight}
+    />
+  );
+};
+
 export const EditableSpacerBlock = ({ section }) => {
   const { deleteSection, updateSectionProperty } = useCV();
 
   const rawHeight = Number(section?.height) || Number(section?.items?.[0]?.height) || 40;
-  const [localHeight, setLocalHeight] = useState(rawHeight);
-  const [isResizing, setIsResizing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingExact, setIsEditingExact] = useState(false);
   const [exactInputVal, setExactInputVal] = useState(String(rawHeight));
   const exactInputRef = useRef(null);
 
+  const commitHeight = useCallback((newH) => {
+    const clamped = Math.round(Math.max(8, Math.min(600, newH)));
+    setExactInputVal(String(clamped));
+    if (typeof updateSectionProperty === 'function') {
+      updateSectionProperty(section.id, 'height', clamped);
+    }
+  }, [section.id, updateSectionProperty]);
+
+  const {
+    localHeight,
+    setLocalHeight,
+    isResizing,
+    handleResizeStart,
+    handleKeyDown,
+  } = useVerticalSpacerResize({
+    initialHeight: rawHeight,
+    min: 8,
+    max: 600,
+    onCommit: commitHeight,
+  });
+
   // Sync external height changes if not actively resizing
   useEffect(() => {
     if (!isResizing) {
-      setLocalHeight(rawHeight);
       setExactInputVal(String(rawHeight));
     }
   }, [rawHeight, isResizing]);
@@ -78,72 +406,12 @@ export const EditableSpacerBlock = ({ section }) => {
     disabled: isResizing, // Disable sortable dragging while resizing height
   });
 
-  const commitHeight = useCallback((newH) => {
-    const clamped = Math.round(Math.max(8, Math.min(600, newH)));
-    setLocalHeight(clamped);
-    setExactInputVal(String(clamped));
-    if (typeof updateSectionProperty === 'function') {
-      updateSectionProperty(section.id, 'height', clamped);
-    }
-  }, [section.id, updateSectionProperty]);
-
   const toggleColorMode = useCallback(() => {
     const newColor = isBlack ? 'transparent' : '#000000';
     if (typeof updateSectionProperty === 'function') {
       updateSectionProperty(section.id, 'backgroundColor', newColor);
     }
   }, [isBlack, section.id, updateSectionProperty]);
-
-  // Vertical Resize Drag Handler (ns-resize)
-  const handleResizeStart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    setIsResizing(true);
-    const startY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-    const startHeight = localHeight;
-
-    const handleMove = (moveEvent) => {
-      const currentY = moveEvent.clientY ?? (moveEvent.touches && moveEvent.touches[0] ? moveEvent.touches[0].clientY : 0);
-      const deltaY = currentY - startY;
-      const nextH = Math.round(Math.max(8, Math.min(600, startHeight + deltaY)));
-      setLocalHeight(nextH);
-    };
-
-    const handleEnd = (endEvent) => {
-      setIsResizing(false);
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('touchend', handleEnd);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-
-      const endY = endEvent.clientY ?? (endEvent.changedTouches && endEvent.changedTouches[0] ? endEvent.changedTouches[0].clientY : startY);
-      const finalH = Math.round(Math.max(8, Math.min(600, startHeight + (endY - startY))));
-      commitHeight(finalH);
-    };
-
-    document.body.style.cursor = 'ns-resize';
-    document.body.style.userSelect = 'none';
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleMove, { passive: false });
-    window.addEventListener('touchend', handleEnd);
-  };
-
-  // Keyboard navigation for accessibility on the resize handle
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const step = e.shiftKey ? 10 : 2;
-      commitHeight(localHeight - step);
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const step = e.shiftKey ? 10 : 2;
-      commitHeight(localHeight + step);
-    }
-  };
 
   const handleExactInputSubmit = (e) => {
     e.preventDefault();
@@ -170,8 +438,8 @@ export const EditableSpacerBlock = ({ section }) => {
     boxSizing: 'border-box',
     opacity: isDragging ? 0.35 : 1,
     backgroundColor: isBlack ? '#000000' : 'transparent',
-    border: isHovered || isResizing 
-      ? '1px dashed #3874ff' 
+    border: isHovered || isResizing
+      ? '1px dashed #3874ff'
       : '1px dashed rgba(148, 163, 184, 0.4)',
     borderRadius: '4px',
     marginBottom: 'var(--section-gap, 20px)',
@@ -367,45 +635,17 @@ export const EditableSpacerBlock = ({ section }) => {
       </div>
 
       {/* 3. Bottom Vertical Resize Handle Bar */}
-      <div
-        className="spacer-resize-handle no-print"
-        data-testid={`spacer-resize-handle-${section.id}`}
-        role="slider"
-        aria-label="Ajustar altura de espacio en blanco"
-        aria-valuenow={localHeight}
-        aria-valuemin={8}
-        aria-valuemax={600}
-        tabIndex={0}
+      <SpacerResizeHandle
+        testId={`spacer-resize-handle-${section.id}`}
+        height={localHeight}
+        min={8}
+        max={600}
+        isHovered={isHovered}
+        isResizing={isResizing}
         onMouseDown={handleResizeStart}
         onTouchStart={handleResizeStart}
         onKeyDown={handleKeyDown}
-        title="Arrastra verticalmente para ajustar la altura del espacio"
-        style={{
-          position: 'absolute',
-          bottom: '-6px',
-          left: 0,
-          right: 0,
-          height: '14px',
-          cursor: 'ns-resize',
-          zIndex: 35,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          userSelect: 'none',
-          touchAction: 'none',
-        }}
-      >
-        <div
-          style={{
-            width: isHovered || isResizing ? '64px' : '36px',
-            height: '4px',
-            borderRadius: '2px',
-            background: isResizing ? '#3874ff' : (isHovered ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)'),
-            boxShadow: isResizing ? '0 0 6px rgba(56, 116, 255, 0.6)' : 'none',
-            transition: 'all 0.15s ease',
-          }}
-        />
-      </div>
+      />
     </div>
   );
 };

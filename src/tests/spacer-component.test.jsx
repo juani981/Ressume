@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { CVProvider, useCV } from '../context/CVContext';
-import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock } from '../components/CV/SpacerBlock';
+import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock, IntegratedBottomSpacer } from '../components/CV/SpacerBlock';
 import { PrintBaseSection } from '../components/CV/BaseSection';
 import BaseSection from '../components/CV/BaseSection';
 import AddSectionModal from '../components/Editor/AddSectionModal';
@@ -774,6 +774,272 @@ describe('Resizable Blank Spacer Component & Pixel-Perfect PDF Engine', () => {
       expect(html).not.toContain('no-print');
 
       printSpy.mockRestore();
+    });
+  });
+
+  // ==========================================================================
+  // TIER 7: BASE CONTAINER INTEGRATED BOTTOM SPACER (CONCATENATED 0PX WHITESPACE)
+  // ==========================================================================
+  describe('Tier 7: Base Container Integrated Bottom Spacer (Concatenated 0px Whitespace with Bottom Edge Resize)', () => {
+    it('T7.1: createDefaultSection creates container with initial bottomSpacing of 0px', () => {
+      const expSec = createDefaultSection('right', 'experience', 'EXPERIENCIA');
+      expect(expSec.bottomSpacing).toBe(0);
+
+      const skillSec = createDefaultSection('left', 'skills', 'HABILIDADES');
+      expect(skillSec.bottomSpacing).toBe(0);
+
+      const customSec = createDefaultSection('right', 'custom', 'PROYECTOS');
+      expect(customSec.bottomSpacing).toBe(0);
+    });
+
+    it('T7.2: renders container with 0px whitespace and strictly zero additional menus or buttons', () => {
+      const mockSection = {
+        id: 'sec_test_container_1',
+        type: 'experience',
+        column: 'right',
+        title: 'EXPERIENCIA LABORAL',
+        bottomSpacing: 0,
+        items: [{ id: 'item_1', title: 'Developer', subtitle: 'Tech Corp' }]
+      };
+
+      render(
+        <CVProvider>
+          <BaseSection section={mockSection} />
+        </CVProvider>
+      );
+
+      // Verify integrated bottom spacer container exists with 0px initial height
+      const spacerContainer = screen.getByTestId('integrated-bottom-spacer-sec_test_container_1');
+      expect(spacerContainer).toBeInTheDocument();
+      expect(spacerContainer.getAttribute('data-spacer-height')).toBe('0');
+      expect(spacerContainer.style.height).toBe('0px');
+
+      // Verify STRICT absence of any additional menu, presets, color toggle, or delete button on the bottom spacer
+      expect(screen.queryByTestId(/spacer-controls-sec_test_container_1/)).toBeNull();
+      expect(screen.queryByTestId(/spacer-preset-.*sec_test_container_1/)).toBeNull();
+      expect(screen.queryByTestId(/spacer-color-toggle-sec_test_container_1/)).toBeNull();
+      expect(screen.queryByTestId(/spacer-del-btn-.*sec_test_container_1/)).toBeNull();
+    });
+
+    it('T7.3: bottom resize handle exists with ns-resize cursor and does not interfere with section content', () => {
+      const mockSection = {
+        id: 'sec_test_container_2',
+        type: 'experience',
+        column: 'right',
+        title: 'EXPERIENCIA LABORAL',
+        bottomSpacing: 0,
+        items: [{ id: 'item_2', title: 'Senior Engineer', subtitle: 'Cloud Corp' }]
+      };
+
+      render(
+        <CVProvider>
+          <BaseSection section={mockSection} />
+        </CVProvider>
+      );
+
+      const resizeHandle = screen.getByTestId('spacer-resize-handle-sec_test_container_2-bottom');
+      expect(resizeHandle).toBeInTheDocument();
+      expect(resizeHandle.getAttribute('role')).toBe('slider');
+      expect(resizeHandle.getAttribute('aria-valuenow')).toBe('0');
+      expect(resizeHandle.getAttribute('aria-valuemin')).toBe('0');
+      expect(resizeHandle.getAttribute('aria-valuemax')).toBe('600');
+      expect(resizeHandle.style.cursor).toBe('ns-resize');
+
+      // Verify touching / hovering the handle isolates events
+      fireEvent.mouseEnter(resizeHandle);
+      const stopPropagationSpy = vi.fn();
+      fireEvent.mouseDown(resizeHandle, { clientY: 100, stopPropagation: stopPropagationSpy });
+      fireEvent.mouseUp(window, { clientY: 100 });
+    });
+
+    it('T7.4: dragging handle downwards expands bottom whitespace below container and commits to state', () => {
+      let currentCV = null;
+      const Consumer = () => {
+        const context = useCV();
+        currentCV = context.cvData;
+        const targetSection = context.cvData.sections.find(s => s.id === 'experience') || context.cvData.sections[1];
+        return (
+          <div>
+            {targetSection && <BaseSection section={targetSection} />}
+          </div>
+        );
+      };
+
+      render(
+        <CVProvider>
+          <Consumer />
+        </CVProvider>
+      );
+
+      const targetSection = currentCV.sections.find(s => s.id === 'experience') || currentCV.sections[1];
+      const handle = screen.getByTestId(`spacer-resize-handle-${targetSection.id}-bottom`);
+
+      // 1. Initial height is 0
+      expect(handle.getAttribute('aria-valuenow')).toBe('0');
+
+      // 2. Drag down by 45px (from Y=100 to Y=145)
+      fireEvent.mouseDown(handle, { clientY: 100 });
+      fireEvent.mouseMove(window, { clientY: 145 });
+      fireEvent.mouseUp(window, { clientY: 145 });
+
+      // 3. State is updated to 45px
+      const updatedSection = currentCV.sections.find(s => s.id === targetSection.id);
+      expect(updatedSection.bottomSpacing).toBe(45);
+    });
+
+    it('T7.5: dragging handle upwards past 0 clamps to 0px floor without error', () => {
+      let currentCV = null;
+      const Consumer = () => {
+        const context = useCV();
+        currentCV = context.cvData;
+        const targetSection = context.cvData.sections[1];
+        return (
+          <div>
+            <button data-testid="set-h-50" onClick={() => context.updateSectionProperty(targetSection.id, 'bottomSpacing', 50)}>Set 50</button>
+            {targetSection && <BaseSection section={targetSection} />}
+          </div>
+        );
+      };
+
+      render(
+        <CVProvider>
+          <Consumer />
+        </CVProvider>
+      );
+
+      // Set to 50px
+      fireEvent.click(screen.getByTestId('set-h-50'));
+      const targetSection = currentCV.sections[1];
+      expect(targetSection.bottomSpacing).toBe(50);
+
+      const handle = screen.getByTestId(`spacer-resize-handle-${targetSection.id}-bottom`);
+
+      // Drag up by 80px (from Y=100 to Y=20 -> should clamp at 0px)
+      fireEvent.mouseDown(handle, { clientY: 100 });
+      fireEvent.mouseMove(window, { clientY: 20 });
+      fireEvent.mouseUp(window, { clientY: 20 });
+
+      const updatedSection = currentCV.sections[1];
+      expect(updatedSection.bottomSpacing).toBe(0);
+    });
+
+    it('T7.6: keyboard navigation (ArrowDown/ArrowUp) adjusts bottom spacing with accessibility support', () => {
+      let currentCV = null;
+      const Consumer = () => {
+        const context = useCV();
+        currentCV = context.cvData;
+        const targetSection = context.cvData.sections[1];
+        return (
+          <div>
+            {targetSection && <BaseSection section={targetSection} />}
+          </div>
+        );
+      };
+
+      render(
+        <CVProvider>
+          <Consumer />
+        </CVProvider>
+      );
+
+      const targetSection = currentCV.sections[1];
+      const handle = screen.getByTestId(`spacer-resize-handle-${targetSection.id}-bottom`);
+
+      // ArrowDown (+2px)
+      fireEvent.keyDown(handle, { key: 'ArrowDown' });
+      let updated = currentCV.sections[1];
+      expect(updated.bottomSpacing).toBe(2);
+
+      // Shift + ArrowDown (+10px -> 12px)
+      fireEvent.keyDown(handle, { key: 'ArrowDown', shiftKey: true });
+      updated = currentCV.sections[1];
+      expect(updated.bottomSpacing).toBe(12);
+
+      // ArrowUp (-2px -> 10px)
+      fireEvent.keyDown(handle, { key: 'ArrowUp' });
+      updated = currentCV.sections[1];
+      expect(updated.bottomSpacing).toBe(10);
+    });
+
+    it('T7.7: supports undo/redo history tracking on bottomSpacing adjustments', () => {
+      let currentCV = null;
+      let undoFn = null;
+      let redoFn = null;
+
+      const Consumer = () => {
+        const context = useCV();
+        currentCV = context.cvData;
+        undoFn = context.undo;
+        redoFn = context.redo;
+        const targetSection = context.cvData.sections[1];
+        return (
+          <div>
+            <button data-testid="apply-spacing" onClick={() => {
+              context.updateSectionProperty(targetSection.id, 'bottomSpacing', 60);
+            }}>Apply 60px</button>
+            {targetSection && <BaseSection section={targetSection} />}
+          </div>
+        );
+      };
+
+      render(
+        <CVProvider>
+          <Consumer />
+        </CVProvider>
+      );
+
+      // 1. Initially 0 or undefined
+      let targetSection = currentCV.sections[1];
+      expect(targetSection.bottomSpacing || 0).toBe(0);
+
+      // 2. Apply 60px
+      fireEvent.click(screen.getByTestId('apply-spacing'));
+      targetSection = currentCV.sections[1];
+      expect(targetSection.bottomSpacing).toBe(60);
+
+      // 3. Undo -> reverts to 0
+      act(() => {
+        undoFn();
+      });
+      targetSection = currentCV.sections[1];
+      expect(targetSection.bottomSpacing || 0).toBe(0);
+
+      // 4. Redo -> restores 60px
+      act(() => {
+        redoFn();
+      });
+      targetSection = currentCV.sections[1];
+      expect(targetSection.bottomSpacing).toBe(60);
+    });
+
+    it('T7.8: produces pixel-perfect PDF HTML with exact whitespace height when bottomSpacing > 0, and 0 extra DOM when 0', () => {
+      const cvWithCustomBottomSpacing = {
+        ...defaultSchema,
+        sections: [
+          {
+            ...defaultSchema.sections[0],
+            bottomSpacing: 0, // 0px -> renders nothing extra
+          },
+          {
+            ...defaultSchema.sections[1],
+            id: 'about_with_space',
+            bottomSpacing: 56, // 56px whitespace
+          }
+        ]
+      };
+
+      const html = generateCleanPrintHTML(cvWithCustomBottomSpacing);
+
+      // 1. The 0px section does NOT render an extra bottom-space div
+      expect(html).not.toContain('id="profile_header-bottom-space"');
+
+      // 2. The 56px section renders an exact pixel-perfect whitespace div inside it
+      expect(html).toContain('id="about_with_space-bottom-space"');
+      expect(html).toContain('data-spacer-height="56"');
+      expect(html).toMatch(/height:\s*56px/);
+      expect(html).toMatch(/min-height:\s*56px/);
+      expect(html).toMatch(/background-color:\s*transparent/);
+      expect(html).not.toContain('no-print');
     });
   });
 });

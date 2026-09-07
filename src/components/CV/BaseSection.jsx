@@ -9,7 +9,7 @@ import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { Lightbulb, MoreHorizontal } from 'lucide-react';
 import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
-import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock } from './SpacerBlock';
+import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock, IntegratedBottomSpacer } from './SpacerBlock';
 
 export const PrintBaseSection = ({ section }) => {
   if (!section) return null;
@@ -100,6 +100,13 @@ export const PrintBaseSection = ({ section }) => {
           ))
         )}
       </div>
+
+      {/* Integrated Concatenated Bottom Spacer for Print */}
+      <IntegratedBottomSpacer
+        isPrint={true}
+        containerId={section.id}
+        height={section.bottomSpacing || 0}
+      />
     </section>
   );
 };
@@ -119,6 +126,7 @@ const EditableBaseSection = ({ section }) => {
     updateSectionBulletStyle,
     addSectionItem, 
     deleteSection, 
+    updateSectionProperty,
     activeTooltip,
     toggleTooltipForSection
   } = useCV();
@@ -278,6 +286,17 @@ const EditableBaseSection = ({ section }) => {
           triggerRect={bulletTriggerRect}
         />
       )}
+
+      {/* Integrated Concatenated Bottom Spacer */}
+      <IntegratedBottomSpacer
+        containerId={section.id}
+        height={section.bottomSpacing || 0}
+        onUpdateHeight={(newH) => {
+          if (typeof updateSectionProperty === 'function') {
+            updateSectionProperty(section.id, 'bottomSpacing', newH);
+          }
+        }}
+      />
     </section>
   );
 };

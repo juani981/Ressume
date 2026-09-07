@@ -756,7 +756,8 @@ export const createDefaultSection = (column = 'right', type = 'list', title, bul
     type: type || 'list',
     title: finalTitle,
     items: [defaultItem],
-    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true }
+    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true },
+    bottomSpacing: 0
   };
 
   if (type === 'spacer') {
