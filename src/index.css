@@ -618,10 +618,6 @@ img {
     padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
   }
 
-  .generate-pdf {
-    display: inline-block;
-  }
-
   .section-title,
   .profile__description {
     text-align: initial;
@@ -1717,7 +1713,6 @@ body.ats-mode-active .a4-page-fold-badge {
   .add-section-backdrop,
   .ats-toggle-container,
   .change-theme,
-  .generate-pdf,
   .suggestion-tooltip,
   .obsidian-callout,
   .column-resizer,

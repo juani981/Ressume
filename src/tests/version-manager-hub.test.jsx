@@ -19,7 +19,11 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { CVProvider, useCV } from '../context/CVContext';
 import ActionMenu from '../components/Editor/ActionMenu';
 import ToastNotification from '../components/Editor/ToastNotification';
+import VersionManagerModal from '../components/Editor/VersionManagerModal';
 import { defaultSchema, blankSchema } from '../utils/schema';
+import * as versionStorage from '../utils/versionStorage';
+import * as versionValidator from '../utils/versionValidator';
+import * as cleanPrintEngine from '../utils/staticHtmlPdfEngine';
 
 // ============================================================================
 // Robust In-Memory IndexedDB Mock for jsdom Environment
@@ -250,34 +254,6 @@ const resetIndexedDB = () => {
     window.indexedDB = mockIDBInstance;
   }
 };
-
-// ============================================================================
-// Lazy Module Loaders with Progressive Graceful Handling
-// ============================================================================
-let versionStorage = null;
-let versionValidator = null;
-let VersionManagerModal = null;
-
-beforeAll(async () => {
-  try {
-    versionStorage = await import('../utils/versionStorage.js');
-  } catch (e) {
-    // Falls back gracefully if module is not yet compiled
-  }
-
-  try {
-    versionValidator = await import('../utils/versionValidator.js');
-  } catch (e) {
-    // Falls back gracefully if module is not yet compiled
-  }
-
-  try {
-    const modalModule = await import('../components/Editor/VersionManagerModal.jsx');
-    VersionManagerModal = modalModule.default || modalModule;
-  } catch (e) {
-    // Falls back gracefully if module is not yet compiled
-  }
-});
 
 // Helper component for testing CVContext state interactions
 const ContextStateInspector = ({ onState }) => {
@@ -1134,8 +1110,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
   // ==========================================================================
   describe('Tier 6: Direct PDF Export & Lifecycle Spinner Toast Confirmation', () => {
     it('T6.1: clicking direct PDF button starts loading spinner toast and enters loading state', async () => {
-      const cleanPrintModule = await import('../utils/staticHtmlPdfEngine');
-      const cleanPrintSpy = vi.spyOn(cleanPrintModule, 'executeCleanPrint').mockReturnValue(new Promise(() => {}));
+      const cleanPrintSpy = vi.spyOn(cleanPrintEngine, 'executeCleanPrint').mockReturnValue(new Promise(() => {}));
 
       render(
         <CVProvider>
@@ -1159,8 +1134,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
     });
 
     it('T6.2: when print dialog closes (afterprint event), loading state finishes and success toast appears', async () => {
-      const cleanPrintModule = await import('../utils/staticHtmlPdfEngine');
-      const cleanPrintSpy = vi.spyOn(cleanPrintModule, 'executeCleanPrint').mockResolvedValue();
+      const cleanPrintSpy = vi.spyOn(cleanPrintEngine, 'executeCleanPrint').mockResolvedValue();
 
       render(
         <CVProvider>

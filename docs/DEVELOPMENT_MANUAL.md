@@ -4,23 +4,22 @@ Este documento establece las pautas, estructuras de directorios y estándares de
 
 ## 1. Estructura de Directorios
 
-El código fuente del frontend se encuentra en `src/`, y el backend en `netlify/`.
+El código fuente de la aplicación se encuentra estructurado en `src/`:
 
 ```text
-├── netlify/
-│   └── functions/
-│       └── generate-pdf.js      # Lógica de renderizado Headless Chrome
 ├── src/
 │   ├── components/
-│   │   ├── CV/                # Componentes que conforman la vista principal del CV
-│   │   └── Editor/            # Componentes de interacción y UI del editor (Menu, DragHandles)
+│   │   ├── CV/                # Componentes de renderizado visual del CV (pantalla e impresión)
+│   │   └── Editor/            # Componentes de interacción y UI del editor (Menu, DragHandles, Modals)
 │   ├── context/
-│   │   └── CVContext.jsx        # Estado Global y lógica de LocalStorage
+│   │   └── CVContext.jsx      # Estado Global, sincronización con LocalStorage y Undo/Redo
 │   ├── utils/
-│   │   └── schema.js            # Esquema de datos por defecto (Source of Truth inicial)
-│   ├── App.jsx                  # Raíz de la jerarquía de componentes y gestor principal del DndContext
-│   ├── index.css                # Estilos base y configuraciones de Grid heredadas
-│   └── main.jsx                 # Entry point de Vite
+│   │   ├── schema.js          # Esquema de datos por defecto (Source of Truth)
+│   │   ├── staticHtmlPdfEngine.js # Motor cliente de impresión y paginación A4
+│   │   └── versionStorage.js  # Motor de persistencia en IndexedDB (Version Hub)
+│   ├── App.jsx                # Raíz de la jerarquía de componentes y DndContext
+│   ├── index.css              # Estilos base de la aplicación y modo visual
+│   └── main.jsx               # Entry point de Vite
 ```
 
 ## 2. Pautas para Componentes de la Interfaz (UI)
@@ -44,18 +43,14 @@ Para evitar manipular referencias del DOM directamente, cualquier cadena de text
 />
 ```
 
-## 3. Pruebas del Backend (Entorno Local)
+## 3. Pruebas Automatizadas
+El proyecto cuenta con suites de pruebas unitarias, de integración y E2E ejecutadas mediante **Vitest** y **React Testing Library**.
 
-Debido a que `generate-pdf.js` requiere dependencias nativas complejas (`puppeteer-core`, binaries de Chromium), las pruebas locales estándar mediante Node fallarán sin el entorno adecuado.
-
-**Proceso de pruebas local:**
-1. Instale las utilidades de Netlify: `npm i -g netlify-cli`.
-2. Asegúrese de tener las variables de entorno configuradas si fuese necesario en `.env`.
-3. Inicie el emulador Serverless: `netlify dev`.
-4. El servidor escuchará en el puerto 8888. Las peticiones a `http://localhost:8888/.netlify/functions/generate-pdf` emularán las restricciones exactas del entorno de AWS Lambda.
+**Ejecución de pruebas:**
+*   Ejecutar suite completa: `npm test`
+*   Modo interactivo / watcher: `npm run test:watch`
 
 ## 4. Convenciones de Estilo y CSS
-*   Se emplea la metodología BEM (Block Element Modifier) heredada del proyecto base.
-*   Todo el CSS se compila globalmente a través de `index.css`.
-*   Para garantizar que la inyección de Puppeteer no falle, **no utilice medias queries responsivas severas (`display: none`)** sobre elementos críticos del área `#area-cv`.
-*   Los componentes de la UI del editor (botones flotantes) deben incluir clases de utilidad que faciliten su ocultación por parte de Puppeteer (ej. inyección de `.generate-pdf { display: none }`).
+*   Se emplea la metodología BEM (Block Element Modifier) heredada del diseño base.
+*   Los estilos globales viven en `src/index.css` y las reglas específicas de impresión en `src/styles/print.css`.
+*   Para ocultar elementos en la impresión, utilice la clase utilitaria `.no-print`.

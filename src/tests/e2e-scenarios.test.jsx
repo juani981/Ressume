@@ -8,12 +8,7 @@ import SuggestionTooltip from '../components/Editor/SuggestionTooltip';
 import { defaultSchema } from '../utils/schema';
 import { adaptItemToSectionType, createDefaultSection, createDefaultItemForSection } from '../utils/itemAdapter';
 
-let staticPdfEngine = {};
-try {
-  staticPdfEngine = await import('../utils/staticHtmlPdfEngine');
-} catch (e) {
-  // Module will be implemented in M5
-}
+import { generateCleanPrintHTML, calculatePrintScale } from '../utils/staticHtmlPdfEngine';
 
 describe('Tier 4: Real-World E2E CV Workflow Scenarios', () => {
   beforeEach(() => {
@@ -60,15 +55,9 @@ describe('Tier 4: Real-World E2E CV Workflow Scenarios', () => {
 
     // Scaling calculation verification
     const simulatedDenseHeight = 3200; // Over 2246px max 2 A4 pages
-    if (typeof staticPdfEngine.calculatePrintScale === 'function') {
-      const scale = staticPdfEngine.calculatePrintScale(simulatedDenseHeight);
-      expect(scale).toBeLessThan(1.0);
-      expect(scale).toBeGreaterThanOrEqual(0.75);
-    } else {
-      const maxA4Height = 2246;
-      const scale = Math.max(0.75, +(maxA4Height / simulatedDenseHeight).toFixed(3));
-      expect(scale).toBeCloseTo(0.75, 2);
-    }
+    const scale = calculatePrintScale(simulatedDenseHeight);
+    expect(scale).toBeLessThan(1.0);
+    expect(scale).toBeGreaterThanOrEqual(0.75);
   });
 
   // Scenario 3: Cross-Column Reorganization & Spacing Calibration
@@ -183,12 +172,8 @@ describe('Tier 4: Real-World E2E CV Workflow Scenarios', () => {
     expect(callouts.length).toBeGreaterThan(0);
 
     // 2. Static print generation generates clean HTML without tooltips
-    if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-      const html = staticPdfEngine.generateCleanPrintHTML(defaultSchema);
-      expect(html).not.toContain('suggestion-tooltip');
-      expect(html).not.toContain('obsidian-callout');
-    } else {
-      expect(true).toBe(true);
-    }
+    const html = generateCleanPrintHTML(defaultSchema);
+    expect(html).not.toContain('suggestion-tooltip');
+    expect(html).not.toContain('obsidian-callout');
   });
 });

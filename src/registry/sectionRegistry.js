@@ -31,7 +31,6 @@ import {
   skillsPlainText,
   educationPlainText,
   simpleListPlainText
-  // Note: Legacy *HTML string formatters dereferenced in favor of React PrintBaseItem
 } from './itemFormatters';
 
 let uniqueIdCounter = 0;
@@ -64,7 +63,6 @@ export const registerSectionType = (descriptor) => {
     renderMarkdown: descriptor.renderMarkdown || baseItemMarkdown,
     renderXML: descriptor.renderXML || baseItemXML,
     renderPlainText: descriptor.renderPlainText || baseItemPlainText,
-    // [DEPRECATED]: Legacy string renderHTML dereferenced. Visual rendering is unified in itemComponent (PrintBaseItem).
     get itemComponent() {
       return descriptor.itemComponent;
     },
@@ -105,7 +103,6 @@ export const getSectionDescriptor = (type) => {
     renderMarkdown: baseItemMarkdown,
     renderXML: baseItemXML,
     renderPlainText: baseItemPlainText,
-    // [DEPRECATED]: renderHTML: baseItemHTML
     createDefaultItem: () => ({
       id: generateUniqueId('custom'),
       title: 'Nuevo Elemento',
@@ -165,7 +162,6 @@ const standardDescriptors = [
     itemTag: 'div',
     itemClass: 'home__data bd-grid',
     get itemComponent() { return ProfileHeaderItem; },
-    // [DEPRECATED]: renderHTML: profileHeaderHTML
     createDefaultItem: () => ({
       id: generateUniqueId('prof'),
       name: '',
@@ -208,7 +204,6 @@ const standardDescriptors = [
     itemClass: 'profile__description',
     get itemComponent() { return AboutItem; },
     renderMarkdown: aboutMarkdown,
-    // [DEPRECATED]: renderHTML: aboutHTML
     createDefaultItem: () => ({
       id: generateUniqueId('about'),
       description: 'Ingresa aquí un resumen profesional conciso enfocado en tus fortalezas técnicas y objetivos.'
@@ -251,7 +246,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return ExperienceItem; },
     renderMarkdown: baseItemMarkdown,
-    // [DEPRECATED]: renderHTML: baseItemHTML
     createDefaultItem: () => ({
       id: generateUniqueId('exp'),
       title: 'Nuevo Cargo / Rol Profesional',
@@ -306,7 +300,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return ProjectsItem; },
     renderMarkdown: baseItemMarkdown,
-    // [DEPRECATED]: renderHTML: baseItemHTML
     createDefaultItem: () => ({
       id: generateUniqueId('proj'),
       title: 'Plataforma SaaS de Automatización',
@@ -354,7 +347,6 @@ const standardDescriptors = [
     renderMarkdown: educationMarkdown,
     renderXML: educationXML,
     renderPlainText: educationPlainText,
-    // [DEPRECATED]: renderHTML: educationHTML
     createDefaultItem: () => ({
       id: generateUniqueId('edu'),
       title: 'Nueva Titulación / Grado',
@@ -391,7 +383,6 @@ const standardDescriptors = [
     renderMarkdown: skillsMarkdown,
     renderXML: skillsXML,
     renderPlainText: skillsPlainText,
-    // [DEPRECATED]: renderHTML: skillsHTML
     createDefaultItem: () => ({
       id: generateUniqueId('skill'),
       title: 'Nueva Especialidad',
@@ -439,7 +430,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return CertificatesItem; },
     renderMarkdown: certificatesMarkdown,
-    // [DEPRECATED]: renderHTML: certificatesHTML
     createDefaultItem: () => ({
       id: generateUniqueId('cert'),
       title: 'AWS Certified Solutions Architect',
@@ -480,7 +470,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return LanguagesItem; },
     renderMarkdown: languagesMarkdown,
-    // [DEPRECATED]: renderHTML: languagesHTML
     createDefaultItem: () => ({
       id: generateUniqueId('lang'),
       title: 'Inglés',
@@ -515,7 +504,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return AwardsItem; },
     renderMarkdown: awardsMarkdown,
-    // [DEPRECATED]: renderHTML: awardsHTML
     createDefaultItem: () => ({
       id: generateUniqueId('award'),
       title: '1er Puesto — Hackathon Nacional de IA e Innovación',
@@ -552,7 +540,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return PublicationsItem; },
     renderMarkdown: publicationsMarkdown,
-    // [DEPRECATED]: renderHTML: publicationsHTML
     createDefaultItem: () => ({
       id: generateUniqueId('pub'),
       title: 'Optimización de Arquitecturas de Microservicios con Event-Driven Design',
@@ -593,7 +580,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return VolunteeringItem; },
     renderMarkdown: baseItemMarkdown,
-    // [DEPRECATED]: renderHTML: baseItemHTML
     createDefaultItem: () => ({
       id: generateUniqueId('vol'),
       title: 'Mentor y Organizador Comunitario',
@@ -635,7 +621,6 @@ const standardDescriptors = [
     itemClass: 'experience__content',
     get itemComponent() { return ReferencesItem; },
     renderMarkdown: referencesMarkdown,
-    // [DEPRECATED]: renderHTML: referencesHTML
     createDefaultItem: () => ({
       id: generateUniqueId('ref'),
       title: 'Ing. Martín González',
@@ -676,7 +661,6 @@ const standardDescriptors = [
     renderMarkdown: simpleListMarkdown,
     renderXML: simpleListXML,
     renderPlainText: simpleListPlainText,
-    // [DEPRECATED]: renderHTML: simpleListHTML
     createDefaultItem: () => ({
       id: generateUniqueId('item'),
       text: 'Nueva Certificación / Curso — Institución (2025)'
