@@ -70,6 +70,7 @@ html, body {
 .cv-section,
 .cv-block,
 .section,
+.spacer-section,
 .experience__content,
 .education__content,
 .skills__name,
@@ -81,6 +82,14 @@ li.cv-block,
   break-inside: avoid !important;
   page-break-inside: avoid !important;
   -webkit-column-break-inside: avoid !important;
+}
+
+.spacer-section {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Allow break inside multi-item lists/bullets when large */

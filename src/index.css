@@ -1721,7 +1721,9 @@ body.ats-mode-active .a4-page-fold-badge {
   .toast-notification,
   .contact-type-picker-popover,
   .section-bullet-style-popover,
-  .layout-mode-toggle-container {
+  .layout-mode-toggle-container,
+  .spacer-resize-handle,
+  .spacer-controls-bar {
     display: none !important;
   }
 
@@ -1911,4 +1913,36 @@ body.ats-mode-active .a4-page-fold-badge {
     display: inline !important;
     margin: 0 !important;
   }
+}
+
+/*===================================================================
+  SPACER & VERTICAL WHITESPACE COMPONENT
+===================================================================*/
+.spacer-section {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.spacer-section.spacer--blank {
+  background-color: transparent;
+}
+
+.spacer-section.spacer--black {
+  background-color: #000000 !important;
+}
+
+.spacer-resize-handle {
+  user-select: none;
+  touch-action: none;
+}
+
+.spacer-resize-handle:focus {
+  outline: none;
+}
+
+.spacer-resize-handle:focus-visible > div {
+  background: #3874ff !important;
+  box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.4);
 }

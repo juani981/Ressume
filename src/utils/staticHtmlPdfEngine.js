@@ -446,12 +446,12 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   activeBaseStyles = activeBaseStyles.replace(/:root\s*\{[\s\S]*?\}/, '/* static :root removed */');
 
   // Strip interactive editor artifacts from CSS so they never leak into clean print HTML
-  const editorArtifactsPattern = /(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)/gi;
+  const editorArtifactsPattern = /(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)/gi;
   activeBaseStyles = activeBaseStyles
-    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)[^{]*?\{[^}]*?\}/gi, '')
+    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)[^{]*?\{[^}]*?\}/gi, '')
     .replace(editorArtifactsPattern, 'editor-control-stripped');
   activePrintStyles = activePrintStyles
-    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn)[^{]*?\{[^}]*?\}/gi, '')
+    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)[^{]*?\{[^}]*?\}/gi, '')
     .replace(editorArtifactsPattern, 'editor-control-stripped');
 
   if (!is2Col) {

@@ -946,15 +946,16 @@ function App() {
                            color: "var(--title-color, #111)",
                         }}>
                         {activeDragSection.section?.title ||
-                           activeDragSection.section?.id}
+                           (activeDragSection.section?.type === 'spacer' ? 'Espacio en Blanco' : activeDragSection.section?.id)}
                      </div>
                      <div
                         style={{
                            fontSize: "0.8rem",
                            color: "var(--text-color-light, #666)",
                         }}>
-                        {activeDragSection.section?.items?.length || 0}{" "}
-                        elementos
+                        {activeDragSection.section?.type === 'spacer'
+                           ? `${activeDragSection.section?.height || 40}px de separación vertical`
+                           : `${activeDragSection.section?.items?.length || 0} elementos`}
                      </div>
                   </div>
                ) : null}

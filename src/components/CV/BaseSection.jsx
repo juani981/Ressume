@@ -9,9 +9,13 @@ import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { Lightbulb, MoreHorizontal } from 'lucide-react';
 import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
+import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock } from './SpacerBlock';
 
 export const PrintBaseSection = ({ section }) => {
   if (!section) return null;
+  if (section.type === 'spacer') {
+    return <PrintSpacerBlock section={section} />;
+  }
   const descriptor = getSectionDescriptor(section.type);
   const items = section.items || [];
   const isProfile = section.type === 'profile_header';
@@ -279,6 +283,9 @@ const EditableBaseSection = ({ section }) => {
 };
 
 const BaseSection = (props) => {
+  if (props.section?.type === 'spacer') {
+    return <SpacerBlock {...props} />;
+  }
   if (props.isPrint) {
     return <PrintBaseSection {...props} />;
   }

@@ -12,6 +12,7 @@ import AwardsItem from '../components/CV/items/AwardsItem';
 import PublicationsItem from '../components/CV/items/PublicationsItem';
 import VolunteeringItem from '../components/CV/items/VolunteeringItem';
 import ReferencesItem from '../components/CV/items/ReferencesItem';
+import SpacerItem from '../components/CV/items/SpacerItem';
 import {
   baseItemMarkdown,
   skillsMarkdown,
@@ -682,6 +683,42 @@ const standardDescriptors = [
       };
     },
     schema: { text: 'string' }
+  },
+
+  // 14. Espacio en Blanco (Espaciador Vertical Ajustable)
+  {
+    type: 'spacer',
+    label: 'Espacio en Blanco',
+    description: 'Espacio vertical ajustable para balancear columnas y maquetar el documento',
+    defaultTitle: '',
+    defaultColumn: 'right',
+    icon: 'bx-space-bar',
+    allowDelete: true,
+    allowAddItem: false,
+    isSpacer: true,
+    sectionClass: 'spacer-section',
+    containerTag: 'div',
+    containerClass: 'spacer-container',
+    itemTag: 'div',
+    itemClass: 'spacer-item',
+    get itemComponent() { return SpacerItem; },
+    renderMarkdown: () => '\n<br/>\n',
+    renderXML: (item) => `<spacer height="${item?.height || 40}"/>`,
+    renderPlainText: () => '\n',
+    createDefaultItem: () => ({
+      id: generateUniqueId('space'),
+      height: 40,
+      backgroundColor: 'transparent'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('space'),
+        height: Number(src.height) || 40,
+        backgroundColor: src.backgroundColor || 'transparent'
+      };
+    },
+    schema: { height: 'number', backgroundColor: 'string' }
   }
 ];
 
@@ -710,16 +747,24 @@ export const createDefaultItemForSection = createDefaultItem;
 export const createDefaultSection = (column = 'right', type = 'list', title, bulletStyle) => {
   const descriptor = getSectionDescriptor(type);
   const finalTitle = title !== undefined ? title : descriptor.defaultTitle;
-  const sectionId = generateUniqueId('sec');
+  const sectionId = generateUniqueId(type === 'spacer' ? 'spacer' : 'sec');
+  const defaultItem = createDefaultItem(type);
 
-  return {
+  const baseSection = {
     id: sectionId,
     column: column || descriptor.defaultColumn || 'right',
     type: type || 'list',
     title: finalTitle,
-    items: [createDefaultItem(type)],
+    items: [defaultItem],
     bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true }
   };
+
+  if (type === 'spacer') {
+    baseSection.height = defaultItem?.height || 40;
+    baseSection.backgroundColor = defaultItem?.backgroundColor || 'transparent';
+  }
+
+  return baseSection;
 };
 
 /**

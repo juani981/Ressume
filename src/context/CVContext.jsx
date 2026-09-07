@@ -329,6 +329,27 @@ export const CVProvider = ({ children }) => {
     }));
   };
 
+  const updateSectionProperty = (sectionId, key, value) => {
+    applyStateWithHistory(prev => ({
+      ...prev,
+      sections: prev.sections.map(sec => {
+        if (sec.id !== sectionId) return sec;
+        const updates = typeof key === 'object' && key !== null ? key : { [key]: value };
+        const updatedSec = { ...sec, ...updates };
+        if (sec.type === 'spacer' && ('height' in updates || 'backgroundColor' in updates)) {
+          if (updatedSec.items && updatedSec.items.length > 0) {
+            updatedSec.items = updatedSec.items.map(item => ({
+              ...item,
+              ...('height' in updates ? { height: updates.height } : {}),
+              ...('backgroundColor' in updates ? { backgroundColor: updates.backgroundColor } : {})
+            }));
+          }
+        }
+        return updatedSec;
+      })
+    }));
+  };
+
   const updateProfile = (key, value) => {
     applyStateWithHistory(prev => ({
       ...prev,
@@ -559,6 +580,7 @@ export const CVProvider = ({ children }) => {
       cvData,
       updateLayout,
       updateSectionColumn,
+      updateSectionProperty,
       updateProfile,
       updateSectionItem,
       addSectionItem,
