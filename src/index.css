@@ -62,105 +62,6 @@ body {
 }
 
 
-/*========== Font size variables to scale cv ==========*/
-body.scale-cv {
-  --h1-font-size: .938rem;
-  --h2-font-size: .938rem;
-  --h3-font-size: .875rem;
-  --normal-font-size: .813rem;
-  --small-font-size: .75rem;
-  --smaller-font-size: .688rem;
-}
-
-/*========== Generate PDF button ==========*/
-.generate-pdf {
-  display: none;
-  margin-bottom: 2rem;
-}
-
-.scale-cv .generate-pdf {
-  display: inline-block;
-}
-
-.scale-cv .bd-container {
-  max-width: 595px;
-}
-
-.scale-cv .section {
-  padding: 1.5rem 0 .80rem;
-}
-
-.scale-cv .section-title {
-  margin-bottom: .75rem;
-}
-
-.scale-cv .resume__left,
-.scale-cv .resume__right {
-  padding: 0 1rem;
-}
-
-.scale-cv .home__img {
-  width: 90px;
-  height: 90px;
-}
-
-.scale-cv .home__container {
-  gap: 1.5rem;
-}
-
-.scale-cv .home__data {
-  gap: .25rem;
-}
-
-.scale-cv .home__address,
-.scale-cv .social__container {
-  gap: .75rem;
-}
-
-.scale-cv .home__icon,
-.scale-cv .social__icon,
-.scale-cv .interests__icon {
-  font-size: 1rem;
-}
-
-.scale-cv .education__container,
-.scale-cv .experience__container,
-.scale-cv .services__container {
-  gap: 1rem;
-}
-
-.scale-cv .education__time,
-.scale-cv .experience__time {
-  padding-right: .5rem;
-}
-
-.scale-cv .education__rounder,
-.scale-cv .experience__rounder {
-  width: 11px;
-  height: 11px;
-  margin-top: .22rem;
-}
-
-.scale-cv .education__line,
-.scale-cv .experience__line {
-  width: 1px;
-  height: 110%;
-  transform: translate(5px, 0);
-}
-
-.scale-cv .education__data,
-.scale-cv .experience__data {
-  gap: .25rem;
-}
-
-.scale-cv .skills__name {
-  margin-bottom: var(--mb-1);
-}
-
-.scale-cv .interests__container {
-  grid-template-columns: repeat(4, max-content);
-  column-gap: 1rem;
-}
 
 body {
   margin: 0 0 var(--header-height) 0;
@@ -1382,13 +1283,13 @@ body.ats-mode-active {
   background-color: #ffffff !important;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45) !important;
   border: 1px solid #334155 !important;
-  max-width: 840px !important;
+  max-width: 794px !important;
   margin: 0 auto !important;
 }
 
 .resume--ats-mode .resume__single-column {
   background-color: #ffffff !important;
-  max-width: 840px !important;
+  max-width: 794px !important;
 }
 
 .resume--ats-mode .section-title {
@@ -1802,7 +1703,7 @@ body.ats-mode-active .a4-page-fold-badge {
     page-break-before: always !important;
   }
 
-  /* Ocultar toda la interfaz interactiva de edición (18 selectores interactivos + controles de UI) */
+  /* Ocultar interfaz flotante y paneles fuera de flujo */
   .l-navbar,
   .action-menu-btn-wrap,
   .action-menu-btn,
@@ -1817,6 +1718,19 @@ body.ats-mode-active .a4-page-fold-badge {
   .ats-toggle-container,
   .change-theme,
   .generate-pdf,
+  .suggestion-tooltip,
+  .obsidian-callout,
+  .column-resizer,
+  .column-resizer-bar,
+  .column-resizer-handle,
+  .toast-notification,
+  .contact-type-picker-popover,
+  .section-bullet-style-popover,
+  .layout-mode-toggle-container {
+    display: none !important;
+  }
+
+  /* Ocultar todos los controles interactivos manteniendo el espacio percibido */
   .section-drag-handle,
   .item-drag-handle,
   .drag-handle,
@@ -1832,21 +1746,14 @@ body.ats-mode-active .a4-page-fold-badge {
   .bullet-add-row,
   .section-action-buttons,
   .section-tips-toggle-btn,
-  .suggestion-tooltip,
-  .obsidian-callout,
-  .column-resizer,
-  .column-resizer-bar,
-  .column-resizer-handle,
-  .toast-notification,
   .contact-del-btn,
   .add-contact-btn,
-  .contact-type-picker-popover,
   .section-bullet-style-btn,
-  .section-bullet-style-popover,
-  .layout-mode-toggle-container,
   .no-print,
   button {
-    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   /* Eliminar outlines y fondos de edición */
@@ -1935,6 +1842,13 @@ body.ats-mode-active .a4-page-fold-badge {
     -webkit-column-break-inside: avoid !important;
   }
 
+  /* Permitir breaks dentro de listas extensas */
+  .experience__bullets,
+  .simple-list-ul {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
   /* Prevención de encabezados huérfanos */
   .section-title,
   h1,
@@ -1975,7 +1889,7 @@ body.ats-mode-active .a4-page-fold-badge {
     display: list-item !important;
     list-style-type: disc !important;
     margin-top: 0 !important;
-    margin-bottom: calc(var(--item-gap, 6px) / 2) !important;
+    margin-bottom: var(--item-gap, 6px) !important;
     line-height: 1.45 !important;
     color: inherit !important;
     padding-left: 0 !important;

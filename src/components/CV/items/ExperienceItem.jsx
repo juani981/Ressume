@@ -142,10 +142,10 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                     style={{
                       display: 'list-item',
                       listStyleType: 'disc',
-                      marginBottom: 'calc(var(--item-gap, 6px) / 2)',
+                      marginBottom: 'var(--item-gap, 6px)',
                       lineHeight: 1.45,
                       color: 'inherit',
-                      padding: 0
+                      padding: '0 0.25rem'
                     }}
                   >
                     <InlineEdit 

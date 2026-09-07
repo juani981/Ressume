@@ -648,7 +648,7 @@ function App() {
                      display: is2Col ? "grid" : "block",
                      alignItems: is2Col ? "stretch" : undefined,
                      width: "100%",
-                     maxWidth: is2Col ? "1024px" : "840px",
+                     maxWidth: "794px",
                      margin: "0 auto",
                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
                      background: is2Col
@@ -863,7 +863,7 @@ function App() {
                         className="resume__single-column"
                         style={{
                            width: "100%",
-                           maxWidth: "840px",
+                           maxWidth: "794px",
                            margin: "0 auto",
                         }}>
                         <SortableContext

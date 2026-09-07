@@ -546,7 +546,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
       }
     });
 
-    it('T4.3: renders 1-column ATS container geometry (840px centered block, no left/right split columns)', () => {
+    it('T4.3: renders 1-column ATS container geometry (794px centered block, no left/right split columns)', () => {
       const html1Col = generateCleanPrintHTML({
         ...fullCVData,
         layout: { ...fullCVData.layout, type: '1-column', pagePadding: 30 }
@@ -556,7 +556,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
 
       expect(areaCv).not.toBeNull();
       expect(areaCv.classList.contains('resume__single-column')).toBe(true);
-      expect(areaCv.getAttribute('style')).toContain('max-width: 840px');
+      expect(areaCv.getAttribute('style')).toContain('max-width: 794px');
       expect(areaCv.getAttribute('style')).toContain('margin: 0 auto');
 
       // Ensure no separate left or right column wrappers exist

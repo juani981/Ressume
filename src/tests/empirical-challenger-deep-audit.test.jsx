@@ -39,7 +39,7 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
   // MISSION 1: Container Geometry (1-Col vs 2-Col Mode)
   // =========================================================================
   describe('Mission 1: Container Geometry in 1-column mode vs 2-column mode', () => {
-    it('EMP-GEO-1: 1-column mode container has max-width: 840px, display: block, and margin: 0 auto', () => {
+    it('EMP-GEO-1: 1-column mode container has max-width: 794px, display: block, and margin: 0 auto', () => {
       let cvContext;
       const { container } = render(
         <CVProvider>
@@ -55,19 +55,19 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
       const areaCV = container.querySelector('#area-cv');
       expect(areaCV).not.toBeNull();
       expect(areaCV.style.display).toBe('block');
-      expect(areaCV.style.maxWidth).toBe('840px');
+      expect(areaCV.style.maxWidth).toBe('794px');
       expect(areaCV.style.width).toBe('100%');
       expect(areaCV.style.margin).toBe('0px auto');
       expect(areaCV.style.padding).toBe('var(--page-padding, 24px)');
 
       const singleColWrapper = container.querySelector('.resume__single-column');
       expect(singleColWrapper).not.toBeNull();
-      expect(singleColWrapper.style.maxWidth).toBe('840px');
+      expect(singleColWrapper.style.maxWidth).toBe('794px');
       expect(singleColWrapper.style.width).toBe('100%');
       expect(singleColWrapper.style.margin).toBe('0px auto');
     });
 
-    it('EMP-GEO-2: 2-column mode container has max-width: 1024px, display: grid, and gridTemplateColumns: 1fr 2fr', () => {
+    it('EMP-GEO-2: 2-column mode container has max-width: 794px, display: grid, and gridTemplateColumns: 1fr 2fr', () => {
       let cvContext;
       const { container } = render(
         <CVProvider>
@@ -84,7 +84,7 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
       expect(areaCV).not.toBeNull();
       expect(areaCV.style.display).toBe('grid');
       expect(areaCV.style.gridTemplateColumns).toBe('1fr 2fr');
-      expect(areaCV.style.maxWidth).toBe('1024px');
+      expect(areaCV.style.maxWidth).toBe('794px');
       expect(areaCV.style.width).toBe('100%');
       expect(areaCV.style.margin).toBe('0px auto');
 
@@ -287,7 +287,7 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
       expect(calculatePrintScale(undefined)).toBe(1.0);
     });
 
-    it('EMP-PDF-5: generateCleanPrintHTML in 1-column mode formats container with 840px max-width', () => {
+    it('EMP-PDF-5: generateCleanPrintHTML in 1-column mode formats container with 794px max-width', () => {
       const singleColData = {
         ...defaultSchema,
         layout: {
@@ -299,7 +299,7 @@ describe('Empirical Challenger Deep Audit: DOM Geometry, Typography & Clean Prin
 
       const html = generateCleanPrintHTML(singleColData);
       expect(html).toContain('class="resume resume__single-column"');
-      expect(html).toContain('max-width: 840px;');
+      expect(html).toContain('max-width: 794px;');
       expect(html).toContain('margin: 0 auto;');
       expect(html).toContain('padding: var(--page-padding, 24px);');
     });

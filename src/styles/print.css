@@ -58,7 +58,7 @@ html, body {
 #area-cv.resume__single-column,
 .resume__single-column {
   width: 100% !important;
-  max-width: 840px !important;
+  max-width: 794px !important;
   min-height: 297mm !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
@@ -83,6 +83,13 @@ li.cv-block,
   -webkit-column-break-inside: avoid !important;
 }
 
+/* Allow break inside multi-item lists/bullets when large */
+.experience__bullets,
+.simple-list-ul {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
 .force-page-break-before,
 [data-editor-break-forced="true"] {
   break-before: page !important;
@@ -96,7 +103,7 @@ li.cv-block,
   color: var(--title-color);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .2rem;
+  letter-spacing: .35rem;
   margin-bottom: var(--mb-3, 1.5rem);
   break-after: avoid !important;
   page-break-after: avoid !important;
@@ -160,7 +167,7 @@ ul.simple-list-ul li {
   display: list-item !important;
   list-style-type: disc !important;
   margin-top: 0 !important;
-  margin-bottom: calc(var(--item-gap, 6px) / 2) !important;
+  margin-bottom: var(--item-gap, 6px) !important;
   line-height: 1.45 !important;
   color: inherit !important;
   padding-left: 0 !important;
