@@ -15,7 +15,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
         className="home__data bd-grid cv-block" 
         data-item-id={item.id || 'profile_header'} 
         data-section-id={sectionId}
-        style={{ position: 'relative', color: 'var(--text-color)', padding: '0 0.25rem' }}
+        style={{ position: 'relative', color: 'var(--text-color)' }}
       >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
@@ -35,8 +35,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
           listStyleType: 'disc',
           marginBottom: 'var(--item-gap, 8px)',
           lineHeight: 1.45,
-          color: 'var(--text-color)',
-          padding: '0 0.25rem'
+          color: 'var(--text-color)'
         }}
       >
         {ItemComponent && (
@@ -50,7 +49,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
   if (isListItem) {
     return (
       <li
-        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)', padding: '0 0.25rem' }}
+        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' }}
         className={`${sectionType === 'skills' ? 'skills__name cv-block' : 'cv-block simple-list-item'}`}
         data-item-id={item.id}
         data-section-id={sectionId}
@@ -68,7 +67,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
         className="profile__description cv-block" 
         data-item-id={item.id || 'about'}
         data-section-id={sectionId}
-        style={{ position: 'relative', color: 'var(--text-color)', padding: '0 0.25rem' }}
+        style={{ position: 'relative', color: 'var(--text-color)' }}
       >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
@@ -83,7 +82,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
         className="education__content cv-block" 
         data-item-id={item.id}
         data-section-id={sectionId}
-        style={{ display: 'flex', position: 'relative', color: 'var(--text-color)', padding: '0 0.25rem' }}
+        style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}
       >
         {ItemComponent && (
           <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
@@ -97,7 +96,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
       className="experience__content cv-block" 
       data-item-id={item.id}
       data-section-id={sectionId}
-      style={{ display: 'flex', position: 'relative', color: 'var(--text-color)', padding: '0 0.25rem' }}
+      style={{ display: 'flex', position: 'relative', color: 'var(--text-color)' }}
     >
       {ItemComponent && (
         <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />

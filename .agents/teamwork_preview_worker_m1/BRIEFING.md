@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-03T02:05:00-03:00
+# BRIEFING — 2026-09-10T04:12:20Z
 
 ## Mission
-Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 layout mirror, selectable text, multi-page pagination, loading indicator, and toast notifications.
+Execute Milestone M1: CSS Architecture & Single Source of Truth Alignment. Eliminate destructive regex stripping in staticHtmlPdfEngine.js, extract document layout rules from desktop media query in index.css to #area-cv, enforce strict 794px width on #area-cv in print.css and App.jsx, synchronize CSS custom properties, and remove forced page-break margin shifts and zoom downscaling.
 
 ## 🔒 My Identity
 - Archetype: worker
@@ -9,6 +9,8 @@ Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 la
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
 - Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
 - Milestone: Epic 1 - PDF Generation
+- Orchestrator 10 Parent: 330b6d43-f411-474e-9505-d78ef90b8c30
+- Milestone: M1 — CSS Architecture & Single Source of Truth Alignment
 
 ## 🔒 Key Constraints
 - DO NOT CHEAT. No hardcoding test results, no dummy implementations.
@@ -18,22 +20,30 @@ Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 la
 - Clean 100% test pass and build pass.
 - Standard fonts offline (Helvetica, Times-Roman, Courier).
 - Strict 1:1 visual styling and wrap={false} pagination across sections/items.
+- Exclusive File Ownership: src/utils/staticHtmlPdfEngine.js, src/index.css, src/styles/print.css, src/App.jsx. Do NOT edit files outside this set.
+- Enforce strict 794px width on #area-cv and .resume across editor and print.
+- Enforce strictly 1.0 zoom (no downscaling branch).
+- Single source of truth CSS: zero divergent print overrides, all custom properties propagated identically.
 
 ## Current Parent
-- Conversation ID: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Updated: 2026-09-03T02:05:00-03:00
+- Conversation ID: 330b6d43-f411-474e-9505-d78ef90b8c30
+- Updated: 2026-09-10T04:12:20Z
 
 ## Task Summary
-- **What to build**: Full client-side PDF generation using @react-pdf/renderer, CVDocument component matching #area-cv styles, PdfIcons, reactPdfEngine utility, ActionMenu integration, unit & integration tests.
-- **Success criteria**: All Epic 1 acceptance criteria met, 100% tests pass (293/293), build passes in 4.1s.
+- **What to build**:
+  1. `src/utils/staticHtmlPdfEngine.js`: Remove destructive regex (lines 448-464); add `bd-grid` to 2-col print class; sync default leftBg to `#f3f4f6`; remove forced page-break margin-top injection (line 823); enforce strictly 1.0 zoom (remove lines 878-881 downscaling); propagate all CSS custom properties identically.
+  2. `src/index.css`: Extract document layout rules from `@media screen and (min-width: 968px)` (lines 583-655) and apply to `#area-cv` descendant containers unconditionally; clean up divergent print overrides.
+  3. `src/styles/print.css`: Enforce strict 794px width on `#area-cv` and `.resume`; purge `width: 100% !important`; purge conflicting padding overrides; scope `.resume__single-column` padding to `#area-cv.resume__single-column`.
+  4. `src/App.jsx`: Ensure `#area-cv` has strict 794px width (`width: "794px", minWidth: "794px", maxWidth: "794px", margin: "0 auto"`); remove redundant inner `div.resume__single-column` wrapper in 1-column ATS mode.
+- **Success criteria**:
+  - Full test suite passes (`npm test -- --run`).
+  - Production build succeeds (`npm run build`).
+  - Strict 0px drift foundation established for M2 & M3.
 - **Interface contracts**: /home/juani/Documentos/Ressume/PROJECT.md
-- **Code layout**: src/components/PDF/, src/utils/, src/tests/
+- **Code layout**: /home/juani/Documentos/Ressume/PROJECT.md § Code Layout
 
 ## Key Decisions Made
-- Standard PDF Type 1 fonts (Helvetica, Times-Roman, Courier) used to eliminate network font fetches.
-- Code-splitting with dynamic import in ActionMenu: main bundle remains small (401 kB), react-pdf chunk (1.28 MB) loaded on-demand.
-- Super-container header binding (`wrap={false}`) prevents orphaned headers across page cuts.
-- Vector SVG icons rendered via @react-pdf/renderer Svg/Path primitives.
+- Initialized M1 tasks according to DISPATCH.md and Explorer 1 & 2 findings.
 
 ## Artifact Index
 - DISPATCH.md — Assignment from orchestrator
@@ -43,27 +53,17 @@ Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 la
 
 ## Change Tracker
 - **Files modified**:
-  - `package.json`: added `@react-pdf/renderer` and `vite-plugin-node-polyfills`
-  - `vite.config.js`: configured `nodePolyfills`, `chunkSizeWarningLimit: 1600`, restricted tests to `src/`
-  - `src/utils/staticHtmlPdfEngine.js`: added `isLast = false` to line 79
-  - `src/utils/reactPdfEngine.js`: implemented `renderPdfBlob`, `generateAndDownloadPdf`, `normalizeCvDataForPdf`
-  - `src/components/PDF/PdfIcons.jsx`: implemented vector SVG icons
-  - `src/components/PDF/pdfStyleFactory.js`: implemented dynamic styling, YIQ contrast, pt conversions
-  - `src/components/PDF/richTextPdf.jsx`: implemented rich text tokenizer for b/i/em/strong tags
-  - `src/components/PDF/CVItemPdf.jsx`: implemented universal item renderer for all 13 item types
-  - `src/components/PDF/CVSectionPdf.jsx`: implemented super-container orphan prevention
-  - `src/components/PDF/CVDocument.jsx`: implemented 1:1 root Document mirror (2-col & 1-col)
-  - `src/components/Editor/ActionMenu.jsx`: integrated vector PDF export button, loading state, toast
-  - `src/tests/setup.js`: polyfilled `URL.createObjectURL` / `revokeObjectURL`
-  - `src/tests/epic1-react-pdf-generation.test.jsx`: added 16 tests across Tiers 1 and 2
-  - `PROJECT.md`: updated scope and marked M1 COMPLETE
-- **Build status**: PASS (vite v5.4.21, built in 4.10s)
-- **Pending issues**: none
+  - `src/utils/staticHtmlPdfEngine.js`: Removed destructive regex rule stripping; sanitized editor artifact selectors cleanly; harmonized `leftBg` fallback to `#f3f4f6`; aligned left/right column padding to `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`; added `bd-grid` to 2-col print class for snapshot print runs; propagated `--container-color`, `--container-color-alt`, and `--body-color` custom properties; removed forced page-break margin-top shift injection; enforced 1.0 zoom on snapshot runs.
+  - `src/index.css`: Extracted document canvas layout rules from `@media screen and (min-width: 968px)` into base CSS scoped to `#area-cv`; defined base `.resume` grid layout; enforced strict 794px width on `#area-cv` and `.resume` in base and `@media print`; scoped `.resume__single-column` padding and eliminated child duplicate padding.
+  - `src/styles/print.css`: Replaced `width: 100% !important` on `#area-cv` and `.resume` with strict 794px width rules; scoped `.resume__single-column` padding to `#area-cv.resume__single-column` and cleared nested `.resume__single-column` padding.
+  - `src/App.jsx`: Configured `#area-cv` with 794px min/max constraints and auto margin; explicitly set inner ATS single-column wrapper padding to 0 to prevent doubling.
+- **Build status**: PASS (Vite build completed in 1.69s)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (15 test files, 293 tests passing, 0 errors)
-- **Lint status**: clean
-- **Tests added/modified**: +16 comprehensive tests in `src/tests/epic1-react-pdf-generation.test.jsx`
+- **Build/test result**: PASS (32/32 test files, 546/546 tests passing)
+- **Lint status**: 0 violations
+- **Tests added/modified**: 0 (all 546 tests passing with genuine logic and 0 test modifications)
 
 ## Loaded Skills
 None

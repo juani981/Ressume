@@ -34,9 +34,10 @@ html, body {
 /* Base Print Container Layout */
 #area-cv,
 .resume {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
+  width: 794px !important;
+  min-width: 794px !important;
+  max-width: 794px !important;
+  margin: 0 auto !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
   -webkit-box-decoration-break: clone !important;
@@ -55,9 +56,9 @@ html, body {
   box-decoration-break: clone !important;
 }
 
-#area-cv.resume__single-column,
-.resume__single-column {
-  width: 100% !important;
+#area-cv.resume__single-column {
+  width: 794px !important;
+  min-width: 794px !important;
   max-width: 794px !important;
   min-height: 297mm !important;
   margin: 0 auto !important;
@@ -66,10 +67,12 @@ html, body {
   background: #ffffff !important;
 }
 
+#area-cv .resume__single-column {
+  padding: 0 !important;
+}
+
 /* Super-container CSS Page Break & Splitting Prevention */
-.cv-section,
 .cv-block,
-.section,
 .spacer-section,
 .experience__content,
 .education__content,
@@ -92,17 +95,18 @@ li.cv-block,
   padding: 0 !important;
 }
 
-/* Allow break inside multi-item lists/bullets when large */
+/* Prevent multi-item lists/bullets from fracturing across pages */
 .experience__bullets,
 .simple-list-ul {
-  break-inside: auto !important;
-  page-break-inside: auto !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
 }
 
 .force-page-break-before,
 [data-editor-break-forced="true"] {
   break-before: page !important;
   page-break-before: always !important;
+  margin-top: 0 !important;
 }
 
 /* Section Title in Print (Standard Left-Aligned) */
@@ -147,9 +151,9 @@ h3 {
   break-inside: avoid !important;
 }
 
-p, h1, h2, h3, li {
-  orphans: 3;
-  widows: 3;
+p, h1, h2, h3 {
+  orphans: 2;
+  widows: 2;
 }
 
 /* Interactive Editor Artifact Suppression */
@@ -217,10 +221,12 @@ ul.simple-list-ul li span.inline-edit-display {
   body {
     background-color: #ffffff !important;
   }
-  #area-cv {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
+  #area-cv,
+  .resume {
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: 794px !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     min-height: var(--print-target-height-mm, 297mm) !important;
     box-sizing: border-box !important;
@@ -235,15 +241,15 @@ ul.simple-list-ul li span.inline-edit-display {
     -webkit-box-decoration-break: clone !important;
     box-decoration-break: clone !important;
   }
-  #area-cv.resume__single-column,
-  .resume__single-column {
+  #area-cv.resume__single-column {
     min-height: 297mm !important;
     box-sizing: border-box !important;
     padding: var(--page-padding, 24px) !important;
   }
-  .cv-section,
+  #area-cv .resume__single-column {
+    padding: 0 !important;
+  }
   .cv-block,
-  .section,
   .experience__content,
   .education__content,
   .skills__name,

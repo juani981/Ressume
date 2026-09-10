@@ -289,4 +289,43 @@ Reorganize the existing `ActionMenu.jsx` floating toolbar:
 - [ ] No regressions in the existing undo/redo system
 - [ ] No regressions in the existing toast notification system
 
+## 2026-09-10T03:58:34Z
 
+Garantizar una paridad visual 1:1 absoluta (cero desfase de píxeles, 0px de diferencia) entre la vista previa interactiva en vivo del editor de CV (`#area-cv`) y el documento PDF / impresión final generado por el motor de impresión limpia (`executeCleanPrint` / `generateCleanPrintHTML`), eliminando cualquier regla CSS divergente, sobreescritura de márgenes, padding o tipografía, y preservando la geometría exacta de todos los elementos.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: development
+
+## Requirements
+
+### R1. Absolute Zero-Drift Visual Parity (Editor vs PDF / Impresión Limpia)
+The static HTML generation and clean print engine (`generateCleanPrintHTML` / `executeCleanPrint`) must reproduce the live editor's `#area-cv` presentation with absolute 1:1 pixel parity. Every text element, section header, container, column split, margin, padding, line height, font family, and font size in the final print/PDF snapshot must match the active live editor geometry to the exact pixel (0px discrepancy).
+
+### R2. Complete Purge of Divergent Print CSS and Dimension Overrides
+Eliminate any CSS rule, media query, stylesheet, or dynamic style injection that overrides layout dimensions, typography sizes, spacings, paddings, or margins between the live editor and the print output. The live CSS rules and active CSS custom properties (`--page-padding`, `--section-gap`, `--item-gap`, `--font-scale`, `--line-height`, etc.) evaluated in the editor must serve as the single source of truth for both display and print.
+
+### R3. Non-Disruptive Interactive Artifact Concealment
+Interactive editor controls (drag handles, delete buttons, add buttons, resizer dividers, floating tooltips, and rich text formatting bars) must be concealed during PDF rendering and printing without modifying container dimensions, margins, or element flow coordinates. Concealment must preserve the exact bounding layout box so that neighboring and descendant content experiences zero reflow or spatial shift.
+
+### R4. Automated Pixel-Parity Verification and Regression Prevention
+Establish comprehensive programmatic verification (Vitest tests) that compares the computed bounding rectangles, typography metrics, and layout positions of every section and item between the live editor DOM and the rendered print DOM snapshot, failing if any element drifts by even 1 pixel. All existing test suites across the repository must continue to pass cleanly with zero regressions.
+
+## Acceptance Criteria
+
+### Visual & Geometric Parity (0px Drift)
+- [ ] Programmatic tests assert that `top`, `left`, `width`, `height`, and computed font sizes between editor elements and print snapshot elements have 0px delta across both 1-column and 2-column layouts.
+- [ ] Container width is identical between editor and print output (strict 794px A4 standard).
+- [ ] Document zoom is strictly guaranteed to be 1.0 during print and snapshot generation.
+
+### CSS Architecture & Single Source of Truth
+- [ ] No overriding CSS rules exist in `print.css`, `index.css`, or inline generators that alter font size, padding, margin, or gap between editor `#area-cv` and print output.
+- [ ] All custom properties (`--page-padding`, `--section-gap`, `--item-gap`, `--line-height`, `--font-scale`) propagate identically to the print document without modification or re-scaling.
+
+### Interactive Artifact Stripping without Flow Distortion
+- [ ] All interactive editor artifacts (`.drag-handle`, `.round-btn-del`, `.round-btn-add`, `.column-resizer`, `.rich-text-toolbar`, `.action-menu-btn`, etc.) are completely invisible in the final print/PDF output.
+- [ ] Concealing interactive controls does not alter the physical dimensions or spatial layout of any surrounding or child CV content.
+
+### System Verification & Tests
+- [ ] Primary TDD pixel-parity test suite (`src/tests/pixelParityEditorPrint.test.jsx`) passes with 0px drift tolerance.
+- [ ] Full Vitest test suite (`npx vitest run`) passes with 100% success across all test files in the repository.
+- [ ] Production build (`npm run build`) succeeds with zero errors or warnings.

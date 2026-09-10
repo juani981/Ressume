@@ -39,7 +39,7 @@ export const PrintBaseSection = ({ section }) => {
       className={`${sectionClass} section cv-section${bulletClasses}`} 
       id={section.id}
       data-section-id={section.id}
-      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)', padding: '0 0.25rem' }}
+      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
     >
       {!isProfile && section.title && (
         <h2 className="section-title" data-section-title={section.id}>

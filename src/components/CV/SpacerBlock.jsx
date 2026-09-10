@@ -84,6 +84,9 @@ export const useVerticalSpacerResize = ({
       const deltaY = currentY - startY;
       const nextH = Math.round(Math.max(min, Math.min(max, startHeight + deltaY)));
       setLocalHeight(nextH);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cv-spacer-live-resize', { detail: { height: nextH } }));
+      }
     };
 
     const handleEnd = (endEvent) => {
@@ -102,6 +105,9 @@ export const useVerticalSpacerResize = ({
       if (typeof onCommit === 'function') {
         onCommit(clampedFinal);
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cv-spacer-live-resize', { detail: { height: clampedFinal } }));
+      }
     };
 
     document.body.style.cursor = 'ns-resize';
@@ -119,12 +125,18 @@ export const useVerticalSpacerResize = ({
       const nextH = Math.round(Math.max(min, Math.min(max, localHeight - step)));
       setLocalHeight(nextH);
       if (typeof onCommit === 'function') onCommit(nextH);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cv-spacer-live-resize', { detail: { height: nextH } }));
+      }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       const step = e.shiftKey ? 10 : 2;
       const nextH = Math.round(Math.max(min, Math.min(max, localHeight + step)));
       setLocalHeight(nextH);
       if (typeof onCommit === 'function') onCommit(nextH);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cv-spacer-live-resize', { detail: { height: nextH } }));
+      }
     }
   }, [localHeight, min, max, onCommit]);
 
@@ -442,7 +454,8 @@ export const EditableSpacerBlock = ({ section }) => {
       ? '1px dashed #3874ff'
       : '1px dashed rgba(148, 163, 184, 0.4)',
     borderRadius: '4px',
-    marginBottom: 'var(--section-gap, 20px)',
+    margin: 0,
+    padding: 0,
     userSelect: isResizing ? 'none' : 'auto',
   };
 

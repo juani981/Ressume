@@ -137,16 +137,17 @@ describe('Editor Snapshot & 1:1 Break Propagation to Print Engine', () => {
     });
   });
 
-  describe('3. executeCleanPrint with Snapshot Propagation & Zero Downscaling', () => {
-    it('creates iframe matching snapshot width and applies breaks with zoom: 1.0', async () => {
+  describe('3. executeCleanPrint with Snapshot Propagation & Page Parity Guard', () => {
+    it('creates iframe matching snapshot width, preserves zoom: 1.0 when content fits, and scales adaptively if overflowing', async () => {
       let createdIframe = null;
       let assignedZoom = null;
       const originalAppendChild = document.body.appendChild.bind(document.body);
 
       const customSnapshot = {
         width: 1024,
-        height: 2500,
+        height: 2000,
         pageHeightPx: 1123,
+        totalPages: 2,
         brokenElements: [
           { sectionId: 'experience', itemId: 'exp-1', isTitle: false, fold: '1' }
         ]
@@ -161,6 +162,64 @@ describe('Editor Snapshot & 1:1 Break Propagation to Print Engine', () => {
           const brokenItem = document.createElement('div');
           brokenItem.setAttribute('data-item-id', 'exp-1');
           mockAreaCv.appendChild(brokenItem);
+
+          Object.defineProperty(child, 'contentWindow', {
+            configurable: true,
+            value: {
+              document: {
+                open: vi.fn(),
+                write: vi.fn(),
+                close: vi.fn(),
+                readyState: 'complete',
+                fonts: { ready: Promise.resolve() },
+                getElementById: (id) => id === 'area-cv' ? mockAreaCv : null,
+                querySelector: (sel) => mockAreaCv.querySelector(sel),
+                body: {
+                  scrollHeight: 2000,
+                  style: {
+                    set zoom(val) { assignedZoom = val; },
+                    get zoom() { return assignedZoom; }
+                  },
+                  querySelector: () => mockAreaCv
+                }
+              },
+              focus: vi.fn(),
+              print: vi.fn(),
+              close: vi.fn()
+            }
+          });
+        }
+        return originalAppendChild(child);
+      });
+
+      await executeCleanPrint(defaultSchema, 'es', customSnapshot);
+
+      expect(createdIframe).not.toBeNull();
+      expect(createdIframe.style.width).toBe('1024px');
+      expect(createdIframe.style.minWidth).toBe('1024px');
+
+      // Zero downscaling when content fits within 2-page height (2000 <= 2246)
+      expect(assignedZoom).toBe(1.0);
+    });
+
+    it('adaptively downscales when snapshot content overflows totalPages to guarantee exact page parity', async () => {
+      let assignedZoom = null;
+      const originalAppendChild = document.body.appendChild.bind(document.body);
+
+      const customSnapshot = {
+        width: 1024,
+        height: 2500,
+        pageHeightPx: 1123,
+        totalPages: 2,
+        brokenElements: [
+          { sectionId: 'experience', itemId: 'exp-1', isTitle: false, fold: '1' }
+        ]
+      };
+
+      vi.spyOn(document.body, 'appendChild').mockImplementation(function (child) {
+        if (child.tagName === 'IFRAME') {
+          const mockAreaCv = document.createElement('div');
+          mockAreaCv.id = 'area-cv';
 
           Object.defineProperty(child, 'contentWindow', {
             configurable: true,
@@ -193,12 +252,8 @@ describe('Editor Snapshot & 1:1 Break Propagation to Print Engine', () => {
 
       await executeCleanPrint(defaultSchema, 'es', customSnapshot);
 
-      expect(createdIframe).not.toBeNull();
-      expect(createdIframe.style.width).toBe('1024px');
-      expect(createdIframe.style.minWidth).toBe('1024px');
-
-      // Crucial: Zero downscaling when snapshot is provided
-      expect(assignedZoom).toBe(1.0);
+      // Adaptive downscaling strictly prevents page 3 overflow (2246 / 2500 = 0.898)
+      expect(assignedZoom).toBe(0.898);
     });
   });
 });

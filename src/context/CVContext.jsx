@@ -101,6 +101,98 @@ export const CVProvider = ({ children }) => {
     return saved !== 'false';
   });
 
+  // Physical A4 Page Metrics (Standard A4 is 297mm height; ~1123px at 96 DPI)
+  const [pageHeightPx, setPageHeightPx] = useState(() => {
+    if (typeof document !== 'undefined') {
+      try {
+        const ruler = document.createElement('div');
+        ruler.style.height = '297mm';
+        ruler.style.position = 'absolute';
+        ruler.style.visibility = 'hidden';
+        ruler.style.top = '-9999px';
+        document.body.appendChild(ruler);
+        const h = ruler.offsetHeight;
+        ruler.remove();
+        if (h > 0) return h;
+      } catch (_) {}
+    }
+    return 1123;
+  });
+
+  const pageGapPx = 20; // 20px gap visual representation in live editor
+
+  // Total pages state in context
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Pagination bounds helper
+  const getPageBounds = useCallback((pageNum) => {
+    const p = Math.max(1, pageNum);
+    const top = (p - 1) * (pageHeightPx + pageGapPx);
+    const bottom = top + pageHeightPx;
+    const foldTop = p * pageHeightPx + (p - 1) * pageGapPx;
+    const foldBottom = foldTop + pageGapPx;
+    const pagePadding = Number(cvData?.layout?.pagePadding ?? 24);
+    const contentTop = top + pagePadding;
+    const contentBottom = foldTop - pagePadding;
+    return {
+      top,
+      bottom,
+      foldTop,
+      foldBottom,
+      pageHeightPx,
+      pageGapPx,
+      pagePadding,
+      contentTop,
+      contentBottom,
+    };
+  }, [pageHeightPx, pageGapPx, cvData?.layout?.pagePadding]);
+
+  // Page info helper for an element or relative top/height bounds
+  const getElementPageInfo = useCallback((elementOrBounds) => {
+    let top = 0;
+    let height = 0;
+
+    if (elementOrBounds && typeof elementOrBounds === 'object') {
+      if ('top' in elementOrBounds && 'height' in elementOrBounds) {
+        top = elementOrBounds.top;
+        height = elementOrBounds.height;
+      } else if (typeof elementOrBounds.getBoundingClientRect === 'function') {
+        const areaCv = document.getElementById('area-cv');
+        const elRect = elementOrBounds.getBoundingClientRect();
+        if (areaCv) {
+          const areaRect = areaCv.getBoundingClientRect();
+          top = elRect.top - areaRect.top;
+        } else {
+          top = elementOrBounds.offsetTop || 0;
+        }
+        height = elRect.height || elementOrBounds.offsetHeight || 0;
+      }
+    }
+
+    const pageNum = Math.max(1, Math.floor(top / (pageHeightPx + pageGapPx)) + 1);
+    const bounds = getPageBounds(pageNum);
+    const remainingInPage = Math.max(0, bounds.contentBottom - (top + height));
+    const isCrossingFold = (top < bounds.contentBottom) && ((top + height) > bounds.contentBottom);
+
+    return {
+      pageNum,
+      top,
+      height,
+      bottom: top + height,
+      foldTop: bounds.foldTop,
+      contentTop: bounds.contentTop,
+      contentBottom: bounds.contentBottom,
+      remainingInPage,
+      isCrossingFold,
+    };
+  }, [pageHeightPx, pageGapPx, getPageBounds]);
+
+  // Pagination trigger counter to allow components to request recalculation
+  const [paginationTrigger, setPaginationTrigger] = useState(0);
+  const triggerPaginationRecalc = useCallback(() => {
+    setPaginationTrigger(prev => prev + 1);
+  }, []);
+
   // Ephemeral toast notification state: { id, text, type } or null
   const [toast, setToast] = useState(null);
   const toastTimeoutRef = useRef(null);
@@ -616,7 +708,16 @@ export const CVProvider = ({ children }) => {
       showAITips,
       toast,
       showToast,
-      hideToast
+      hideToast,
+      pageHeightPx,
+      setPageHeightPx,
+      pageGapPx,
+      totalPages,
+      setTotalPages,
+      getPageBounds,
+      getElementPageInfo,
+      paginationTrigger,
+      triggerPaginationRecalc,
     }}>
       {children}
     </CVContext.Provider>

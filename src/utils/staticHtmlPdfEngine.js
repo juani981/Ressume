@@ -306,11 +306,19 @@ export const captureEditorSnapshot = () => {
     });
   });
 
+  const totalPagesAttr = areaCv.getAttribute('data-total-pages');
+  const parsedAttr = totalPagesAttr ? parseInt(totalPagesAttr, 10) : 0;
+  const maxFold = brokenElements.length > 0
+    ? Math.max(...brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
+    : 1;
+  const totalPages = (parsedAttr && parsedAttr > 0) ? parsedAttr : maxFold;
+
   return {
     width: width > 0 ? width : 794,
     height,
     pageHeightPx,
-    brokenElements
+    brokenElements,
+    totalPages
   };
 };
 
@@ -370,7 +378,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   const listScale = layout.listScale || 1.0;
   const lineHeight = layout.lineHeight || 1.45;
 
-  const leftBg = layout.leftBg || '#fafafa';
+  const leftBg = layout.leftBg || '#f3f4f6';
   const rightBg = layout.rightBg || '#ffffff';
   const leftColors = getDynamicTextColors(leftBg);
   const rightColors = getDynamicTextColors(rightBg);
@@ -385,7 +393,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   const leftColPercent = leftColWidth || 33.33;
 
   const areaCvClasses = is2Col 
-    ? `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim()
+    ? (snapshot ? `resume bd-grid ${isAtsMode ? 'resume--ats-mode' : ''}`.trim() : `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim())
     : `resume resume__single-column ${isAtsMode ? 'resume--ats-mode' : ''}`.trim();
 
   const dynamicSpacingStyle = `
@@ -407,11 +415,12 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     snapshotBreaksCSS = snapshot.brokenElements.map(b => {
       const selector = b.isTitle
         ? `[data-section-title="${b.sectionId}"]`
-        : `[data-item-id="${b.itemId}"]`;
+        : (b.itemId ? `[data-item-id="${b.itemId}"]` : `[data-section-id="${b.sectionId}"]`);
       return `
         ${selector} {
           break-before: page !important;
           page-break-before: always !important;
+          margin-top: 0 !important;
         }
       `;
     }).join('\n');
@@ -421,10 +430,10 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   if (is2Col) {
     bodyContent = `
       <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm; height: 100%; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
+        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
           ${rightSections.map(renderSectionHTML).join('')}
         </div>
       </div>
@@ -445,14 +454,12 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   // Remove static :root block so dynamic variables take effect without collision
   activeBaseStyles = activeBaseStyles.replace(/:root\s*\{[\s\S]*?\}/, '/* static :root removed */');
 
-  // Strip interactive editor artifacts from CSS so they never leak into clean print HTML
-  const editorArtifactsPattern = /(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)/gi;
-  activeBaseStyles = activeBaseStyles
-    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)[^{]*?\{[^}]*?\}/gi, '')
-    .replace(editorArtifactsPattern, 'editor-control-stripped');
-  activePrintStyles = activePrintStyles
-    .replace(/[^{}]*?(?:drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|inline-input|editable-section-container|editable-item-container|section-del-btn|item-del-btn|section-add-container|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar)[^{]*?\{[^}]*?\}/gi, '')
-    .replace(editorArtifactsPattern, 'editor-control-stripped');
+  // Sanitize editor artifact selector names so they do not leak into clean print HTML
+  // without deleting entire CSS rule blocks or affecting layout rules (.cv-section, margins, text contrast)
+  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input)/gi;
+  activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
+  activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
+
 
   if (!is2Col) {
     activeBaseStyles = activeBaseStyles
@@ -482,6 +489,9 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       --title-color: #0f172a;
       --text-color: #334155;
       --text-color-light: #64748b;
+      --container-color: #ffffff;
+      --container-color-alt: #f3f4f6;
+      --body-color: #ffffff;
       --body-font: ${fontFamily};
       --font-scale: ${fontScale};
       --title-scale: ${titleScale};
@@ -620,6 +630,8 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
           }
 
           const { top, bottom, height } = getRelativeBounds(item);
+
+          if (height <= 0) continue;
 
           // If already after fold
           if (top >= foldY) {
@@ -803,37 +815,17 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
               if (targetEl) {
                 targetEl.style.setProperty('break-before', 'page', 'important');
                 targetEl.style.setProperty('page-break-before', 'always', 'important');
+                targetEl.style.setProperty('margin-top', '0px', 'important');
                 targetEl.classList.add('force-page-break-before');
                 targetEl.setAttribute('data-page-break-forced', 'true');
                 targetEl.setAttribute('data-page-break-fold', String(b.fold || b.pageNum || 1));
-
-                const pageNum = parseInt(b.fold || b.pageNum, 10) || 1;
-                const foldY = pageNum * pageHeightPx;
-                let top = 0;
-                try {
-                  const elRect = targetEl.getBoundingClientRect();
-                  const areaRect = areaCv.getBoundingClientRect();
-                  top = elRect.top - areaRect.top;
-                } catch (_) {
-                  top = targetEl.offsetTop || b.relativeTop || 0;
-                }
-
-                const pushDistance = Math.max(0, foldY - top);
-                if (pushDistance > 0) {
-                  targetEl.style.setProperty('margin-top', `${pushDistance + 10}px`, 'important');
-                }
               }
             });
 
             const maxFold = snapshot.brokenElements.length > 0
               ? Math.max(...snapshot.brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
               : 1;
-            const rawMaxHeight = Math.max(
-              doc.body?.scrollHeight || 0,
-              areaCv?.scrollHeight || 0,
-              pageHeightPx * maxFold
-            );
-            const totalPages = Math.max(1, Math.ceil(rawMaxHeight / pageHeightPx));
+            const totalPages = snapshot.totalPages || maxFold;
             const targetHeightMm = totalPages * 297;
 
             if (areaCv && areaCv.style) {
@@ -857,8 +849,20 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
               rightCol.style.setProperty('box-sizing', 'border-box', 'important');
             }
 
-            // Zero downscaling - Component CSS is sole source of truth!
-            if (doc.body?.style) {
+            // Adaptive scale guard: if content in iframe slightly overflows totalPages due to browser font rendering differences,
+            // scale down adaptively to strictly guarantee fitting within totalPages without spawning an unwanted extra blank page!
+            const rawHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0
+            );
+            const maxAllowedHeight = totalPages * pageHeightPx;
+            if (rawHeight > maxAllowedHeight) {
+              const scale = calculatePrintScale(rawHeight, totalPages);
+              if (doc.body?.style) {
+                doc.body.style.zoom = scale;
+              }
+            } else if (doc.body?.style) {
               doc.body.style.zoom = 1.0;
             }
 
@@ -878,6 +882,8 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
             const scale = calculatePrintScale(rawHeight, Math.max(2, totalPages));
             if (scale < 1.0 && doc.body?.style) {
               doc.body.style.zoom = scale;
+            } else if (doc.body?.style) {
+              doc.body.style.zoom = 1.0;
             }
 
             if (iframe && iframe.style) {

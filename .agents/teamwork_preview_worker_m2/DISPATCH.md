@@ -1,23 +1,52 @@
-## 2026-09-03T05:17:00Z
-You are Worker M2 for Ressume CV editor project.
-Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
-Workspace directory: /home/juani/Documentos/Ressume
-Authoritative user request: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (under header ## 2026-09-03T03:17:21Z)
-Project Scope: /home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_8/PROJECT.md
-Architectural Blueprint: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o7_survey_2/handoff.md
+## 2026-09-10T04:28:00Z
 
-Tasks:
-1. Implement src/components/Editor/RichTextToolbar.jsx (singleton floating toolbar, AGENTS.md Rule 3 dynamic bounding rect positioning, alignment buttons L/C/R/J, bold/italic buttons, mousedown preventDefault).
-2. Upgrade src/components/Editor/InlineEdit.jsx to rich-text contentEditable with full backward compatibility, keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y), and alignment persistence.
-3. Update src/context/CVContext.jsx (prevent global window Ctrl+Z/Y listener from hijacking text editing in editable fields).
-4. Update src/utils/staticHtmlPdfEngine.js so rich text formatting tags (<b>, <i>, alignment) render properly instead of escaping into literal &lt;b&gt;.
-5. Verify src/components/PDF/richTextPdf.jsx renders rich text in React-PDF.
-6. Create src/tests/epic2-rich-text-toolbar.test.jsx covering all Epic 2 requirements and edge cases.
-7. Run npm test and npm run build directly.
-8. Write handoff.md in your working directory and notify parent via send_message.
+# Task Assignment — Worker M2 (Artifact Concealment & Component Template Harmonization)
 
-## 2026-09-03T05:30:16Z
-[Message from Orchestrator 2c65867e-7bbe-40ab-b346-34c64b943ca4]
-**Context**: Milestone 2 implementation check.
-**Content**: Please provide an update on your progress with Epic 2 (RichTextToolbar, InlineEdit upgrade, shortcuts, cross-engine rendering). What files have been modified/created, and what step are you currently executing?
-**Action**: Update progress.md and report your current status.
+**Working Directory**: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
+**Authoritative Request**: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (see section ## 2026-09-10T03:58:34Z)
+**Role**: teamwork_preview_worker
+
+## Exclusive File Ownership
+You exclusively own and may edit the following files:
+- `src/components/CV/BaseSection.jsx`
+- `src/components/CV/BaseItem.jsx`
+- `src/components/CV/items/ExperienceItem.jsx`
+- `src/components/CV/items/ProjectsItem.jsx`
+- `src/components/CV/items/VolunteeringItem.jsx`
+- `src/components/CV/items/SpacerBlock.jsx`
+- `src/components/Editor/InlineEdit.jsx`
+- `src/components/Editor/HyperlinkEdit.jsx`
+
+Do NOT edit files outside this set.
+
+## Reference Inputs
+Read the following files before starting:
+- `/home/juani/Documentos/Ressume/PROJECT.md`
+- `/home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md`
+- Explorer 1 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o10_survey_1/handoff.md` and `findings.md`
+- Explorer 2 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o10_survey_2/handoff.md` and `findings.md`
+- Explorer 3 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o10_survey_3/handoff.md` and `findings.md`
+- Worker M1 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1/handoff.md`
+
+## Mission & Tasks
+1. **Remove Artificial Padding from Print Components**:
+   - In `src/components/CV/BaseSection.jsx`: Remove `padding: '0 0.25rem'` from `PrintBaseSection` so it has identical padding to `EditableBaseSection` (no artificial padding).
+   - In `src/components/CV/BaseItem.jsx`: Remove `padding: '0 0.25rem'` from `PrintBaseItem` across all item containers.
+2. **Harmonize Bullet Items & Eliminate Phantom Height**:
+   - In `src/components/CV/items/ExperienceItem.jsx`, `ProjectsItem.jsx`, `VolunteeringItem.jsx`:
+     * Eliminate phantom in-flow height from `.bullet-add-row`: when idle/unhovered, make it occupy 0px height (or position it out-of-flow) so it does NOT add ~22px vertical height in the editor that is absent in print view.
+     * Remove `paddingRight: 1.5rem` (24px) from `SortableBulletItem`: make the bullet delete button an absolute hover overlay or out-of-flow control so it does not reduce available text line width in the editor compared to print view.
+     * Unify bullet display model and padding between edit view and print view so line breaks and text metrics match identically.
+3. **Harmonize `InlineEdit` Display**:
+   - In `src/components/Editor/InlineEdit.jsx`: Standardize `InlineEditPrintView` (line 89) to use `display: multiline ? 'block' : 'inline-block'` matching `InlineEditEditor` (line 550) instead of `display: multiline ? 'block' : 'inline'`.
+4. **Harmonize Hyperlink & Spacer Structures**:
+   - In `src/components/Editor/HyperlinkEdit.jsx` and `src/components/CV/items/SpacerBlock.jsx`: Unify margins, gaps, and padding between edit view and print view.
+5. **Concealment Without Reflow Verification**:
+   - Verify that all 26 interactive artifacts are concealed cleanly in print without altering element geometry, margins, padding, or flow coordinates.
+6. **Verification**:
+   - Run tests: `npm test -- --run`
+   - Run build: `npm run build`
+   - Document commands and results in `handoff.md` and notify parent via `send_message`.
+
+MANDATORY INTEGRITY WARNING:
+DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.

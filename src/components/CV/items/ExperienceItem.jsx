@@ -47,9 +47,10 @@ const SortableBulletItem = ({
     alignItems: 'flex-start',
     marginTop: 0,
     marginBottom: 'var(--item-gap, 6px)',
-    paddingRight: '1.5rem',
-    paddingLeft: '1.25rem',
-    color: 'inherit'
+    paddingRight: 0,
+    paddingLeft: '1.15rem',
+    color: 'inherit',
+    lineHeight: 1.45
   };
 
   return (
@@ -145,12 +146,13 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                       marginBottom: 'var(--item-gap, 6px)',
                       lineHeight: 1.45,
                       color: 'inherit',
-                      padding: '0 0.25rem'
+                      padding: 0
                     }}
                   >
                     <InlineEdit 
                       value={bulletText} 
                       isPrint={true}
+                      display="inline"
                     />
                   </li>
                 );
@@ -263,7 +265,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -283,7 +285,16 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div className="bullet-add-row no-print" style={{ paddingLeft: '1.25rem' }}>
+          <div 
+            className="bullet-add-row no-print" 
+            style={{ 
+              paddingLeft: '1.15rem',
+              height: 0,
+              lineHeight: 0,
+              overflow: 'visible',
+              position: 'relative'
+            }}
+          >
             <button
               type="button"
               className="add-bullet-btn no-print"

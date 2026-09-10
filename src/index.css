@@ -75,8 +75,9 @@ body {
 #area-cv {
   font-family: var(--body-font);
   line-height: var(--line-height);
-  width: 210mm;
-  max-width: 100%;
+  width: 794px;
+  min-width: 794px;
+  max-width: 794px;
   margin: 0 auto;
   color: var(--text-color);
   box-sizing: border-box;
@@ -579,6 +580,67 @@ img {
   bottom: 5rem;
 }
 
+/*========== DOCUMENT CANVAS LAYOUT RULES (#area-cv Single Source of Truth) ==========*/
+#area-cv .home__container {
+  gap: 1.5rem;
+}
+
+#area-cv .home__data {
+  text-align: initial;
+}
+
+#area-cv .home__img {
+  justify-self: initial;
+}
+
+#area-cv .social__container {
+  grid-template-columns: repeat(3, max-content);
+}
+
+#area-cv .skills__content {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#area-cv .languages__content {
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 3.5rem;
+}
+
+#area-cv .interests__container {
+  grid-template-columns: repeat(4, max-content);
+  column-gap: 3.5rem;
+}
+
+#area-cv .section-title,
+#area-cv .profile__description {
+  text-align: initial;
+}
+
+#area-cv .resume__left {
+  background-color: var(--container-color-alt);
+}
+
+#area-cv .resume__left,
+#area-cv .resume__right {
+  padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
+}
+
+.resume {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  background-color: var(--container-color);
+  box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
+  border-radius: 8px;
+  overflow: visible;
+  margin: 0 auto;
+}
+
+.resume.resume__single-column,
+.resume:not(.bd-grid) {
+  display: block;
+  grid-template-columns: none;
+}
+
 /*========== MEDIA QUERIES ==========*/
 @media screen and (min-width: 968px) {
 
@@ -590,67 +652,6 @@ img {
   .l-header,
   .scrolltop {
     display: none;
-  }
-
-  .resume {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    background-color: var(--container-color);
-    box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
-    border-radius: 8px;
-    overflow: visible;
-    margin: 0 auto;
-  }
-
-  .resume.resume__single-column,
-  .resume:not(.bd-grid) {
-    display: block;
-    grid-template-columns: none;
-  }
-
-
-  .resume__left {
-    background-color: var(--container-color-alt);
-  }
-
-  .resume__left,
-  .resume__right {
-    padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
-  }
-
-  .section-title,
-  .profile__description {
-    text-align: initial;
-  }
-
-  .home__container {
-    gap: 1.5rem;
-  }
-
-  .home__data {
-    text-align: initial;
-  }
-
-  .home__img {
-    justify-self: initial;
-  }
-
-  .social__container {
-    grid-template-columns: repeat(3, max-content);
-  }
-
-  .skills__content {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .languages__content {
-    grid-template-columns: repeat(2, max-content);
-    column-gap: 3.5rem;
-  }
-
-  .interests__container {
-    grid-template-columns: repeat(4, max-content);
-    column-gap: 3.5rem;
   }
 }
 
@@ -1697,6 +1698,7 @@ body.ats-mode-active .a4-page-fold-badge {
   [data-editor-break-forced="true"] {
     break-before: page !important;
     page-break-before: always !important;
+    margin-top: 0 !important;
   }
 
   /* Ocultar interfaz flotante y paneles fuera de flujo */
@@ -1794,10 +1796,12 @@ body.ats-mode-active .a4-page-fold-badge {
     overflow: visible !important;
   }
 
-  #area-cv {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
+  #area-cv,
+  .resume {
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: 794px !important;
+    margin: 0 auto !important;
     padding: 0;
     min-height: var(--print-target-height-mm, 297mm) !important;
     box-shadow: none !important;
@@ -1815,17 +1819,18 @@ body.ats-mode-active .a4-page-fold-badge {
     box-decoration-break: clone !important;
   }
 
-  #area-cv.resume__single-column,
-  .resume__single-column {
+  #area-cv.resume__single-column {
     min-height: 297mm !important;
     box-sizing: border-box !important;
     padding: var(--page-padding, 24px) !important;
   }
 
+  #area-cv .resume__single-column {
+    padding: 0 !important;
+  }
+
   /* Control de Saltos de Página (Page Breaks) */
-  .cv-section,
   .cv-block,
-  .section,
   .experience__content,
   .education__content,
   .skills__name,
@@ -1839,11 +1844,11 @@ body.ats-mode-active .a4-page-fold-badge {
     -webkit-column-break-inside: avoid !important;
   }
 
-  /* Permitir breaks dentro de listas extensas */
+  /* Prevent multi-item lists/bullets from fracturing across pages */
   .experience__bullets,
   .simple-list-ul {
-    break-inside: auto !important;
-    page-break-inside: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
   /* Prevención de encabezados huérfanos */
@@ -1859,15 +1864,15 @@ body.ats-mode-active .a4-page-fold-badge {
   .force-page-break-before {
     break-before: page !important;
     page-break-before: always !important;
+    margin-top: 0 !important;
   }
 
   p,
   h1,
   h2,
-  h3,
-  li {
-    orphans: 3;
-    widows: 3;
+  h3 {
+    orphans: 2;
+    widows: 2;
   }
 
   /* Native Styled Bullet Points (No line breaks, native li marker at beginning) */

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Joyride } from "react-joyride";
 import { CustomTooltip } from "./components/CustomTooltip";
 
@@ -54,6 +54,8 @@ function App() {
       updateLayout,
       activeTooltip,
       clearActiveTooltip,
+      setTotalPages: setContextTotalPages,
+      paginationTrigger,
    } = useCV();
 
    useEffect(() => {
@@ -66,7 +68,10 @@ function App() {
    const [activeDragItem, setActiveDragItem] = useState(null);
    const [activeDragSection, setActiveDragSection] = useState(null);
 
-   useEffect(() => {
+   const isRecalculatingRef = useRef(false);
+   const rafIdRef = useRef(null);
+
+   const recalculatePagination = useCallback(() => {
       if (!areaCvRef.current) return;
       if (activeDragItem || activeDragSection) return;
 
@@ -175,9 +180,13 @@ function App() {
             Math.ceil((currentMaxHeight + gapPx) / (pageHeightPx + gapPx)),
          );
 
+         const pagePadding = Number(cvData.layout?.pagePadding ?? 24);
+
          for (let pageNum = 1; pageNum <= estimatedPages; pageNum++) {
             const foldTop = pageNum * pageHeightPx + (pageNum - 1) * gapPx;
             const foldBottom = foldTop + gapPx;
+            const contentAreaBottom = foldTop - pagePadding;
+            const nextContentAreaTop = foldBottom + pagePadding;
 
             for (const col of colDefs) {
                for (const item of col.items) {
@@ -195,29 +204,25 @@ function App() {
 
                   const isOrphanTitle =
                      item.classList.contains("section-title") &&
-                     top < foldTop &&
-                     bottom > foldTop - 60;
+                     top < contentAreaBottom &&
+                     bottom > contentAreaBottom - 60;
 
-                  if (!isOrphanTitle && bottom <= foldTop - 4) {
+                  if (!isOrphanTitle && bottom <= contentAreaBottom - 4) {
                      continue;
                   }
 
-                  const isStraddling = top < foldTop && bottom > foldTop - 8;
+                  item.setAttribute("data-editor-break-forced", "true");
+                  item.setAttribute("data-editor-break-fold", String(pageNum));
 
-                  if (isStraddling || isOrphanTitle) {
-                     item.setAttribute("data-editor-break-forced", "true");
-                     item.setAttribute("data-editor-break-fold", String(pageNum));
+                  const pushDistance = Math.max(0, nextContentAreaTop - top);
+                  item.style.setProperty(
+                     "margin-top",
+                     `${pushDistance}px`,
+                     "important",
+                  );
 
-                     const pushDistance = Math.max(0, foldBottom - top) + 10;
-                     item.style.setProperty(
-                        "margin-top",
-                        `${pushDistance}px`,
-                        "important",
-                     );
-
-                     hasChanges = true;
-                     break;
-                  }
+                  hasChanges = true;
+                  break;
                }
             }
          }
@@ -235,7 +240,66 @@ function App() {
          Math.ceil((finalMaxHeight + gapPx) / (pageHeightPx + gapPx)),
       );
       setTotalPages((prev) => (prev !== finalPages ? finalPages : prev));
-   }, [cvData, activeDragItem, activeDragSection]);
+      if (typeof setContextTotalPages === "function") {
+         setContextTotalPages(finalPages);
+      }
+   }, [cvData, activeDragItem, activeDragSection, setContextTotalPages]);
+
+   const schedulePaginationRecalc = useCallback(() => {
+      if (rafIdRef.current) {
+         cancelAnimationFrame(rafIdRef.current);
+      }
+      rafIdRef.current = requestAnimationFrame(() => {
+         if (isRecalculatingRef.current) return;
+         try {
+            isRecalculatingRef.current = true;
+            recalculatePagination();
+         } finally {
+            setTimeout(() => {
+               isRecalculatingRef.current = false;
+            }, 30);
+         }
+      });
+   }, [recalculatePagination]);
+
+   // 1. Trigger when cvData, drag items, or context paginationTrigger change
+   useEffect(() => {
+      schedulePaginationRecalc();
+   }, [cvData, activeDragItem, activeDragSection, paginationTrigger, schedulePaginationRecalc]);
+
+   // 2. Real-time Live Resize Event listener (fires on EVERY pixel move during drag or keydown)
+   useEffect(() => {
+      const handleLiveResize = () => {
+         schedulePaginationRecalc();
+      };
+      window.addEventListener('cv-spacer-live-resize', handleLiveResize);
+      return () => window.removeEventListener('cv-spacer-live-resize', handleLiveResize);
+   }, [schedulePaginationRecalc]);
+
+   // 3. ResizeObserver on #area-cv for ANY DOM dimensional mutation (typing, scale, font, padding)
+   useEffect(() => {
+      const areaCv = areaCvRef.current;
+      if (!areaCv || typeof ResizeObserver === 'undefined') return;
+
+      const observer = new ResizeObserver(() => {
+         if (!isRecalculatingRef.current) {
+            schedulePaginationRecalc();
+         }
+      });
+
+      observer.observe(areaCv);
+      const leftCol = areaCv.querySelector('.resume__left');
+      const rightCol = areaCv.querySelector('.resume__right');
+      if (leftCol) observer.observe(leftCol);
+      if (rightCol) observer.observe(rightCol);
+
+      return () => {
+         observer.disconnect();
+         if (rafIdRef.current) {
+            cancelAnimationFrame(rafIdRef.current);
+         }
+      };
+   }, [schedulePaginationRecalc]);
 
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
    const [addSectionTargetColumn, setAddSectionTargetColumn] =
@@ -643,11 +707,13 @@ function App() {
                <div
                   className={`resume ${is2Col ? "bd-grid" : "resume__single-column"} ${isAtsMode ? "resume--ats-mode" : ""}`}
                   id="area-cv"
+                  data-total-pages={totalPages}
                   ref={areaCvRef}
                   style={{
                      display: is2Col ? "grid" : "block",
                      alignItems: is2Col ? "stretch" : undefined,
                      width: "100%",
+                     minWidth: "794px",
                      maxWidth: "794px",
                      margin: "0 auto",
                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
@@ -865,6 +931,7 @@ function App() {
                            width: "100%",
                            maxWidth: "794px",
                            margin: "0 auto",
+                           padding: 0,
                         }}>
                         <SortableContext
                            items={cvData.sections.map((s) => s.id)}

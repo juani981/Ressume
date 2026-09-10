@@ -75,27 +75,38 @@ const ActionMenu = () => {
     showToast('Generando PDF optimizado y preparando impresión...', 'loading', 0);
 
     let isFinished = false;
+    let focusTimeout = null;
+    let fallbackTimeout = null;
+
     const onControlReturned = () => {
       if (isFinished) return;
       isFinished = true;
-      window.removeEventListener('afterprint', onControlReturned);
-      window.removeEventListener('print-dialog-closed', onControlReturned);
-      window.removeEventListener('focus', onControlReturned);
+      if (focusTimeout) clearTimeout(focusTimeout);
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('afterprint', onControlReturned);
+        window.removeEventListener('print-dialog-closed', onControlReturned);
+        window.removeEventListener('focus', onControlReturned);
+      }
       setLoading(false);
       // 2. Notificación de confirmación tras cerrar el diálogo o retomar el control
       showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
     };
 
     // Escuchar eventos de cierre de impresión y foco del usuario
-    window.addEventListener('afterprint', onControlReturned, { once: true });
-    window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('afterprint', onControlReturned, { once: true });
+      window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
+    }
 
-    const focusTimeout = setTimeout(() => {
-      window.addEventListener('focus', onControlReturned, { once: true });
+    focusTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && !isFinished) {
+        window.addEventListener('focus', onControlReturned, { once: true });
+      }
     }, 1200);
 
     // Fallback de seguridad en caso de entornos donde no se disparen eventos de ventana
-    const fallbackTimeout = setTimeout(() => {
+    fallbackTimeout = setTimeout(() => {
       onControlReturned();
     }, 8000);
 
@@ -103,7 +114,9 @@ const ActionMenu = () => {
       await executeCleanPrint(cvData, activeLanguage);
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
-      window.print();
+      if (typeof window !== 'undefined') {
+        window.print();
+      }
       onControlReturned();
     }
   };
