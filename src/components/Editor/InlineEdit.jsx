@@ -75,7 +75,9 @@ const setCaretCharacterOffset = (element, offset) => {
 const InlineEditPrintView = ({ 
   value, 
   multiline = false, 
-  className = '' 
+  className = '',
+  display,
+  style = {}
 }) => {
   if (!value || String(value).trim() === '') {
     return null;
@@ -86,10 +88,11 @@ const InlineEditPrintView = ({
     <span
       className={`inline-edit-display ${className}`}
       style={{
-        display: multiline ? 'block' : 'inline',
+        display: display || (multiline ? 'block' : 'inline-block'),
         textAlign: alignment,
         color: 'inherit',
-        whiteSpace: multiline ? 'pre-wrap' : 'normal'
+        whiteSpace: multiline ? 'pre-wrap' : 'normal',
+        ...style
       }}
       dangerouslySetInnerHTML={{ __html: renderRichHTML(value) }}
     />
@@ -101,7 +104,9 @@ const InlineEditEditor = ({
   onSave, 
   multiline = false, 
   className = '', 
-  placeholder 
+  placeholder,
+  display,
+  style = {}
 }) => {
   const cvContext = useCV();
   const activeLanguage = cvContext?.activeLanguage || 'es';
@@ -547,11 +552,12 @@ const InlineEditEditor = ({
       data-testid="inline-edit-display"
       style={{
         cursor: 'pointer',
-        display: multiline ? 'block' : 'inline-block',
+        display: display || (multiline ? 'block' : 'inline-block'),
         minWidth: '20px',
         minHeight: '1em',
         textAlign: currentAlignment,
-        color: 'inherit'
+        color: 'inherit',
+        ...style
       }}
       dangerouslySetInnerHTML={{ __html: displayHtml }}
     />

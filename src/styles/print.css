@@ -34,9 +34,10 @@ html, body {
 /* Base Print Container Layout */
 #area-cv,
 .resume {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
+  width: 794px !important;
+  min-width: 794px !important;
+  max-width: 794px !important;
+  margin: 0 auto !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
   -webkit-box-decoration-break: clone !important;
@@ -55,15 +56,19 @@ html, body {
   box-decoration-break: clone !important;
 }
 
-#area-cv.resume__single-column,
-.resume__single-column {
-  width: 100% !important;
+#area-cv.resume__single-column {
+  width: 794px !important;
+  min-width: 794px !important;
   max-width: 794px !important;
   min-height: 297mm !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
   padding: var(--page-padding, 24px) !important;
   background: #ffffff !important;
+}
+
+#area-cv .resume__single-column {
+  padding: 0 !important;
 }
 
 /* Super-container CSS Page Break & Splitting Prevention */
@@ -217,10 +222,12 @@ ul.simple-list-ul li span.inline-edit-display {
   body {
     background-color: #ffffff !important;
   }
-  #area-cv {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
+  #area-cv,
+  .resume {
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: 794px !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     min-height: var(--print-target-height-mm, 297mm) !important;
     box-sizing: border-box !important;
@@ -235,11 +242,13 @@ ul.simple-list-ul li span.inline-edit-display {
     -webkit-box-decoration-break: clone !important;
     box-decoration-break: clone !important;
   }
-  #area-cv.resume__single-column,
-  .resume__single-column {
+  #area-cv.resume__single-column {
     min-height: 297mm !important;
     box-sizing: border-box !important;
     padding: var(--page-padding, 24px) !important;
+  }
+  #area-cv .resume__single-column {
+    padding: 0 !important;
   }
   .cv-section,
   .cv-block,

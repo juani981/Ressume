@@ -21,12 +21,14 @@ const HyperlinkPrintView = ({
         display: 'inline-flex',
         alignItems: 'center',
         gap: '4px',
-        color: 'inherit',
-        textDecoration: 'none'
+        color: 'var(--first-color, #3874ff)',
+        textDecoration: 'none',
+        padding: '2px 4px',
+        borderRadius: '4px'
       }}
     >
       {icon && <i className={icon}></i>}
-      <span>{displayLabel}</span>
+      <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>{displayLabel}</span>
     </a>
   );
 };
@@ -387,7 +389,7 @@ const HyperlinkEditEditor = ({
           cursor: 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '5px',
+          gap: '4px',
           color: 'var(--first-color, #3874ff)',
           textDecoration: 'none',
           padding: '2px 4px',

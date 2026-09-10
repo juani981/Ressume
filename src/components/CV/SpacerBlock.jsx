@@ -442,7 +442,8 @@ export const EditableSpacerBlock = ({ section }) => {
       ? '1px dashed #3874ff'
       : '1px dashed rgba(148, 163, 184, 0.4)',
     borderRadius: '4px',
-    marginBottom: 'var(--section-gap, 20px)',
+    margin: 0,
+    padding: 0,
     userSelect: isResizing ? 'none' : 'auto',
   };
 

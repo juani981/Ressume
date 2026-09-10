@@ -1,41 +1,48 @@
-## 2026-09-03T04:56:04Z
+# Task Assignment — Worker M1 (CSS Architecture & Single Source of Truth Alignment)
 
-You are Worker M1 for the Ressume CV editor project.
-Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
-Workspace directory: /home/juani/Documentos/Ressume
-Authoritative user request: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (under header ## 2026-09-03T03:17:21Z)
-Project Scope: /home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_8/PROJECT.md
+## 2026-09-10T04:12:20Z
 
-You MUST read /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md first.
+**Working Directory**: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
+**Authoritative Request**: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (see section ## 2026-09-10T03:58:34Z)
+**Role**: teamwork_preview_worker
 
-Explorer Reports to review:
-- Explorer M1-1: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_1/handoff.md
-- Explorer M1-2: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_2/handoff.md
-- Explorer M1-3: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/handoff.md
-Proposed modules:
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/proposed_reactPdfEngine.js
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/ActionMenu_integration.snippet.jsx
+## Exclusive File Ownership
+You exclusively own and may edit the following files:
+- `src/utils/staticHtmlPdfEngine.js`
+- `src/index.css`
+- `src/styles/print.css`
+- `src/App.jsx`
 
-File Ownership:
-- package.json
-- vite.config.js
-- src/utils/staticHtmlPdfEngine.js
-- src/utils/reactPdfEngine.js
-- src/components/PDF/CVDocument.jsx
-- src/components/PDF/PdfIcons.jsx
-- src/components/Editor/ActionMenu.jsx
-- src/tests/epic1-react-pdf-generation.test.jsx
-- PROJECT.md
+Do NOT edit files outside this set.
 
+## Reference Inputs
+Read the following files before starting:
+- `/home/juani/Documentos/Ressume/PROJECT.md`
+- `/home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md`
+- Explorer 1 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o10_survey_1/handoff.md` and `findings.md`
+- Explorer 2 Report: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o10_survey_2/handoff.md` and `findings.md`
+
+## Mission & Tasks
+1. **`src/utils/staticHtmlPdfEngine.js`**:
+   - Remove destructive regex stripping lines 448–464 so core layout CSS rules (section margins, last-of-type margins, dynamic text contrast) are preserved in `activeBaseStyles`.
+   - Ensure the 2-column print container includes `bd-grid` in its class string (`class="resume bd-grid ..."`).
+   - Align default background fallback for left column to `#f3f4f6` (matching `App.jsx`).
+   - Remove artificial `margin-top: ${pushDistance + 10}px !important` injection on elements with forced page breaks in `executeCleanPrint` line 823.
+   - Enforce strictly 1.0 zoom (remove downscaling branch in lines 878–881).
+   - Propagate all CSS custom properties (`--container-color-alt`, etc.) identically.
+2. **`src/index.css`**:
+   - Extract core document styling rules from `@media screen and (min-width: 968px)` (lines 583–655) and apply them to `#area-cv` and its descendant containers (`.home__container`, `.social__container`, `.languages__content`, `.interests__container`, `.skills__content`, `.section-title`, `.home__img`, `.home__data`) so they render identically in both the 794px print iframe and desktop editor.
+   - Clean up any divergent print overrides.
+3. **`src/styles/print.css`**:
+   - Remove `width: 100% !important; max-width: 100% !important; margin: 0 !important;` overrides on `#area-cv, .resume` and enforce strict 794px width (`width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 auto !important;`).
+   - Remove padding overrides that conflict with `--page-padding`.
+   - Scope `.resume__single-column` padding to `#area-cv.resume__single-column`.
+4. **`src/App.jsx`**:
+   - Ensure `#area-cv` has strict 794px container styling (`width: "794px", minWidth: "794px", maxWidth: "794px", margin: "0 auto"`).
+   - In 1-column ATS mode, remove the redundant inner `div.resume__single-column` wrapper (or ensure it does not duplicate padding/width).
+5. **Verification**:
+   - Run `npm test -- --run` and `npm run build`. Verify all tests pass cleanly and build succeeds with 0 errors.
+   - Write comprehensive report to `handoff.md` and notify parent via `send_message`.
+
+MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
-
-Tasks:
-1. Install @react-pdf/renderer and vite-plugin-node-polyfills (\`npm i @react-pdf/renderer && npm i -D vite-plugin-node-polyfills\`).
-2. Update vite.config.js with nodePolyfills configuration.
-3. Fix line 79 in src/utils/staticHtmlPdfEngine.js (\`const renderItemHTML = (item, sectionType, isLast = false) => {\`).
-4. Implement src/components/PDF/PdfIcons.jsx and src/components/PDF/CVDocument.jsx (1:1 layout, 2-col & 1-col, dynamic styles, wrap={false} pagination, offline standard fonts).
-5. Implement src/utils/reactPdfEngine.js (generateAndDownloadPdf, loading state, showToast).
-6. Connect download button in src/components/Editor/ActionMenu.jsx.
-7. Create src/tests/epic1-react-pdf-generation.test.jsx covering all Epic 1 requirements.
-8. Run test suite (\`npm test\`) and build (\`npm run build\`) ensuring 100% pass and 0 errors.
-9. Write handoff.md in your working directory and notify parent via send_message.

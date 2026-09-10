@@ -648,6 +648,7 @@ function App() {
                      display: is2Col ? "grid" : "block",
                      alignItems: is2Col ? "stretch" : undefined,
                      width: "100%",
+                     minWidth: "794px",
                      maxWidth: "794px",
                      margin: "0 auto",
                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
@@ -865,6 +866,7 @@ function App() {
                            width: "100%",
                            maxWidth: "794px",
                            margin: "0 auto",
+                           padding: 0,
                         }}>
                         <SortableContext
                            items={cvData.sections.map((s) => s.id)}

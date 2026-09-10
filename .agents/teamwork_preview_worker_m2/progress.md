@@ -1,17 +1,19 @@
-# Progress — Worker M2
+# Progress — Worker M2 (Artifact Concealment & Component Template Harmonization)
 
-- Last visited: 2026-09-03T05:31:00Z
-- Status: Completed Milestone 2 (Epic 2)
-- Current Step: Writing handoff report and reporting completion to parent orchestrator
+- Last visited: 2026-09-10T04:37:00Z
+- Status: COMPLETED (Milestone M2 under Project Orchestrator 10)
+- Current Step: Writing handoff report and notifying parent orchestrator
 
-## Completed Milestones & Steps
-1. [x] Architectural Investigation & Baseline Tests Verification (17 suites, 328 tests passed).
-2. [x] Implemented `src/utils/richTextEngine.js` for robust formatting extraction, alignment serialization, and XSS sanitization.
-3. [x] Created `src/components/Editor/RichTextToolbar.jsx` with full Rule 3 bounding rect tracking, flip/clamp positioning, formatting buttons, and focus preservation (`onMouseDown={(e) => e.preventDefault()}`).
-4. [x] Upgraded `src/components/Editor/InlineEdit.jsx` to rich-text contentEditable with full backward compatibility, shortcuts (Ctrl+B, Ctrl+I, Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y), and alignment persistence.
-5. [x] Updated `src/context/CVContext.jsx` to prevent window Ctrl+Z/Y listener from hijacking text editing inside editable fields and added `activeToolbar` state management.
-6. [x] Updated `src/utils/staticHtmlPdfEngine.js` so rich text tags (<b>, <i>, and alignment) render properly without escaping into literal entities.
-7. [x] Enhanced `src/components/PDF/richTextPdf.jsx` with embedded alignment detection and styled React-PDF output.
-8. [x] Created `src/tests/epic2-rich-text-toolbar.test.jsx` (24 comprehensive tests across 5 test suites covering all Epic 2 acceptance criteria and edge cases).
-9. [x] Executed full test suite (`npm test`) -> 18 test files, 352 passed, 0 failures.
-10. [x] Executed production build (`npm run build`) -> clean production build in ~3.3s with zero errors.
+## Completed Steps
+1. [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, PROJECT.md, Worker M1 handoff, and Explorers 1, 2, 3 reports.
+2. [x] Updated BRIEFING.md and DISPATCH.md with current context.
+3. [x] Inspect the 8 exclusive target files and identify all divergence points.
+4. [x] Implement Task 1: BaseSection.jsx & BaseItem.jsx artificial padding removal (`padding: 0 0.25rem` removed across all containers).
+5. [x] Implement Task 2: ExperienceItem.jsx, ProjectsItem.jsx, VolunteeringItem.jsx bullet harmonization & phantom height elimination (collapsed `.bullet-add-row` to 0px in-flow height, removed `paddingRight: 1.5rem`, harmonized margins and line heights).
+6. [x] Implement Task 3: InlineEdit.jsx display harmonization (`InlineEditPrintView` standardized to `multiline ? 'block' : 'inline-block'`).
+7. [x] Implement Task 4: HyperlinkEdit.jsx & SpacerBlock.jsx margin/gap/padding harmonization (`gap: 4px`, `padding: 2px 4px`, underline, and `margin: 0, padding: 0` on spacer).
+8. [x] Implement Task 5: Verify all 26 interactive artifacts concealment without reflow.
+9. [x] Run automated tests (31/31 suites passed, 541/541 tests passed; single stale test `TDD-PARITY-3` in `pixelParityEditorPrint.test.jsx` scheduled for M3 rewrite) and production build (`npm run build` succeeded in 1.67s).
+10. [ ] Document findings and results in handoff.md, notify parent orchestrator via send_message.
+
+

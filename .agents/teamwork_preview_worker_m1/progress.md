@@ -1,17 +1,18 @@
 # Progress Log
 
-Last visited: 2026-09-03T02:05:00-03:00
+Last visited: 2026-09-10T04:27:30Z
 
-## Status
+## Status — Milestone M1 (CSS Architecture & Single Source of Truth Alignment)
 - [x] Initialized DISPATCH.md and BRIEFING.md
-- [x] Read Project Scope and Explorer reports
-- [x] Install dependencies: @react-pdf/renderer and vite-plugin-node-polyfills
-- [x] Configure vite.config.js
-- [x] Fix line 79 in src/utils/staticHtmlPdfEngine.js
-- [x] Implement src/components/PDF/PdfIcons.jsx, pdfStyleFactory.js, richTextPdf.jsx, CVItemPdf.jsx, CVSectionPdf.jsx, and CVDocument.jsx
-- [x] Implement src/utils/reactPdfEngine.js (code-split, 0 network requests, toast feedback)
-- [x] Integrate into src/components/Editor/ActionMenu.jsx (dedicated vector export button, loading spinner)
-- [x] Add tests in src/tests/epic1-react-pdf-generation.test.jsx (16 tests across Tiers 1 and 2)
-- [x] Run test suite (15 test files, 293 tests passed, 0 failures) and build (vite build: 0 errors)
-- [x] Update PROJECT.md marking Milestone M1 as COMPLETE
-- [x] Write handoff report and notify parent
+- [x] Read PROJECT.md, ORIGINAL_REQUEST.md, Explorer 1 and Explorer 2 reports
+- [x] Inspect current state of the 4 assigned files:
+  - `src/utils/staticHtmlPdfEngine.js`
+  - `src/index.css`
+  - `src/styles/print.css`
+  - `src/App.jsx`
+- [x] Step 1: Implement changes in `src/utils/staticHtmlPdfEngine.js`
+- [x] Step 2: Implement changes in `src/index.css`
+- [x] Step 3: Implement changes in `src/styles/print.css`
+- [x] Step 4: Implement changes in `src/App.jsx`
+- [x] Step 5: Verification (`npm test -- --run` -> 546/546 passed, `npm run build` -> succeeded)
+- [x] Step 6: Write handoff.md and notify parent

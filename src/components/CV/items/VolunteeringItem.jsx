@@ -45,10 +45,11 @@ const SortableBulletItem = ({
     display: 'flex',
     alignItems: 'flex-start',
     marginTop: 0,
-    marginBottom: 'var(--item-gap, 6px)',
-    paddingRight: '1.5rem',
+    marginBottom: 'calc(var(--item-gap, 6px) / 2)',
+    paddingRight: 0,
     paddingLeft: '1.15rem',
-    color: 'inherit'
+    color: 'inherit',
+    lineHeight: 1.45
   };
 
   return (
@@ -265,7 +266,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -285,7 +286,16 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div className="bullet-add-row no-print" style={{ paddingLeft: '1.15rem' }}>
+          <div 
+            className="bullet-add-row no-print" 
+            style={{ 
+              paddingLeft: '1.15rem',
+              height: 0,
+              lineHeight: 0,
+              overflow: 'visible',
+              position: 'relative'
+            }}
+          >
             <button
               type="button"
               className="add-bullet-btn no-print"
