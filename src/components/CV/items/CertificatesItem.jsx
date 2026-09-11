@@ -2,7 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 
-const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
+const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
     <div style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
       <span 
@@ -27,7 +27,8 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
           <h3 className="education__title" style={{ margin: 0, fontWeight: 600 }}>
             <InlineEdit 
               value={item.title || ''} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
+              isPrint={isPrint}
+              onSave={(val) => onUpdateItem?.(sectionId, item.id, 'title', val)} 
               placeholder="Nombre de la Certificación..."
             />
           </h3>
@@ -35,7 +36,8 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
             <span style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
-                onSave={(val) => onUpdateItem(sectionId, item.id, 'date', val)} 
+                isPrint={isPrint}
+                onSave={(val) => onUpdateItem?.(sectionId, item.id, 'date', val)} 
                 placeholder="2025"
               />
             </span>
@@ -45,7 +47,8 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
         <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
           <InlineEdit 
             value={item.subtitle || ''} 
-            onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 
+            isPrint={isPrint}
+            onSave={(val) => onUpdateItem?.(sectionId, item.id, 'subtitle', val)} 
             placeholder="Entidad Emisora (ej: AWS, Cisco, Microsoft)..."
           />
           {item.credentialId && (
@@ -54,7 +57,8 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
               <span style={{ color: 'var(--text-color-light)', fontSize: 'var(--smaller-font-size)' }}>
                 ID: <InlineEdit 
                   value={item.credentialId || ''} 
-                  onSave={(val) => onUpdateItem(sectionId, item.id, 'credentialId', val)} 
+                  isPrint={isPrint}
+                  onSave={(val) => onUpdateItem?.(sectionId, item.id, 'credentialId', val)} 
                   placeholder="Código o Credencial..."
                 />
               </span>
@@ -67,8 +71,9 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem }) => {
             <HyperlinkEdit 
               url={item.link} 
               text={item.linkText || item.link || 'Ver credencial'} 
-              onSave={({ url, text }) => onUpdateItem(sectionId, item.id, { link: url, linkText: text })} 
-              onRemove={() => onUpdateItem(sectionId, item.id, { link: '', linkText: '' })} 
+              isPrint={isPrint}
+              onSave={({ url, text }) => onUpdateItem?.(sectionId, item.id, { link: url, linkText: text })} 
+              onRemove={() => onUpdateItem?.(sectionId, item.id, { link: '', linkText: '' })} 
             />
           </div>
         )}

@@ -1,17 +1,78 @@
+/**
+ * BaseItem.jsx
+ *
+ * Generic template component for CV section items, driven 100% by SectionDescriptor
+ * from sectionRegistry. Implements Factory/Strategy & Template pattern with
+ * ZERO sectionType conditional guards.
+ *
+ * Handles drag handles, sortable item hooks (@dnd-kit), inline editing delegation,
+ * item deletion controls, and tag/class/style resolution via the registry descriptor.
+ */
+
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
+import { createContainerDragListeners } from '../../utils/dndUtils';
 
-const BaseItem = ({ item, sectionId, sectionType }) => {
+/**
+ * PrintBaseItem
+ * Static print / PDF renderer for an individual CV section item.
+ *
+ * @param {Object} props
+ * @param {Object} props.item - The item data object
+ * @param {string} props.sectionId - ID of parent section
+ * @param {string} props.sectionType - Type string of parent section
+ * @param {boolean} [props.isLast=false] - Whether this is the last item in the section
+ * @returns {React.ReactElement}
+ */
+export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
+  const descriptor = getSectionDescriptor(sectionType);
+  const ItemComponent = descriptor.itemComponent;
+  const ItemTag = descriptor.itemTag || 'div';
+
+  const style = descriptor.printItemStyle || {
+    display: descriptor.itemStyle?.display || 'flex',
+    position: 'relative',
+    color: 'var(--text-color)',
+    ...(descriptor.itemStyle || {})
+  };
+
+  return (
+    <ItemTag 
+      className={`${descriptor.itemClass || 'experience__content'} cv-block`}
+      data-item-id={item?.id || sectionType}
+      data-section-id={sectionId}
+      style={style}
+    >
+      {ItemComponent && (
+        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+      )}
+    </ItemTag>
+  );
+};
+
+/**
+ * EditableBaseItem
+ * Interactive CV section item with drag handle, sortable integration,
+ * item deletion button, and inline editing.
+ *
+ * @param {Object} props
+ * @param {Object} props.item - The item data object
+ * @param {string} props.sectionId - ID of parent section
+ * @param {string} props.sectionType - Type string of parent section
+ * @returns {React.ReactElement}
+ */
+const EditableBaseItem = ({ item, sectionId, sectionType }) => {
   const { updateSectionItem, deleteSectionItem } = useCV();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
+  const ItemTag = descriptor.itemTag || 'div';
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: item.id,
+    id: item?.id,
     data: {
       type: 'item',
       item,
@@ -25,109 +86,67 @@ const BaseItem = ({ item, sectionId, sectionType }) => {
     transition,
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
-    color: 'var(--text-color)'
+    color: 'var(--text-color)',
+    ...(descriptor.itemStyle || {})
   };
 
-  const renderDeleteButton = () => {
-    if (sectionType === 'profile_header' || descriptor.allowDelete === false) return null;
+  const hasItemDrag = descriptor.hasItemDrag !== false;
+  const allowDelete = descriptor.allowDeleteItem !== false && descriptor.allowDelete !== false;
+  const containerDragListeners = hasItemDrag ? createContainerDragListeners(listeners, true) : {};
 
-    return (
-      <button
-        type="button"
-        className="round-btn-del item-del-btn no-print"
-        title="Eliminar este elemento"
-        onClick={(e) => {
-          e.stopPropagation();
-          deleteSectionItem(sectionId, item.id);
-        }}
-      >
-        <i className='bx bx-minus' style={{ fontSize: '14px', fontWeight: 'bold' }}></i>
-      </button>
-    );
-  };
-
-  const onUpdateItem = (secId, itemId, key, val) => {
-    updateSectionItem(secId, itemId, key, val);
-  };
-
-  if (sectionType === 'profile_header') {
-    return (
-      <div
-        ref={setNodeRef}
-        className="home__data bd-grid editable-item-container cv-block"
-        style={baseStyle}
-      >
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </div>
-    );
-  }
-
-  const isListItem = descriptor.containerTag === 'ul' || sectionType === 'skills' || sectionType === 'simple_list';
-
-  if (isListItem) {
-    return (
-      <li
-        ref={setNodeRef}
-        style={{ display: 'flex', alignItems: 'flex-start', listStyle: 'none', ...baseStyle }}
-        className={`editable-item-container cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
-      >
-        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-        {renderDeleteButton()}
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </li>
-    );
-  }
-
-  if (sectionType === 'about') {
-    return (
-      <div
-        ref={setNodeRef}
-        className="profile__description editable-item-container cv-block"
-        style={baseStyle}
-      >
-        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-        {renderDeleteButton()}
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </div>
-    );
-  }
-
-  if (sectionType === 'education') {
-    return (
-      <div
-        ref={setNodeRef}
-        className="education__content editable-item-container cv-block"
-        style={baseStyle}
-      >
-        <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-        {renderDeleteButton()}
-        {ItemComponent && (
-          <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
-        )}
-      </div>
-    );
-  }
-
-  // Default container for list, projects, certificates, languages, awards, publications, volunteering, references, custom
   return (
-    <div
+    <ItemTag
       ref={setNodeRef}
-      className="experience__content editable-item-container cv-block"
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block`}
+      data-item-id={item?.id || sectionType}
+      data-section-id={sectionId}
       style={baseStyle}
+      {...attributes}
+      {...containerDragListeners}
     >
-      <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-      {renderDeleteButton()}
-      {ItemComponent && (
-        <ItemComponent item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />
+      {hasItemDrag && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
+      {allowDelete && (
+        <button
+          type="button"
+          className="round-btn-del item-del-btn no-print"
+          title="Eliminar este elemento"
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteSectionItem(sectionId, item?.id);
+          }}
+        >
+          <i className='bx bx-minus' style={{ fontSize: '14px', fontWeight: 'bold' }}></i>
+        </button>
       )}
-    </div>
+      {ItemComponent && (
+        <ItemComponent 
+          item={item} 
+          sectionId={sectionId} 
+          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, itemId, key, val)} 
+        />
+      )}
+    </ItemTag>
   );
 };
 
+/**
+ * BaseItem
+ * Main entry point delegating to PrintBaseItem or EditableBaseItem.
+ *
+ * @param {Object} props
+ * @param {Object} props.item - The item data object
+ * @param {string} props.sectionId - ID of parent section
+ * @param {string} props.sectionType - Type string of parent section
+ * @param {boolean} [props.isPrint=false] - Whether rendering in print mode
+ * @param {boolean} [props.isLast=false] - Whether this is the last item
+ * @returns {React.ReactElement}
+ */
+const BaseItem = (props) => {
+  if (props.isPrint) {
+    return <PrintBaseItem {...props} />;
+  }
+  return <EditableBaseItem {...props} />;
+};
+
 export default BaseItem;
+

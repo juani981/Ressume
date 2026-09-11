@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-03T02:05:00-03:00
+# BRIEFING — 2026-09-11T03:30:00Z
 
 ## Mission
-Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 layout mirror, selectable text, multi-page pagination, loading indicator, and toast notifications.
+Execute Milestone M1 of the Ressume Architecture Review & Refactoring: Author the comprehensive, production-grade architectural review and audit report in `docs/code-review.md`. Audit all 20 files in `src/components/CV/`, `src/context/CVContext.jsx`, `src/App.jsx`, classify all modules for open-source contributors, thoroughly document the 6 core architectural issues, and provide actionable refactoring blueprints.
 
 ## 🔒 My Identity
 - Archetype: worker
@@ -9,6 +9,10 @@ Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 la
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
 - Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
 - Milestone: Epic 1 - PDF Generation
+- Orchestrator 10 Parent: 330b6d43-f411-474e-9505-d78ef90b8c30
+- Milestone: M1 — CSS Architecture & Single Source of Truth Alignment
+- Orchestrator 11 Parent: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Current Milestone: M1 — Production-Grade Architecture Review & Audit Report
 
 ## 🔒 Key Constraints
 - DO NOT CHEAT. No hardcoding test results, no dummy implementations.
@@ -18,52 +22,62 @@ Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 la
 - Clean 100% test pass and build pass.
 - Standard fonts offline (Helvetica, Times-Roman, Courier).
 - Strict 1:1 visual styling and wrap={false} pagination across sections/items.
+- Exclusive File Ownership: src/utils/staticHtmlPdfEngine.js, src/index.css, src/styles/print.css, src/App.jsx. Do NOT edit files outside this set.
+- Enforce strict 794px width on #area-cv and .resume across editor and print.
+- Enforce strictly 1.0 zoom (no downscaling branch).
+- Single source of truth CSS: zero divergent print overrides, all custom properties propagated identically.
+- Cover every single file in `src/components/CV/` (all 20 files) and `src/context/` (`CVContext.jsx`).
+- Every finding must cite exact file path + line range + impact rating (High / Medium / Low).
+- Explicitly identify and document the 6 known issues:
+  1. SortableBulletItem 3x duplication (~65 lines in ExperienceItem, ProjectsItem, VolunteeringItem).
+  2. BaseItem.jsx rendering via `if (sectionType === ...)` chains.
+  3. BaseSection.jsx parallel `if (section.type === ...)` chains.
+  4. CVContext.jsx (~728 lines) god context mixing CRUD, history/undo, layout, pagination, tooltips, export.
+  5. App.jsx (~1080 lines) god component.
+  6. `isPrint` prop threaded through every component as runtime branch.
+- Comprehensive Classification Table of every file, hook, and utility (Safe to import vs Global side-effects).
+- Provide actionable refactoring blueprints for subsequent milestones (M2, M3, M4, M5).
 
 ## Current Parent
-- Conversation ID: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Updated: 2026-09-03T02:05:00-03:00
+- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Updated: 2026-09-11T03:30:00Z
 
 ## Task Summary
-- **What to build**: Full client-side PDF generation using @react-pdf/renderer, CVDocument component matching #area-cv styles, PdfIcons, reactPdfEngine utility, ActionMenu integration, unit & integration tests.
-- **Success criteria**: All Epic 1 acceptance criteria met, 100% tests pass (293/293), build passes in 4.1s.
-- **Interface contracts**: /home/juani/Documentos/Ressume/PROJECT.md
-- **Code layout**: src/components/PDF/, src/utils/, src/tests/
+- **What to build**: Comprehensive production-grade code review report written to `docs/code-review.md`.
+- **Success criteria**:
+  - Covers all 20 files in `src/components/CV/` and `src/context/CVContext.jsx`.
+  - Every finding has exact file path + line range + impact rating (High / Medium / Low).
+  - All 6 known issues explicitly analyzed with side-by-side technical breakdowns.
+  - Complete classification table covering every file, hook, utility, and registry module.
+  - Actionable refactoring blueprints with JSDoc contracts and implementation templates.
+  - Clean verification with 0 test regressions.
+- **Interface contracts**: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
+- **Code layout**: `/home/juani/Documentos/Ressume/docs/code-review.md`
 
 ## Key Decisions Made
-- Standard PDF Type 1 fonts (Helvetica, Times-Roman, Courier) used to eliminate network font fetches.
-- Code-splitting with dynamic import in ActionMenu: main bundle remains small (401 kB), react-pdf chunk (1.28 MB) loaded on-demand.
-- Super-container header binding (`wrap={false}`) prevents orphaned headers across page cuts.
-- Vector SVG icons rendered via @react-pdf/renderer Svg/Path primitives.
+- Authored 1033-line exhaustive production-grade audit report at `docs/code-review.md`.
+- Mapped all 48 members of `useCV()` public API contract with subscribing callers.
+- Documented the exact single difference in SortableBulletItem across 3 copies (`marginBottom`).
+- Provided full Strategy / Factory pattern blueprints for `BaseItem` and `BaseSection` to achieve 0 conditionals.
+- Formulated the 4-hook decomposition blueprint for `CVContext.jsx` ensuring each hook <= 250 lines and facade <= 200 lines.
 
 ## Artifact Index
-- DISPATCH.md — Assignment from orchestrator
-- BRIEFING.md — Persistent working memory
-- progress.md — Liveness heartbeat
-- handoff.md — 5-component handoff report
+- `docs/code-review.md` — Authoritative audit report
+- `DISPATCH.md` — Assignment from orchestrator
+- `BRIEFING.md` — Persistent working memory
+- `progress.md` — Liveness heartbeat
+- `handoff.md` — 5-component handoff report
 
 ## Change Tracker
-- **Files modified**:
-  - `package.json`: added `@react-pdf/renderer` and `vite-plugin-node-polyfills`
-  - `vite.config.js`: configured `nodePolyfills`, `chunkSizeWarningLimit: 1600`, restricted tests to `src/`
-  - `src/utils/staticHtmlPdfEngine.js`: added `isLast = false` to line 79
-  - `src/utils/reactPdfEngine.js`: implemented `renderPdfBlob`, `generateAndDownloadPdf`, `normalizeCvDataForPdf`
-  - `src/components/PDF/PdfIcons.jsx`: implemented vector SVG icons
-  - `src/components/PDF/pdfStyleFactory.js`: implemented dynamic styling, YIQ contrast, pt conversions
-  - `src/components/PDF/richTextPdf.jsx`: implemented rich text tokenizer for b/i/em/strong tags
-  - `src/components/PDF/CVItemPdf.jsx`: implemented universal item renderer for all 13 item types
-  - `src/components/PDF/CVSectionPdf.jsx`: implemented super-container orphan prevention
-  - `src/components/PDF/CVDocument.jsx`: implemented 1:1 root Document mirror (2-col & 1-col)
-  - `src/components/Editor/ActionMenu.jsx`: integrated vector PDF export button, loading state, toast
-  - `src/tests/setup.js`: polyfilled `URL.createObjectURL` / `revokeObjectURL`
-  - `src/tests/epic1-react-pdf-generation.test.jsx`: added 16 tests across Tiers 1 and 2
-  - `PROJECT.md`: updated scope and marked M1 COMPLETE
-- **Build status**: PASS (vite v5.4.21, built in 4.10s)
-- **Pending issues**: none
+- **Files created/modified**:
+  - `docs/code-review.md`: Complete production-grade architectural review and audit report.
+- **Build status**: PASS (Vite transformed 1,927 modules, 0 errors, 0 warnings).
+- **Pending issues**: None for M1. Ready for M2-M5 implementation milestones.
 
 ## Quality Status
-- **Build/test result**: PASS (15 test files, 293 tests passing, 0 errors)
-- **Lint status**: clean
-- **Tests added/modified**: +16 comprehensive tests in `src/tests/epic1-react-pdf-generation.test.jsx`
+- **Build/test result**: PASS (37 test files, 628 tests passing).
+- **Lint status**: 0 violations.
+- **Audit findings count**: 8 High, 14 Medium, 9 Low findings documented with exact line ranges.
 
 ## Loaded Skills
 None

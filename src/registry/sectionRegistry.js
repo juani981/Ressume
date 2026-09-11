@@ -12,6 +12,31 @@ import AwardsItem from '../components/CV/items/AwardsItem';
 import PublicationsItem from '../components/CV/items/PublicationsItem';
 import VolunteeringItem from '../components/CV/items/VolunteeringItem';
 import ReferencesItem from '../components/CV/items/ReferencesItem';
+import SpacerItem from '../components/CV/items/SpacerItem';
+import SpacerBlock from '../components/CV/SpacerBlock';
+// M5 extensibility smoke-test: new section type added with ONLY this import + registerSectionType below
+import MentoringItem from '../components/CV/items/MentoringItem';
+
+import {
+  baseItemMarkdown,
+  skillsMarkdown,
+  educationMarkdown,
+  simpleListMarkdown,
+  languagesMarkdown,
+  certificatesMarkdown,
+  aboutMarkdown,
+  awardsMarkdown,
+  publicationsMarkdown,
+  referencesMarkdown,
+  baseItemXML,
+  skillsXML,
+  educationXML,
+  simpleListXML,
+  baseItemPlainText,
+  skillsPlainText,
+  educationPlainText,
+  simpleListPlainText
+} from './itemFormatters';
 
 let uniqueIdCounter = 0;
 const generateUniqueId = (prefix = 'item') => {
@@ -20,20 +45,78 @@ const generateUniqueId = (prefix = 'item') => {
 };
 
 /**
+ * @typedef {Object} SectionDescriptor
+ * @property {string} type - Unique identifier for the section type (e.g. 'list', 'skills', 'spacer').
+ * @property {string} label - Human-readable name used in UI menus, dialogs, and button titles.
+ * @property {string} [defaultTitle=''] - Initial title string rendered in the section header.
+ * @property {'left'|'right'} [defaultColumn='right'] - Default column target in two-column layouts.
+ * @property {string} [icon='bx-folder-plus'] - BoxIcon icon CSS class for toolbar and modal buttons.
+ * @property {string} [description] - Optional explanatory text describing the section's purpose.
+ * @property {boolean} [allowDelete=true] - Whether the user can delete the section from the CV.
+ * @property {boolean} [allowAddItem=true] - Whether users can add new items to this section.
+ * @property {boolean} [allowDeleteItem=true] - Whether individual items within this section have a delete button.
+ * @property {boolean} [hasTitle=true] - Whether section renders a section title (<h2 className="section-title">).
+ * @property {boolean} [hasItemDrag=true] - Whether individual items feature drag handles.
+ * @property {boolean} [supportsBulletCustomization=false] - Whether section supports timeline circle bullet styles.
+ * @property {boolean} [isHeader=false] - Flag indicating special profile/header identity block.
+ * @property {boolean} [isSpacer=false] - Flag indicating spacer whitespace block.
+ * @property {boolean} [isListItem=false] - Flag indicating list item formatting.
+ * @property {string} [sectionClass='experience'] - CSS class applied to the outer `<section>` container.
+ * @property {string} [wrapperClass] - CSS class for the section inner grid container (empty string suppresses grid).
+ * @property {'div'|'ul'|'ol'|React.ComponentType} [containerTag='div'] - Tag or component wrapping the items list.
+ * @property {string} [containerClass='experience__container bd-grid'] - CSS class applied to the items container.
+ * @property {React.CSSProperties} [containerStyle] - Inline styles applied to the items container in editable mode.
+ * @property {React.CSSProperties} [printContainerStyle] - Inline styles applied to the items container in print mode.
+ * @property {'div'|'li'|React.ComponentType} [itemTag='div'] - HTML element tag wrapping each item.
+ * @property {string} [itemClass='experience__content'] - CSS class applied to each item container element.
+ * @property {React.CSSProperties} [itemStyle] - Inline styles applied to each item in editable mode.
+ * @property {React.CSSProperties} [printItemStyle] - Inline styles applied to each item in print mode.
+ * @property {React.ComponentType} [sectionComponent] - Custom section-level renderer component (overriding BaseSection template).
+ * @property {React.ComponentType} itemComponent - Component responsible for rendering item content fields.
+ * @property {function(Object=): Object} createDefaultItem - Factory function producing a schema-compliant default item.
+ * @property {function(Object): Object} adaptItem - Polymorphic adapter transforming an item from another section type.
+ * @property {Object<string, string>} [schema] - Field schema mapping for type checking and validation.
+ * @property {function(Object): string} [renderMarkdown] - Strategy function converting an item to Markdown format.
+ * @property {function(Object): string} [renderXML] - Strategy function converting an item to XML format.
+ * @property {function(Object): string} [renderPlainText] - Strategy function converting an item to Plain Text format.
+ */
+
+/**
  * Registry of section definitions
+ * @type {Map<string, SectionDescriptor>}
  */
 const sectionRegistry = new Map();
 
 /**
  * Register a new section type
- * @param {Object} descriptor 
+ * @param {SectionDescriptor} descriptor 
  */
 export const registerSectionType = (descriptor) => {
   if (!descriptor || !descriptor.type) {
     throw new Error('Invalid section descriptor: missing "type" property.');
   }
+  const containerTag = descriptor.containerTag || 'div';
   const enriched = {
+    hasTitle: descriptor.hasTitle !== false,
+    hasItemDrag: descriptor.hasItemDrag !== false,
+    allowDelete: descriptor.allowDelete !== false,
+    allowAddItem: descriptor.allowAddItem !== false,
+    allowDeleteItem: descriptor.allowDeleteItem !== false,
+    supportsBulletCustomization: Boolean(descriptor.supportsBulletCustomization),
     ...descriptor,
+    sectionClass: descriptor.sectionClass || 'experience',
+    containerTag,
+    containerClass: descriptor.containerClass !== undefined ? descriptor.containerClass : (containerTag === 'ul' ? 'skills__content bd-grid' : 'experience__container bd-grid'),
+    itemTag: descriptor.itemTag || (containerTag === 'ul' ? 'li' : 'div'),
+    itemClass: descriptor.itemClass || (containerTag === 'ul' ? 'skills__name' : 'experience__content'),
+    itemStyle: descriptor.itemStyle || { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: descriptor.printItemStyle || descriptor.itemStyle || { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    renderMarkdown: descriptor.renderMarkdown || baseItemMarkdown,
+    renderXML: descriptor.renderXML || baseItemXML,
+    renderPlainText: descriptor.renderPlainText || baseItemPlainText,
+    get itemComponent() {
+      return descriptor.itemComponent;
+    },
     get defaultItem() {
       return typeof this.createDefaultItem === 'function' ? this.createDefaultItem() : undefined;
     }
@@ -47,8 +130,9 @@ export const registerSectionType = (descriptor) => {
  * @returns {Object}
  */
 export const getSectionDescriptor = (type) => {
-  if (sectionRegistry.has(type)) {
-    return sectionRegistry.get(type);
+  const normalizedType = type === 'experience' ? 'list' : type;
+  if (sectionRegistry.has(normalizedType)) {
+    return sectionRegistry.get(normalizedType);
   }
 
   // Fallback descriptor for custom or unrecognized section types
@@ -60,9 +144,23 @@ export const getSectionDescriptor = (type) => {
     icon: 'bx-folder-plus',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
-    itemComponent: ExperienceItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() {
+      return ExperienceItem;
+    },
+    renderMarkdown: baseItemMarkdown,
+    renderXML: baseItemXML,
+    renderPlainText: baseItemPlainText,
     createDefaultItem: () => ({
       id: generateUniqueId('custom'),
       title: 'Nuevo Elemento',
@@ -114,9 +212,21 @@ const standardDescriptors = [
     icon: 'bx-id-card',
     allowDelete: false,
     allowAddItem: false,
+    allowDeleteItem: false,
+    hasTitle: false,
+    hasItemDrag: false,
+    supportsBulletCustomization: false,
+    isHeader: true,
+    hideControls: true,
+    sectionClass: 'home',
+    wrapperClass: '',
     containerTag: 'div',
     containerClass: 'home__container bd-grid',
-    itemComponent: ProfileHeaderItem,
+    itemTag: 'div',
+    itemClass: 'home__data bd-grid',
+    itemStyle: { position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return ProfileHeaderItem; },
     createDefaultItem: () => ({
       id: generateUniqueId('prof'),
       name: '',
@@ -152,9 +262,20 @@ const standardDescriptors = [
     icon: 'bx-user',
     allowDelete: true,
     allowAddItem: false,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'profile',
+    wrapperClass: '',
     containerTag: 'div',
     containerClass: '',
-    itemComponent: AboutItem,
+    itemTag: 'div',
+    itemClass: 'profile__description',
+    itemStyle: { position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return AboutItem; },
+    renderMarkdown: aboutMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('about'),
       description: 'Ingresa aquí un resumen profesional conciso enfocado en tus fortalezas técnicas y objetivos.'
@@ -190,9 +311,19 @@ const standardDescriptors = [
     icon: 'bx-briefcase',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
+    sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
-    itemComponent: ExperienceItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return ExperienceItem; },
+    renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('exp'),
       title: 'Nuevo Cargo / Rol Profesional',
@@ -240,9 +371,19 @@ const standardDescriptors = [
     icon: 'bx-folder',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
+    sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
-    itemComponent: ProjectsItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return ProjectsItem; },
+    renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('proj'),
       title: 'Plataforma SaaS de Automatización',
@@ -281,9 +422,21 @@ const standardDescriptors = [
     icon: 'bx-book-bookmark',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
+    sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
-    itemComponent: EducationItem,
+    itemTag: 'div',
+    itemClass: 'education__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return EducationItem; },
+    renderMarkdown: educationMarkdown,
+    renderXML: educationXML,
+    renderPlainText: educationPlainText,
     createDefaultItem: () => ({
       id: generateUniqueId('edu'),
       title: 'Nueva Titulación / Grado',
@@ -311,9 +464,24 @@ const standardDescriptors = [
     icon: 'bx-wrench',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    isListItem: true,
+    sectionClass: 'skills',
     containerTag: 'ul',
     containerClass: 'skills__content bd-grid',
-    itemComponent: SkillsItem,
+    containerStyle: { gridTemplateColumns: '1fr', padding: 0 },
+    printContainerStyle: { gridTemplateColumns: '1fr', padding: 0, margin: 0, listStyle: 'none' },
+    itemTag: 'li',
+    itemClass: 'skills__name',
+    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return SkillsItem; },
+    renderMarkdown: skillsMarkdown,
+    renderXML: skillsXML,
+    renderPlainText: skillsPlainText,
     createDefaultItem: () => ({
       id: generateUniqueId('skill'),
       title: 'Nueva Especialidad',
@@ -354,9 +522,19 @@ const standardDescriptors = [
     icon: 'bx-badge-check',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
-    itemComponent: CertificatesItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return CertificatesItem; },
+    renderMarkdown: certificatesMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('cert'),
       title: 'AWS Certified Solutions Architect',
@@ -390,9 +568,19 @@ const standardDescriptors = [
     icon: 'bx-globe',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'skills',
     containerTag: 'div',
     containerClass: 'skills__content bd-grid',
-    itemComponent: LanguagesItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return LanguagesItem; },
+    renderMarkdown: languagesMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('lang'),
       title: 'Inglés',
@@ -420,9 +608,19 @@ const standardDescriptors = [
     icon: 'bx-trophy',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
-    itemComponent: AwardsItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return AwardsItem; },
+    renderMarkdown: awardsMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('award'),
       title: '1er Puesto — Hackathon Nacional de IA e Innovación',
@@ -452,9 +650,19 @@ const standardDescriptors = [
     icon: 'bx-book-open',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
-    itemComponent: PublicationsItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return PublicationsItem; },
+    renderMarkdown: publicationsMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('pub'),
       title: 'Optimización de Arquitecturas de Microservicios con Event-Driven Design',
@@ -488,9 +696,19 @@ const standardDescriptors = [
     icon: 'bx-heart',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
+    sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
-    itemComponent: VolunteeringItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return VolunteeringItem; },
+    renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('vol'),
       title: 'Mentor y Organizador Comunitario',
@@ -525,9 +743,19 @@ const standardDescriptors = [
     icon: 'bx-user-check',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    sectionClass: 'skills',
     containerTag: 'div',
     containerClass: 'skills__content bd-grid',
-    itemComponent: ReferencesItem,
+    itemTag: 'div',
+    itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    get itemComponent() { return ReferencesItem; },
+    renderMarkdown: referencesMarkdown,
     createDefaultItem: () => ({
       id: generateUniqueId('ref'),
       title: 'Ing. Martín González',
@@ -559,9 +787,24 @@ const standardDescriptors = [
     icon: 'bx-list-ul',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    isListItem: true,
+    sectionClass: 'experience',
     containerTag: 'ul',
-    containerClass: '',
-    itemComponent: SimpleListItem,
+    containerClass: 'experience__bullets simple-list-ul',
+    containerStyle: { color: 'var(--text-color)', padding: 0 },
+    printContainerStyle: { color: 'var(--text-color)', paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' },
+    itemTag: 'li',
+    itemClass: 'simple-list-item',
+    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'list-item', listStyleType: 'disc', marginBottom: 'var(--item-gap, 8px)', lineHeight: 1.45, color: 'var(--text-color)' },
+    get itemComponent() { return SimpleListItem; },
+    renderMarkdown: simpleListMarkdown,
+    renderXML: simpleListXML,
+    renderPlainText: simpleListPlainText,
     createDefaultItem: () => ({
       id: generateUniqueId('item'),
       text: 'Nueva Certificación / Curso — Institución (2025)'
@@ -583,11 +826,105 @@ const standardDescriptors = [
       };
     },
     schema: { text: 'string' }
+  },
+
+  // 14. Espacio en Blanco (Espaciador Vertical Ajustable)
+  {
+    type: 'spacer',
+    label: 'Espacio en Blanco',
+    description: 'Espacio vertical ajustable para balancear columnas y maquetar el documento',
+    defaultTitle: '',
+    defaultColumn: 'right',
+    icon: 'bx-space-bar',
+    allowDelete: true,
+    allowAddItem: false,
+    allowDeleteItem: false,
+    hasTitle: false,
+    hasItemDrag: false,
+    supportsBulletCustomization: false,
+    isSpacer: true,
+    sectionClass: 'spacer-section',
+    containerTag: 'div',
+    containerClass: 'spacer-container',
+    itemTag: 'div',
+    itemClass: 'spacer-item',
+    sectionComponent: SpacerBlock,
+    get itemComponent() { return SpacerItem; },
+    renderMarkdown: () => '\n<br/>\n',
+    renderXML: (item) => `<spacer height="${item?.height || 40}"/>`,
+    renderPlainText: () => '\n',
+    createDefaultItem: () => ({
+      id: generateUniqueId('space'),
+      height: 40,
+      backgroundColor: 'transparent'
+    }),
+    adaptItem: (item) => {
+      const src = item || {};
+      return {
+        id: src.id || generateUniqueId('space'),
+        height: Number(src.height) || 40,
+        backgroundColor: src.backgroundColor || 'transparent'
+      };
+    },
+    schema: { height: 'number', backgroundColor: 'string' }
   }
 ];
 
 // Register standard descriptors
 standardDescriptors.forEach(d => registerSectionType(d));
+
+/**
+ * M5 Extensibility Smoke-Test: 'mentoring' section type.
+ *
+ * This call (plus the MentoringItem import at the top of this file) is the
+ * ONLY change needed across the entire codebase to add a fully-functional
+ * new section type. BaseItem, BaseSection, CVContext, and App are untouched.
+ *
+ * This proves the Template + Factory pattern is working correctly.
+ */
+registerSectionType({
+  type: 'mentoring',
+  label: 'Mentoría',
+  defaultTitle: 'MENTORÍA Y COACHING',
+  defaultColumn: 'right',
+  icon: 'bx-brain',
+  description: 'Sesiones de mentoría, coaching técnico, o acompañamiento profesional.',
+  allowDelete: true,
+  allowAddItem: true,
+  allowDeleteItem: true,
+  hasTitle: true,
+  hasItemDrag: true,
+  supportsBulletCustomization: false,
+  sectionClass: 'experience',
+  containerTag: 'div',
+  containerClass: 'experience__container bd-grid',
+  itemTag: 'div',
+  itemClass: 'experience__content',
+  itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return MentoringItem; },
+  renderMarkdown: baseItemMarkdown,
+  createDefaultItem: () => ({
+    id: generateUniqueId('mentor'),
+    title: 'Mentoría Técnica',
+    date: '2024 – Presente',
+    mentee: 'Nombre del mentee / Empresa',
+    description: 'Descripción del impacto y habilidades transferidas durante la mentoría.'
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    return {
+      id: src.id || generateUniqueId('mentor'),
+      title: src.title || 'Mentoría Técnica',
+      date: src.date || '2024',
+      mentee: src.mentee || src.subtitle || 'Mentee',
+      description: src.description || (Array.isArray(src.bullets) ? src.bullets.join(' ') : '')
+    };
+  },
+  schema: { title: 'string', date: 'string', mentee: 'string', description: 'string' }
+});
+
+
 
 /**
  * Factory for creating default item by section type
@@ -611,16 +948,25 @@ export const createDefaultItemForSection = createDefaultItem;
 export const createDefaultSection = (column = 'right', type = 'list', title, bulletStyle) => {
   const descriptor = getSectionDescriptor(type);
   const finalTitle = title !== undefined ? title : descriptor.defaultTitle;
-  const sectionId = generateUniqueId('sec');
+  const sectionId = generateUniqueId(type === 'spacer' ? 'spacer' : 'sec');
+  const defaultItem = createDefaultItem(type);
 
-  return {
+  const baseSection = {
     id: sectionId,
     column: column || descriptor.defaultColumn || 'right',
     type: type || 'list',
     title: finalTitle,
-    items: [createDefaultItem(type)],
-    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true }
+    items: [defaultItem],
+    bulletStyle: bulletStyle || { size: 'normal', variant: 'bold', showLine: true },
+    bottomSpacing: 0
   };
+
+  if (type === 'spacer') {
+    baseSection.height = defaultItem?.height || 40;
+    baseSection.backgroundColor = defaultItem?.backgroundColor || 'transparent';
+  }
+
+  return baseSection;
 };
 
 /**

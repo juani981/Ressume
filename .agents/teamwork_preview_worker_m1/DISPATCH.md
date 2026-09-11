@@ -1,41 +1,30 @@
-## 2026-09-03T04:56:04Z
+# Worker M1 Task: Generate Production-Grade Audit Report (docs/code-review.md)
 
-You are Worker M1 for the Ressume CV editor project.
-Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
-Workspace directory: /home/juani/Documentos/Ressume
-Authoritative user request: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (under header ## 2026-09-03T03:17:21Z)
-Project Scope: /home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_8/PROJECT.md
+## Working Directory
+`/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1`
 
-You MUST read /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md first.
+## Inputs
+- Authoritative Request: `/home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md` (see section `## 2026-09-11T03:13:35Z`)
+- Project Scope: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
+- Explorer 1 Findings: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_survey_1/handoff.md`
+- Explorer 2 Findings: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_survey_2/handoff.md` and `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_survey_2/analysis.md`
+- Explorer 3 Findings: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_survey_3/handoff.md`
 
-Explorer Reports to review:
-- Explorer M1-1: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_1/handoff.md
-- Explorer M1-2: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_2/handoff.md
-- Explorer M1-3: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/handoff.md
-Proposed modules:
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/proposed_reactPdfEngine.js
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_m1_3/ActionMenu_integration.snippet.jsx
+## Mission
+Write the comprehensive, production-grade code review report to `docs/code-review.md`.
 
-File Ownership:
-- package.json
-- vite.config.js
-- src/utils/staticHtmlPdfEngine.js
-- src/utils/reactPdfEngine.js
-- src/components/PDF/CVDocument.jsx
-- src/components/PDF/PdfIcons.jsx
-- src/components/Editor/ActionMenu.jsx
-- src/tests/epic1-react-pdf-generation.test.jsx
-- PROJECT.md
-
-DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
-
-Tasks:
-1. Install @react-pdf/renderer and vite-plugin-node-polyfills (\`npm i @react-pdf/renderer && npm i -D vite-plugin-node-polyfills\`).
-2. Update vite.config.js with nodePolyfills configuration.
-3. Fix line 79 in src/utils/staticHtmlPdfEngine.js (\`const renderItemHTML = (item, sectionType, isLast = false) => {\`).
-4. Implement src/components/PDF/PdfIcons.jsx and src/components/PDF/CVDocument.jsx (1:1 layout, 2-col & 1-col, dynamic styles, wrap={false} pagination, offline standard fonts).
-5. Implement src/utils/reactPdfEngine.js (generateAndDownloadPdf, loading state, showToast).
-6. Connect download button in src/components/Editor/ActionMenu.jsx.
-7. Create src/tests/epic1-react-pdf-generation.test.jsx covering all Epic 1 requirements.
-8. Run test suite (\`npm test\`) and build (\`npm run build\`) ensuring 100% pass and 0 errors.
-9. Write handoff.md in your working directory and notify parent via send_message.
+## Requirements
+1. Cover every single file in `src/components/CV/` (20 files) and `src/context/` (CVContext.jsx and any related files).
+2. Every finding MUST cite exact file path + line range + impact rating (High / Medium / Low).
+3. Explicitly identify and detail at least the 6 known issues:
+   - SortableBulletItem 3x duplication (~65 lines in ExperienceItem, ProjectsItem, VolunteeringItem).
+   - BaseItem.jsx rendering via `if (sectionType === ...)` chains (lines 13-106, 156-252).
+   - BaseSection.jsx parallel `if (section.type === ...)` chains (lines 17-102, 149-262, 309).
+   - CVContext.jsx (~728 lines) god context mixing CRUD, history/undo, layout, sticky pagination, tooltips/toolbars, and export.
+   - App.jsx (~1080 lines) god component owning DnD coordination, layout, modal state, section rendering.
+   - `isPrint` prop threaded through every component as runtime branch.
+4. Categorize every file, hook, and utility:
+   - Safe to import as-is by an open-source contributor.
+   - Requires understanding global side-effects first (window listeners, localStorage mutation, DOM mutation, global context coupling).
+5. Ensure formatting is structured, professional, and clear.
+6. Report back in `handoff.md` with verification.

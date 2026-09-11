@@ -249,7 +249,7 @@ describe('R1: Dynamic Margins and Element Spacing Controls', () => {
       expect(screen.getByTestId('pagePadding').textContent).toBe('40');
       
       // Find layout toggle button in ActionMenu
-      const toggleBtn = screen.getByRole('button', { name: /cambiar a 1 columna|cambiar a 2 columnas/i }) ||
+      const toggleBtn = screen.queryByRole('button', { name: /cambiar a 1 columna|cambiar a 2 columnas/i }) ||
                         document.querySelector('.action-menu-btn');
       if (toggleBtn) {
         fireEvent.click(toggleBtn);

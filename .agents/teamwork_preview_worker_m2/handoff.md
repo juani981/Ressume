@@ -1,76 +1,137 @@
-# Handoff Report — Milestone 2: Rich Inline Text Editing Toolbar with Persistent State (Epic 2)
+# Handoff Report — Worker M2: SortableBulletItem Extraction & Deduplication
+
+**Date**: 2026-09-11  
+**Milestone**: M2 (Ressume Architectural Review & Refactoring)  
+**Agent**: Worker M2 (`teamwork_preview_worker_m2`)  
+**Parent**: Project Orchestrator 11 (`ca5efa9a-2989-4d87-a34d-927b285b46f9`)  
+
+---
 
 ## 1. Observation
-- **Initial Baseline**:
-  - `npm test`: 17 test files passed, 328 passed.
-  - `npm run build`: built production bundles in 3.45s cleanly with 0 errors.
-- **Components & Files Observed & Modified**:
-  - `src/components/Editor/InlineEdit.jsx`: Previously used plain `<input>` and `<textarea>` elements with strict string equality checks. Now upgraded to a rich-text `contentEditable` component supporting bold (`<b>`), italic (`<i>`), text alignment (`left`, `center`, `right`, `justify`), keyboard shortcuts (`Ctrl+B`, `Ctrl+I`, `Ctrl+Z`, `Ctrl+Shift+Z` / `Ctrl+Y`), local typing history stack, and paste sanitization. Preserves 100% backward compatibility for plain strings across all 15 calling section components.
-  - `src/components/Editor/RichTextToolbar.jsx`: Implemented singleton floating toolbar strictly adhering to **AGENTS.md Rule 3**. Dynamically tracks `getBoundingClientRect()`, positioning directly above the active text element without obscuring it (`top = rect.top - 48px`). Flips to below element (`rect.bottom + 8px`) when `rect.top < 10px`, shifts/clamps horizontally within `window.innerWidth`, and clamps vertically within `window.innerHeight`. Features formatting buttons for Bold, Italic, Align Left, Align Center, Align Right, Align Justify, Undo, and Redo. All buttons have `onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}` to prevent focus loss and preserve selection in the active `contentEditable`.
-  - `src/context/CVContext.jsx`: Lines 211-238 updated to prevent global window `Ctrl+Z` / `Ctrl+Y` listener from hijacking text editing when `document.activeElement` or `e.target` is an editable element (`isContentEditable`, `contenteditable="true"`, `INPUT`, `TEXTAREA`). Added `activeToolbar`, `setActiveToolbar`, and `clearActiveToolbar` state and methods to `CVContext`.
-  - `src/utils/richTextEngine.js`: Created standalone utility suite providing `escapeHTML`, `stripHtml`, `extractAlignment`, `stripOuterAlignment`, `applyAlignment`, `sanitizeRichHTML`, `renderRichHTML`, and `parseHtmlToTokens`.
-  - `src/utils/staticHtmlPdfEngine.js`: Integrated `renderRichHTML` across section title and item rendering in `generateCleanPrintHTML`, ensuring `<b>`, `<i>`, and alignment `<div style="text-align: ...">` render cleanly without escaping to literal HTML entities, while stripping script/onerror vectors and stripping tags in `<title>`.
-  - `src/components/PDF/richTextPdf.jsx`: Updated to automatically detect embedded alignment from rich text strings (`extractAlignment`) and apply `{ textAlign: detectedAlign }` to outer React-PDF `<Text>`.
-  - `src/tests/epic2-rich-text-toolbar.test.jsx`: Created 24 comprehensive tests across 5 test suites covering all Epic 2 acceptance criteria and edge cases.
-- **Test & Build Execution Results**:
-  - Command: `npm test`
-    ```
-    Test Files  18 passed (18)
-         Tests  352 passed (352)
-      Duration  8.23s
-    ```
-  - Command: `npm run build`
-    ```
-    vite v5.4.21 building for production...
-    ✓ 2049 modules transformed.
-    dist/index.html                             0.92 kB │ gzip:   0.47 kB
-    dist/assets/index-B5IoWEj7.css             19.81 kB │ gzip:   4.47 kB
-    dist/assets/index-CXf87O6U.js             415.79 kB │ gzip: 121.87 kB
-    dist/assets/reactPdfEngine-3lZifjpk.js  1,289.97 kB │ gzip: 471.64 kB
-    ✓ built in 3.62s
-    ```
+
+### Codebase Duplication State (Pre-Refactor)
+1. `src/components/CV/items/ExperienceItem.jsx`:
+   - Contained internal component `const SortableBulletItem` at lines 24–90 (67 lines).
+   - Inlined `marginBottom: 'var(--item-gap, 6px)'`.
+   - Imported `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners` exclusively to service this internal component.
+2. `src/components/CV/items/ProjectsItem.jsx`:
+   - Contained internal component `const SortableBulletItem` at lines 24–90 (67 lines).
+   - Inlined `marginBottom: 'calc(var(--item-gap, 6px) / 2)'`.
+   - Imported `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners` exclusively to service this internal component.
+3. `src/components/CV/items/VolunteeringItem.jsx`:
+   - Contained internal component `const SortableBulletItem` at lines 23–89 (67 lines).
+   - Inlined `marginBottom: 'calc(var(--item-gap, 6px) / 2)'`.
+   - Imported `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners` exclusively to service this internal component.
+
+### Baseline Verification Output
+- Baseline Vitest command: `npx vitest run`
+  ```
+  Test Files  37 passed (37)
+       Tests  628 passed (628)
+    Duration  12.01s
+  ```
+- Baseline build command: `npm run build`
+  ```
+  ✓ 1927 modules transformed.
+  ✓ built in 1.53s
+  ```
+
+### Post-Refactor State
+1. New file created: `src/components/CV/SortableBulletItem.jsx` (104 lines total, strictly `< 300` lines).
+   - Contains file-level architecture contract explaining responsibility and nested DnD boundary.
+   - Comprehensive JSDoc for `SortableBulletItem` documenting all 9 props.
+   - Preserves exact DOM structure: `<li ref={setNodeRef} style={style} className="bullet-item-row editable-item-container cv-block" {...attributes} {...containerDragListeners}>`.
+   - Provides optional `marginBottom` prop defaulting to `'var(--item-gap, 6px)'`.
+2. `src/components/CV/items/ExperienceItem.jsx`:
+   - Local `SortableBulletItem` removed.
+   - Cleaned unused imports: `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, `createContainerDragListeners`.
+   - Imports `SortableBulletItem` from `../SortableBulletItem`.
+3. `src/components/CV/items/ProjectsItem.jsx`:
+   - Local `SortableBulletItem` removed.
+   - Cleaned unused imports: `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, `createContainerDragListeners`.
+   - Imports `SortableBulletItem` from `../SortableBulletItem` and passes `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
+4. `src/components/CV/items/VolunteeringItem.jsx`:
+   - Local `SortableBulletItem` removed.
+   - Cleaned unused imports: `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, `createContainerDragListeners`.
+   - Imports `SortableBulletItem` from `../SortableBulletItem` and passes `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
+5. Declaration Check:
+   - Tool `grep_search` for `const SortableBulletItem` across `src/`:
+     `{"File":"/home/juani/Documentos/Ressume/src/components/CV/SortableBulletItem.jsx","LineNumber":34,"LineContent":"export const SortableBulletItem = ({ "}`
+     -> Verbatim match count: **exactly 1 file**.
+
+### Verification Output (Post-Refactor)
+- `npx vitest run`:
+  ```
+  Test Files  37 passed (37)
+       Tests  628 passed (628)
+    Duration  12.05s
+  ```
+- `npm run build`:
+  ```
+  ✓ 1928 modules transformed.
+  dist/index.html                   0.90 kB │ gzip:   0.48 kB
+  dist/assets/index-B4YhPPb3.css   34.08 kB │ gzip:   6.82 kB
+  dist/assets/index-DSoZiCjV.js   726.36 kB │ gzip: 212.21 kB
+  ✓ built in 1.57s
+  Exit code: 0
+  ```
+
+---
 
 ## 2. Logic Chain
-1. **Backward Compatibility Guarantee**: All section components in Ressume pass string props to `InlineEdit`. By serializing rich text formatting as sanitized HTML strings (`<div style="text-align: center;"><b>Text</b></div>`) and un-wrapping them via `stripOuterAlignment` when entering edit mode, existing schema invariants, persistence mechanisms in `localStorage`, and all 15 calling components remain completely intact without any migration layer needed.
-2. **Focus Preservation and Rule 3 Floating Geometry**: Browsers naturally blur focused contentEditable elements when clicking external buttons. By applying `e.preventDefault()` on the `mousedown` event of the `RichTextToolbar` container and all of its buttons, browser focus and DOM selection are preserved. The floating coordinates dynamically track `getBoundingClientRect()` of the active element, positioning above it so text is not obscured, flipping to bottom if approaching viewport top (`< 10px`), and clamping to viewport bounds.
-3. **Keyboard Shortcut Isolation**: Global `Ctrl+Z` in `CVContext.jsx` operates at the document section level. When the user is typing inside an inline field, `handleKeyDown` inspects `document.activeElement` and `e.target` for editable attributes; if true, the global listener returns early, allowing the field's local history stack (`historyRef`) to handle in-field typing undo and redo seamlessly without reverting entire CV sections.
-4. **Dual Engine PDF Rendering**: Both PDF engines require rich text formatting. In `staticHtmlPdfEngine.js`, `renderRichHTML` parses and preserves legitimate formatting tags (`<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<br>`, `<div>`, `<p>`, `<span>`, and `style="text-align:..."`) while escaping malicious tags (`<script>`, `<img>`, `<iframe>`). In `@react-pdf/renderer`, `RichTextPdf` tokenizes the HTML string into styled `<Text>` spans and applies text alignment directly to the outer container.
+
+1. **Identification of Duplication**:
+   - As documented in `docs/code-review.md` (Section 2.1 and Section 7.1 Blueprint 1), `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` each declared an identical 67-line internal component `SortableBulletItem`.
+   - The only behavioral difference across all three files was the `marginBottom` property on the inline style object (`var(--item-gap, 6px)` vs `calc(var(--item-gap, 6px) / 2)`).
+2. **Extraction Design**:
+   - By creating `src/components/CV/SortableBulletItem.jsx` with an optional `marginBottom` prop defaulting to `'var(--item-gap, 6px)'`, `ExperienceItem` can use the default behavior without extra prop overhead, while `ProjectsItem` and `VolunteeringItem` pass their specific half-gap calculation.
+   - The exact DOM node structure (`li.bullet-item-row.editable-item-container.cv-block`), drag handles, `SimpleListItem` integration, and delete buttons were preserved verbatim to maintain 100% test compatibility.
+3. **Import Hygiene**:
+   - Once `SortableBulletItem` was extracted, `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners` were no longer referenced by any other code in `ExperienceItem.jsx`, `ProjectsItem.jsx`, or `VolunteeringItem.jsx`.
+   - Removing those 5 unused imports from each of the three files prevents bundle bloat and keeps module dependencies strictly minimal.
+4. **Verification**:
+   - Running the full test suite (`npx vitest run`) confirmed 37/37 test files and 628/628 tests pass with zero regressions.
+   - Running `npm run build` confirmed production bundling succeeds with 0 errors.
+   - Grep verification confirmed `SortableBulletItem` declaration exists in exactly one file in `src/`.
+
+---
 
 ## 3. Caveats
-- `document.execCommand` is deprecated in modern HTML standards and is `undefined` in Node's jsdom environment. To guarantee zero regressions in both live browser environments and automated tests, formatting actions employ a dual-mode fallback: calling `document.execCommand` when available and falling back to DOM Selection/Range wrapping or innerHTML regex wrapping when unavailable.
-- Single-line editable fields submit and blur on `Enter`. Multiline fields allow `Enter` for line breaks (`<br>`), submitting on `blur`. Pressing `Escape` in either mode cancels pending changes and restores the initial value.
+
+- **No caveats.** The component API contract is backwards-compatible and identical in DOM output to the previous internal definitions. No CSS classes or styling mechanics were modified.
+
+---
 
 ## 4. Conclusion
-Milestone 2 (Epic 2: Rich Inline Text Editing Toolbar with Persistent State) is complete, robust, and fully verified. All acceptance criteria specified in `ORIGINAL_REQUEST.md` (header `## 2026-09-03T03:17:21Z`) and `AGENTS.md` (Rule 3) have been met:
-- Floating toolbar appears when text is focused and does not obscure the text.
-- Alignment buttons (left, center, right, justify) apply dynamically.
-- Bold and italic toggle via toolbar buttons and Ctrl+B / Ctrl+I.
-- Local undo/redo operates via Ctrl+Z and Ctrl+Shift+Z / Ctrl+Y without global hijacking.
-- Formatting persists in `cvData` JSON and survives reload from `localStorage`.
-- Both HTML print and React-PDF engines render formatting and alignment cleanly.
-- Full test suite passes 100% (18/18 files, 352/352 tests) and `npm run build` completes with 0 errors.
+
+Worker M2 has successfully extracted `SortableBulletItem` into `src/components/CV/SortableBulletItem.jsx` (104 lines, comprehensive JSDoc), deduplicated ~134 lines of redundant code, cleaned up 15 unused imports across `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx`, and verified that all 628 unit and integration tests pass with zero errors and zero build warnings.
+
+---
 
 ## 5. Verification Method
-To independently verify Milestone 2:
-1. **Run full automated test suite**:
+
+To independently verify this milestone:
+
+1. **Verify single declaration**:
    ```bash
-   npm test
+   grep -rn "const SortableBulletItem" src/
    ```
-   *Expected output*: All 18 test files pass, including `src/tests/epic2-rich-text-toolbar.test.jsx` (24 tests passing). Total 352 passing tests.
-2. **Run Epic 2 specific test suite**:
+   *Expected result*: Exactly one line in `src/components/CV/SortableBulletItem.jsx:34`.
+
+2. **Verify all tests pass**:
    ```bash
-   npx vitest run src/tests/epic2-rich-text-toolbar.test.jsx
+   npx vitest run
    ```
-   *Expected output*: 24 passed out of 24 tests.
-3. **Run production build**:
+   *Expected result*: 37 test files passed, 628 tests passed, exit code 0.
+
+3. **Verify clean production build**:
    ```bash
    npm run build
    ```
-   *Expected output*: Vite build completes with code 0 and bundles generated into `dist/`.
-4. **Inspect source code files**:
-   - `src/components/Editor/RichTextToolbar.jsx`
-   - `src/components/Editor/InlineEdit.jsx`
-   - `src/context/CVContext.jsx`
-   - `src/utils/richTextEngine.js`
-   - `src/utils/staticHtmlPdfEngine.js`
-   - `src/components/PDF/richTextPdf.jsx`
+   *Expected result*: Exit code 0, clean Vite build without warnings or errors.
+
+4. **Verify file line counts**:
+   ```bash
+   wc -l src/components/CV/SortableBulletItem.jsx
+   ```
+   *Expected result*: 104 lines (comfortably below the 300-line requirement).

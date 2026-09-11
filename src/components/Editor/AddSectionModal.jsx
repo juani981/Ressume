@@ -15,7 +15,8 @@ import {
   Users, 
   ListCheck, 
   UserSquare2,
-  Plus
+  Plus,
+  MoveVertical
 } from 'lucide-react';
 
 const iconMap = {
@@ -31,7 +32,8 @@ const iconMap = {
   'publications': BookOpen,
   'volunteering': HeartHandshake,
   'references': Users,
-  'simple_list': ListCheck
+  'simple_list': ListCheck,
+  'spacer': MoveVertical
 };
 
 /**
@@ -362,6 +364,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
                   {desc.type === 'references' && 'Contactos de confianza y datos de recomendación.'}
                   {desc.type === 'about' && 'Resumen profesional sobre tu perfil y objetivos.'}
                   {desc.type === 'simple_list' && 'Lista simple con viñetas limpias para cursos rápidos o menciones.'}
+                  {desc.type === 'spacer' && 'Espacio vertical en blanco ajustable para balancear columnas y maquetar.'}
                 </p>
               </div>
             );

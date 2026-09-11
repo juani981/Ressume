@@ -1,4 +1,16 @@
-import React from 'react';
+/**
+ * BaseSection.jsx
+ *
+ * Generic template component for CV sections, driven 100% by SectionDescriptor
+ * from sectionRegistry. Implements Factory/Strategy & Template pattern with
+ * ZERO section.type conditional guards.
+ *
+ * Dispatches to custom section components (e.g. SpacerBlock), manages section titles,
+ * floating action buttons (tips, bullet style popover, delete), DnD sortable context,
+ * bullet customization, and integrated bottom spacers.
+ */
+
+import React, { useState } from 'react';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
@@ -7,32 +19,102 @@ import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { Lightbulb, MoreHorizontal } from 'lucide-react';
-import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
+import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
+import { IntegratedBottomSpacer } from './SpacerBlock';
+import { createContainerDragListeners } from '../../utils/dndUtils';
 
-const BaseSection = ({ section }) => {
+/**
+ * PrintBaseSection
+ * Pure template for rendering a section in static print / PDF mode.
+ *
+ * @param {Object} props
+ * @param {Object} props.section - CV section data model
+ * @returns {React.ReactElement|null}
+ */
+export const PrintBaseSection = ({ section }) => {
+  if (!section) return null;
+  const descriptor = getSectionDescriptor(section.type);
+
+  if (descriptor?.sectionComponent) {
+    const CustomSection = descriptor.sectionComponent;
+    return <CustomSection section={section} isPrint={true} />;
+  }
+
+  const items = section.items || [];
+  const ContainerTag = descriptor.containerTag;
+  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
+  const bulletClasses = section.bulletStyle ? ` ${getBulletClasses(section.bulletStyle)}` : '';
+  const wrapperClass = descriptor.wrapperClass !== undefined 
+    ? descriptor.wrapperClass 
+    : `${descriptor.sectionClass}__container bd-grid`;
+
+  return (
+    <section 
+      className={`${descriptor.sectionClass} section cv-section${bulletClasses}`} 
+      id={section.id}
+      data-section-id={section.id}
+      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+    >
+      {descriptor.hasTitle !== false && section.title && (
+        <h2 className="section-title" data-section-title={section.id}>
+          <InlineEdit value={section.title || ''} isPrint={true} />
+        </h2>
+      )}
+
+      <div className={wrapperClass}>
+        {isListContainer ? (
+          <ContainerTag className={descriptor.containerClass || ''} style={descriptor.printContainerStyle || {}}>
+            {items.map((item, index) => (
+              <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
+            ))}
+          </ContainerTag>
+        ) : (
+          items.map((item, index) => (
+            <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
+          ))
+        )}
+      </div>
+
+      <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
+    </section>
+  );
+};
+
+/**
+ * EditableBaseSection
+ * Interactive CV section in live editor with drag handles, title editing,
+ * floating actions, item reordering, add buttons, and bottom spacer.
+ *
+ * @param {Object} props
+ * @param {Object} props.section - CV section data model
+ * @returns {React.ReactElement}
+ */
+const EditableBaseSection = ({ section }) => {
+  const descriptor = getSectionDescriptor(section?.type);
+
+  if (descriptor?.sectionComponent) {
+    const CustomSection = descriptor.sectionComponent;
+    return <CustomSection section={section} isPrint={false} />;
+  }
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: section.id,
-    data: {
-      type: 'section',
-      section
-    }
+    data: { type: 'section', section }
   });
 
   const { 
-    cvData, 
     updateSectionTitle, 
     updateSectionBulletStyle,
     addSectionItem, 
     deleteSection, 
+    updateSectionProperty,
     activeTooltip,
     toggleTooltipForSection
   } = useCV();
 
-  const [isBulletPopoverOpen, setIsBulletPopoverOpen] = React.useState(false);
-  const [bulletTriggerRect, setBulletTriggerRect] = React.useState(null);
-  
-  const descriptor = getSectionDescriptor(section.type);
+  const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
+  const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,36 +125,33 @@ const BaseSection = ({ section }) => {
     color: 'var(--text-color)'
   };
 
-  const sectionClass = section.type === 'skills' 
-    ? 'skills' 
-    : section.type === 'education' 
-      ? 'education' 
-      : section.type === 'profile_header' 
-        ? 'home' 
-        : section.type === 'about' 
-          ? 'profile' 
-          : 'experience';
-
   const isTooltipOpen = activeTooltip?.section?.id === section.id;
-  const allowDelete = section.type !== 'profile_header' && descriptor.allowDelete !== false;
-  const allowAddItem = section.type !== 'profile_header' && descriptor.allowAddItem !== false;
-  const allowBulletCustomization = supportsBulletCustomization(section.type);
+  const allowDelete = descriptor.allowDelete !== false;
+  const allowAddItem = descriptor.allowAddItem !== false;
+  const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
+  const containerDragListeners = createContainerDragListeners(listeners, false);
+  const ContainerTag = descriptor.containerTag;
+  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
+  const wrapperClass = descriptor.wrapperClass !== undefined 
+    ? descriptor.wrapperClass 
+    : `${descriptor.sectionClass}__container bd-grid`;
 
   return (
     <section 
       ref={setNodeRef} 
       style={style} 
-      className={`${sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
+      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
       id={section.id}
+      data-section-id={section.id}
+      {...attributes}
+      {...containerDragListeners}
     >
       <DragHandle listeners={listeners} attributes={attributes} />
       
-      {/* Floating Action Buttons Group: TOOLTIPS - 3 PUNTITOS - ELIMINAR */}
       <div 
         className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
         data-testid={`section-actions-${section.id}`}
       >
-        {/* 1. TOOLTIPS Button */}
         <button 
           type="button"
           className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
@@ -88,7 +167,6 @@ const BaseSection = ({ section }) => {
           <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
         </button>
 
-        {/* 2. 3 PUNTITOS Button (Timeline Circle Styling) */}
         {allowBulletCustomization && (
           <button
             type="button"
@@ -98,8 +176,7 @@ const BaseSection = ({ section }) => {
             data-testid={`btn-bullet-style-${section.id}`}
             onClick={(e) => {
               e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              setBulletTriggerRect(rect);
+              setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
               setIsBulletPopoverOpen(prev => !prev);
             }}
           >
@@ -107,7 +184,6 @@ const BaseSection = ({ section }) => {
           </button>
         )}
 
-        {/* 3. ELIMINAR Button */}
         {allowDelete && (
           <button 
             type="button"
@@ -123,31 +199,20 @@ const BaseSection = ({ section }) => {
         )}
       </div>
 
-      {/* Section Title */}
-      {section.type !== 'profile_header' && (
-        <h2 className="section-title">
-          <InlineEdit 
-            value={section.title || ''} 
-            onSave={(val) => updateSectionTitle(section.id, val)} 
-          />
+      {descriptor.hasTitle !== false && (
+        <h2 className="section-title" data-section-title={section.id}>
+          <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.id, val)} />
         </h2>
       )}
       
-      {/* Items Container */}
-      <div className={section.type === 'profile_header' || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}>
+      <div className={wrapperClass}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
-          {section.type === 'simple_list' ? (
-            <ul style={{ color: 'var(--text-color)', padding: 0 }}>
+          {isListContainer ? (
+            <ContainerTag className={descriptor.containerClass || ''} style={descriptor.containerStyle || {}}>
               {(section.items || []).map(item => (
                 <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
               ))}
-            </ul>
-          ) : section.type === 'skills' ? (
-            <ul className="skills__content bd-grid" style={{ gridTemplateColumns: '1fr', padding: 0 }}>
-              {(section.items || []).map(item => (
-                <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-              ))}
-            </ul>
+            </ContainerTag>
           ) : (
             (section.items || []).map(item => (
               <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
@@ -156,7 +221,6 @@ const BaseSection = ({ section }) => {
         </SortableContext>
       </div>
 
-      {/* Add Item Button below Container */}
       {allowAddItem && (
         <div className="section-add-container no-print">
           <button 
@@ -173,7 +237,6 @@ const BaseSection = ({ section }) => {
         </div>
       )}
 
-      {/* Bullet & Timeline Styling Popover */}
       {allowBulletCustomization && (
         <SectionBulletStylePopover
           isOpen={isBulletPopoverOpen}
@@ -183,8 +246,40 @@ const BaseSection = ({ section }) => {
           triggerRect={bulletTriggerRect}
         />
       )}
+
+      <IntegratedBottomSpacer
+        containerId={section.id}
+        height={section.bottomSpacing || 0}
+        onUpdateHeight={(newH) => {
+          if (typeof updateSectionProperty === 'function') {
+            updateSectionProperty(section.id, 'bottomSpacing', newH);
+          }
+        }}
+      />
     </section>
   );
+};
+
+/**
+ * BaseSection
+ * Main entry point delegating to PrintBaseSection or EditableBaseSection.
+ * Supports custom section components registered on the section descriptor.
+ *
+ * @param {Object} props
+ * @param {Object} props.section - CV section data model
+ * @param {boolean} [props.isPrint=false] - Whether rendering in print mode
+ * @returns {React.ReactElement|null}
+ */
+const BaseSection = (props) => {
+  const descriptor = getSectionDescriptor(props.section?.type);
+  if (descriptor?.sectionComponent) {
+    const CustomSection = descriptor.sectionComponent;
+    return <CustomSection {...props} />;
+  }
+  if (props.isPrint) {
+    return <PrintBaseSection {...props} />;
+  }
+  return <EditableBaseSection {...props} />;
 };
 
 export default BaseSection;

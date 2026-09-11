@@ -10,9 +10,16 @@ const A4_PAGE_HEIGHT_PX = 1123; // 1 A4 page at 96 DPI
 const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246px)
 const MIN_SCALE_FLOOR = 0.75;
 
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { renderRichHTML, stripHtml } from './richTextEngine';
 import { normalizeItemContacts, getContactConfig } from './contactTypes';
 import { getBulletClasses } from './bulletStyles';
+import { getSectionDescriptor } from '../registry/sectionRegistry';
+import { PrintBaseSection } from '../components/CV/BaseSection';
+import { PrintBaseItem } from '../components/CV/BaseItem';
+import baseStyles from '../index.css?raw';
+import printStyles from '../styles/print.css?raw';
 export { renderRichHTML, stripHtml };
 
 /**
@@ -26,6 +33,75 @@ export const escapeHTML = (str) => {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+};
+
+/**
+ * Sanitizes a string for safe usage as a document/file name across OSs.
+ * Removes/replaces forbidden characters: < > : " / \ | ? * and control chars with '_'.
+ * Normalizes multiple whitespace into single spaces and trims leading/trailing spaces.
+ * @param {string} name 
+ * @returns {string}
+ */
+export const sanitizeFileName = (name) => {
+  if (!name || typeof name !== 'string') return '';
+  return name
+    .replace(/[<>:"/\\|?*\x00-\x1F]+/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^\.+|\.+$/g, '');
+};
+
+/**
+ * Generates standardized PDF filename / document title based on active version or defaults.
+ * Format:
+ * 1. If a saved version name exists: uses sanitized version name.
+ * 2. If not a saved version: by default `CV_${profileName}_${profileSubtitle}`
+ *    (or fallback variants if profile name/subtitle are partially missing).
+ *
+ * @param {Object} cvData 
+ * @returns {string} Safe document title / filename
+ */
+export const getDynamicPdfTitle = (cvData) => {
+  if (!cvData || typeof cvData !== 'object') return 'CV';
+
+  // 1. Check if a saved version name is loaded or active
+  const candidateVersionName = (
+    (typeof cvData.versionName === 'string' && cvData.versionName.trim()) ||
+    (typeof cvData.activeVersionName === 'string' && cvData.activeVersionName.trim()) ||
+    (typeof cvData.layout?.versionName === 'string' && cvData.layout?.versionName.trim()) ||
+    ''
+  );
+
+  if (candidateVersionName) {
+    const sanitized = sanitizeFileName(candidateVersionName);
+    if (sanitized) return sanitized;
+  }
+
+  // 2. Default: "CV_${profileName}_${profileSubtitle}"
+  const rawProfileName = (
+    cvData.profile?.name ||
+    cvData.sections?.find(s => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.name ||
+    ''
+  );
+  const rawProfileSubtitle = (
+    cvData.profile?.subtitle ||
+    cvData.sections?.find(s => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.subtitle ||
+    ''
+  );
+
+  const profileName = stripHtml(rawProfileName).trim();
+  const profileSubtitle = stripHtml(rawProfileSubtitle).trim();
+
+  let defaultTitle = 'CV';
+  if (profileName && profileSubtitle) {
+    defaultTitle = `CV_${profileName}_${profileSubtitle}`;
+  } else if (profileName) {
+    defaultTitle = `CV_${profileName}`;
+  } else if (profileSubtitle) {
+    defaultTitle = `CV_${profileSubtitle}`;
+  }
+
+  return sanitizeFileName(defaultTitle) || 'CV';
 };
 
 /**
@@ -146,247 +222,116 @@ const getDynamicTextColors = (hexcolor) => {
 };
 
 /**
- * Renders an item to clean static HTML
+ * Renders an item to clean static HTML via real React PrintBaseItem (Single Source of Truth)
  */
-const renderItemHTML = (item, sectionType, isLast = false) => {
+export const renderItemHTML = (item, sectionType, isLast = false) => {
   if (!item) return '';
-
-  if (sectionType === 'profile_header') {
-    const contacts = normalizeItemContacts(item);
-    const contactsHtml = contacts
-      .filter(c => c && c.value && String(c.value).trim() !== '')
-      .map(c => {
-        const cfg = getContactConfig(c.type);
-        return `<span class="social__link"><i class='${cfg.icon}'></i> ${renderRichHTML(c.value)}</span>`;
-      })
-      .join('\n');
-
-    return `
-      <div class="home__data bd-grid cv-block">
-        <h1 class="home__title">${renderRichHTML(item.name)}</h1>
-        <h2 class="home__subtitle">${renderRichHTML(item.subtitle)}</h2>
-        <div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.75rem;">
-          ${contactsHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'about') {
-    return `
-      <div class="profile__description cv-block">
-        <p>${renderRichHTML(item.description)}</p>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'skills') {
-    return `
-      <li class="skills__name cv-block" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px);">
-        <span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span>
-        <span style="flex: 1;">
-          <b>${renderRichHTML(item.title)}:</b> ${renderRichHTML(item.description)}
-        </span>
-      </li>
-    `;
-  }
-
-  if (sectionType === 'education') {
-    return `
-      <div class="education__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
-        <div class="education__time" style="padding-right: 0.75rem;">
-          <span class="education__rounder"></span>
-          ${!isLast ? '<span class="education__line"></span>' : ''}
-        </div>
-        <div class="education__data bd-grid" style="width: 100%;">
-          <h3 class="education__title">${renderRichHTML(item.title)}</h3>
-          <span class="education__studies">${renderRichHTML(item.subtitle)}</span>
-          <span class="education__year">${renderRichHTML(item.date)}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'simple_list') {
-    return `
-      <li class="cv-block simple-list-item" style="display: flex; align-items: flex-start; margin-bottom: var(--item-gap, 6px); list-style: none;">
-        <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
-        <span style="flex: 1;">${renderRichHTML(item.text)}</span>
-      </li>
-    `;
-  }
-
-  if (sectionType === 'languages') {
-    return `
-      <div class="cv-block" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: var(--item-gap, 6px);">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; flex-shrink: 0;"></span>
-          <div>
-            <span style="font-weight: 600; font-size: var(--normal-font-size); color: var(--title-color);">${renderRichHTML(item.title || item.language)}</span>
-            ${item.description ? `<div style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.description)}</div>` : ''}
-          </div>
-        </div>
-        <span style="font-size: var(--small-font-size); font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); border: 1px solid rgba(0, 0, 0, 0.08); white-space: nowrap;">
-          ${renderRichHTML(item.subtitle || item.level || 'Intermedio')}
-        </span>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'certificates') {
-    return `
-      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
-          <i class='bx bx-badge-check' style="font-size: 14px;"></i>
-        </span>
-        <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
-          </div>
-          <div style="font-size: var(--small-font-size); color: var(--text-color);">
-            ${renderRichHTML(item.subtitle)}${item.credentialId ? ` · <span style="color: var(--text-color-light); font-size: var(--smaller-font-size);">ID: ${renderRichHTML(item.credentialId)}</span>` : ''}
-          </div>
-          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></div>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'awards') {
-    return `
-      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
-          <i class='bx bx-trophy' style="font-size: 14px;"></i>
-        </span>
-        <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
-          </div>
-          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle)}</div>` : ''}
-          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${renderRichHTML(item.description)}</p>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'publications') {
-    return `
-      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
-          <i class='bx bx-book-open' style="font-size: 14px;"></i>
-        </span>
-        <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title)}</h3>
-            ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
-          </div>
-          ${item.subtitle ? `<div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle)}</div>` : ''}
-          ${item.link ? `<div class="social__container bd-grid" style="margin-top: 0.15rem;"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></div>` : ''}
-          ${item.description ? `<p class="experience__description" style="margin-top: 0.2rem;">${renderRichHTML(item.description)}</p>` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  if (sectionType === 'references') {
-    return `
-      <div class="cv-block" style="display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: var(--item-gap, 6px);">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;">
-          <i class='bx bx-user-check' style="font-size: 14px;"></i>
-        </span>
-        <div style="flex: 1;">
-          <h3 class="education__title" style="margin: 0; font-weight: 600;">${renderRichHTML(item.title || item.name)}</h3>
-          <div style="font-size: var(--small-font-size); color: var(--text-color);">${renderRichHTML(item.subtitle || item.position)}</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.2rem; font-size: var(--smaller-font-size); color: var(--text-color-light);">
-            ${item.email ? `<span><i class='bx bx-envelope'></i> ${renderRichHTML(item.email)}</span>` : ''}
-            ${item.phone ? `<span><i class='bx bx-phone'></i> ${renderRichHTML(item.phone)}</span>` : ''}
-            ${item.relationship ? `<span>(${renderRichHTML(item.relationship)})</span>` : ''}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  // default 'list', 'projects', 'volunteering', or custom
-  const rounderColor = 'var(--circle-color, var(--text-color-light))';
-  return `
-    <div class="experience__content cv-block" style="display: flex; margin-bottom: var(--item-gap, 8px);">
-      <div class="experience__time" style="padding-right: 0.75rem;">
-        <span class="experience__rounder" style="background-color: ${rounderColor};"></span>
-        ${!isLast ? '<span class="experience__line"></span>' : ''}
-      </div>
-      <div class="experience__data bd-grid" style="width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-          <h3 class="experience__title" style="margin: 0;">${renderRichHTML(item.title)}</h3>
-          ${item.date ? `<span style="font-size: var(--smaller-font-size); color: var(--text-color-light);">${renderRichHTML(item.date)}</span>` : ''}
-        </div>
-        ${item.subtitle ? `<span class="experience__company" style="font-weight: 500; color: var(--title-color);">${renderRichHTML(item.subtitle)}</span>` : ''}
-        ${item.link ? `<span class="social__container bd-grid"><a href="https://${escapeHTML(item.link.replace(/^https?:\/\//, ''))}" class="social__link" target="_blank" rel="noreferrer" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><i class='bx bx-link-external'></i> ${renderRichHTML(item.linkText || item.link)}</a></span>` : ''}
-        ${item.description ? `<p class="experience__description">${renderRichHTML(item.description)}</p>` : ''}
-        ${item.bullets && item.bullets.length > 0 ? `
-          <ul style="padding: 0; margin-top: 0.35rem; list-style: none;">
-            ${item.bullets.map(b => `
-              <li class="cv-block" style="display: flex; align-items: flex-start; margin-bottom: calc(var(--item-gap, 6px) / 2); list-style: none;">
-                <span style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; margin: 7px 0.45rem 0 0; flex-shrink: 0;"></span>
-                <span style="flex: 1;">${renderRichHTML(b)}</span>
-              </li>
-            `).join('')}
-          </ul>
-        ` : ''}
-      </div>
-    </div>
-  `;
+  return renderToStaticMarkup(
+    React.createElement(PrintBaseItem, {
+      item,
+      sectionId: sectionType,
+      sectionType,
+      isLast
+    })
+  );
 };
 
 /**
- * Renders a section to clean static HTML
+ * Renders a section to clean static HTML via real React PrintBaseSection
  */
-const renderSectionHTML = (section) => {
+export const renderSectionHTML = (section) => {
   if (!section) return '';
+  return renderToStaticMarkup(
+    React.createElement(PrintBaseSection, { section })
+  );
+};
 
-  const sectionClass = section.type === 'skills' 
-    ? 'skills' 
-    : section.type === 'education' 
-      ? 'education' 
-      : section.type === 'profile_header' 
-        ? 'home' 
-        : section.type === 'about' 
-          ? 'profile' 
-          : 'experience';
+/**
+ * Captures an exact snapshot of the live editor's #area-cv container geometry
+ * and forced page-break element positions.
+ * Guarantees 1:1 identical break locations and zero font shrinkage when passed to the PDF print engine.
+ * @returns {{ width: number, height: number, pageHeightPx: number, brokenElements: Array } | null}
+ */
+export const captureEditorSnapshot = () => {
+  if (typeof document === 'undefined') return null;
+  const areaCv = document.getElementById('area-cv');
+  if (!areaCv) return null;
 
-  const isProfile = section.type === 'profile_header';
-  const items = section.items || [];
+  const rect = typeof areaCv.getBoundingClientRect === 'function' ? areaCv.getBoundingClientRect() : null;
+  const width = Math.round((rect && rect.width) || areaCv.offsetWidth || 0);
+  const height = Math.round(areaCv.scrollHeight || areaCv.offsetHeight || 0);
 
-  let itemsHTML = '';
-  if (section.type === 'simple_list' || section.type === 'skills') {
-    itemsHTML = `
-      <ul style="padding: 0; margin: 0; list-style: none;">
-        ${items.map((item, index) => renderItemHTML(item, section.type, index === items.length - 1)).join('')}
-      </ul>
-    `;
-  } else {
-    itemsHTML = items.map((item, index) => renderItemHTML(item, section.type, index === items.length - 1)).join('');
-  }
+  let pageHeightPx = A4_PAGE_HEIGHT_PX;
+  try {
+    const ruler = document.createElement('div');
+    ruler.style.height = '297mm';
+    ruler.style.position = 'absolute';
+    ruler.style.visibility = 'hidden';
+    ruler.style.top = '-9999px';
+    document.body.appendChild(ruler);
+    if (ruler.offsetHeight > 0) {
+      pageHeightPx = ruler.offsetHeight;
+    }
+    ruler.remove();
+  } catch (_) {}
 
-  return `
-    <section class="${sectionClass} section cv-section ${getBulletClasses(section.bulletStyle)}" id="${escapeHTML(section.id)}">
-      ${!isProfile && section.title ? `<h2 class="section-title">${renderRichHTML(section.title)}</h2>` : ''}
-      <div class="${isProfile || section.type === 'about' ? '' : `${sectionClass}__container bd-grid`}">
-        ${itemsHTML}
-      </div>
-    </section>
-  `;
+  const brokenElements = [];
+  const brokenNodes = areaCv.querySelectorAll('[data-editor-break-forced="true"]');
+  brokenNodes.forEach((node) => {
+    const isTitle = node.classList.contains('section-title') || node.hasAttribute('data-section-title');
+    const section = node.closest('.cv-section') || node.closest('section');
+    const sectionId = section?.getAttribute('data-section-id') || section?.id || node.getAttribute('data-section-title') || null;
+    const itemId = node.getAttribute('data-item-id') || (!isTitle ? node.id : null);
+    const fold = node.getAttribute('data-editor-break-fold') || '1';
+    const pageNum = parseInt(fold, 10) || 1;
+
+    let relativeTop = 0;
+    try {
+      if (rect && typeof node.getBoundingClientRect === 'function') {
+        const nodeRect = node.getBoundingClientRect();
+        relativeTop = Math.round(nodeRect.top - rect.top);
+      } else {
+        relativeTop = node.offsetTop || 0;
+      }
+    } catch (_) {}
+
+    brokenElements.push({
+      sectionId,
+      itemId: isTitle ? null : itemId,
+      isTitle,
+      fold,
+      pageNum,
+      marginTop: node.style.marginTop || '',
+      relativeTop
+    });
+  });
+
+  const totalPagesAttr = areaCv.getAttribute('data-total-pages');
+  const parsedAttr = totalPagesAttr ? parseInt(totalPagesAttr, 10) : 0;
+  const maxFold = brokenElements.length > 0
+    ? Math.max(...brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
+    : 1;
+  const totalPages = (parsedAttr && parsedAttr > 0) ? parsedAttr : maxFold;
+
+  return {
+    width: width > 0 ? width : 794,
+    height,
+    pageHeightPx,
+    brokenElements,
+    totalPages
+  };
 };
 
 /**
  * Generates standalone clean static HTML for printing and PDF rendering.
  * Strips all interactive editor UI artifacts and guarantees 2-page print layout.
  * @param {Object} cvData 
+ * @param {string} lang 
+ * @param {Object|null} customSnapshot 
  * @returns {string} Standalone HTML document string
  */
-export const generateCleanPrintHTML = (cvData, lang = 'es') => {
+export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = undefined) => {
+  const snapshot = customSnapshot !== undefined ? customSnapshot : (typeof document !== 'undefined' ? captureEditorSnapshot() : null);
   const data = cvData || {};
   const layout = data.layout || {};
   const docLang = lang || layout.language || data.activeLanguage || 'es';
@@ -413,7 +358,8 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
     });
   }
 
-  const is2Col = layout.type !== '1-column';
+  const isAtsMode = layout.isAtsMode === true;
+  const is2Col = layout.type === '2-column' && !layout.isAtsMode;
   const pagePadding = Number(layout.pagePadding ?? 24);
   const sectionGap = Number(layout.sectionGap ?? 20);
   const itemGap = Number(layout.itemGap ?? 8);
@@ -432,44 +378,97 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   const listScale = layout.listScale || 1.0;
   const lineHeight = layout.lineHeight || 1.45;
 
-  const leftBg = layout.leftBg || '#fafafa';
+  const leftBg = layout.leftBg || '#f3f4f6';
   const rightBg = layout.rightBg || '#ffffff';
   const leftColors = getDynamicTextColors(leftBg);
   const rightColors = getDynamicTextColors(rightBg);
 
-  const leftSections = sections.filter(s => s.column === 'left');
-  const rightSections = sections.filter(s => s.column === 'right');
+  const getSectionCol = (s) => s.column || getSectionDescriptor(s.type)?.defaultColumn || 'right';
+  const leftSections = sections.filter(s => getSectionCol(s) === 'left');
+  const rightSections = sections.filter(s => getSectionCol(s) === 'right');
 
   const leftColWidth = layout.leftColumnWidth;
   const gridColumns = leftColWidth ? `${leftColWidth}% ${100 - leftColWidth}%` : '1fr 2fr';
 
   const leftColPercent = leftColWidth || 33.33;
 
+  const areaCvClasses = is2Col 
+    ? (snapshot ? `resume bd-grid ${isAtsMode ? 'resume--ats-mode' : ''}`.trim() : `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim())
+    : `resume resume__single-column ${isAtsMode ? 'resume--ats-mode' : ''}`.trim();
+
+  const dynamicSpacingStyle = `
+    --body-font: ${fontFamily};
+    --font-scale: ${fontScale};
+    --title-scale: ${titleScale};
+    --body-scale: ${bodyScale};
+    --list-scale: ${listScale};
+    --line-height: ${lineHeight};
+    --page-padding: ${pagePadding}px;
+    --section-gap: ${sectionGap}px;
+    --item-gap: ${itemGap}px;
+  `.replace(/\s+/g, ' ').trim();
+
+  const containerWidth = snapshot?.width ? `${snapshot.width}px` : null;
+
+  let snapshotBreaksCSS = '';
+  if (snapshot?.brokenElements?.length > 0) {
+    snapshotBreaksCSS = snapshot.brokenElements.map(b => {
+      const selector = b.isTitle
+        ? `[data-section-title="${b.sectionId}"]`
+        : (b.itemId ? `[data-item-id="${b.itemId}"]` : `[data-section-id="${b.sectionId}"]`);
+      return `
+        ${selector} {
+          break-before: page !important;
+          page-break-before: always !important;
+          margin-top: var(--page-padding, 24px) !important;
+        }
+      `;
+    }).join('\n');
+  }
+
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="resume" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; min-height: 297mm; height: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%);">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.25rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm; height: 100%; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
           ${leftSections.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 1.5rem 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
           ${rightSections.map(renderSectionHTML).join('')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
-      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff;">
+      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
         ${sections.map(renderSectionHTML).join('')}
       </div>
     `;
   }
 
-  const profileName = stripHtml(data.profile?.name || '').trim();
-  const profileSubtitle = stripHtml(data.profile?.subtitle || '').trim();
-  const dynamicDocumentTitle = profileName && profileSubtitle
-    ? `${profileName} - ${profileSubtitle}`
-    : (profileName || profileSubtitle || 'Curriculum Vitae');
+  const dynamicDocumentTitle = getDynamicPdfTitle(data);
+
+  let activeBaseStyles = baseStyles || '';
+  let activePrintStyles = printStyles || '';
+
+  // Remove static :root block so dynamic variables take effect without collision
+  activeBaseStyles = activeBaseStyles.replace(/:root\s*\{[\s\S]*?\}/, '/* static :root removed */');
+
+  // Sanitize editor artifact selector names so they do not leak into clean print HTML
+  // without deleting entire CSS rule blocks or affecting layout rules (.cv-section, margins, text contrast)
+  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
+  activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
+  activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
+
+
+  if (!is2Col) {
+    activeBaseStyles = activeBaseStyles
+      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
+      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
+    activePrintStyles = activePrintStyles
+      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
+      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
+  }
 
   return `<!DOCTYPE html>
 <html lang="${escapeHTML(docLang)}">
@@ -481,31 +480,42 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <style>
-    :root {
+  <style id="cv-base-styles">
+    :root,
+    #area-cv {
       --page-padding: ${pagePadding}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
       --title-color: #0f172a;
       --text-color: #334155;
       --text-color-light: #64748b;
-      --body-font: ${fontFamily};
+      --container-color: #ffffff;
+      --container-color-alt: #f3f4f6;
+      --body-color: #ffffff;
+      --first-color: #3874ff;
+      --header-height: 3rem;
+      --font-medium: 500;
+      --font-semi-bold: 600;
+      --mb-1: .5rem;
+      --mb-2: 1rem;
+      --mb-3: 1.5rem;
+      --body-font: ${fontFamily && !fontFamily.includes(',') ? `'${fontFamily}', sans-serif` : (fontFamily || "'Poppins', sans-serif")};
       --font-scale: ${fontScale};
       --title-scale: ${titleScale};
       --body-scale: ${bodyScale};
       --list-scale: ${listScale};
       --line-height: ${lineHeight};
-      --h1-font-size: calc(1.45rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.15rem * var(--font-scale, 1));
-      --h3-font-size: calc(0.95rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.88rem * var(--font-scale, 1));
-      --small-font-size: calc(0.82rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.75rem * var(--font-scale, 1));
+      --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+      --h3-font-size: calc(1rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+      --small-font-size: calc(0.875rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
       --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
-      --title-subtitle-size: calc(var(--normal-font-size) * var(--title-scale, 1));
+      --title-subtitle-size: calc(1.05rem * var(--font-scale, 1) * var(--title-scale, 1));
 
       --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
       --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
@@ -514,394 +524,19 @@ export const generateCleanPrintHTML = (cvData, lang = 'es') => {
       --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
     }
 
-    @page {
-      size: A4;
-      margin: 0;
-    }
-
-    *, ::before, ::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: var(--body-font);
-      font-size: var(--normal-font-size);
-      color: var(--text-color);
-      background-color: #ffffff;
-      line-height: 1.45;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    h1, h2, h3, h4, p, ul {
-      margin: 0;
-    }
-
-    h1, h2, h3 {
-      color: var(--title-color);
-      font-weight: 600;
-      break-after: avoid !important;
-      page-break-after: avoid !important;
-    }
-
-    ul {
-      list-style: none;
-    }
-
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .resume {
-      width: 100% !important;
-      max-width: 100% !important;
-      margin: 0 !important;
-      min-height: 297mm !important;
-      box-shadow: none !important;
-      box-sizing: border-box !important;
-      -webkit-box-decoration-break: clone !important;
-      box-decoration-break: clone !important;
-    }
-${is2Col ? `
-    .resume__left {
-      min-height: 297mm;
-      height: 100%;
-      box-sizing: border-box;
-      -webkit-box-decoration-break: clone !important;
-      box-decoration-break: clone !important;
-    }
-
-    .resume__right {
-      min-height: 297mm;
-      height: 100%;
-      box-sizing: border-box;
-      -webkit-box-decoration-break: clone !important;
-      box-decoration-break: clone !important;
-    }
-` : ''}
-
     .resume__single-column {
       min-height: 297mm !important;
       box-sizing: border-box !important;
       padding: var(--page-padding, ${pagePadding}px) !important;
     }
 
-    .bd-grid {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .section, .cv-section {
-      padding: 0;
-      margin-bottom: var(--section-gap, 18px) !important;
-    }
-
-    .section:last-of-type, .cv-section:last-of-type {
-      margin-bottom: 0 !important;
-    }
-
-    .section-title {
-      font-size: var(--title-h2-size, var(--h2-font-size));
-      color: var(--title-color);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .2rem;
-      margin-bottom: 0.6rem;
-      text-align: left;
-      break-after: avoid !important;
-      page-break-after: avoid !important;
-    }
-
-    .home__title {
-      font-size: var(--title-h1-size, var(--h1-font-size));
-      margin-bottom: 0.2rem;
-    }
-
-    .home__subtitle {
-      font-size: var(--title-subtitle-size, var(--normal-font-size));
-      color: var(--text-color-light);
-      margin-bottom: 0.4rem;
-    }
-
-    .social__container {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .social__link {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: var(--body-small-font-size, var(--small-font-size));
-      color: var(--text-color);
-    }
-
-    .education__time,
-    .experience__time {
-      padding-right: 0.75rem;
-      position: relative;
-    }
-
-    .education__rounder,
-    .experience__rounder {
-      display: block;
-      width: 13px;
-      height: 13px;
-      background-color: var(--text-color-light);
-      border-radius: 50%;
-      margin-top: 0.25rem;
-    }
-
-    .education__line,
-    .experience__line {
-      display: block;
-      width: 2px;
-      height: 100%;
-      background-color: var(--text-color-light);
-      transform: translate(5.5px, 0);
-    }
-
-    /* Global rule: Suppress timeline connector line on the last item of any list */
-    .cv-block:last-child .experience__line,
-    .cv-block:last-child .education__line,
-    .cv-block:last-child [class*="__line"],
-    .cv-block:last-of-type .experience__line,
-    .cv-block:last-of-type .education__line,
-    .cv-block:last-of-type [class*="__line"],
-    .experience__content:last-child .experience__line,
-    .experience__content:last-of-type .experience__line,
-    .education__content:last-child .education__line,
-    .education__content:last-of-type .education__line {
-      display: none !important;
-    }
-
-    .education__title,
-    .experience__title {
-      font-size: var(--title-h3-size, var(--h3-font-size));
-      color: var(--title-color);
-    }
-
-    .education__studies,
-    .experience__company {
-      font-size: var(--body-small-font-size, var(--small-font-size));
-      color: var(--title-color);
-    }
-
-    .education__year {
-      font-size: var(--body-smaller-font-size, var(--smaller-font-size));
-      color: var(--text-color-light);
-    }
-
-    .experience__description,
-    .profile__description {
-      font-size: var(--body-font-size, var(--normal-font-size));
-      margin-top: 0.25rem;
-    }
-
-    .experience__bullets li,
-    .skills__name,
-    .simple-list-item {
-      font-size: var(--list-font-size, var(--normal-font-size));
-    }
-
-    /* Super-container CSS Page Break & Splitting Prevention */
-    .cv-section,
-    .cv-block,
-    .section,
-    .experience__content,
-    .education__content,
-    .skills__name,
-    .profile__description,
-    .home__data,
-    .simple-list-item,
-    li.cv-block,
-    .contact__item {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-      -webkit-column-break-inside: avoid !important;
-    }
-
-    .force-page-break-before {
-      break-before: page !important;
-      page-break-before: always !important;
-    }
-
-    /* Orphan Header Protection */
-    .section-title,
-    h1,
-    h2,
-    h3 {
-      break-after: avoid !important;
-      page-break-after: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    p, h1, h2, h3, li {
-      orphans: 3;
-      widows: 3;
-    }
-
-    /* Dynamic Text & Bullet Contrast via Base Element Inheritance */
-    ${is2Col ? `.resume__left,
-    .resume__right,` : ''}
-    .cv-section,
-    .cv-block,
-    .profile__description,
-    .experience__description {
-      color: var(--text-color);
-    }
-
-    .profile__description p,
-    .profile__description span,
-    .profile__description div,
-    .experience__description p,
-    .experience__description span,
-    .experience__description div,
-    .cv-block p,
-    .cv-block span,
-    .cv-block div,
-    .cv-block li,
-    .experience__bullets,
-    .experience__bullets li,
-    .experience__bullets-container,
-    .bullet-item-row,
-    .simple-list-item,
-    .skills__name {
-      color: var(--text-color) !important;
-    }
-
-    .experience__bullets li span,
-    .bullet-item-row span,
-    .simple-list-item span,
-    .skills__name span {
-      color: inherit;
-    }
-
-    /* Bullet & Circle Customization (Title Timeline Rounders Only - No Blue) */
-    .bullet-size-normal .experience__rounder,
-    .bullet-size-normal .education__rounder {
-      width: 12px !important;
-      height: 12px !important;
-    }
-    .bullet-size-normal .experience__line,
-    .bullet-size-normal .education__line {
-      transform: translate(5px, 0) !important;
-    }
-
-    .bullet-size-large .experience__rounder,
-    .bullet-size-large .education__rounder {
-      width: 18px !important;
-      height: 18px !important;
-    }
-    .bullet-size-large .experience__line,
-    .bullet-size-large .education__line {
-      transform: translate(8px, 0) !important;
-    }
-
-    /* Variant: Negro / Bold (Solid dark black #0f172a) */
-    .bullet-variant-bold .experience__rounder,
-    .bullet-variant-bold .education__rounder,
-    .bullet-variant-black .experience__rounder,
-    .bullet-variant-black .education__rounder {
-      background-color: #0f172a !important;
-      border: none !important;
-    }
-
-    /* Variant: Gris (Subtle neutral slate gray #94a3b8) */
-    .bullet-variant-gray .experience__rounder,
-    .bullet-variant-gray .education__rounder {
-      background-color: var(--text-color-light, #94a3b8) !important;
-      border: none !important;
-    }
-
-    /* Variant: Anillo / Ring (Hollow ring with solid dark border #0f172a) */
-    .bullet-variant-circle .experience__rounder,
-    .bullet-variant-circle .education__rounder,
-    .bullet-variant-ring .experience__rounder,
-    .bullet-variant-ring .education__rounder {
-      background-color: var(--container-color, #ffffff) !important;
-      border: 2.5px solid #0f172a !important;
-    }
-
-    /* Timeline Connector Line */
-    .bullet-line-none .experience__line,
-    .bullet-line-none .education__line,
-    .bullet-line-none [class*="__line"] {
-      display: none !important;
-    }
-
-    @media print {
-      @page {
-        size: A4;
-        margin: 0;
-      }
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      body {
-        background-color: #ffffff !important;
-      }
-      #area-cv {
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0;
-        min-height: var(--print-target-height-mm, 297mm) !important;
-        box-sizing: border-box !important;
-      }
-${is2Col ? `
-      .resume__left,
-      .resume__right {
-        min-height: var(--print-target-height-mm, 297mm) !important;
-        height: 100% !important;
-        align-self: stretch !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        -webkit-box-decoration-break: clone !important;
-        box-decoration-break: clone !important;
-      }
-` : ''}
-      #area-cv.resume__single-column,
-      .resume__single-column {
-        min-height: 297mm !important;
-        box-sizing: border-box !important;
-        padding: var(--page-padding, ${pagePadding}px) !important;
-      }
-      .cv-section,
-      .cv-block,
-      .section,
-      .experience__content,
-      .education__content,
-      .skills__name,
-      .profile__description,
-      .home__data,
-      .simple-list-item,
-      li.cv-block,
-      .contact__item {
-        break-inside: avoid !important;
-        page-break-inside: avoid !important;
-        -webkit-column-break-inside: avoid !important;
-      }
-      .section-title,
-      h1,
-      h2,
-      h3 {
-        break-after: avoid !important;
-        page-break-after: avoid !important;
-        break-inside: avoid !important;
-      }
-      .force-page-break-before {
-        break-before: page !important;
-        page-break-before: always !important;
-      }
-    }
+${activeBaseStyles}
+  </style>
+  <style id="cv-print-styles">
+${activePrintStyles}
+  </style>
+  <style id="cv-snapshot-breaks">
+${snapshotBreaksCSS}
   </style>
 </head>
 <body>
@@ -1003,6 +638,8 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
 
           const { top, bottom, height } = getRelativeBounds(item);
 
+          if (height <= 0) continue;
+
           // If already after fold
           if (top >= foldY) {
             continue;
@@ -1084,26 +721,20 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
  * triggers browser native print, and cleans up the DOM.
  * @param {Object} cvData 
  */
-export const executeCleanPrint = (cvData, lang = 'es') => {
+export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefined) => {
   return new Promise((resolve) => {
-    const profileName = stripHtml(cvData?.profile?.name || '').trim();
-    const profileSubtitle = stripHtml(cvData?.profile?.subtitle || '').trim();
-    const dynamicDocumentTitle = profileName && profileSubtitle
-      ? `${profileName} - ${profileSubtitle}`
-      : (profileName || profileSubtitle || 'Curriculum Vitae');
+    const dynamicDocumentTitle = getDynamicPdfTitle(cvData);
+    const snapshot = customSnapshot !== undefined ? customSnapshot : captureEditorSnapshot();
 
-    if (typeof document !== 'undefined' && dynamicDocumentTitle) {
-      document.title = dynamicDocumentTitle;
-    }
-
-    const html = generateCleanPrintHTML(cvData, lang);
+    const html = generateCleanPrintHTML(cvData, lang, snapshot);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
-    iframe.style.width = '794px';
-    iframe.style.minWidth = '794px';
+    const iframeWidth = snapshot?.width ? `${snapshot.width}px` : '794px';
+    iframe.style.width = iframeWidth;
+    iframe.style.minWidth = iframeWidth;
     iframe.style.height = '1123px';
     iframe.style.visibility = 'hidden';
     iframe.style.border = '0';
@@ -1111,9 +742,29 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
 
     document.body.appendChild(iframe);
 
+    let printClosed = false;
+    let fallbackTimeout = null;
+    const handlePrintClosed = () => {
+      if (printClosed) return;
+      printClosed = true;
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+        fallbackTimeout = null;
+      }
+      try {
+        window.dispatchEvent(new CustomEvent('print-dialog-closed'));
+      } catch (_) {}
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
+      }, 600);
+    };
+
     const doc = iframe.contentWindow?.document || iframe.contentDocument;
     if (!doc) {
       window.print();
+      handlePrintClosed();
       resolve();
       return;
     }
@@ -1156,42 +807,131 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
             } catch (_) {}
           }
 
-          // Execute 2-column per-component pagination control
-          const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
-
-          const rawHeight = Math.max(
-            doc.body?.scrollHeight || 0,
-            doc.documentElement?.scrollHeight || 0,
-            areaCv?.scrollHeight || 0,
-            pageHeightPx * totalPages
-          );
-          const scale = calculatePrintScale(rawHeight);
-          if (scale < 1.0 && doc.body?.style) {
-            doc.body.style.zoom = scale;
-          }
-
-          if (iframe && iframe.style) {
-            iframe.style.height = `${totalPages * pageHeightPx}px`;
-          }
-
-          let printClosed = false;
-          const handlePrintClosed = () => {
-            if (printClosed) return;
-            printClosed = true;
-            try {
-              window.dispatchEvent(new CustomEvent('print-dialog-closed'));
-            } catch (_) {}
-            setTimeout(() => {
-              if (iframe.parentNode) {
-                iframe.parentNode.removeChild(iframe);
+          if (snapshot && snapshot.brokenElements) {
+            // Apply live editor breaks 1:1 into iframe
+            snapshot.brokenElements.forEach((b) => {
+              let targetEl = null;
+              if (b.isTitle) {
+                targetEl = doc.querySelector(`[data-section-title="${b.sectionId}"]`) ||
+                           doc.querySelector(`[data-section-id="${b.sectionId}"] .section-title`) ||
+                           doc.querySelector(`#${b.sectionId} .section-title`);
+              } else if (b.itemId) {
+                targetEl = doc.querySelector(`[data-item-id="${b.itemId}"]`);
               }
-            }, 600);
-          };
 
-          if (iframe.contentWindow) {
+              if (targetEl) {
+                targetEl.style.setProperty('break-before', 'page', 'important');
+                targetEl.style.setProperty('page-break-before', 'always', 'important');
+                targetEl.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
+                targetEl.classList.add('force-page-break-before');
+                targetEl.setAttribute('data-page-break-forced', 'true');
+                targetEl.setAttribute('data-page-break-fold', String(b.fold || b.pageNum || 1));
+              }
+            });
+
+            const maxFold = snapshot.brokenElements.length > 0
+              ? Math.max(...snapshot.brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
+              : 1;
+            const totalPages = snapshot.totalPages || maxFold;
+            const targetHeightMm = totalPages * 297;
+
+            if (areaCv && areaCv.style) {
+              areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
+              areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            }
+
+            const leftCol = areaCv?.querySelector?.('.resume__left');
+            const rightCol = areaCv?.querySelector?.('.resume__right');
+            if (leftCol && leftCol.style) {
+              leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              leftCol.style.setProperty('height', '100%', 'important');
+              leftCol.style.setProperty('align-self', 'stretch', 'important');
+              leftCol.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+            if (rightCol && rightCol.style) {
+              rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+              rightCol.style.setProperty('height', '100%', 'important');
+              rightCol.style.setProperty('align-self', 'stretch', 'important');
+              rightCol.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+
+            // Anti-orphan safeguard: Verify that no section title is separated from its first child across page folds
+            const querySections = typeof doc.querySelectorAll === 'function'
+              ? doc.querySelectorAll('.cv-section')
+              : (typeof doc.body?.querySelectorAll === 'function' ? doc.body.querySelectorAll('.cv-section') : []);
+            if (querySections && typeof querySections.forEach === 'function') {
+              querySections.forEach((sec) => {
+                const title = sec.querySelector?.('.section-title');
+                const firstItem = sec.querySelector?.('.cv-block, .experience__content, .education__content, .skills__name, .profile__description, .simple-list-item');
+                if (title && firstItem) {
+                  const titleRect = typeof title.getBoundingClientRect === 'function' ? title.getBoundingClientRect() : null;
+                  const itemRect = typeof firstItem.getBoundingClientRect === 'function' ? firstItem.getBoundingClientRect() : null;
+                  const areaRect = typeof areaCv?.getBoundingClientRect === 'function' ? areaCv.getBoundingClientRect() : null;
+                  if (titleRect && itemRect && areaRect) {
+                    const titleY = titleRect.top - areaRect.top;
+                    const itemY = itemRect.top - areaRect.top;
+                    const titlePage = Math.floor(titleY / pageHeightPx) + 1;
+                    const itemPage = Math.floor(itemY / pageHeightPx) + 1;
+                    
+                    if (itemPage > titlePage) {
+                      title.style.setProperty('break-before', 'page', 'important');
+                      title.style.setProperty('page-break-before', 'always', 'important');
+                      title.classList.add('force-page-break-before');
+                    }
+                  }
+                }
+              });
+            }
+
+            // Adaptive scale guard: if content in iframe slightly overflows totalPages due to browser font rendering differences,
+            // scale down adaptively to strictly guarantee fitting within totalPages without spawning an unwanted extra blank page!
+            const rawHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0
+            );
+            const maxAllowedHeight = totalPages * pageHeightPx;
+            if (rawHeight > maxAllowedHeight) {
+              const scale = calculatePrintScale(rawHeight, totalPages);
+              if (doc.body?.style) {
+                doc.body.style.zoom = scale;
+              }
+            } else if (doc.body?.style) {
+              doc.body.style.zoom = 1.0;
+            }
+
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            }
+          } else {
+            // Fallback for headless environments without snapshot
+            const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
+
+            const rawHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0,
+              pageHeightPx * totalPages
+            );
+            const scale = calculatePrintScale(rawHeight, Math.max(2, totalPages));
+            if (scale < 1.0 && doc.body?.style) {
+              doc.body.style.zoom = scale;
+            } else if (doc.body?.style) {
+              doc.body.style.zoom = 1.0;
+            }
+
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            }
+          }
+
+          if (iframe.contentWindow && typeof iframe.contentWindow.addEventListener === 'function') {
             iframe.contentWindow.addEventListener('afterprint', handlePrintClosed, { once: true });
           }
-          window.addEventListener('afterprint', handlePrintClosed, { once: true });
+          if (typeof window.addEventListener === 'function') {
+            window.addEventListener('afterprint', handlePrintClosed, { once: true });
+          }
 
           if (typeof iframe.contentWindow.focus === 'function') {
             iframe.contentWindow.focus();
@@ -1207,11 +947,14 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
         window.print();
       } finally {
         resolve();
-        setTimeout(() => {
-          if (!printClosed && iframe.parentNode) {
+        fallbackTimeout = setTimeout(() => {
+          if (!printClosed) {
             handlePrintClosed();
           }
-        }, 15000);
+          if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+          }
+        }, 1000);
       }
     };
 
@@ -1229,8 +972,9 @@ export const executeCleanPrint = (cvData, lang = 'es') => {
  * Generates and triggers clean native PDF print dialog via executeCleanPrint.
  * @param {Object} cvData 
  * @param {string} lang 
+ * @param {Object|null} customSnapshot 
  */
-export const downloadPDF = async (cvData, lang = 'es') => {
-  return executeCleanPrint(cvData, lang);
+export const downloadPDF = async (cvData, lang = 'es', customSnapshot = undefined) => {
+  return executeCleanPrint(cvData, lang, customSnapshot);
 };
 

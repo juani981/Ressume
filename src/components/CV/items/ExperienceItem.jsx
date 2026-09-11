@@ -1,8 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
-import SimpleListItem from './SimpleListItem';
-import DragHandle from '../../Editor/DragHandle';
+import SortableBulletItem from '../SortableBulletItem';
 import { 
   DndContext, 
   closestCorners, 
@@ -15,75 +14,92 @@ import {
   SortableContext, 
   verticalListSortingStrategy, 
   arrayMove, 
-  sortableKeyboardCoordinates, 
-  useSortable 
+  sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
-const SortableBulletItem = ({ 
-  bulletId, 
-  bulletText, 
-  bulletIndex, 
-  sectionId, 
-  itemId, 
-  bullets, 
-  onUpdateItem, 
-  onDeleteBullet 
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: bulletId,
-    data: {
-      type: 'bullet',
-      bulletIndex
-    }
-  });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    position: 'relative',
-    opacity: isDragging ? 0.35 : 1,
-    display: 'flex',
-    alignItems: 'flex-start',
-    marginTop: 0,
-    marginBottom: 'var(--item-gap, 6px)',
-    paddingRight: '1.5rem',
-    paddingLeft: '1.25rem',
-    color: 'inherit'
-  };
+const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
+  const bullets = item.bullets || [];
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="bullet-item-row editable-item-container cv-block"
-    >
-      <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-      <SimpleListItem 
-        item={{ id: bulletIndex, text: bulletText }} 
-        sectionId={sectionId} 
-        onUpdateItem={(secId, bIdx, field, val) => {
-          const newBullets = [...bullets];
-          newBullets[bIdx] = val;
-          onUpdateItem(sectionId, itemId, 'bullets', newBullets);
-        }}
-      />
-      <button
-        type="button"
-        className="round-btn-del bullet-del-btn no-print"
-        title="Eliminar esta viñeta"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeleteBullet(bulletIndex);
-        }}
-      >
-        <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
-      </button>
-    </li>
+    <>
+      <div className="experience__time">
+        <span className="experience__rounder"></span>
+        {!isLast && <span className="experience__line"></span>}
+      </div>
+
+      <div className="experience__data bd-grid" style={{ width: '100%' }}>
+        <h3 className="experience__title">
+          <InlineEdit 
+            value={item.title || ''} 
+            isPrint={true}
+          />
+        </h3>
+        <span className="experience__company">
+          <InlineEdit 
+            value={item.date || ''} 
+            isPrint={true}
+          />
+          {(item.subtitle || item.date) && ' | '}
+          <InlineEdit 
+            value={item.subtitle || ''} 
+            isPrint={true}
+          />
+        </span>
+        {item.link && (
+          <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+            <HyperlinkEdit 
+              url={item.link} 
+              text={item.linkText || item.link} 
+              isPrint={true}
+            />
+          </span>
+        )}
+        {item.description && (
+          <p className="experience__description">
+            <InlineEdit 
+              value={item.description} 
+              multiline 
+              isPrint={true}
+            />
+          </p>
+        )}
+
+        {bullets.length > 0 && (
+          <div className="experience__bullets-container">
+            <ul className="experience__bullets" style={{ paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+              {bullets.map((b, idx) => {
+                const bulletText = typeof b === 'string' ? b : (b?.text || '');
+                return (
+                  <li
+                    key={idx}
+                    className="cv-block"
+                    style={{
+                      display: 'list-item',
+                      listStyleType: 'disc',
+                      marginBottom: 'var(--item-gap, 6px)',
+                      lineHeight: 1.45,
+                      color: 'inherit',
+                      padding: 0
+                    }}
+                  >
+                    <InlineEdit 
+                      value={bulletText} 
+                      isPrint={true}
+                      display="inline"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
-const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
+const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const bullets = item.bullets || [];
 
   const bulletItems = bullets.map((b, idx) => ({
@@ -183,7 +199,7 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -203,7 +219,16 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div className="bullet-add-row no-print" style={{ paddingLeft: '1.25rem' }}>
+          <div 
+            className="bullet-add-row no-print" 
+            style={{ 
+              paddingLeft: '1.15rem',
+              height: 0,
+              lineHeight: 0,
+              overflow: 'visible',
+              position: 'relative'
+            }}
+          >
             <button
               type="button"
               className="add-bullet-btn no-print"
@@ -220,4 +245,12 @@ const ExperienceItem = ({ item, sectionId, onUpdateItem }) => {
   );
 };
 
+const ExperienceItem = (props) => {
+  if (props.isPrint) {
+    return <ExperienceItemPrintView {...props} />;
+  }
+  return <ExperienceItemEditView {...props} />;
+};
+
+export { ExperienceItemPrintView, ExperienceItemEditView };
 export default ExperienceItem;

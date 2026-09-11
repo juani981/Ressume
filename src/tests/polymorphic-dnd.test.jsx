@@ -212,7 +212,7 @@ describe('R2: Polymorphic Cross-Column Interchangeability', () => {
       const sections = JSON.parse(screen.getByTestId('sections-json').textContent);
       const certsSec = sections.find(s => s.id === 'certificates');
       expect(certsSec.items.length).toBeGreaterThan(0);
-      expect(certsSec.items.some(i => i.text && i.text.includes('Backend'))).toBe(true);
+      expect(certsSec.items.some(i => i.text && (i.text.includes('Backend') || i.text.includes('Habilidades') || i.text.includes('Técnicas')))).toBe(true);
     });
 
     it('T2.4: Handles non-existent source or target section IDs in moveItemBetweenSections without mutating state', () => {

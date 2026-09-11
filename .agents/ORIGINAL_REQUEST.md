@@ -289,4 +289,115 @@ Reorganize the existing `ActionMenu.jsx` floating toolbar:
 - [ ] No regressions in the existing undo/redo system
 - [ ] No regressions in the existing toast notification system
 
+## 2026-09-10T03:58:34Z
 
+Garantizar una paridad visual 1:1 absoluta (cero desfase de píxeles, 0px de diferencia) entre la vista previa interactiva en vivo del editor de CV (`#area-cv`) y el documento PDF / impresión final generado por el motor de impresión limpia (`executeCleanPrint` / `generateCleanPrintHTML`), eliminando cualquier regla CSS divergente, sobreescritura de márgenes, padding o tipografía, y preservando la geometría exacta de todos los elementos.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: development
+
+## Requirements
+
+### R1. Absolute Zero-Drift Visual Parity (Editor vs PDF / Impresión Limpia)
+The static HTML generation and clean print engine (`generateCleanPrintHTML` / `executeCleanPrint`) must reproduce the live editor's `#area-cv` presentation with absolute 1:1 pixel parity. Every text element, section header, container, column split, margin, padding, line height, font family, and font size in the final print/PDF snapshot must match the active live editor geometry to the exact pixel (0px discrepancy).
+
+### R2. Complete Purge of Divergent Print CSS and Dimension Overrides
+Eliminate any CSS rule, media query, stylesheet, or dynamic style injection that overrides layout dimensions, typography sizes, spacings, paddings, or margins between the live editor and the print output. The live CSS rules and active CSS custom properties (`--page-padding`, `--section-gap`, `--item-gap`, `--font-scale`, `--line-height`, etc.) evaluated in the editor must serve as the single source of truth for both display and print.
+
+### R3. Non-Disruptive Interactive Artifact Concealment
+Interactive editor controls (drag handles, delete buttons, add buttons, resizer dividers, floating tooltips, and rich text formatting bars) must be concealed during PDF rendering and printing without modifying container dimensions, margins, or element flow coordinates. Concealment must preserve the exact bounding layout box so that neighboring and descendant content experiences zero reflow or spatial shift.
+
+### R4. Automated Pixel-Parity Verification and Regression Prevention
+Establish comprehensive programmatic verification (Vitest tests) that compares the computed bounding rectangles, typography metrics, and layout positions of every section and item between the live editor DOM and the rendered print DOM snapshot, failing if any element drifts by even 1 pixel. All existing test suites across the repository must continue to pass cleanly with zero regressions.
+
+## Acceptance Criteria
+
+### Visual & Geometric Parity (0px Drift)
+- [ ] Programmatic tests assert that `top`, `left`, `width`, `height`, and computed font sizes between editor elements and print snapshot elements have 0px delta across both 1-column and 2-column layouts.
+- [ ] Container width is identical between editor and print output (strict 794px A4 standard).
+- [ ] Document zoom is strictly guaranteed to be 1.0 during print and snapshot generation.
+
+### CSS Architecture & Single Source of Truth
+- [ ] No overriding CSS rules exist in `print.css`, `index.css`, or inline generators that alter font size, padding, margin, or gap between editor `#area-cv` and print output.
+- [ ] All custom properties (`--page-padding`, `--section-gap`, `--item-gap`, `--line-height`, `--font-scale`) propagate identically to the print document without modification or re-scaling.
+
+### Interactive Artifact Stripping without Flow Distortion
+- [ ] All interactive editor artifacts (`.drag-handle`, `.round-btn-del`, `.round-btn-add`, `.column-resizer`, `.rich-text-toolbar`, `.action-menu-btn`, etc.) are completely invisible in the final print/PDF output.
+- [ ] Concealing interactive controls does not alter the physical dimensions or spatial layout of any surrounding or child CV content.
+
+### System Verification & Tests
+- [ ] Primary TDD pixel-parity test suite (`src/tests/pixelParityEditorPrint.test.jsx`) passes with 0px drift tolerance.
+- [ ] Full Vitest test suite (`npx vitest run`) passes with 100% success across all test files in the repository.
+- [ ] Production build (`npm run build`) succeeds with zero errors or warnings.
+
+## 2026-09-11T03:13:35Z
+
+Conduct a production-grade code review and refactoring of the **Ressume** React CV editor (`/home/juani/Documentos/Ressume/src`). The goal is a codebase that is **loosely coupled, follows Template + Factory + Strategy patterns consistently, and is easy for open-source contributors to extend.** Deliver both a written audit and the actual refactored code.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: benchmark — no restrictions on approach or tools
+
+---
+
+## Context
+
+This is a production React + Vite CV editor with ~55 source files and 628 automated tests (Vitest). The registry-based section system (`src/registry/sectionRegistry.js`) was meant to be the factory, but most components still bypass it with long `sectionType` conditionals. The codebase has the bones of a good architecture but is significantly under-abstracted for external contribution.
+
+Key known issues (confirmed by code scan):
+- `ExperienceItem`, `ProjectsItem`, and `VolunteeringItem` each contain an **identical** internal `SortableBulletItem` component (~65 lines, 3× duplicated)
+- `BaseItem.jsx` routes rendering via `if (sectionType === 'X')` chains — the registry is ignored at the render layer
+- `BaseSection.jsx` contains parallel `if (section.type === ...)` chains for the same reason
+- `CVContext.jsx` (~727 lines) mixes: CV CRUD, undo/redo, layout mode, PDF export triggers, AI suggestion context, and column state — a god context
+- `App.jsx` (~1080 lines) owns DnD coordination, two-column layout, modal state, and full section rendering — a god component
+- The `isPrint` prop is threaded through every component as a runtime branch rather than resolved at a clean architectural boundary
+
+## Requirements
+
+### R1. Audit Report
+Produce a structured markdown report (`docs/code-review.md`) that:
+- Lists every coupling violation, duplication, and anti-pattern found in `src/`
+- Cites exact file path + line range for each finding
+- Rates each finding: High / Medium / Low impact
+- Identifies which files, hooks, and utilities are safe to import as-is by a contributor and which require understanding global side-effects first
+
+### R2. Refactoring — Deduplication and Pattern Enforcement
+Implement refactors that bring the codebase in line with Template + Factory + Strategy patterns:
+
+- **SortableBulletItem**: extract into a single shared component (`src/components/CV/SortableBulletItem.jsx`) imported by all three item types
+- **BaseItem & BaseSection**: eliminate all `if (sectionType === ...)` and `if (section.type === ...)` chains; all type-specific dispatch must go through the registry descriptor (factory/strategy pattern)
+- **Registry descriptor contract**: the `sectionRegistry` entry for each type should declare everything needed for rendering — container tag, container class, whether it supports bullets, whether it's a list item — so BaseItem and BaseSection become pure template components
+- **CVContext decomposition**: split into focused hooks (`useCVData`, `useCVHistory`, `useCVLayout`, `useCVExport`) exported from a barrel file; the existing `useCV()` hook must remain as a backward-compatible facade so no callers break
+
+### R3. Documentation
+Add JSDoc blocks to every new abstraction (hooks, factory functions, shared components, registry descriptor typedef). Each new file must have a file-level comment explaining its responsibility and contract. No new file may exceed 300 lines.
+
+## Acceptance Criteria
+
+### Audit Report
+- [ ] `docs/code-review.md` exists and covers every file in `src/components/CV/` and `src/context/`
+- [ ] Every finding cites file + line range + impact rating
+- [ ] Identifies at least the 5 known issues listed in the Context section
+
+### Architecture Quality
+- [ ] `SortableBulletItem` exists in exactly **one** file; ExperienceItem, ProjectsItem, and VolunteeringItem import from it
+- [ ] `BaseItem.jsx` contains **zero** `if (sectionType === ...)` guards in its render path
+- [ ] `BaseSection.jsx` contains **zero** `if (section.type === ...)` guards in its render path
+- [ ] `CVContext.jsx` is ≤200 lines after decomposition (acts as a facade only)
+- [ ] Each decomposed hook file is ≤250 lines and has a single clearly-stated responsibility
+- [ ] The `useCV()` hook remains callable and returns the same interface as before
+
+### Code Quality
+- [ ] Every new or modified component and hook has a JSDoc block
+- [ ] No new file exceeds 300 lines
+- [ ] The registry descriptor shape is documented with a JSDoc `@typedef`
+- [ ] `npx vitest run` exits 0 — or if tests break, the refactoring is considered incomplete and must be iterated
+
+### Extensibility Test (self-verifiable)
+- [ ] Adding a hypothetical new section type requires editing only `sectionRegistry.js` + one new item component file — no changes to `BaseItem`, `BaseSection`, `CVContext`, or `App`
+- [ ] This is verified by actually implementing one new minimal section type as a smoke-test
+
+---
+
+## Verification
+
+Run `npx vitest run` in `/home/juani/Documentos/Ressume` to verify no regressions. The baseline is **628 tests, 37 test files, all passing.** If the refactor breaks tests, fix them before declaring done — architectural purity does not excuse regressions.

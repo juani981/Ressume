@@ -149,8 +149,19 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
     setIsSaving(true);
 
     try {
-      const thumbnail = await generateThumbnail(cvData);
-      await saveVersion(nameToSave, cvData, thumbnail);
+      const snapshotToSave = {
+        ...cvData,
+        versionName: nameToSave,
+        activeVersionName: nameToSave
+      };
+      const thumbnail = await generateThumbnail(snapshotToSave);
+      const saved = await saveVersion(nameToSave, snapshotToSave, thumbnail);
+      if (loadVersionSnapshot) {
+        loadVersionSnapshot({
+          ...snapshotToSave,
+          activeVersionId: saved?.id
+        });
+      }
       await loadVersions();
       setNewVersionName(generateSuggestedName());
       if (showToast) {
@@ -182,10 +193,20 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
   const commitRename = async (id) => {
     if (!editingVersionId) return;
     const finalName = renameText.trim();
-    if (finalName && finalName !== versions.find((v) => v.id === id)?.name) {
+    const currentVersion = versions.find((v) => v.id === id);
+    if (finalName && finalName !== currentVersion?.name) {
       try {
         await renameVersion(id, finalName);
         await loadVersions();
+        if (cvData?.activeVersionId === id || cvData?.versionName === currentVersion?.name) {
+          if (loadVersionSnapshot) {
+            loadVersionSnapshot({
+              ...cvData,
+              versionName: finalName,
+              activeVersionName: finalName
+            });
+          }
+        }
         if (showToast) {
           showToast('Versión renombrada exitosamente', 'success');
         }
@@ -214,7 +235,12 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
   const handleConfirmLoad = (version) => {
     try {
       if (loadVersionSnapshot) {
-        loadVersionSnapshot(version.cvData);
+        loadVersionSnapshot({
+          ...version.cvData,
+          versionName: version.name,
+          activeVersionName: version.name,
+          activeVersionId: version.id
+        });
       }
       if (showToast) {
         showToast(`Versión "${version.name}" cargada`, 'success');
@@ -233,7 +259,12 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
   const handleConfirmBlankCV = () => {
     try {
       if (loadVersionSnapshot) {
-        loadVersionSnapshot(blankSchema);
+        loadVersionSnapshot({
+          ...blankSchema,
+          versionName: null,
+          activeVersionName: null,
+          activeVersionId: null
+        });
       }
       if (showToast) {
         showToast('Plantilla en blanco cargada con datos placeholders', 'info');
@@ -331,14 +362,22 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
 
       // 1. Generate thumbnail and save as a new version snapshot
       const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-      const suggestedTitle = parsed.name || `${baseName} (Importado)`;
-      const thumbnail = await generateThumbnail(validated);
-      await saveVersion(suggestedTitle, validated, thumbnail);
+      const suggestedTitle = parsed.name || parsed.versionName || `${baseName} (Importado)`;
+      const validatedWithVersion = {
+        ...validated,
+        versionName: suggestedTitle,
+        activeVersionName: suggestedTitle
+      };
+      const thumbnail = await generateThumbnail(validatedWithVersion);
+      const saved = await saveVersion(suggestedTitle, validatedWithVersion, thumbnail);
       await loadVersions();
 
       // 2. Load into editor state
       if (loadVersionSnapshot) {
-        loadVersionSnapshot(validated);
+        loadVersionSnapshot({
+          ...validatedWithVersion,
+          activeVersionId: saved?.id
+        });
       }
 
       if (showToast) {

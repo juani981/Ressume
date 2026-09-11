@@ -1,5 +1,7 @@
 import { getPrompts } from '../locales/index';
 import prompts from '../locales/es/prompts.json' with { type: 'json' };
+import { getSectionDescriptor } from '../registry/sectionRegistry';
+import { baseItemMarkdown, baseItemXML } from '../registry/itemFormatters';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -43,11 +45,12 @@ export const exportToAIMarkdown = (cvData) => {
   // ==========================================
   // YAML Frontmatter (Zero-Ambiguity Metadata)
   // ==========================================
+  lines.push('```markdown');
   lines.push('---');
   if (is1Col) {
-    lines.push('layout_type: "1-column (Single-Column Linear ATS Optimized)"');
+    lines.push('layout_type: "1-column"');
     lines.push('target_audience: "ATS Parsers (Workday, Taleo, Greenhouse, Lever) & Technical Recruiters"');
-    lines.push('reading_flow: "strictly_linear_top_to_bottom"');
+    lines.push('reading_flow: "top to bottom"');
     lines.push('section_order:');
     CANONICAL_ATS_ORDER.forEach(secId => {
       const sec = cvData.sections?.find(s => s.id === secId || s.type === secId);
@@ -57,7 +60,7 @@ export const exportToAIMarkdown = (cvData) => {
       }
     });
   } else {
-    lines.push('layout_type: "2-column (Human Portfolio & Visual Review)"');
+    lines.push('layout_type: "2-column"');
     lines.push('target_audience: "Human Hiring Managers & Portfolio Visual Review"');
     lines.push('visual_theme:');
     lines.push(`  left_sidebar_color: "${layout.leftBg || 'default'}"`);
@@ -82,7 +85,6 @@ export const exportToAIMarkdown = (cvData) => {
   lines.push(`    linkedin: "https://${(profileItem.linkedin || '').replace(/^https?:\/\//, '')}"`);
   lines.push(`    github: "https://${(profileItem.github || '').replace(/^https?:\/\//, '')}"`);
   lines.push('---');
-  lines.push('');
 
   // ==========================================
   // Header Block
@@ -124,58 +126,26 @@ export const exportToAIMarkdown = (cvData) => {
       const headerTitle = sec.title || 'Perfil Profesional';
       const colTag = is1Col ? '' : ' [Visual Layout: Sidebar / Left Column]';
       lines.push(`## ${headerTitle}${colTag}`);
-      if (aboutItem.description) lines.push(aboutItem.description);
+      const aboutDesc = sec.items?.[0]?.description || aboutItem.description || '';
+      if (aboutDesc) lines.push(aboutDesc);
       lines.push('');
       lines.push('---');
       lines.push('');
       return;
     }
 
-    const headerTitle = sec.title || sec.id.toUpperCase();
+    const descriptor = getSectionDescriptor(sec.type);
+    const headerTitle = sec.title || descriptor.defaultTitle || sec.id.toUpperCase();
     const colTag = is1Col ? '' : (sec.column === 'left' ? ' [Visual Layout: Sidebar / Left Column]' : ' [Visual Layout: Main Column]');
     lines.push(`## ${headerTitle}${colTag}`);
 
-    if (sec.type === 'skills') {
-      (sec.items || []).forEach(item => {
-        lines.push(`- **${item.title || ''}:** ${item.description || ''}`);
-      });
-      lines.push('');
-    } else if (sec.type === 'list') {
-      (sec.items || []).forEach(item => {
-        lines.push(`### ${item.title || ''}`);
-        const meta = [];
-        if (item.subtitle) meta.push(`**${item.subtitle}**`);
-        if (item.date) meta.push(`\`${item.date}\``);
-        if (item.link) meta.push(`🔗 [Enlace](${item.link.startsWith('http') ? item.link : `https://${item.link}`})`);
-        if (meta.length > 0) lines.push(meta.join(' | '));
+    (sec.items || []).forEach(item => {
+      const formatter = descriptor?.renderMarkdown || baseItemMarkdown;
+      const md = formatter(item, sec);
+      if (md) lines.push(md);
+    });
 
-        if (item.description) {
-          lines.push(item.description);
-        }
-
-        if (item.bullets && Array.isArray(item.bullets)) {
-          item.bullets.forEach(b => {
-            if (b && b.trim()) lines.push(`- ${b}`);
-          });
-        }
-        lines.push('');
-      });
-    } else if (sec.type === 'education') {
-      (sec.items || []).forEach(item => {
-        const parts = [];
-        if (item.title) parts.push(`**${item.title}**`);
-        if (item.subtitle) parts.push(item.subtitle);
-        if (item.date) parts.push(`\`${item.date}\``);
-        lines.push(`- ${parts.join(' | ')}`);
-      });
-      lines.push('');
-    } else if (sec.type === 'simple_list') {
-      (sec.items || []).forEach(item => {
-        lines.push(`- ${item.text || ''}`);
-      });
-      lines.push('');
-    }
-
+    lines.push('');
     lines.push('---');
     lines.push('');
   };
@@ -202,7 +172,7 @@ export const exportToAIMarkdown = (cvData) => {
       renderSection(sec);
     });
   }
-
+  lines.push('```');
   return lines.join('\n');
 };
 
@@ -233,7 +203,7 @@ export const exportToAIXML = (cvData) => {
   const xml = [];
   xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   xml.push('<curriculum_vitae schema_version="2.0">');
-  
+
   if (is1Col) {
     xml.push('  <layout type="1-column" mode="strictly_linear_ats" />');
   } else {
@@ -278,30 +248,19 @@ export const exportToAIXML = (cvData) => {
 
   sectionsToRender.forEach((sec, idx) => {
     if (sec.type === 'profile_header' || sec.type === 'about') return;
-    
+
     const colAttr = is1Col ? `order="${idx + 1}"` : `column="${escapeXML(sec.column || 'left')}"`;
     xml.push(`    <section id="${escapeXML(sec.id)}" type="${escapeXML(sec.type)}" title="${escapeXML(sec.title)}" ${colAttr}>`);
-    
+
     (sec.items || []).forEach(item => {
-      if (sec.type === 'list') {
-        xml.push(`      <entry id="${escapeXML(item.id)}" title="${escapeXML(item.title)}" subtitle="${escapeXML(item.subtitle)}" date="${escapeXML(item.date)}" link="${escapeXML(item.link || '')}">`);
-        if (item.description) {
-          xml.push(`        <description>${escapeXML(item.description)}</description>`);
-        }
-        if (item.bullets && item.bullets.length > 0) {
-          xml.push('        <bullets>');
-          item.bullets.forEach(b => {
-            if (b && b.trim()) xml.push(`          <bullet>${escapeXML(b)}</bullet>`);
-          });
-          xml.push('        </bullets>');
-        }
-        xml.push('      </entry>');
-      } else if (sec.type === 'skills') {
+      if (sec.type === 'skills') {
         xml.push(`      <skill_category id="${escapeXML(item.id)}" title="${escapeXML(item.title)}">${escapeXML(item.description)}</skill_category>`);
       } else if (sec.type === 'education') {
         xml.push(`      <education_entry id="${escapeXML(item.id)}" degree="${escapeXML(item.title)}" institution="${escapeXML(item.subtitle)}" period="${escapeXML(item.date)}" />`);
       } else if (sec.type === 'simple_list') {
         xml.push(`      <item id="${escapeXML(item.id)}">${escapeXML(item.text)}</item>`);
+      } else {
+        xml.push(baseItemXML(item, escapeXML));
       }
     });
 
@@ -327,7 +286,7 @@ export const exportToATSPlainText = (cvData) => {
   const lines = [];
   lines.push((profileItem.name || cvData.profile?.name || 'CURRICULUM VITAE').toUpperCase());
   if (profileItem.subtitle) lines.push(profileItem.subtitle);
-  
+
   const contacts = [];
   if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
     profileItem.contacts.forEach(c => {
@@ -367,7 +326,6 @@ export const exportToATSPlainText = (cvData) => {
   });
 
   orderedSections.forEach(sec => {
-
     if (sec.type === 'profile_header' || sec.type === 'about') return;
     lines.push((sec.title || sec.id).toUpperCase());
     lines.push('-'.repeat(30));
@@ -377,28 +335,29 @@ export const exportToATSPlainText = (cvData) => {
         lines.push(`* ${item.title}: ${item.description}`);
       });
       lines.push('');
-    } else if (sec.type === 'list') {
+    } else if (sec.type === 'simple_list') {
       (sec.items || []).forEach(item => {
-        lines.push(`${item.title || ''}`);
+        lines.push(`* ${item.text}`);
+      });
+      lines.push('');
+    } else if (sec.type === 'education') {
+      (sec.items || []).forEach(item => {
+        lines.push(`* ${item.title} - ${item.subtitle} (${item.date || ''})`);
+      });
+      lines.push('');
+    } else {
+      (sec.items || []).forEach(item => {
+        lines.push(`${item.title || item.name || item.text || ''}`);
         if (item.subtitle || item.date) {
           lines.push(`${item.subtitle || ''} | ${item.date || ''}`);
         }
+        if (item.link) lines.push(`  Enlace: ${item.link}`);
         if (item.description) lines.push(item.description);
         if (item.bullets && item.bullets.length > 0) {
           item.bullets.forEach(b => lines.push(`* ${b}`));
         }
         lines.push('');
       });
-    } else if (sec.type === 'education') {
-      (sec.items || []).forEach(item => {
-        lines.push(`* ${item.title} - ${item.subtitle} (${item.date || ''})`);
-      });
-      lines.push('');
-    } else if (sec.type === 'simple_list') {
-      (sec.items || []).forEach(item => {
-        lines.push(`* ${item.text}`);
-      });
-      lines.push('');
     }
   });
 
@@ -411,7 +370,7 @@ export const exportToATSPlainText = (cvData) => {
  */
 export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', options = {}) => {
   const { format = 'markdown', jobDescription = '', lang = 'es' } = options;
-  
+
   const localizedPrompts = getPrompts(lang);
   const promptDef = localizedPrompts.find(p => p.id === promptId) || localizedPrompts[0];
 
@@ -428,18 +387,24 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
 
 
   const payload = [];
-  payload.push(promptDef.system_instruction);
+  /*Instrucciones del sistema*/
+  payload.push("---");
+  payload.push('role: ' + promptDef.system_instruction);
   payload.push('');
-  payload.push(promptDef.task);
+  /*Tarea a realizar*/
+  payload.push('task: ' + promptDef.task);
   payload.push('');
-
+  /*Formato de salida*/
+  payload.push('output_format: ' + promptDef.output_format);
+  payload.push('');
+  /*Datos de entrada*/
   if (jobDescription && jobDescription.trim()) {
-    payload.push(`--- DESCRIPCIÓN DE LA OFERTA LABORAL (JOB DESCRIPTION) ---`);
-    payload.push(jobDescription.trim());
+    payload.push('job_description: ' + jobDescription.trim());
     payload.push('');
   }
-
-  payload.push(`--- CONTENIDO Y ABSTRACCIÓN DEL CURRÍCULUM VITAE (${format.toUpperCase()}) ---`);
+  payload.push('---');
+  payload.push(`# DATOS DE ENTRADA DEL CURRÍCULUM VITAE (${format.toUpperCase()})`);
+  payload.push('A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:');
   payload.push(cvFormatted);
 
   return payload.join('\n');

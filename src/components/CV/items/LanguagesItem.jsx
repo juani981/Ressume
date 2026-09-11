@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 
-const LanguagesItem = ({ item, sectionId, onUpdateItem }) => {
+const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
     <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
@@ -19,7 +19,8 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem }) => {
           <span style={{ fontWeight: 600, fontSize: 'var(--normal-font-size)', color: 'var(--title-color)' }}>
             <InlineEdit 
               value={item.title || item.language || ''} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
+              isPrint={isPrint}
+              onSave={(val) => onUpdateItem?.(sectionId, item.id, 'title', val)} 
               placeholder="Idioma (ej: Inglés, Alemán)..."
             />
           </span>
@@ -27,7 +28,8 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem }) => {
             <div style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.description} 
-                onSave={(val) => onUpdateItem(sectionId, item.id, 'description', val)} 
+                isPrint={isPrint}
+                onSave={(val) => onUpdateItem?.(sectionId, item.id, 'description', val)} 
                 placeholder="Detalle o certificación (ej: EF SET C2)..."
               />
             </div>
@@ -50,7 +52,8 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem }) => {
       >
         <InlineEdit 
           value={item.subtitle || item.level || 'B2 Intermedio'} 
-          onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 
+          isPrint={isPrint}
+          onSave={(val) => onUpdateItem?.(sectionId, item.id, 'subtitle', val)} 
           placeholder="Nivel (ej: Bilingüe, C1, Nativo)..."
         />
       </span>

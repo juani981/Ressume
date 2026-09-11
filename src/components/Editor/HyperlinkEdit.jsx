@@ -1,7 +1,39 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-const HyperlinkEdit = ({ 
+const HyperlinkPrintView = ({ 
+  url = '', 
+  text = '', 
+  icon = 'bx bx-link-external',
+  className = ''
+}) => {
+  if (!url && !text) return null;
+  const cleanUrl = (url || '').trim();
+  const targetUrl = cleanUrl ? (cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`) : '#';
+  const displayLabel = text || url;
+  return (
+    <a
+      href={targetUrl}
+      className={`social__link ${className}`}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        color: 'var(--first-color, #3874ff)',
+        textDecoration: 'none',
+        padding: '2px 4px',
+        borderRadius: '4px'
+      }}
+    >
+      {icon && <i className={icon}></i>}
+      <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>{displayLabel}</span>
+    </a>
+  );
+};
+
+const HyperlinkEditEditor = ({ 
   url = '', 
   text = '', 
   onSave, 
@@ -357,7 +389,7 @@ const HyperlinkEdit = ({
           cursor: 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '5px',
+          gap: '4px',
           color: 'var(--first-color, #3874ff)',
           textDecoration: 'none',
           padding: '2px 4px',
@@ -376,4 +408,12 @@ const HyperlinkEdit = ({
   );
 };
 
+const HyperlinkEdit = (props) => {
+  if (props.isPrint) {
+    return <HyperlinkPrintView {...props} />;
+  }
+  return <HyperlinkEditEditor {...props} />;
+};
+
+export { HyperlinkPrintView, HyperlinkEditEditor };
 export default HyperlinkEdit;

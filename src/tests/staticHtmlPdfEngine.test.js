@@ -1,12 +1,11 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defaultSchema } from '../utils/schema';
-
-let staticPdfEngine = {};
-try {
-  staticPdfEngine = await import('../utils/staticHtmlPdfEngine');
-} catch (e) {
-  // Module will be implemented in M5
-}
+import {
+  generateCleanPrintHTML,
+  calculatePrintScale,
+  executeCleanPrint,
+  computeAdaptivePrintLayout
+} from '../utils/staticHtmlPdfEngine';
 
 describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto-Scaling)', () => {
   beforeEach(() => {
@@ -33,68 +32,48 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
   // ==========================================
   describe('Tier 1: Feature Coverage', () => {
     it('T1.1: generateCleanPrintHTML produces a valid standalone HTML5 document string', () => {
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
-        expect(typeof html).toBe('string');
-        expect(html).toContain('<!DOCTYPE html>');
-        expect(html).toContain('<html');
-        expect(html).toContain('</html>');
-        expect(html).toContain('JUAN IGNACIO CARRIZO');
-      } else {
-        expect(sampleCVData.profile.name).toBe('JUAN IGNACIO CARRIZO');
-      }
+      const html = generateCleanPrintHTML(sampleCVData);
+      expect(typeof html).toBe('string');
+      expect(html).toContain('<!DOCTYPE html>');
+      expect(html).toContain('<html');
+      expect(html).toContain('</html>');
+      expect(html).toContain('JUAN IGNACIO CARRIZO');
     });
 
     it('T1.2: Strips all interactive editor artifacts (.drag-handle, .round-btn-del, .round-btn-add, .suggestion-tooltip, .inline-input)', () => {
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
-        expect(html).not.toContain('drag-handle');
-        expect(html).not.toContain('round-btn-del');
-        expect(html).not.toContain('round-btn-add');
-        expect(html).not.toContain('suggestion-tooltip');
-        expect(html).not.toContain('<input');
-        expect(html).not.toContain('contenteditable');
-      } else {
-        expect(true).toBe(true);
-      }
+      const html = generateCleanPrintHTML(sampleCVData);
+      expect(html).not.toContain('drag-handle');
+      expect(html).not.toContain('round-btn-del');
+      expect(html).not.toContain('round-btn-add');
+      expect(html).not.toContain('suggestion-tooltip');
+      expect(html).not.toContain('<input');
+      expect(html).not.toContain('contenteditable');
     });
 
     it('T1.3: Embeds strict break-inside: avoid and page-break-inside: avoid CSS rules on super-containers', () => {
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
-        expect(html).toMatch(/break-inside:\s*avoid/i);
-        expect(html).toMatch(/page-break-inside:\s*avoid/i);
-      } else {
-        expect(true).toBe(true);
-      }
+      const html = generateCleanPrintHTML(sampleCVData);
+      expect(html).toMatch(/break-inside:\s*avoid/i);
+      expect(html).toMatch(/page-break-inside:\s*avoid/i);
     });
 
     it('T1.4: Renders both 1-column and 2-column layouts faithfully into clean print markup', () => {
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html2Col = staticPdfEngine.generateCleanPrintHTML({
-          ...sampleCVData,
-          layout: { ...sampleCVData.layout, type: '2-column' }
-        });
-        expect(html2Col).toContain('resume');
+      const html2Col = generateCleanPrintHTML({
+        ...sampleCVData,
+        layout: { ...sampleCVData.layout, type: '2-column' }
+      });
+      expect(html2Col).toContain('resume');
 
-        const html1Col = staticPdfEngine.generateCleanPrintHTML({
-          ...sampleCVData,
-          layout: { ...sampleCVData.layout, type: '1-column' }
-        });
-        expect(html1Col).toContain('resume');
-      } else {
-        expect(true).toBe(true);
-      }
+      const html1Col = generateCleanPrintHTML({
+        ...sampleCVData,
+        layout: { ...sampleCVData.layout, type: '1-column' }
+      });
+      expect(html1Col).toContain('resume');
     });
 
     it('T1.5: executeCleanPrint creates an isolated iframe, writes clean HTML, triggers print, and cleans up', () => {
-      if (typeof staticPdfEngine.executeCleanPrint === 'function') {
-        const appendChildSpy = vi.spyOn(document.body, 'appendChild');
-        staticPdfEngine.executeCleanPrint(sampleCVData);
-        expect(appendChildSpy).toHaveBeenCalled();
-      } else {
-        expect(true).toBe(true);
-      }
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      executeCleanPrint(sampleCVData);
+      expect(appendChildSpy).toHaveBeenCalled();
     });
   });
 
@@ -103,48 +82,28 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
   // ==========================================
   describe('Tier 2: Boundary & Edge Cases', () => {
     it('T2.1: calculatePrintScale calculates scale factor correctly for content exceeding max 2 A4 pages (2246px)', () => {
-      if (typeof staticPdfEngine.calculatePrintScale === 'function') {
-        // Under 2246px -> scale is 1
-        expect(staticPdfEngine.calculatePrintScale(1500)).toBe(1);
-        expect(staticPdfEngine.calculatePrintScale(2246)).toBe(1);
+      // Under 2246px -> scale is 1
+      expect(calculatePrintScale(1500)).toBe(1);
+      expect(calculatePrintScale(2246)).toBe(1);
 
-        // 3000px -> scale = 2246 / 3000 = ~0.7486 clamped to floor
-        const scaleOver = staticPdfEngine.calculatePrintScale(3000);
-        expect(scaleOver).toBeGreaterThanOrEqual(0.75);
-        expect(scaleOver).toBeLessThanOrEqual(1.0);
-      } else {
-        const maxA4Height = 2246;
-        const calcScale = (renderedHeight) => {
-          if (!renderedHeight || renderedHeight <= maxA4Height) return 1;
-          return Math.max(0.75, +(maxA4Height / renderedHeight).toFixed(3));
-        };
-        expect(calcScale(1800)).toBe(1);
-        expect(calcScale(3000)).toBe(0.75);
-      }
+      // 3000px -> scale = 2246 / 3000 = ~0.7486 clamped to floor
+      const scaleOver = calculatePrintScale(3000);
+      expect(scaleOver).toBeGreaterThanOrEqual(0.75);
+      expect(scaleOver).toBeLessThanOrEqual(1.0);
     });
 
     it('T2.2: calculatePrintScale enforces strict floor limit to prevent unreadable micro-fonts', () => {
-      if (typeof staticPdfEngine.calculatePrintScale === 'function') {
-        const extremeHeight = 10000;
-        const scale = staticPdfEngine.calculatePrintScale(extremeHeight);
-        expect(scale).toBeGreaterThanOrEqual(0.75);
-        expect(scale).toBeLessThanOrEqual(1.0);
-      } else {
-        const maxA4Height = 2246;
-        const calcScale = (h) => Math.max(0.75, maxA4Height / h);
-        expect(calcScale(10000)).toBe(0.75);
-      }
+      const extremeHeight = 10000;
+      const scale = calculatePrintScale(extremeHeight);
+      expect(scale).toBeGreaterThanOrEqual(0.75);
+      expect(scale).toBeLessThanOrEqual(1.0);
     });
 
     it('T2.3: Handles empty cvData or missing sections gracefully without throwing runtime errors', () => {
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const emptyData = { profile: {}, sections: [], layout: {} };
-        const html = staticPdfEngine.generateCleanPrintHTML(emptyData);
-        expect(typeof html).toBe('string');
-        expect(html).toContain('<!DOCTYPE html>');
-      } else {
-        expect(true).toBe(true);
-      }
+      const emptyData = { profile: {}, sections: [], layout: {} };
+      const html = generateCleanPrintHTML(emptyData);
+      expect(typeof html).toBe('string');
+      expect(html).toContain('<!DOCTYPE html>');
     });
 
     it('T2.4: Sanitizes special characters and HTML entities in user input to prevent XSS injection in static print output', () => {
@@ -166,12 +125,8 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         ]
       };
 
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(maliciousData);
-        expect(html).not.toContain('<script>alert("XSS")</script>');
-      } else {
-        expect(true).toBe(true);
-      }
+      const html = generateCleanPrintHTML(maliciousData);
+      expect(html).not.toContain('<script>alert("XSS")</script>');
     });
 
     it('T2.5: Preserves custom CSS spacing variables (--section-gap, --item-gap) inside generated print stylesheet', () => {
@@ -185,13 +140,9 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         }
       };
 
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(customSpacingData);
-        expect(html).toContain('28px');
-        expect(html).toContain('14px');
-      } else {
-        expect(true).toBe(true);
-      }
+      const html = generateCleanPrintHTML(customSpacingData);
+      expect(html).toContain('28px');
+      expect(html).toContain('14px');
     });
 
     it('T2.6: Preserves pagePadding in single-column mode in @media print rules without overriding to 0', () => {
@@ -205,17 +156,14 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         }
       };
 
-      if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-        const html = staticPdfEngine.generateCleanPrintHTML(singleColData);
-        expect(html).toContain('--page-padding: 36px');
-        expect(html).toContain('padding: var(--page-padding, 36px) !important');
-        expect(html).toContain('resume__single-column');
-      } else {
-        expect(true).toBe(true);
-      }
+      const html = generateCleanPrintHTML(singleColData);
+      expect(html).toContain('--page-padding: 36px');
+      expect(html).toContain('padding: var(--page-padding, 36px) !important');
+      expect(html).toContain('resume__single-column');
     });
 
-    it('T2.7: Sets dynamic title in format "Nombre - Subtitulo" for default PDF naming', () => {
+    it('T2.7: Sets standardized title: version name if saved, or CV_${profileName}_${profileSubtitle} by default', () => {
+      // Case 1: Unsaved / default format CV_${profileName}_${profileSubtitle}
       const cvWithNameAndSubtitle = {
         ...sampleCVData,
         profile: {
@@ -224,13 +172,21 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         }
       };
 
-      const html = staticPdfEngine.generateCleanPrintHTML(cvWithNameAndSubtitle);
-      expect(html).toContain('<title>Jane Doe - Full Stack Engineer</title>');
+      const html = generateCleanPrintHTML(cvWithNameAndSubtitle);
+      expect(html).toContain('<title>CV_Jane Doe_Full Stack Engineer</title>');
+
+      // Case 2: Saved version loaded -> uses version name
+      const cvWithSavedVersion = {
+        ...cvWithNameAndSubtitle,
+        versionName: 'CV Tech Lead 2026'
+      };
+      const htmlVersion = generateCleanPrintHTML(cvWithSavedVersion);
+      expect(htmlVersion).toContain('<title>CV Tech Lead 2026</title>');
     });
 
     it('T2.8: Guarantees min-height: 297mm (full A4 sheet) for both 1-column and 2-column print layouts', () => {
       // 2-column mode
-      const html2Col = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
+      const html2Col = generateCleanPrintHTML(sampleCVData);
       expect(html2Col).toContain('min-height: 297mm');
       expect(html2Col).toContain('resume__left');
       expect(html2Col).toContain('resume__right');
@@ -240,14 +196,13 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
         ...sampleCVData,
         layout: { ...sampleCVData.layout, type: '1-column', isAtsMode: true }
       };
-      const html1Col = staticPdfEngine.generateCleanPrintHTML(singleColData);
+      const html1Col = generateCleanPrintHTML(singleColData);
       expect(html1Col).toContain('min-height: 297mm !important');
       expect(html1Col).toContain('resume__single-column');
       expect(html1Col).not.toContain('resume__left');
     });
 
     it('T2.9: computeAdaptivePrintLayout adapts for 1, 2, and 3+ page layouts without hardcoded ceiling', () => {
-      const { computeAdaptivePrintLayout } = staticPdfEngine;
       expect(typeof computeAdaptivePrintLayout).toBe('function');
 
       // 1-page document
@@ -288,7 +243,7 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
     });
 
     it('T2.10: Preserves strict page-break avoidance and box-decoration-break clone across fragmented columns', () => {
-      const html = staticPdfEngine.generateCleanPrintHTML(sampleCVData);
+      const html = generateCleanPrintHTML(sampleCVData);
       expect(html).toContain('break-inside: avoid !important');
       expect(html).toContain('page-break-inside: avoid !important');
       expect(html).toContain('break-after: avoid !important');

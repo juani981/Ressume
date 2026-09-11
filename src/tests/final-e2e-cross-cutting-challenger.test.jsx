@@ -5,6 +5,7 @@ import { CVProvider, useCV } from '../context/CVContext';
 import App from '../App';
 import ActionMenu from '../components/Editor/ActionMenu';
 import InlineEdit from '../components/Editor/InlineEdit';
+import LayoutModeToggle from '../components/Editor/LayoutModeToggle';
 import RichTextToolbar from '../components/Editor/RichTextToolbar';
 import AddSectionModal from '../components/Editor/AddSectionModal';
 import { 
@@ -45,6 +46,7 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
         contextRef = cv;
         return (
           <div>
+            <LayoutModeToggle />
             <ActionMenu />
             <div id="area-cv">
               <InlineEdit 
@@ -145,6 +147,7 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
         contextRef = cv;
         return (
           <div>
+            <LayoutModeToggle />
             <ActionMenu />
             <div id="area-cv">
               <InlineEdit 
@@ -195,8 +198,8 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
 
       // Step F: Now press global Ctrl+Z outside editable
       fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
-      // This undoes the text edit back to the original default name (JUAN IGNACIO CARRIZO)
-      expect(contextRef.cvData.profile.name).toBe('JUAN IGNACIO CARRIZO');
+      // This undoes the text edit back to the original default name
+      expect(contextRef.cvData.profile.name).toBe(defaultSchema.profile.name);
 
       // Step G: Press global Ctrl+Z again
       fireEvent.keyDown(window, { key: 'z', ctrlKey: true });

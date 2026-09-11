@@ -436,7 +436,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.1: enforces break-inside: avoid !important and page-break-inside: avoid !important in style block', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toMatch(/break-inside:\s*avoid\s*!important/i);
       expect(styleContent).toMatch(/page-break-inside:\s*avoid\s*!important/i);
@@ -445,7 +445,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.2: super-container rule block targets .cv-section, .cv-block, .experience__content, .education__content, and .skills__name', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toContain('.cv-section');
       expect(styleContent).toContain('.cv-block');
@@ -457,7 +457,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.3: enforces orphan header protection on headings with break-after: avoid !important', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toMatch(/break-after:\s*avoid\s*!important/i);
       expect(styleContent).toMatch(/page-break-after:\s*avoid\s*!important/i);
@@ -481,7 +481,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.5: embeds @media print rules enforcing A4 size, zero margins, and exact color reproduction', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toContain('@media print');
       expect(styleContent).toMatch(/size:\s*A4/i);
@@ -546,7 +546,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
       }
     });
 
-    it('T4.3: renders 1-column ATS container geometry (840px centered block, no left/right split columns)', () => {
+    it('T4.3: renders 1-column ATS container geometry (794px centered block, no left/right split columns)', () => {
       const html1Col = generateCleanPrintHTML({
         ...fullCVData,
         layout: { ...fullCVData.layout, type: '1-column', pagePadding: 30 }
@@ -556,7 +556,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
 
       expect(areaCv).not.toBeNull();
       expect(areaCv.classList.contains('resume__single-column')).toBe(true);
-      expect(areaCv.getAttribute('style')).toContain('max-width: 840px');
+      expect(areaCv.getAttribute('style')).toContain('max-width: 794px');
       expect(areaCv.getAttribute('style')).toContain('margin: 0 auto');
 
       // Ensure no separate left or right column wrappers exist

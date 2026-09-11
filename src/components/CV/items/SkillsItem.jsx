@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 
-const SkillsItem = ({ item, sectionId, onUpdateItem }) => {
+const SkillsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
     <>
       <span 
@@ -20,12 +20,14 @@ const SkillsItem = ({ item, sectionId, onUpdateItem }) => {
         <b>
           <InlineEdit 
             value={item.title || ''} 
-            onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
+            isPrint={isPrint}
+            onSave={(val) => onUpdateItem?.(sectionId, item.id, 'title', val)} 
           /> 
         </b>{' '}
         <InlineEdit 
           value={item.description || ''} 
-          onSave={(val) => onUpdateItem(sectionId, item.id, 'description', val)} 
+          isPrint={isPrint}
+          onSave={(val) => onUpdateItem?.(sectionId, item.id, 'description', val)} 
         />
       </span>
     </>

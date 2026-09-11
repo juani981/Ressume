@@ -1,7 +1,16 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 
-const SimpleListItem = ({ item, sectionId, onUpdateItem }) => {
+const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
+  if (isPrint) {
+    return (
+      <InlineEdit 
+        value={item?.text || ''} 
+        isPrint={true}
+      />
+    );
+  }
+
   return (
     <>
       <span 
@@ -18,8 +27,8 @@ const SimpleListItem = ({ item, sectionId, onUpdateItem }) => {
       />
       <span style={{ flex: 1, color: 'inherit' }}>
         <InlineEdit 
-          value={item.text || ''} 
-          onSave={(val) => onUpdateItem(sectionId, item.id, 'text', val)} 
+          value={item?.text || ''} 
+          onSave={(val) => onUpdateItem?.(sectionId, item.id, 'text', val)} 
         />
       </span>
     </>
