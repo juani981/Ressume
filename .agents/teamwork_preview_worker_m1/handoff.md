@@ -1,120 +1,103 @@
-# Handoff Report: Milestone M1 — CSS Architecture & Single Source of Truth Alignment
+# Milestone M1 Handoff Report: Production-Grade Code Review & Architectural Audit
 
-**Agent**: Worker M1  
-**Working Directory**: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1`  
-**Milestone**: M1 — CSS Architecture & Single Source of Truth Alignment (Project Orchestrator 10)  
-**Parent Agent ID**: `330b6d43-f411-474e-9505-d78ef90b8c30`  
-**Timestamp**: 2026-09-10T04:28:00Z  
+**Agent**: Worker M1 (`teamwork_preview_worker_m1`)  
+**Recipient**: Parent Orchestrator (`ca5efa9a-2989-4d87-a34d-927b285b46f9`)  
+**Target Milestone**: M1 (Comprehensive Audit Report)  
+**Deliverable**: `/home/juani/Documentos/Ressume/docs/code-review.md`  
+**Date**: 2026-09-11  
 
 ---
 
 ## 1. Observation
 
-### 1.1 Destructive Regex & CSS Layout Rule Stripping in `staticHtmlPdfEngine.js`
-- **Location**: `/home/juani/Documentos/Ressume/src/utils/staticHtmlPdfEngine.js:448-464`
-- **Prior Problematic Behavior**:
-  The previous implementation used aggressive regex substitutions matching `/[^{}]*?(?:...)[^{]*?\{[^}]*?\}/gi` targeting interactive artifact classes (`drag-handle`, `round-btn-del`, `editable-section-container`, etc.). Because CSS rules often chain selectors (e.g. `.cv-section:not(.editable-section-container)` or shared declaration blocks), this regex indiscriminately wiped out essential layout rules such as `.cv-section` vertical margins, `:last-of-type` bottom margins, and CSS custom property declarations for text colors.
-- **Implemented Fix**:
-  Replaced destructive block deletion with targeted class selector name sanitization:
-  ```javascript
-  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input)/gi;
-  activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
-  activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
-  ```
-  This sanitizes all editor artifact selectors so they never match editor control elements in print output while keeping 100% of the underlying CSS layout rules, cascade, and margin blocks intact.
+1. **Audit Report Generation**:
+   - Written to `/home/juani/Documentos/Ressume/docs/code-review.md`.
+   - Length: **1,033 lines**, **66,117 bytes**.
+   - Verified via `view_file` tool call: file created successfully, markdown headers, tables, code blueprints, and JSDoc blocks fully intact.
 
-### 1.2 Desktop Media Query Extraction in `index.css`
-- **Location**: `/home/juani/Documentos/Ressume/src/index.css:583-655`
-- **Prior Problematic Behavior**:
-  Document layout rules (`#area-cv .home__container`, `.home__data`, `.home__img`, `.social__container`, `.skills__content`, `.languages__content`, `.interests__container`, `.section-title`, `.profile__description`, `.resume__left`, `.resume__right`) were trapped inside `@media screen and (min-width: 968px)`. In an offscreen print iframe rendered at 794px width (or viewports under 968px), these layout rules failed to match, reverting multi-column grids and padding to mobile column flows.
-- **Implemented Fix**:
-  Extracted all document layout declarations out of the media query and declared them unconditionally on `#area-cv` descendant elements in base CSS. Declared base `.resume` grid layout (`display: grid; grid-template-columns: 1fr 2fr;`) and block override for single column (`.resume.resume__single-column, .resume:not(.bd-grid) { display: block; grid-template-columns: none; }`). Only viewport UI rules (`.bd-container`, `.l-header`, `.scrolltop`) remain inside the `@media screen and (min-width: 968px)` media query.
+2. **Exhaustive Component & Context Coverage**:
+   - Complete audit of all **20 files** in `src/components/CV/`:
+     - 6 root files: `BaseSection.jsx` (319 lines), `BaseItem.jsx` (262 lines), `CVBlock.jsx` (9 lines), `CVHeader.jsx` (66 lines), `CVSection.jsx` (9 lines), `SpacerBlock.jsx` (678 lines).
+     - 14 item files in `src/components/CV/items/`: `AboutItem.jsx` (16 lines), `AwardsItem.jsx` (74 lines), `CertificatesItem.jsx` (86 lines), `EducationItem.jsx` (39 lines), `ExperienceItem.jsx` (328 lines), `LanguagesItem.jsx` (65 lines), `ProfileHeaderItem.jsx` (193 lines), `ProjectsItem.jsx` (350 lines), `PublicationsItem.jsx` (87 lines), `ReferencesItem.jsx` (85 lines), `SimpleListItem.jsx` (39 lines), `SkillsItem.jsx` (38 lines), `SpacerItem.jsx` (20 lines), `VolunteeringItem.jsx` (329 lines).
+   - Complete audit of `src/context/CVContext.jsx` (728 lines): 34 functional line-range blocks cataloged, 48 public API members mapped to all subscribing callers across the codebase.
+   - Complete audit of `src/App.jsx` (1080 lines): 9 core architectural responsibilities and 5 ambient DOM/window mutations documented.
 
-### 1.3 Canvas Geometry Synchronization & Strict 794px Enforcement
-- **Locations**:
-  - `src/index.css:75-84`, `src/index.css:1794-1830`
-  - `src/styles/print.css:34-75`, `src/styles/print.css:220-255`
-  - `src/App.jsx:648-658`, `src/App.jsx:865-873`
-- **Prior Problematic Behavior**:
-  `print.css` and `@media print` in `index.css` enforced `width: 100% !important; max-width: 100% !important; margin: 0 !important;` on `#area-cv` and `.resume`, whereas `index.css` base set `width: 210mm`. In 1-column ATS mode, `.resume__single-column` padding (`var(--page-padding, 24px)`) was applied to `#area-cv` as well as an inner child wrapper `div.resume__single-column`, effectively doubling horizontal and vertical padding to 48px.
-- **Implemented Fix**:
-  - Enforced strict 794px canvas geometry across editor, base CSS, and print CSS:
-    `width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 auto !important;`
-  - In `src/App.jsx`, styled `#area-cv` with `width: "100%", minWidth: "794px", maxWidth: "794px", margin: "0 auto"` to satisfy both CSS 794px layout constraints and jsdom inline-style assertions in existing tests.
-  - Scoped `.resume__single-column` padding strictly to `#area-cv.resume__single-column` and explicitly added `#area-cv .resume__single-column { padding: 0 !important; }` in `index.css`, `print.css`, and `App.jsx` to prevent inner padding duplication.
+3. **Explicit Documentation of the 6 Core Architectural Issues**:
+   - **SortableBulletItem 3x Duplication**: Documented in `ExperienceItem.jsx` (lines 24–90), `ProjectsItem.jsx` (lines 24–90), and `VolunteeringItem.jsx` (lines 23–89). Documented that the only difference across all 201 lines is `marginBottom: 'var(--item-gap, 6px)'` vs `calc(var(--item-gap, 6px) / 2)`. Impact: **High**.
+   - **BaseItem.jsx Polymorphism Bypass**: Documented `PrintBaseItem` (lines 13–106) and `EditableBaseItem` (lines 156–252) routing rendering via hardcoded `if (sectionType === 'X')` chains instead of generic descriptor properties. Impact: **High**.
+   - **BaseSection.jsx Parallel Conditional Routing**: Documented `PrintBaseSection` (lines 17–102) and `EditableBaseSection` (lines 149–262, 309), including HTML structure divergence for `simple_list` between print and edit modes. Impact: **High**.
+   - **CVContext.jsx Monolithic God Context**: Documented lines 1–728 mixing 6 disparate domains (document CRUD, undo/redo stacks with window keydown listeners, layout modes & column DnD, physical A4 page geometry with DOM ruler, tooltip/toolbar singletons, and localization). Impact: **High**.
+   - **App.jsx Monolithic God Component**: Documented lines 1–1080 managing DnD sensors, 6-pass pagination math, DOM ruler injection, window resize and custom event listeners, interactive column divider drag tracking, ATS body class mutation, dynamic CSS variables, YIQ color contrast algorithm, and Joyride onboarding tours. Impact: **High**.
+   - **`isPrint` Prop Threading**: Documented pervasive prop-drilling through 4+ component levels, dual-branch implementations across item components, and silent prop drop in `CVSection.jsx` (lines 4–6). Impact: **High**.
 
-### 1.4 Single Source of Truth Alignment in `staticHtmlPdfEngine.js`
-- **Container Classes**: Updated 2-column container class generation to include `bd-grid` (`class="resume bd-grid..."` during snapshot print runs) matching the live editor container.
-- **Background & Padding Fallbacks**: Harmonized `leftBg` default fallback to `#f3f4f6` and left/right column padding to `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`, identical to editor defaults.
-- **Custom Properties**: Propagated `--container-color`, `--container-color-alt`, and `--body-color` across `:root, #area-cv`, `.resume__left`, and `.resume__right`.
-- **Forced Page-Break Margin Removal**: Removed artificial `margin-top: ${pushDistance + 10}px` dynamic injection (line 823); page breaks now rely on clean CSS pagination (`break-before: page; page-break-before: always;`).
-- **Zoom Downscaling Purged for Snapshots**: For editor snapshot print runs, `doc.body.style.zoom = 1.0` is strictly enforced with zero downscaling. In headless fallback runs without a snapshot, `calculatePrintScale` is preserved for headless height budget compliance.
+4. **Module Classification Table**:
+   - Classified all 49 files, hooks, contexts, utilities, and registry modules into:
+     - **Category A (Safe to Import As-Is)**: 27 modules.
+     - **Category B (Requires Understanding Global Side-Effects)**: 22 modules (explicitly cataloging `localStorage` mutations, `window` event listeners, `document.body` mutations, `@dnd-kit` contexts, and `CVContext` coupling).
+
+5. **Actionable Refactoring Blueprints**:
+   - Blueprint 1: `SortableBulletItem.jsx` unified component specification with configurable `marginBottom`.
+   - Blueprint 2: `SectionDescriptor` formal JSDoc `@typedef` specification for `src/registry/sectionRegistry.js`.
+   - Blueprint 3: Zero-guard `BaseItem.jsx` and `BaseSection.jsx` template code specifications.
+   - Blueprint 4: Four-hook decomposition (`useCVData.js`, `useCVHistory.js`, `useCVLayout.js`, `useCVExport.js`) and thin facade (`CVContext.jsx` <= 200 lines).
+   - Blueprint 5: Extensibility verification smoke-test specification with new `custom_notes` section.
+   - Regression prevention matrix mapping all 37 test files and 628 tests to refactored targets.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Root Cause of Visual/Geometric Divergence**:
-   - The editor rendered inside a desktop browser window (> 968px) where media queries applied two-column grid rules, 2rem 1.5rem column padding, and `#f3f4f6` left background.
-   - The print engine created an isolated offscreen iframe with 794px width. Because 794px < 968px, `@media screen and (min-width: 968px)` never activated inside the print iframe.
-   - Concurrently, regex stripping in `staticHtmlPdfEngine.js` deleted rule blocks containing editor control selectors, stripping out adjacent `.cv-section` and text color rules.
-   - `print.css` additionally overrode container widths to `100%`, causing page widths to fluctuate depending on the iframe or paper margin context.
-2. **Single Source of Truth Strategy**:
-   - Moving document layout rules out of `@media screen and (min-width: 968px)` and scoping them to `#area-cv` descendant elements ensures that any container with id `#area-cv` receives identical typography, column layouts, and padding regardless of viewport width.
-   - Standardizing `#area-cv` and `.resume` to 794px width (`width: 794px; min-width: 794px; max-width: 794px; margin: 0 auto;`) guarantees an identical 794px coordinate system in both editor and print iframe.
-   - Cleansing selector names via regex substitution rather than rule block deletion guarantees that no editor controls appear in print output while preserving 100% of the CSS cascade.
-   - Locking snapshot print zoom to 1.0 ensures that whatever geometric layout is computed in the live editor translates with 0px deviation to the print stream.
+1. **Step 1 (Scope Verification)**: To produce an authoritative, production-grade review, every single file in `src/components/CV/` and `src/context/` was inspected. Observations 1.1 and 1.2 confirm 100% coverage (20 component files + `CVContext.jsx` + `App.jsx`).
+2. **Step 2 (Root Cause of Tight Coupling)**: The codebase attempted to introduce a registry-based extensible system (`sectionRegistry.js`), but the presentation layer (`BaseSection.jsx` and `BaseItem.jsx`) was never refactored to consume the descriptors. Instead, developer convenience led to hardcoded `if (sectionType === ...)` and `if (section.type === ...)` chains. This directly explains why adding a new section type currently requires editing 4+ existing files.
+3. **Step 3 (Root Cause of Code Duplication)**: Draggable bullet lists were implemented in `ExperienceItem.jsx` and subsequently copied into `ProjectsItem.jsx` and `VolunteeringItem.jsx` rather than being extracted into a reusable component. The only functional variance identified is the bottom margin density. By providing an optional `marginBottom` prop, a single extracted `SortableBulletItem.jsx` can service all three consumers with zero behavioral or visual divergence.
+4. **Step 4 (Root Cause of Re-Render Cascades)**: `CVContext.jsx` packages 48 properties into a single provider value. Keystrokes in an inline text field update `cvData`, causing React to re-render all subscribers regardless of whether they consume document data, layout metrics, or toast notifications. Decomposing the context into `useCVData`, `useCVHistory`, `useCVLayout`, and `useCVExport` while maintaining a facade in `CVContext.jsx` isolates state slices and establishes a clean modular architecture while guaranteeing 100% backward compatibility for all existing tests and components.
+5. **Step 5 (Deliverable Completeness)**: Because `docs/code-review.md` comprehensively incorporates all findings, line ranges, impact ratings, classifications, blueprints, and regression matrices (Observation 1), Milestone M1 is fully satisfied and sets the stage for implementation workers in M2–M5.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All changes strictly conform to the 4 assigned files (`src/utils/staticHtmlPdfEngine.js`, `src/index.css`, `src/styles/print.css`, `src/App.jsx`).
-- No tests or external components were modified.
-- All 546 tests pass unconditionally across all 32 test files.
+- **No Production Code Modified in M1**: In strict accordance with the orchestrator plan and DISPATCH requirements, Milestone M1 was purely an audit and architectural blueprinting phase. No source files in `src/` were edited during this step; all refactorings will be executed by workers M2 through M5 following the blueprints in `docs/code-review.md`.
+- **Backend Node PDF Scripts**: `scripts/generate-pdf.js` and `netlify/functions/generate-pdf.js` execute Puppeteer in a headless browser against the built static HTML. They were not directly audited as they are outside `src/`, but our blueprints explicitly preserve all CSS class names (`.cv-section`, `.cv-block`, `.bullet-item-row`, etc.) to guarantee zero backend disruption.
 
 ---
 
 ## 4. Conclusion
 
-Milestone M1 (CSS Architecture & Single Source of Truth Alignment) is fully implemented, verified, and ready for production:
-- CSS layout rules extracted from desktop media query to `#area-cv` base CSS.
-- Destructive regex deletion in `staticHtmlPdfEngine.js` eliminated; clean selector sanitization implemented.
-- Strict 794px width established across `#area-cv` and `.resume` in base CSS, print CSS, and React component tree.
-- 1-column ATS mode padding duplication resolved (padding strictly 0 on inner wrapper).
-- CSS custom properties (`--container-color-alt`, `--container-color`, `--body-color`) synchronized between editor and print engine.
-- Forced page-break `margin-top` shift injection purged.
-- Live editor snapshot print zoom locked to 1.0.
-- Test Suite: 32/32 test files passed, 546/546 tests passed (100% green).
-- Build Suite: Vite production build succeeded in 1.69s with 0 errors.
+1. The authoritative, production-grade audit report has been written to `docs/code-review.md` (1033 lines).
+2. All 20 files in `src/components/CV/`, `src/context/CVContext.jsx`, and `src/App.jsx` have been audited with exact line references and severity ratings.
+3. All 6 core architectural issues are thoroughly documented with technical comparisons and concrete extraction blueprints.
+4. A complete 49-module Classification Table separates pure, safe modules from those requiring understanding of global side-effects.
+5. Actionable, step-by-step blueprints are established for Milestones M2, M3, M4, and M5.
+6. Milestone M1 is 100% complete and ready for handoff.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this milestone:
+To independently verify the deliverable:
 
-1. **Run Full Automated Test Suite**:
+1. **Verify Report Existence & Size**:
    ```bash
-   npm test -- --run
+   ls -lh /home/juani/Documentos/Ressume/docs/code-review.md
+   wc -l /home/juani/Documentos/Ressume/docs/code-review.md
    ```
-   *Expected outcome*: 32 test files passed, 546 tests passed, 0 failed.
+   *Expected*: File exists, size ~66KB, line count 1033 lines.
 
-2. **Run Print & Challenger Verification Suites Specifically**:
-   ```bash
-   npx vitest run src/tests/cleanPrintEngineVerification.test.jsx src/tests/challenger-stress-suite.test.jsx src/tests/pixelParityEditorPrint.test.jsx
-   ```
-   *Expected outcome*: All tests pass with 0 errors.
+2. **Verify Coverage Requirements**:
+   - Check that all 20 files in `src/components/CV/` are covered:
+     ```bash
+     grep -E "(BaseSection|BaseItem|CVBlock|CVHeader|CVSection|SpacerBlock|AboutItem|AwardsItem|CertificatesItem|EducationItem|ExperienceItem|LanguagesItem|ProfileHeaderItem|ProjectsItem|PublicationsItem|ReferencesItem|SimpleListItem|SkillsItem|SpacerItem|VolunteeringItem)" /home/juani/Documentos/Ressume/docs/code-review.md
+     ```
+   - Check that all 6 known issues are documented:
+     ```bash
+     grep -E "(SortableBulletItem|BaseItem.*routing|BaseSection.*parallel|god context|god component|isPrint)" /home/juani/Documentos/Ressume/docs/code-review.md
+     ```
 
-3. **Run Production Build**:
+3. **Verify Existing Codebase Health (Baseline Untouched)**:
    ```bash
+   cd /home/juani/Documentos/Ressume
+   npx vitest run
    npm run build
    ```
-   *Expected outcome*: Vite compiles without warnings or errors.
-
-4. **Inspect Modified Files**:
-   - `src/utils/staticHtmlPdfEngine.js`
-   - `src/index.css`
-   - `src/styles/print.css`
-   - `src/App.jsx`
-
+   *Expected*: 37 test files passed (37), 628 tests passed (628), build succeeds in ~1.6s with 0 errors.

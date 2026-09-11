@@ -13,6 +13,10 @@ import PublicationsItem from '../components/CV/items/PublicationsItem';
 import VolunteeringItem from '../components/CV/items/VolunteeringItem';
 import ReferencesItem from '../components/CV/items/ReferencesItem';
 import SpacerItem from '../components/CV/items/SpacerItem';
+import SpacerBlock from '../components/CV/SpacerBlock';
+// M5 extensibility smoke-test: new section type added with ONLY this import + registerSectionType below
+import MentoringItem from '../components/CV/items/MentoringItem';
+
 import {
   baseItemMarkdown,
   skillsMarkdown,
@@ -41,13 +45,51 @@ const generateUniqueId = (prefix = 'item') => {
 };
 
 /**
+ * @typedef {Object} SectionDescriptor
+ * @property {string} type - Unique identifier for the section type (e.g. 'list', 'skills', 'spacer').
+ * @property {string} label - Human-readable name used in UI menus, dialogs, and button titles.
+ * @property {string} [defaultTitle=''] - Initial title string rendered in the section header.
+ * @property {'left'|'right'} [defaultColumn='right'] - Default column target in two-column layouts.
+ * @property {string} [icon='bx-folder-plus'] - BoxIcon icon CSS class for toolbar and modal buttons.
+ * @property {string} [description] - Optional explanatory text describing the section's purpose.
+ * @property {boolean} [allowDelete=true] - Whether the user can delete the section from the CV.
+ * @property {boolean} [allowAddItem=true] - Whether users can add new items to this section.
+ * @property {boolean} [allowDeleteItem=true] - Whether individual items within this section have a delete button.
+ * @property {boolean} [hasTitle=true] - Whether section renders a section title (<h2 className="section-title">).
+ * @property {boolean} [hasItemDrag=true] - Whether individual items feature drag handles.
+ * @property {boolean} [supportsBulletCustomization=false] - Whether section supports timeline circle bullet styles.
+ * @property {boolean} [isHeader=false] - Flag indicating special profile/header identity block.
+ * @property {boolean} [isSpacer=false] - Flag indicating spacer whitespace block.
+ * @property {boolean} [isListItem=false] - Flag indicating list item formatting.
+ * @property {string} [sectionClass='experience'] - CSS class applied to the outer `<section>` container.
+ * @property {string} [wrapperClass] - CSS class for the section inner grid container (empty string suppresses grid).
+ * @property {'div'|'ul'|'ol'|React.ComponentType} [containerTag='div'] - Tag or component wrapping the items list.
+ * @property {string} [containerClass='experience__container bd-grid'] - CSS class applied to the items container.
+ * @property {React.CSSProperties} [containerStyle] - Inline styles applied to the items container in editable mode.
+ * @property {React.CSSProperties} [printContainerStyle] - Inline styles applied to the items container in print mode.
+ * @property {'div'|'li'|React.ComponentType} [itemTag='div'] - HTML element tag wrapping each item.
+ * @property {string} [itemClass='experience__content'] - CSS class applied to each item container element.
+ * @property {React.CSSProperties} [itemStyle] - Inline styles applied to each item in editable mode.
+ * @property {React.CSSProperties} [printItemStyle] - Inline styles applied to each item in print mode.
+ * @property {React.ComponentType} [sectionComponent] - Custom section-level renderer component (overriding BaseSection template).
+ * @property {React.ComponentType} itemComponent - Component responsible for rendering item content fields.
+ * @property {function(Object=): Object} createDefaultItem - Factory function producing a schema-compliant default item.
+ * @property {function(Object): Object} adaptItem - Polymorphic adapter transforming an item from another section type.
+ * @property {Object<string, string>} [schema] - Field schema mapping for type checking and validation.
+ * @property {function(Object): string} [renderMarkdown] - Strategy function converting an item to Markdown format.
+ * @property {function(Object): string} [renderXML] - Strategy function converting an item to XML format.
+ * @property {function(Object): string} [renderPlainText] - Strategy function converting an item to Plain Text format.
+ */
+
+/**
  * Registry of section definitions
+ * @type {Map<string, SectionDescriptor>}
  */
 const sectionRegistry = new Map();
 
 /**
  * Register a new section type
- * @param {Object} descriptor 
+ * @param {SectionDescriptor} descriptor 
  */
 export const registerSectionType = (descriptor) => {
   if (!descriptor || !descriptor.type) {
@@ -55,12 +97,20 @@ export const registerSectionType = (descriptor) => {
   }
   const containerTag = descriptor.containerTag || 'div';
   const enriched = {
+    hasTitle: descriptor.hasTitle !== false,
+    hasItemDrag: descriptor.hasItemDrag !== false,
+    allowDelete: descriptor.allowDelete !== false,
+    allowAddItem: descriptor.allowAddItem !== false,
+    allowDeleteItem: descriptor.allowDeleteItem !== false,
+    supportsBulletCustomization: Boolean(descriptor.supportsBulletCustomization),
     ...descriptor,
     sectionClass: descriptor.sectionClass || 'experience',
     containerTag,
     containerClass: descriptor.containerClass !== undefined ? descriptor.containerClass : (containerTag === 'ul' ? 'skills__content bd-grid' : 'experience__container bd-grid'),
     itemTag: descriptor.itemTag || (containerTag === 'ul' ? 'li' : 'div'),
     itemClass: descriptor.itemClass || (containerTag === 'ul' ? 'skills__name' : 'experience__content'),
+    itemStyle: descriptor.itemStyle || { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: descriptor.printItemStyle || descriptor.itemStyle || { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     renderMarkdown: descriptor.renderMarkdown || baseItemMarkdown,
     renderXML: descriptor.renderXML || baseItemXML,
     renderPlainText: descriptor.renderPlainText || baseItemPlainText,
@@ -80,8 +130,9 @@ export const registerSectionType = (descriptor) => {
  * @returns {Object}
  */
 export const getSectionDescriptor = (type) => {
-  if (sectionRegistry.has(type)) {
-    return sectionRegistry.get(type);
+  const normalizedType = type === 'experience' ? 'list' : type;
+  if (sectionRegistry.has(normalizedType)) {
+    return sectionRegistry.get(normalizedType);
   }
 
   // Fallback descriptor for custom or unrecognized section types
@@ -93,11 +144,17 @@ export const getSectionDescriptor = (type) => {
     icon: 'bx-folder-plus',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() {
       return ExperienceItem;
     },
@@ -155,13 +212,20 @@ const standardDescriptors = [
     icon: 'bx-id-card',
     allowDelete: false,
     allowAddItem: false,
+    allowDeleteItem: false,
+    hasTitle: false,
+    hasItemDrag: false,
+    supportsBulletCustomization: false,
     isHeader: true,
     hideControls: true,
     sectionClass: 'home',
+    wrapperClass: '',
     containerTag: 'div',
     containerClass: 'home__container bd-grid',
     itemTag: 'div',
     itemClass: 'home__data bd-grid',
+    itemStyle: { position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return ProfileHeaderItem; },
     createDefaultItem: () => ({
       id: generateUniqueId('prof'),
@@ -198,11 +262,18 @@ const standardDescriptors = [
     icon: 'bx-user',
     allowDelete: true,
     allowAddItem: false,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'profile',
+    wrapperClass: '',
     containerTag: 'div',
     containerClass: '',
     itemTag: 'div',
     itemClass: 'profile__description',
+    itemStyle: { position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return AboutItem; },
     renderMarkdown: aboutMarkdown,
     createDefaultItem: () => ({
@@ -240,11 +311,17 @@ const standardDescriptors = [
     icon: 'bx-briefcase',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
     sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return ExperienceItem; },
     renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
@@ -294,11 +371,17 @@ const standardDescriptors = [
     icon: 'bx-folder',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
     sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return ProjectsItem; },
     renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
@@ -339,11 +422,17 @@ const standardDescriptors = [
     icon: 'bx-book-bookmark',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
     sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
     itemTag: 'div',
     itemClass: 'education__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return EducationItem; },
     renderMarkdown: educationMarkdown,
     renderXML: educationXML,
@@ -375,11 +464,20 @@ const standardDescriptors = [
     icon: 'bx-wrench',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    isListItem: true,
     sectionClass: 'skills',
     containerTag: 'ul',
     containerClass: 'skills__content bd-grid',
+    containerStyle: { gridTemplateColumns: '1fr', padding: 0 },
+    printContainerStyle: { gridTemplateColumns: '1fr', padding: 0, margin: 0, listStyle: 'none' },
     itemTag: 'li',
     itemClass: 'skills__name',
+    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return SkillsItem; },
     renderMarkdown: skillsMarkdown,
     renderXML: skillsXML,
@@ -424,11 +522,17 @@ const standardDescriptors = [
     icon: 'bx-badge-check',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return CertificatesItem; },
     renderMarkdown: certificatesMarkdown,
     createDefaultItem: () => ({
@@ -464,11 +568,17 @@ const standardDescriptors = [
     icon: 'bx-globe',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'skills',
     containerTag: 'div',
     containerClass: 'skills__content bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return LanguagesItem; },
     renderMarkdown: languagesMarkdown,
     createDefaultItem: () => ({
@@ -498,11 +608,17 @@ const standardDescriptors = [
     icon: 'bx-trophy',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return AwardsItem; },
     renderMarkdown: awardsMarkdown,
     createDefaultItem: () => ({
@@ -534,11 +650,17 @@ const standardDescriptors = [
     icon: 'bx-book-open',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'education',
     containerTag: 'div',
     containerClass: 'education__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return PublicationsItem; },
     renderMarkdown: publicationsMarkdown,
     createDefaultItem: () => ({
@@ -574,11 +696,17 @@ const standardDescriptors = [
     icon: 'bx-heart',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: true,
     sectionClass: 'experience',
     containerTag: 'div',
     containerClass: 'experience__container bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return VolunteeringItem; },
     renderMarkdown: baseItemMarkdown,
     createDefaultItem: () => ({
@@ -615,11 +743,17 @@ const standardDescriptors = [
     icon: 'bx-user-check',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
     sectionClass: 'skills',
     containerTag: 'div',
     containerClass: 'skills__content bd-grid',
     itemTag: 'div',
     itemClass: 'experience__content',
+    itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
     get itemComponent() { return ReferencesItem; },
     renderMarkdown: referencesMarkdown,
     createDefaultItem: () => ({
@@ -653,11 +787,20 @@ const standardDescriptors = [
     icon: 'bx-list-ul',
     allowDelete: true,
     allowAddItem: true,
+    allowDeleteItem: true,
+    hasTitle: true,
+    hasItemDrag: true,
+    supportsBulletCustomization: false,
+    isListItem: true,
     sectionClass: 'experience',
     containerTag: 'ul',
-    containerClass: '',
+    containerClass: 'experience__bullets simple-list-ul',
+    containerStyle: { color: 'var(--text-color)', padding: 0 },
+    printContainerStyle: { color: 'var(--text-color)', paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' },
     itemTag: 'li',
     itemClass: 'simple-list-item',
+    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    printItemStyle: { display: 'list-item', listStyleType: 'disc', marginBottom: 'var(--item-gap, 8px)', lineHeight: 1.45, color: 'var(--text-color)' },
     get itemComponent() { return SimpleListItem; },
     renderMarkdown: simpleListMarkdown,
     renderXML: simpleListXML,
@@ -695,12 +838,17 @@ const standardDescriptors = [
     icon: 'bx-space-bar',
     allowDelete: true,
     allowAddItem: false,
+    allowDeleteItem: false,
+    hasTitle: false,
+    hasItemDrag: false,
+    supportsBulletCustomization: false,
     isSpacer: true,
     sectionClass: 'spacer-section',
     containerTag: 'div',
     containerClass: 'spacer-container',
     itemTag: 'div',
     itemClass: 'spacer-item',
+    sectionComponent: SpacerBlock,
     get itemComponent() { return SpacerItem; },
     renderMarkdown: () => '\n<br/>\n',
     renderXML: (item) => `<spacer height="${item?.height || 40}"/>`,
@@ -724,6 +872,59 @@ const standardDescriptors = [
 
 // Register standard descriptors
 standardDescriptors.forEach(d => registerSectionType(d));
+
+/**
+ * M5 Extensibility Smoke-Test: 'mentoring' section type.
+ *
+ * This call (plus the MentoringItem import at the top of this file) is the
+ * ONLY change needed across the entire codebase to add a fully-functional
+ * new section type. BaseItem, BaseSection, CVContext, and App are untouched.
+ *
+ * This proves the Template + Factory pattern is working correctly.
+ */
+registerSectionType({
+  type: 'mentoring',
+  label: 'Mentoría',
+  defaultTitle: 'MENTORÍA Y COACHING',
+  defaultColumn: 'right',
+  icon: 'bx-brain',
+  description: 'Sesiones de mentoría, coaching técnico, o acompañamiento profesional.',
+  allowDelete: true,
+  allowAddItem: true,
+  allowDeleteItem: true,
+  hasTitle: true,
+  hasItemDrag: true,
+  supportsBulletCustomization: false,
+  sectionClass: 'experience',
+  containerTag: 'div',
+  containerClass: 'experience__container bd-grid',
+  itemTag: 'div',
+  itemClass: 'experience__content',
+  itemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { display: 'flex', position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return MentoringItem; },
+  renderMarkdown: baseItemMarkdown,
+  createDefaultItem: () => ({
+    id: generateUniqueId('mentor'),
+    title: 'Mentoría Técnica',
+    date: '2024 – Presente',
+    mentee: 'Nombre del mentee / Empresa',
+    description: 'Descripción del impacto y habilidades transferidas durante la mentoría.'
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    return {
+      id: src.id || generateUniqueId('mentor'),
+      title: src.title || 'Mentoría Técnica',
+      date: src.date || '2024',
+      mentee: src.mentee || src.subtitle || 'Mentee',
+      description: src.description || (Array.isArray(src.bullets) ? src.bullets.join(' ') : '')
+    };
+  },
+  schema: { title: 'string', date: 'string', mentee: 'string', description: 'string' }
+});
+
+
 
 /**
  * Factory for creating default item by section type

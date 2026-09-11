@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-10T03:58:34Z
+# BRIEFING — 2026-09-11T03:15:00Z
 
 ## Mission
-Guarantee 1:1 absolute visual parity (0px drift) between live editor (#area-cv) and clean print / PDF output (generateCleanPrintHTML / executeCleanPrint) in Ressume.
+Conduct a production-grade code review and refactoring of the Ressume React CV editor (Template + Factory + Strategy patterns) with zero test regressions.
 
 ## 🔒 My Identity
 - Archetype: sentinel
@@ -20,34 +20,32 @@ Guarantee 1:1 absolute visual parity (0px drift) between live editor (#area-cv) 
 - Run 5 Victory Auditor: 87e5da82-efbc-4756-a3d0-2182e9158a12 (.agents/teamwork_preview_victory_auditor_5)
 - Run 5 Cron 1 (Progress): 819c7706-80f1-4d22-9118-d4da90bfdcae/task-34
 - Run 5 Cron 2 (Liveness): 819c7706-80f1-4d22-9118-d4da90bfdcae/task-36
+- Run 6 Orchestrator: ca5efa9a-2989-4d87-a34d-927b285b46f9 (.agents/teamwork_preview_orchestrator_11)
+- Run 6 Victory Auditor: TBD
+- Run 6 Cron 1 (Progress): 5385c5c7-c2ef-4cf2-98cb-5d5391f456a5/task-42
+- Run 6 Cron 2 (Liveness): 5385c5c7-c2ef-4cf2-98cb-5d5391f456a5/task-44
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
 - Must not write code, analyze problems, or make technical decisions. Keep context ultra-light.
 - Zero-drift visual parity: 0px tolerance between live editor and clean print/PDF.
+- Benchmark integrity mode: production-grade code review (docs/code-review.md) and refactoring (Template + Factory + Strategy) with 0 test regressions (628 baseline tests passing)
 
 ## User Context
-- **Last user request**: Guarantee 1:1 absolute visual parity (0px difference) between live CV editor (#area-cv) and clean print / PDF output (executeCleanPrint / generateCleanPrintHTML), eliminating divergent CSS/overrides and concealing interactive controls without flow distortion. TDD pixelParityEditorPrint.test.jsx, full test suite pass, clean build.
+- **Last user request**: Production-grade code review and refactoring of the Ressume React CV editor. Deliver docs/code-review.md, SortableBulletItem deduplication, BaseItem/BaseSection registry dispatch (0 if guards), CVContext decomposition into 4 hooks + facade (CVContext <=200 lines, hooks <=250 lines), JSDoc on new abstractions, minimal section smoke-test, 628 tests passing.
 - **Pending clarifications**: none
-- **Delivered results**: Absolute 1:1 visual parity achieved (0px drift) across container dimensions, typography, and layout. Divergent print CSS purged, desktop media queries extracted to #area-cv rules, strict 794px canvas geometry enforced. 26 interactive editor artifacts non-disruptively concealed without flow distortion. Primary TDD suite src/tests/pixelParityEditorPrint.test.jsx (16/16) and 2 adversarial suites (40/40) passing with 0px drift tolerance. Full test battery passes (34 files, 597/597 tests green); production build clean. Independent Victory Audit confirmed.
+- **Delivered results**: none (Orchestrator dispatched)
 
 ## Project Status
-- **Phase**: complete
+- **Phase**: in progress
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY CONFIRMED
+- **Triggered**: no
+- **Verdict**: pending
 - **Retry count**: 0
 
 ## Artifact Index
 - .agents/ORIGINAL_REQUEST.md — Authoritative user request
 - .agents/sentinel_1/BRIEFING.md — Persistent sentinel memory
-- .agents/sentinel_1/handoff.md — Sentinel handoff report
-- .agents/teamwork_preview_orchestrator_10/handoff.md — Orchestrator completion report
-- .agents/teamwork_preview_victory_auditor_5/handoff.md — Independent post-victory audit report (VICTORY CONFIRMED)
-- .agents/teamwork_preview_victory_auditor_5/audit_report.md — Detailed victory audit report
-
-
-
-
+- .agents/teamwork_preview_orchestrator_11/DISPATCH.md — Orchestrator dispatch instructions

@@ -1,8 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
-import SimpleListItem from './SimpleListItem';
-import DragHandle from '../../Editor/DragHandle';
+import SortableBulletItem from '../SortableBulletItem';
 import { 
   DndContext, 
   closestCorners, 
@@ -15,79 +14,9 @@ import {
   SortableContext, 
   verticalListSortingStrategy, 
   arrayMove, 
-  sortableKeyboardCoordinates, 
-  useSortable 
+  sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { createContainerDragListeners } from '../../../utils/dndUtils';
 
-const SortableBulletItem = ({ 
-  bulletId, 
-  bulletText, 
-  bulletIndex, 
-  sectionId, 
-  itemId, 
-  bullets, 
-  onUpdateItem, 
-  onDeleteBullet 
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: bulletId,
-    data: {
-      type: 'bullet',
-      bulletIndex
-    }
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    position: 'relative',
-    opacity: isDragging ? 0.35 : 1,
-    display: 'flex',
-    alignItems: 'flex-start',
-    marginTop: 0,
-    marginBottom: 'calc(var(--item-gap, 6px) / 2)',
-    paddingRight: 0,
-    paddingLeft: '1.15rem',
-    color: 'inherit',
-    lineHeight: 1.45
-  };
-
-  const containerDragListeners = createContainerDragListeners(listeners, true);
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="bullet-item-row editable-item-container cv-block"
-      {...attributes}
-      {...containerDragListeners}
-    >
-      <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-      <SimpleListItem 
-        item={{ id: bulletIndex, text: bulletText }} 
-        sectionId={sectionId} 
-        onUpdateItem={(secId, bIdx, field, val) => {
-          const newBullets = [...bullets];
-          newBullets[bIdx] = val;
-          onUpdateItem(sectionId, itemId, 'bullets', newBullets);
-        }}
-      />
-      <button
-        type="button"
-        className="round-btn-del bullet-del-btn no-print"
-        title="Eliminar esta viñeta"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeleteBullet(bulletIndex);
-        }}
-      >
-        <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
-      </button>
-    </li>
-  );
-};
 
 const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
   const bullets = item.bullets || [];
@@ -304,6 +233,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
                       bullets={bullets}
                       onUpdateItem={onUpdateItem}
                       onDeleteBullet={handleDeleteBullet}
+                      marginBottom="calc(var(--item-gap, 6px) / 2)"
                     />
                   ))}
                 </ul>

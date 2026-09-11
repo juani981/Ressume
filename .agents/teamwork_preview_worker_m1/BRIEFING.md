@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-10T04:12:20Z
+# BRIEFING — 2026-09-11T03:30:00Z
 
 ## Mission
-Execute Milestone M1: CSS Architecture & Single Source of Truth Alignment. Eliminate destructive regex stripping in staticHtmlPdfEngine.js, extract document layout rules from desktop media query in index.css to #area-cv, enforce strict 794px width on #area-cv in print.css and App.jsx, synchronize CSS custom properties, and remove forced page-break margin shifts and zoom downscaling.
+Execute Milestone M1 of the Ressume Architecture Review & Refactoring: Author the comprehensive, production-grade architectural review and audit report in `docs/code-review.md`. Audit all 20 files in `src/components/CV/`, `src/context/CVContext.jsx`, `src/App.jsx`, classify all modules for open-source contributors, thoroughly document the 6 core architectural issues, and provide actionable refactoring blueprints.
 
 ## 🔒 My Identity
 - Archetype: worker
@@ -11,6 +11,8 @@ Execute Milestone M1: CSS Architecture & Single Source of Truth Alignment. Elimi
 - Milestone: Epic 1 - PDF Generation
 - Orchestrator 10 Parent: 330b6d43-f411-474e-9505-d78ef90b8c30
 - Milestone: M1 — CSS Architecture & Single Source of Truth Alignment
+- Orchestrator 11 Parent: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Current Milestone: M1 — Production-Grade Architecture Review & Audit Report
 
 ## 🔒 Key Constraints
 - DO NOT CHEAT. No hardcoding test results, no dummy implementations.
@@ -24,46 +26,58 @@ Execute Milestone M1: CSS Architecture & Single Source of Truth Alignment. Elimi
 - Enforce strict 794px width on #area-cv and .resume across editor and print.
 - Enforce strictly 1.0 zoom (no downscaling branch).
 - Single source of truth CSS: zero divergent print overrides, all custom properties propagated identically.
+- Cover every single file in `src/components/CV/` (all 20 files) and `src/context/` (`CVContext.jsx`).
+- Every finding must cite exact file path + line range + impact rating (High / Medium / Low).
+- Explicitly identify and document the 6 known issues:
+  1. SortableBulletItem 3x duplication (~65 lines in ExperienceItem, ProjectsItem, VolunteeringItem).
+  2. BaseItem.jsx rendering via `if (sectionType === ...)` chains.
+  3. BaseSection.jsx parallel `if (section.type === ...)` chains.
+  4. CVContext.jsx (~728 lines) god context mixing CRUD, history/undo, layout, pagination, tooltips, export.
+  5. App.jsx (~1080 lines) god component.
+  6. `isPrint` prop threaded through every component as runtime branch.
+- Comprehensive Classification Table of every file, hook, and utility (Safe to import vs Global side-effects).
+- Provide actionable refactoring blueprints for subsequent milestones (M2, M3, M4, M5).
 
 ## Current Parent
-- Conversation ID: 330b6d43-f411-474e-9505-d78ef90b8c30
-- Updated: 2026-09-10T04:12:20Z
+- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Updated: 2026-09-11T03:30:00Z
 
 ## Task Summary
-- **What to build**:
-  1. `src/utils/staticHtmlPdfEngine.js`: Remove destructive regex (lines 448-464); add `bd-grid` to 2-col print class; sync default leftBg to `#f3f4f6`; remove forced page-break margin-top injection (line 823); enforce strictly 1.0 zoom (remove lines 878-881 downscaling); propagate all CSS custom properties identically.
-  2. `src/index.css`: Extract document layout rules from `@media screen and (min-width: 968px)` (lines 583-655) and apply to `#area-cv` descendant containers unconditionally; clean up divergent print overrides.
-  3. `src/styles/print.css`: Enforce strict 794px width on `#area-cv` and `.resume`; purge `width: 100% !important`; purge conflicting padding overrides; scope `.resume__single-column` padding to `#area-cv.resume__single-column`.
-  4. `src/App.jsx`: Ensure `#area-cv` has strict 794px width (`width: "794px", minWidth: "794px", maxWidth: "794px", margin: "0 auto"`); remove redundant inner `div.resume__single-column` wrapper in 1-column ATS mode.
+- **What to build**: Comprehensive production-grade code review report written to `docs/code-review.md`.
 - **Success criteria**:
-  - Full test suite passes (`npm test -- --run`).
-  - Production build succeeds (`npm run build`).
-  - Strict 0px drift foundation established for M2 & M3.
-- **Interface contracts**: /home/juani/Documentos/Ressume/PROJECT.md
-- **Code layout**: /home/juani/Documentos/Ressume/PROJECT.md § Code Layout
+  - Covers all 20 files in `src/components/CV/` and `src/context/CVContext.jsx`.
+  - Every finding has exact file path + line range + impact rating (High / Medium / Low).
+  - All 6 known issues explicitly analyzed with side-by-side technical breakdowns.
+  - Complete classification table covering every file, hook, utility, and registry module.
+  - Actionable refactoring blueprints with JSDoc contracts and implementation templates.
+  - Clean verification with 0 test regressions.
+- **Interface contracts**: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
+- **Code layout**: `/home/juani/Documentos/Ressume/docs/code-review.md`
 
 ## Key Decisions Made
-- Initialized M1 tasks according to DISPATCH.md and Explorer 1 & 2 findings.
+- Authored 1033-line exhaustive production-grade audit report at `docs/code-review.md`.
+- Mapped all 48 members of `useCV()` public API contract with subscribing callers.
+- Documented the exact single difference in SortableBulletItem across 3 copies (`marginBottom`).
+- Provided full Strategy / Factory pattern blueprints for `BaseItem` and `BaseSection` to achieve 0 conditionals.
+- Formulated the 4-hook decomposition blueprint for `CVContext.jsx` ensuring each hook <= 250 lines and facade <= 200 lines.
 
 ## Artifact Index
-- DISPATCH.md — Assignment from orchestrator
-- BRIEFING.md — Persistent working memory
-- progress.md — Liveness heartbeat
-- handoff.md — 5-component handoff report
+- `docs/code-review.md` — Authoritative audit report
+- `DISPATCH.md` — Assignment from orchestrator
+- `BRIEFING.md` — Persistent working memory
+- `progress.md` — Liveness heartbeat
+- `handoff.md` — 5-component handoff report
 
 ## Change Tracker
-- **Files modified**:
-  - `src/utils/staticHtmlPdfEngine.js`: Removed destructive regex rule stripping; sanitized editor artifact selectors cleanly; harmonized `leftBg` fallback to `#f3f4f6`; aligned left/right column padding to `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`; added `bd-grid` to 2-col print class for snapshot print runs; propagated `--container-color`, `--container-color-alt`, and `--body-color` custom properties; removed forced page-break margin-top shift injection; enforced 1.0 zoom on snapshot runs.
-  - `src/index.css`: Extracted document canvas layout rules from `@media screen and (min-width: 968px)` into base CSS scoped to `#area-cv`; defined base `.resume` grid layout; enforced strict 794px width on `#area-cv` and `.resume` in base and `@media print`; scoped `.resume__single-column` padding and eliminated child duplicate padding.
-  - `src/styles/print.css`: Replaced `width: 100% !important` on `#area-cv` and `.resume` with strict 794px width rules; scoped `.resume__single-column` padding to `#area-cv.resume__single-column` and cleared nested `.resume__single-column` padding.
-  - `src/App.jsx`: Configured `#area-cv` with 794px min/max constraints and auto margin; explicitly set inner ATS single-column wrapper padding to 0 to prevent doubling.
-- **Build status**: PASS (Vite build completed in 1.69s)
-- **Pending issues**: None
+- **Files created/modified**:
+  - `docs/code-review.md`: Complete production-grade architectural review and audit report.
+- **Build status**: PASS (Vite transformed 1,927 modules, 0 errors, 0 warnings).
+- **Pending issues**: None for M1. Ready for M2-M5 implementation milestones.
 
 ## Quality Status
-- **Build/test result**: PASS (32/32 test files, 546/546 tests passing)
-- **Lint status**: 0 violations
-- **Tests added/modified**: 0 (all 546 tests passing with genuine logic and 0 test modifications)
+- **Build/test result**: PASS (37 test files, 628 tests passing).
+- **Lint status**: 0 violations.
+- **Audit findings count**: 8 High, 14 Medium, 9 Low findings documented with exact line ranges.
 
 ## Loaded Skills
 None

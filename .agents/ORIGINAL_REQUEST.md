@@ -329,3 +329,75 @@ Establish comprehensive programmatic verification (Vitest tests) that compares t
 - [ ] Primary TDD pixel-parity test suite (`src/tests/pixelParityEditorPrint.test.jsx`) passes with 0px drift tolerance.
 - [ ] Full Vitest test suite (`npx vitest run`) passes with 100% success across all test files in the repository.
 - [ ] Production build (`npm run build`) succeeds with zero errors or warnings.
+
+## 2026-09-11T03:13:35Z
+
+Conduct a production-grade code review and refactoring of the **Ressume** React CV editor (`/home/juani/Documentos/Ressume/src`). The goal is a codebase that is **loosely coupled, follows Template + Factory + Strategy patterns consistently, and is easy for open-source contributors to extend.** Deliver both a written audit and the actual refactored code.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: benchmark — no restrictions on approach or tools
+
+---
+
+## Context
+
+This is a production React + Vite CV editor with ~55 source files and 628 automated tests (Vitest). The registry-based section system (`src/registry/sectionRegistry.js`) was meant to be the factory, but most components still bypass it with long `sectionType` conditionals. The codebase has the bones of a good architecture but is significantly under-abstracted for external contribution.
+
+Key known issues (confirmed by code scan):
+- `ExperienceItem`, `ProjectsItem`, and `VolunteeringItem` each contain an **identical** internal `SortableBulletItem` component (~65 lines, 3× duplicated)
+- `BaseItem.jsx` routes rendering via `if (sectionType === 'X')` chains — the registry is ignored at the render layer
+- `BaseSection.jsx` contains parallel `if (section.type === ...)` chains for the same reason
+- `CVContext.jsx` (~727 lines) mixes: CV CRUD, undo/redo, layout mode, PDF export triggers, AI suggestion context, and column state — a god context
+- `App.jsx` (~1080 lines) owns DnD coordination, two-column layout, modal state, and full section rendering — a god component
+- The `isPrint` prop is threaded through every component as a runtime branch rather than resolved at a clean architectural boundary
+
+## Requirements
+
+### R1. Audit Report
+Produce a structured markdown report (`docs/code-review.md`) that:
+- Lists every coupling violation, duplication, and anti-pattern found in `src/`
+- Cites exact file path + line range for each finding
+- Rates each finding: High / Medium / Low impact
+- Identifies which files, hooks, and utilities are safe to import as-is by a contributor and which require understanding global side-effects first
+
+### R2. Refactoring — Deduplication and Pattern Enforcement
+Implement refactors that bring the codebase in line with Template + Factory + Strategy patterns:
+
+- **SortableBulletItem**: extract into a single shared component (`src/components/CV/SortableBulletItem.jsx`) imported by all three item types
+- **BaseItem & BaseSection**: eliminate all `if (sectionType === ...)` and `if (section.type === ...)` chains; all type-specific dispatch must go through the registry descriptor (factory/strategy pattern)
+- **Registry descriptor contract**: the `sectionRegistry` entry for each type should declare everything needed for rendering — container tag, container class, whether it supports bullets, whether it's a list item — so BaseItem and BaseSection become pure template components
+- **CVContext decomposition**: split into focused hooks (`useCVData`, `useCVHistory`, `useCVLayout`, `useCVExport`) exported from a barrel file; the existing `useCV()` hook must remain as a backward-compatible facade so no callers break
+
+### R3. Documentation
+Add JSDoc blocks to every new abstraction (hooks, factory functions, shared components, registry descriptor typedef). Each new file must have a file-level comment explaining its responsibility and contract. No new file may exceed 300 lines.
+
+## Acceptance Criteria
+
+### Audit Report
+- [ ] `docs/code-review.md` exists and covers every file in `src/components/CV/` and `src/context/`
+- [ ] Every finding cites file + line range + impact rating
+- [ ] Identifies at least the 5 known issues listed in the Context section
+
+### Architecture Quality
+- [ ] `SortableBulletItem` exists in exactly **one** file; ExperienceItem, ProjectsItem, and VolunteeringItem import from it
+- [ ] `BaseItem.jsx` contains **zero** `if (sectionType === ...)` guards in its render path
+- [ ] `BaseSection.jsx` contains **zero** `if (section.type === ...)` guards in its render path
+- [ ] `CVContext.jsx` is ≤200 lines after decomposition (acts as a facade only)
+- [ ] Each decomposed hook file is ≤250 lines and has a single clearly-stated responsibility
+- [ ] The `useCV()` hook remains callable and returns the same interface as before
+
+### Code Quality
+- [ ] Every new or modified component and hook has a JSDoc block
+- [ ] No new file exceeds 300 lines
+- [ ] The registry descriptor shape is documented with a JSDoc `@typedef`
+- [ ] `npx vitest run` exits 0 — or if tests break, the refactoring is considered incomplete and must be iterated
+
+### Extensibility Test (self-verifiable)
+- [ ] Adding a hypothetical new section type requires editing only `sectionRegistry.js` + one new item component file — no changes to `BaseItem`, `BaseSection`, `CVContext`, or `App`
+- [ ] This is verified by actually implementing one new minimal section type as a smoke-test
+
+---
+
+## Verification
+
+Run `npx vitest run` in `/home/juani/Documentos/Ressume` to verify no regressions. The baseline is **628 tests, 37 test files, all passing.** If the refactor breaks tests, fix them before declaring done — architectural purity does not excuse regressions.

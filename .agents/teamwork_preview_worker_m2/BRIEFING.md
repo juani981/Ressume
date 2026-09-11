@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-10T04:30:00Z
+# BRIEFING — 2026-09-11T00:35:00Z
 
 ## Mission
-Milestone M2: Artifact Concealment & Component Template Harmonization for 0px visual parity between live editor and print snapshot.
+Extract `SortableBulletItem` into a single shared component (`src/components/CV/SortableBulletItem.jsx`) and update `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` to import from it, eliminating 134 lines of duplicated code while maintaining 100% test pass rate (628 tests) and zero build errors.
 
 ## 🔒 My Identity
 - Archetype: implementer, qa, specialist
@@ -12,6 +12,8 @@ Milestone M2: Artifact Concealment & Component Template Harmonization for 0px vi
 - Current Archetype: teamwork_preview_worker (Project Orchestrator 10)
 - Current parent: 330b6d43-f411-474e-9505-d78ef90b8c30
 - Current Milestone: M2 — Artifact Concealment & Component Template Harmonization
+- Assigned by Orchestrator 11: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Assignment Milestone: M2 — SortableBulletItem Extraction & Deduplication
 
 ## 🔒 Key Constraints
 - Authoritative user request: ORIGINAL_REQUEST.md ## 2026-09-03T03:17:21Z
@@ -34,34 +36,36 @@ Milestone M2: Artifact Concealment & Component Template Harmonization for 0px vi
   * src/components/Editor/InlineEdit.jsx
   * src/components/Editor/HyperlinkEdit.jsx
 - Do NOT edit files outside this set.
+- Authoritative user request: ORIGINAL_REQUEST.md ## 2026-09-11T03:13:35Z
+- Worker M2 Write Ownership:
+  * src/components/CV/SortableBulletItem.jsx (create)
+  * src/components/CV/items/ExperienceItem.jsx (refactor)
+  * src/components/CV/items/ProjectsItem.jsx (refactor)
+  * src/components/CV/items/VolunteeringItem.jsx (refactor)
+- Exact DOM structure preserved: `<li ref={setNodeRef} style={style} className="bullet-item-row editable-item-container cv-block" {...attributes} {...containerDragListeners}>`
+- Optional `marginBottom` prop defaulting to `'var(--item-gap, 6px)'`
+- `ProjectsItem` and `VolunteeringItem` pass `marginBottom="calc(var(--item-gap, 6px) / 2)"`
+- File must be < 300 lines with file-level doc and comprehensive JSDoc
+- 628/628 tests must pass (`npx vitest run`)
+- Production build must succeed with 0 errors (`npm run build`)
+- `grep -rn "const SortableBulletItem" src/` must match exactly ONE file
 
 ## Current Parent
-- Conversation ID: 330b6d43-f411-474e-9505-d78ef90b8c30
-- Updated: 2026-09-10T04:30:00Z
+- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Updated: 2026-09-11T00:35:00Z
 
 ## Task Summary
-- **What to build**:
-  1. Remove artificial `padding: '0 0.25rem'` from `PrintBaseSection` and `PrintBaseItem` across all containers.
-  2. Eliminate phantom in-flow height from `.bullet-add-row` in `ExperienceItem.jsx`, `ProjectsItem.jsx`, `VolunteeringItem.jsx` (occupy 0px in-flow height when idle / out-of-flow).
-  3. Remove `paddingRight: 1.5rem` from `SortableBulletItem` (make delete button absolute/hover overlay) so editor text width matches print text width.
-  4. Unify bullet display model and padding between edit view and print view.
-  5. Harmonize `InlineEditPrintView` (line 89) to use `display: multiline ? 'block' : 'inline-block'` matching `InlineEditEditor` (line 550).
-  6. Harmonize `HyperlinkEdit.jsx` and `SpacerBlock.jsx` margins, gaps, and padding between edit and print views.
-- **Success criteria**:
-  - Full test suite passes (`npm test -- --run`).
-  - Production build succeeds (`npm run build`).
-  - Zero regressions in existing features.
-- **Interface contracts**: PROJECT.md
-- **Code layout**: Exclusive file list
+- **What to build**: Extract `SortableBulletItem.jsx` into `src/components/CV/SortableBulletItem.jsx` with full JSDoc and contract. Refactor `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` to import from it and clean up unused imports.
+- **Success criteria**: All 628 tests pass; build succeeds; `SortableBulletItem` in exactly 1 file; code is clean and adheres to Template/Factory guidelines.
+- **Interface contracts**: `docs/code-review.md` (Blueprint 1)
+- **Code layout**: Component in `src/components/CV/`, items in `src/components/CV/items/`.
 
 ## Key Decisions Made
-- Removed artificial `padding: '0 0.25rem'` from `PrintBaseSection` and all 6 container variants in `PrintBaseItem`, establishing identical 0 padding to editor containers.
-- Collapsed `.bullet-add-row` to in-flow height: 0 (`height: 0, lineHeight: 0, overflow: visible, position: relative`) in `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx`, eliminating the phantom ~22px height in editor view.
-- Removed `paddingRight: 1.5rem` from `SortableBulletItem` in all three bullet item components (relying on the existing absolute position of `.bullet-del-btn`), ensuring editor text line width matches print view 1:1.
-- Unified bullet indentation to `1.15rem`, margins to `0.25rem` top / `0` bottom, and lineHeight to `1.45`.
-- Harmonized `InlineEditPrintView` to default to `display: multiline ? 'block' : 'inline-block'` matching `InlineEditEditor` on line 550, while supporting explicit `display` override (used for native disc bullet alignment in `ExperienceItemPrintView`).
-- Synchronized `HyperlinkPrintView` and `HyperlinkEditEditor` with matching `gap: 4px`, `padding: 2px 4px`, `borderRadius: 4px`, link color, and underline style.
-- Synchronized `EditableSpacerBlock` to `margin: 0, padding: 0` matching `PrintSpacerBlock`.
+- Extracted `SortableBulletItem` into `src/components/CV/SortableBulletItem.jsx` (104 lines).
+- Implemented file-level architectural contract and comprehensive JSDoc for all props.
+- Configured default `marginBottom = 'var(--item-gap, 6px)'`, matching `ExperienceItem`.
+- Passed `marginBottom="calc(var(--item-gap, 6px) / 2)"` in `ProjectsItem.jsx` and `VolunteeringItem.jsx`.
+- Cleaned unused imports across all three item components: `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners`.
 
 ## Artifact Index
 - DISPATCH.md — Assignment instructions
@@ -71,21 +75,17 @@ Milestone M2: Artifact Concealment & Component Template Harmonization for 0px vi
 
 ## Change Tracker
 - **Files modified**:
-  - `src/components/CV/BaseSection.jsx` — Removed artificial `padding: '0 0.25rem'` from `PrintBaseSection`.
-  - `src/components/CV/BaseItem.jsx` — Removed artificial `padding: '0 0.25rem'` from all 6 container types in `PrintBaseItem`.
-  - `src/components/CV/items/ExperienceItem.jsx` — Eliminated `.bullet-add-row` phantom height, removed `paddingRight: 1.5rem`, harmonized bullet styles.
-  - `src/components/CV/items/ProjectsItem.jsx` — Eliminated `.bullet-add-row` phantom height, removed `paddingRight: 1.5rem`, harmonized bullet styles.
-  - `src/components/CV/items/VolunteeringItem.jsx` — Eliminated `.bullet-add-row` phantom height, removed `paddingRight: 1.5rem`, harmonized bullet styles.
-  - `src/components/CV/SpacerBlock.jsx` — Harmonized `EditableSpacerBlock` with `margin: 0, padding: 0` matching `PrintSpacerBlock`.
-  - `src/components/Editor/InlineEdit.jsx` — Harmonized `InlineEditPrintView` display to `inline-block` (block if multiline) matching `InlineEditEditor`.
-  - `src/components/Editor/HyperlinkEdit.jsx` — Unified gap (4px), padding (2px 4px), colors, and text decoration between edit and print views.
-- **Build status**: PASS (Vite production build completed in 1.67s with 0 errors)
+  - `src/components/CV/SortableBulletItem.jsx` (New file, 104 lines)
+  - `src/components/CV/items/ExperienceItem.jsx` (Removed duplicate component, cleaned imports, uses shared component)
+  - `src/components/CV/items/ProjectsItem.jsx` (Removed duplicate component, cleaned imports, passes custom marginBottom)
+  - `src/components/CV/items/VolunteeringItem.jsx` (Removed duplicate component, cleaned imports, passes custom marginBottom)
+- **Build status**: PASS (Vite production build completed in 1.57s with 0 errors)
 - **Pending issues**: none
 
 ## Quality Status
-- **Build/test result**: 31/31 suites passed (541/541 tests passed). The only failing test is stale test `TDD-PARITY-3` in `pixelParityEditorPrint.test.jsx` which asserted the presence of `padding: 0 0.25rem` that Milestone M2 was explicitly tasked to purge, scheduled for M3 rewrite.
+- **Build/test result**: 37/37 test files passed (628/628 tests passed).
 - **Lint status**: Clean
-- **Tests added/modified**: Covered across existing 31 test suites.
+- **Tests added/modified**: Covered by existing test suites (`bulletPointsNativePrint.test.jsx`, `dom-geometry-typography.test.jsx`, etc.)
 
 ## Loaded Skills
 - none

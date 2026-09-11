@@ -1,68 +1,59 @@
-# BRIEFING — 2026-09-10T04:40:00Z
+# BRIEFING — 2026-09-11T00:48:00-03:00
 
 ## Mission
-Upgrade `src/tests/pixelParityEditorPrint.test.jsx` into a comprehensive, real-DOM programmatic verification suite with strict 0px drift tolerance (Math.abs(delta) === 0), verify 100% pass across all 32+ test files (546+ tests), and ensure a clean production build for Project Orchestrator 10.
+Refactor sectionRegistry.js, BaseItem.jsx, and BaseSection.jsx to enforce Factory/Strategy & Template pattern with zero `if (sectionType === ...)` and zero `if (section.type === ...)` guards.
 
 ## 🔒 My Identity
 - Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3
-- Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Milestone: M3 (Epic 3: Floating Panel Reorganization & ATS Mode & Right-Docked Modal)
-- Updated parent (O10): 330b6d43-f411-474e-9505-d78ef90b8c30
-- Updated milestone (O10): M3 (Primary TDD Pixel-Parity Suite & System Verification)
+- Original parent: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Milestone: M3
 
 ## 🔒 Key Constraints
-- Reorganize ActionMenu.jsx: reduce top-level visible buttons.
-- Add layout toggle switch at top of panel: Two-column (default) vs ATS mode (1-column, clean white background, sober accents).
-- Group color picking, layout spacing sliders, and typography into a single grouped "Diseño" submenu.
-- Group export actions (JSON export, @react-pdf download, native print) into a single grouped "Acciones" submenu.
-- Reposition AddSectionModal.jsx: float to the right of #area-cv container using available viewport space instead of centering over CV.
-- Verify ATS styling in src/index.css / src/App.jsx.
-- Strictly adhere to AGENTS.md rules (Obsidian callouts, @dnd-kit only, dynamic tooltip positioning with getBoundingClientRect, etc.).
-- Create src/tests/epic3-actionmenu-ats-modal.test.jsx.
-- Pass npm test and npm run build.
-- Write handoff.md and send_message to parent.
-- [O10 Milestone M3]: Exclusively own and edit `src/tests/pixelParityEditorPrint.test.jsx`. Do NOT edit outside this set unless strictly necessary.
-- [O10 Milestone M3]: Strict 0px drift tolerance (Math.abs(delta) === 0) across coordinates, dimensions, typography, and CSS variables.
-- [O10 Milestone M3]: Mount real editor DOM (#area-cv) and real clean print snapshot (generateCleanPrintHTML).
-- [O10 Milestone M3]: Complete artifact concealment verification for all 26 blacklisted interactive artifact selectors.
-- [O10 Milestone M3]: Verify across both 1-column ATS mode and 2-column mode.
-- [O10 Milestone M3]: Verify 100% passing test suite across all 32+ files and 0-error production build.
-- [O10 Milestone M3]: Integrity mandate: no mock maps, no hardcoded results, no facade checks.
+- Pure registry-driven dispatch: ZERO `if (sectionType === ...)` guards in BaseItem.jsx
+- Pure registry-driven dispatch: ZERO `if (section.type === ...)` guards in BaseSection.jsx
+- All 14 section descriptors in `src/registry/sectionRegistry.js` fully configured
+- JSDoc `@typedef {Object} SectionDescriptor` documenting the descriptor contract
+- Both default BaseItem / BaseSection and named PrintBaseItem / PrintBaseSection exported
+- File-level comments, JSDoc blocks, <= 300 lines per file
+- All 628 tests pass (`npx vitest run`)
+- Production build succeeds (`npm run build`)
+- Genuine implementation, no shortcuts or cheating
 
 ## Current Parent
-- Conversation ID: 330b6d43-f411-474e-9505-d78ef90b8c30
-- Updated: 2026-09-10T04:40:00Z
+- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: Comprehensive, real-DOM programmatic verification suite in `src/tests/pixelParityEditorPrint.test.jsx` enforcing strict 0px drift tolerance across all 6 pillars (794px container width, CSS variables, bounding box geometry, computed typography, 26 artifact blacklists, dual layout coverage).
-- **Success criteria**: 0px drift asserted and verified; all 32+ test files pass (546+ tests); production build succeeds cleanly; handoff report written.
-- **Interface contracts**: `/home/juani/Documentos/Ressume/PROJECT.md`
-- **Code layout**: `src/tests/pixelParityEditorPrint.test.jsx`
+- **What to build**: Full descriptor schema in `sectionRegistry.js`, zero-guard registry dispatch in `BaseItem.jsx` and `BaseSection.jsx`.
+- **Success criteria**: 0 `sectionType ===` in BaseItem, 0 `section.type ===` in BaseSection, 628 tests passing, build passes.
+- **Interface contracts**: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
+- **Code layout**: `src/registry/sectionRegistry.js`, `src/components/CV/BaseItem.jsx`, `src/components/CV/BaseSection.jsx`
+
+## Key Decisions Made
+- Expanded `sectionRegistry.js` with comprehensive `@typedef {Object} SectionDescriptor` and 14 complete descriptors.
+- Delegated spacer block via `descriptor.sectionComponent = SpacerBlock` (Strategy pattern).
+- Replaced container type heuristics with `descriptor.containerTag` and `descriptor.wrapperClass`.
+- Maintained backward-compatibility for legacy tests with `type: 'experience'` via normalized type alias in `getSectionDescriptor`.
+- Refactored `BaseItem.jsx` (152 lines) and `BaseSection.jsx` (285 lines) into pure templates with 0 equality guards.
+
+## Artifact Index
+- `.agents/teamwork_preview_worker_m3/progress.md` — Liveness and task tracking
+- `.agents/teamwork_preview_worker_m3/handoff.md` — 5-component handoff report
 
 ## Change Tracker
 - **Files modified**:
-  - `src/tests/pixelParityEditorPrint.test.jsx`: Upgraded from synthetic 2px mock test to full real-DOM 0px tolerance verification suite across all 6 pillars (16 tests, 100% pass).
-- **Build status**: PASS (Vite production build succeeded in 1.64s, 0 errors, 0 warnings).
-- **Pending issues**: none
+  - `src/registry/sectionRegistry.js`: Expanded descriptors, JSDoc schema, SpacerBlock integration
+  - `src/components/CV/BaseItem.jsx`: Zero-guard template driven by registry descriptor
+  - `src/components/CV/BaseSection.jsx`: Zero-guard template driven by registry descriptor
+- **Build status**: PASS (npm run build: 0 errors; vitest: 37/37 files passed, 628/628 tests passed)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (Full suite: 32/32 test files passed, 557/557 tests passed; Upgraded suite: 16/16 tests passed with strict 0px drift tolerance).
-- **Lint status**: clean
-- **Tests added/modified**: `src/tests/pixelParityEditorPrint.test.jsx` (upgraded to 16 comprehensive real-DOM tests).
+- **Build/test result**: PASS (628/628 tests passing)
+- **Lint status**: 0 violations (0 sectionType/section.type conditional guards)
+- **Tests added/modified**: Full regression coverage verified across all 37 test suites
 
 ## Loaded Skills
-- None requested in dispatch.
-
-## Key Decisions Made
-- Real DOM mounting: Rendered live editor via `<CVProvider><App /></CVProvider>` and generated real clean print document via `generateCleanPrintHTML(cvData, 'es')` and `executeCleanPrint(cvData, 'es')`.
-- Enforced strict 0px tolerance (`delta === 0` / `Math.abs(delta) === 0`) across container geometry (794px), zoom (1.0), all 14 CSS custom properties, coordinate bounding boxes (top, left, width, height), and typography metrics.
-- Evaluated top-level item hierarchies and filtered nested bullet container blocks so semantic content layout is accurately compared without artifact interference.
-- Implemented exhaustive query for all 26 blacklisted interactive artifact selectors in print DOM output, confirming 0 occurrences.
-
-## Artifact Index
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/DISPATCH.md
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/BRIEFING.md
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/progress.md
-- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/handoff.md
+- None
