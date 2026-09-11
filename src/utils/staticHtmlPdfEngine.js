@@ -456,7 +456,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
 
   // Sanitize editor artifact selector names so they do not leak into clean print HTML
   // without deleting entire CSS rule blocks or affecting layout rules (.cv-section, margins, text contrast)
-  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input)/gi;
+  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
   activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
   activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
 

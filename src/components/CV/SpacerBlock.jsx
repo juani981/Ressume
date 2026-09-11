@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useCV } from '../../context/CVContext';
 import DragHandle from '../Editor/DragHandle';
 import { MoveVertical, Trash2, Check } from 'lucide-react';
+import { createContainerDragListeners } from '../../utils/dndUtils';
 
 /**
  * SpacerBlock
@@ -460,6 +461,7 @@ export const EditableSpacerBlock = ({ section }) => {
   };
 
   const PRESETS = [20, 40, 80, 120];
+  const containerDragListeners = createContainerDragListeners(listeners, false);
 
   return (
     <div
@@ -474,6 +476,8 @@ export const EditableSpacerBlock = ({ section }) => {
       onMouseLeave={() => {
         if (!isResizing && !isEditingExact) setIsHovered(false);
       }}
+      {...attributes}
+      {...containerDragListeners}
     >
       {/* 1. Sortable Drag Handle (top-left) */}
       <div

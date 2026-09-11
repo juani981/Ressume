@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
+import { createContainerDragListeners } from '../../utils/dndUtils';
 
 export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const descriptor = getSectionDescriptor(sectionType);
@@ -128,6 +129,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     color: 'var(--text-color)'
   };
 
+  const containerDragListeners = createContainerDragListeners(listeners, true);
+
   const renderDeleteButton = () => {
     if (sectionType === 'profile_header' || descriptor.allowDelete === false) return null;
 
@@ -176,6 +179,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         className={`editable-item-container cv-block ${sectionType === 'skills' ? 'skills__name' : 'simple-list-item'}`}
         data-item-id={item.id}
         data-section-id={sectionId}
+        {...attributes}
+        {...containerDragListeners}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}
@@ -194,6 +199,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         data-item-id={item.id || 'about'}
         data-section-id={sectionId}
         style={baseStyle}
+        {...attributes}
+        {...containerDragListeners}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}
@@ -212,6 +219,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         data-item-id={item.id}
         data-section-id={sectionId}
         style={{ ...baseStyle, display: 'flex' }}
+        {...attributes}
+        {...containerDragListeners}
       >
         <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
         {renderDeleteButton()}
@@ -230,6 +239,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
       data-item-id={item.id}
       data-section-id={sectionId}
       style={{ ...baseStyle, display: 'flex' }}
+      {...attributes}
+      {...containerDragListeners}
     >
       <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
       {renderDeleteButton()}

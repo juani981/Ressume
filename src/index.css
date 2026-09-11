@@ -681,7 +681,7 @@ img {
 
 .section-drag-handle {
   top: 0.25rem;
-  left: 0.15rem;
+  left: -1.25rem;
   font-size: 1.25rem;
   padding: 1px 3px;
   background: rgba(255, 255, 255, 0.92);
@@ -691,7 +691,7 @@ img {
 
 .item-drag-handle {
   top: 0.15rem;
-  left: 0.1rem;
+  left: -1.15rem;
   font-size: 1.05rem;
   padding: 1px 2px;
   background: rgba(255, 255, 255, 0.85);
@@ -707,22 +707,27 @@ img {
 /*========== COLUMN RESIZER (DRAGGABLE DIVIDER) ==========*/
 .column-resizer {
   touch-action: none;
+  z-index: 20;
 }
 
 .column-resizer:hover .column-resizer-bar,
 .column-resizer-bar.active {
   background: #3874ff !important;
-  width: 3px !important;
-  box-shadow: 0 0 8px rgba(56, 116, 255, 0.5) !important;
+  width: 2px !important;
+  box-shadow: 0 0 6px rgba(56, 116, 255, 0.45) !important;
 }
 
 .column-resizer:hover .column-resizer-handle,
 .column-resizer-bar.active .column-resizer-handle {
   background: #ffffff !important;
-  color: #3874ff !important;
   border-color: #3874ff !important;
-  box-shadow: 0 3px 10px rgba(56, 116, 255, 0.3) !important;
-  transform: translateY(-50%) scale(1.12) !important;
+  box-shadow: 0 2px 8px rgba(56, 116, 255, 0.35) !important;
+  transform: translateY(-50%) scaleY(1.08) !important;
+}
+
+.column-resizer:hover .column-resizer-handle div,
+.column-resizer-bar.active .column-resizer-handle div {
+  background: #3874ff !important;
 }
 
 .inline-input {
@@ -766,11 +771,53 @@ img {
 .editable-section-container:hover {
   outline-color: rgba(56, 116, 255, 0.25);
   background-color: rgba(56, 116, 255, 0.02);
+  z-index: 40;
+  cursor: grab;
 }
 
 .editable-item-container:hover {
   outline-color: rgba(56, 116, 255, 0.35);
   background-color: rgba(0, 0, 0, 0.03);
+  z-index: 45;
+  cursor: grab;
+}
+
+.bullet-item-row:hover {
+  cursor: grab;
+}
+
+.editable-section-container:active,
+.editable-item-container:active,
+.bullet-item-row:active {
+  cursor: grabbing;
+}
+
+/* Ensure text and interactive controls maintain their proper text/pointer cursor */
+.inline-edit-display,
+.inline-edit-display * {
+  cursor: pointer !important;
+}
+
+.inline-input {
+  cursor: text !important;
+}
+
+button,
+a,
+.round-btn-add,
+.round-btn-del,
+.add-bullet-btn,
+.add-section-btn,
+.add-contact-btn {
+  cursor: pointer !important;
+}
+
+.column-resizer {
+  cursor: col-resize !important;
+}
+
+.spacer-resize-handle {
+  cursor: ns-resize !important;
 }
 
 /* Bullet points clean alignment */
@@ -806,12 +853,16 @@ img {
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.45);
   transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  z-index: 101;
+  pointer-events: auto;
 }
 
 .round-btn-add:hover {
-  transform: scale(1.15);
+  transform: scale(1.18);
   background: #059669;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.55);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.65);
+  z-index: 130 !important;
 }
 
 .round-btn-del {
@@ -1058,27 +1109,29 @@ img {
   pointer-events: auto;
 }
 
-/* Section add item button container (Positioned at bottom edge) */
+/* Section add item button container (Positioned directly on bottom border: 50% in, 50% out) */
 .section-add-container {
   position: absolute;
-  bottom: -13px;
+  bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 25;
+  transform: translate(-50%, 50%);
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 0;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-.editable-section-container:hover .section-add-container {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover .section-add-container,
+.section-add-container:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 120 !important;
 }
 
 /* Bullet item hover delete and drag handle */
@@ -1092,7 +1145,7 @@ img {
 
 .bullet-item-row .item-drag-handle {
   top: 0.1rem;
-  left: 0.05rem;
+  left: -0.75rem;
 }
 
 .bullet-item-row .bullet-del-btn {
@@ -1114,16 +1167,22 @@ img {
   transform: scale(1.15);
 }
 
-/* Add bullet button (Visible on Item Hover) */
+/* Add bullet button (Positioned directly centered on border line: 50% in, 50% out) */
 .bullet-add-row {
+  position: relative;
+  z-index: 100;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
 }
 
-.editable-item-container:hover .bullet-add-row {
-  opacity: 1;
-  visibility: visible;
+.editable-item-container:hover .bullet-add-row,
+.bullet-add-row:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 120 !important;
 }
 
 .add-bullet-btn {
@@ -1133,30 +1192,42 @@ img {
   font-size: 0.76rem;
   font-weight: 500;
   color: #10b981;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px dashed rgba(16, 185, 129, 0.4);
-  border-radius: 4px;
-  padding: 2px 8px;
+  background: #ffffff;
+  border: 1px dashed #10b981;
+  border-radius: 999px;
+  padding: 2px 10px;
   cursor: pointer;
   transition: all 0.18s ease;
-  margin-top: 0.2rem;
+  margin: 0;
+  transform: translateY(-50%);
+  position: relative;
+  z-index: 110;
+  pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .add-bullet-btn:hover {
-  background: rgba(16, 185, 129, 0.18);
-  border-color: #10b981;
-  transform: translateY(-1px);
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #059669;
+  color: #059669;
+  transform: translateY(-50%) scale(1.06);
+  z-index: 130 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
 }
 
 .column-add-section {
-  opacity: 0.35;
+  position: relative;
+  z-index: 100;
+  opacity: 0.5;
   transition: opacity 0.2s ease;
 }
 
 .resume__left:hover .column-add-section,
 .resume__right:hover .column-add-section,
-.resume__single-column:hover .column-add-section {
-  opacity: 1;
+.resume__single-column:hover .column-add-section,
+.column-add-section:hover {
+  opacity: 1 !important;
+  z-index: 120 !important;
 }
 
 .add-section-btn {
@@ -1172,12 +1243,18 @@ img {
   align-items: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 110;
+  pointer-events: auto;
 }
 
 .add-section-btn:hover {
   border-color: #3874ff;
   color: #3874ff;
-  background: rgba(56, 116, 255, 0.05);
+  background: rgba(56, 116, 255, 0.08);
+  transform: translateY(-1px);
+  z-index: 130 !important;
+  box-shadow: 0 4px 12px rgba(56, 116, 255, 0.15);
 }
 
 /*========== ACTION MENU TOOLTIPS & BUTTONS ==========*/
@@ -1463,10 +1540,18 @@ body.ats-mode-active {
   transform: scale(1.1);
 }
 
+.add-contact-btn {
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
+}
+
 .add-contact-btn:hover {
-  background-color: rgba(56, 116, 255, 0.12) !important;
+  background-color: rgba(56, 116, 255, 0.14) !important;
   border-color: var(--first-color, #3874ff) !important;
   transform: translateY(-1px);
+  z-index: 120 !important;
+  box-shadow: 0 2px 6px rgba(56, 116, 255, 0.2);
 }
 
 /* ==========================================================

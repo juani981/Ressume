@@ -833,12 +833,12 @@ function App() {
                            data-testid="column-resizer"
                            style={{
                               position: "absolute",
-                              left: `calc(${leftColPercent}% - 7px)`,
+                              left: `calc(${leftColPercent}% - 20px)`,
                               top: 0,
                               bottom: 0,
-                              width: "14px",
+                              width: "40px",
                               cursor: "col-resize",
-                              zIndex: 40,
+                              zIndex: 20,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -848,13 +848,13 @@ function App() {
                            <div
                               className={`column-resizer-bar ${isResizing ? "active" : ""}`}
                               style={{
-                                 width: isResizing ? "3px" : "2px",
+                                 width: isResizing ? "2px" : "1px",
                                  height: "100%",
                                  background: isResizing
                                     ? "#3874ff"
-                                    : "rgba(56, 116, 255, 0.25)",
+                                    : "rgba(56, 116, 255, 0.2)",
                                  boxShadow: isResizing
-                                    ? "0 0 8px rgba(56, 116, 255, 0.6)"
+                                    ? "0 0 6px rgba(56, 116, 255, 0.4)"
                                     : "none",
                                  transition:
                                     "background 0.15s ease, width 0.15s ease",
@@ -869,25 +869,33 @@ function App() {
                                     position: "absolute",
                                     top: "50%",
                                     transform: "translateY(-50%)",
-                                    width: "18px",
-                                    height: "32px",
-                                    borderRadius: "6px",
+                                    width: "8px",
+                                    height: "36px",
+                                    borderRadius: "999px",
                                     background: isResizing
                                        ? "#3874ff"
-                                       : "#ffffff",
-                                    color: isResizing ? "#ffffff" : "#64748b",
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                                       : "rgba(255, 255, 255, 0.95)",
+                                    boxShadow: "0 1px 4px rgba(0,0,0,0.14)",
                                     border: isResizing
                                        ? "1px solid #3874ff"
-                                       : "1px solid #cbd5e1",
+                                       : "1px solid rgba(148, 163, 184, 0.45)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    fontSize: "13px",
                                     cursor: "col-resize",
                                     transition: "all 0.15s ease",
                                  }}>
-                                 <i className="bx bx-dots-vertical-rounded"></i>
+                                 <div
+                                    style={{
+                                       width: "2px",
+                                       height: "14px",
+                                       borderRadius: "1px",
+                                       background: isResizing
+                                          ? "#ffffff"
+                                          : "#94a3b8",
+                                       transition: "background 0.15s ease",
+                                    }}
+                                 />
                               </div>
                            </div>
                         </div>

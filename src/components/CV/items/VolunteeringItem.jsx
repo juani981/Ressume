@@ -18,6 +18,7 @@ import {
   useSortable 
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { createContainerDragListeners } from '../../../utils/dndUtils';
 
 const SortableBulletItem = ({ 
   bulletId, 
@@ -52,11 +53,15 @@ const SortableBulletItem = ({
     lineHeight: 1.45
   };
 
+  const containerDragListeners = createContainerDragListeners(listeners, true);
+
   return (
     <li
       ref={setNodeRef}
       style={style}
       className="bullet-item-row editable-item-container cv-block"
+      {...attributes}
+      {...containerDragListeners}
     >
       <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
       <SimpleListItem 

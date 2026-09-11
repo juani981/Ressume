@@ -10,6 +10,7 @@ import { Lightbulb, MoreHorizontal } from 'lucide-react';
 import { getBulletClasses, supportsBulletCustomization } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import SpacerBlock, { PrintSpacerBlock, EditableSpacerBlock, IntegratedBottomSpacer } from './SpacerBlock';
+import { createContainerDragListeners } from '../../utils/dndUtils';
 
 export const PrintBaseSection = ({ section }) => {
   if (!section) return null;
@@ -159,6 +160,7 @@ const EditableBaseSection = ({ section }) => {
   const allowDelete = section.type !== 'profile_header' && descriptor.allowDelete !== false;
   const allowAddItem = section.type !== 'profile_header' && descriptor.allowAddItem !== false;
   const allowBulletCustomization = supportsBulletCustomization(section.type);
+  const containerDragListeners = createContainerDragListeners(listeners, false);
 
   return (
     <section 
@@ -167,6 +169,8 @@ const EditableBaseSection = ({ section }) => {
       className={`${sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
       id={section.id}
       data-section-id={section.id}
+      {...attributes}
+      {...containerDragListeners}
     >
       <DragHandle listeners={listeners} attributes={attributes} />
       
