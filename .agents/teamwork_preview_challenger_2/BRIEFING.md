@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-02T02:30:00Z
+# BRIEFING — 2026-09-11T16:42:41Z
 
 ## Mission
-Adversarial Stress & Edge Case Verification of Ressume (Auto-scaling math, Zero-split page breaks, Tooltip positioning, Corrupted state / XSS, Full test suite & build).
+Adversarial Stress Verification of CSS Media Encapsulation, Selector Leakage, Test Suite Rigor, Build, and Tests.
 
 ## 🔒 My Identity
 - Archetype: empirical-challenger
@@ -10,48 +10,54 @@ Adversarial Stress & Edge Case Verification of Ressume (Auto-scaling math, Zero-
 - Original parent: 95a50137-de25-4c72-8e27-3f08a68caa88
 - Milestone: Adversarial Stress & Edge Case Verification
 - Instance: 1 of 1
+- Current Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
+- Current Parent: d5d867ec-a7e5-4f91-99b6-425c7610f9f5
+- Milestone: CSS Media Boundaries & Test Rigor Verification
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code (report findings/failures)
 - Must empirically verify edge cases with executable test scripts/harnesses
 - Invariants & Rules: Obsidian callouts, @dnd-kit (no swapy), dynamic tooltips (getBoundingClientRect & viewport bounds), Tech domain focus, 0.75 floor auto-scaling, zero-split page breaks.
+- Invariants: print.css is single source of truth for print; 100% inside @media print with 0 bare selectors; index.css has 0 @media print declarations.
+- Rigor: modernized tests must remain non-regressive; T3.6 & T5.6 must be genuine assertion tests.
 
 ## Current Parent
-- Conversation ID: 95a50137-de25-4c72-8e27-3f08a68caa88
-- Updated: 2026-09-02T02:30:00Z
+- Conversation ID: d5d867ec-a7e5-4f91-99b6-425c7610f9f5
+- Updated: 2026-09-11T16:42:41Z
 
 ## Review Scope
-- **Files reviewed**:
-  - `src/utils/staticHtmlPdfEngine.js` (calculatePrintScale, escapeHTML, generateCleanPrintHTML, executeCleanPrint)
-  - `src/index.css` (print CSS, .cv-section, .cv-block, page-break-inside avoid)
-  - `src/components/Editor/SuggestionTooltip.jsx` (Obsidian callout standard, Lucide icons, dynamic bounding rect & viewport bounds)
-  - `src/components/CV/BaseSection.jsx` & `src/components/CV/BaseItem.jsx` (class assignments, DND ergonomics)
-  - `src/context/CVContext.jsx` (resilience to corrupted state / invalid localStorage)
-  - Automated DOM test suite (11 files, 218 tests) & Vite production build
-- **Interface contracts**: `/home/juani/Documentos/Ressume/PROJECT.md`, `/home/juani/Documentos/Ressume/TEST_READY.md`, `/home/juani/Documentos/Ressume/AGENTS.md`
-- **Review criteria**: Correctness, stress resistance, edge cases, invariants conformance
+- **Files to review**:
+  - `src/styles/print.css` (probe selector leakage outside `@media print`)
+  - `src/index.css` (probe `@media print` declarations)
+  - `src/tests/cleanPrintEngineVerification.test.jsx` (T3.6 and T5.6 rigor)
+  - `src/tests/pixelParityEditorPrint.test.jsx`
+  - `src/tests/adversarial-spacing-layout-extremes.test.jsx`
+  - `src/tests/challenger-o10-dom-coordinates-stress.test.jsx`
+  - `src/tests/test_inspect_juan_cv.test.jsx`
+  - `src/utils/staticHtmlPdfEngine.js`
+  - `src/App.jsx`
+- **Interface contracts**: `AGENTS.md`, `docs/audit-report.md`, `ORIGINAL_REQUEST.md`
+- **Review criteria**: CSS media encapsulation, 0 selector leakage, test assertion rigor, build and test pass.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Auto-scale math boundary conditions (heights <= 2246px, 2247-2994px, >= 2995px up to 100,000px, NaN, undefined, null, -100, Infinity): All strictly adhere to [0.75, 1.0] range.
-  - Zero-split page break rules: Verified `break-inside: avoid !important` and `page-break-inside: avoid !important` across all `.cv-section` and `.cv-block` elements in CSS and static print generator.
-  - Tooltip bounding rect positioning: Verified right overflow flip (`rect.left - 320`), bottom overflow clamp (`window.innerHeight - 420`), and top boundary clamp (`top = 20`).
-  - XSS injection & state corruption: Executed JSDOM active script execution tests with malicious payloads in all profile, section, and item fields; 0 scripts executed, 0 unescaped tags.
-  - Full test suite & production build: 218/218 tests passing, 0 build errors.
-- **Vulnerabilities found**: 0 blocking vulnerabilities. System is highly resilient.
-- **Untested angles**: None. All 5 core challenge missions fully verified.
+  - H1: `src/styles/print.css` contains zero selector leakage outside `@media print` queries.
+  - H2: `src/index.css` contains zero `@media print` declarations.
+  - H3: Modernized tests (24 tautological converted to documented no-ops) are non-regressive.
+  - H4: Tests T3.6 and T5.6 have real assertion rigor and fail if their underlying implementation invariants are violated (negative testing / oracle check).
+  - H5: Full build (`npm run build`) and test suite (`npm test -- --run`) pass cleanly.
+- **Vulnerabilities found**: [TBD]
+- **Untested angles**: [TBD]
 
 ## Loaded Skills
 - None
 
 ## Key Decisions Made
-- Confirmed full mathematical adherence to 0.75 floor for auto-scaling.
-- Confirmed strict Obsidian Callout visual design with Lucide-react icons and 0 unicode emojis.
-- Confirmed zero-split PDF print pagination across all super-containers and blocks.
-- Approved implementation without changes (Verdict: APPROVE).
+- Plan 5-step empirical verification suite.
 
 ## Artifact Index
 - `.agents/teamwork_preview_challenger_2/DISPATCH.md` — Incoming dispatch record
 - `.agents/teamwork_preview_challenger_2/BRIEFING.md` — Agent state & index
 - `.agents/teamwork_preview_challenger_2/progress.md` — Heartbeat & execution log
 - `.agents/teamwork_preview_challenger_2/handoff.md` — Final handoff report & verdict
+

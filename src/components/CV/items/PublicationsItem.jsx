@@ -1,6 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
+import { BookOpen } from 'lucide-react';
 
 const PublicationsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
@@ -19,7 +20,7 @@ const PublicationsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
           marginTop: '2px'
         }}
       >
-        <i className='bx bx-book-open' style={{ fontSize: '15px' }}></i>
+        <BookOpen size={15} />
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>

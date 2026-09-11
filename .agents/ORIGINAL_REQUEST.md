@@ -401,3 +401,188 @@ Add JSDoc blocks to every new abstraction (hooks, factory functions, shared comp
 ## Verification
 
 Run `npx vitest run` in `/home/juani/Documentos/Ressume` to verify no regressions. The baseline is **628 tests, 37 test files, all passing.** If the refactor breaks tests, fix them before declaring done — architectural purity does not excuse regressions.
+
+## 2026-09-11T16:11:48Z
+
+# Teamwork Project Prompt — Architectural Audit & Refactoring
+
+> Goal: Audit and refactor the Ressume CV editor for pixel-perfect A4 print fidelity and clean CSS architecture. Produce a written audit report, then apply all changes, pass tests, and verify a clean build.
+
+Working directory: C:\Users\usuariodgc\Documents\Ressume
+Integrity mode: development
+
+## Project Context
+
+Ressume is a **Vite + React 18** (no TypeScript) CV editor that lets users build resumes visually and print them as PDF. The editor renders a live WYSIWYG view of the CV on simulated A4 pages. When the user clicks Print, a clean HTML snapshot is generated and fed to `window.print()` via an iframe lifecycle managed in `src/utils/staticHtmlPdfEngine.js`.
+
+**MANDATORY READING before any file edits:**
+- `AGENTS.md` at the repo root — project-level architectural rules that must be followed for ALL changes.
+- `src/utils/staticHtmlPdfEngine.js` — the core print engine (981 lines).
+- `src/styles/print.css` — the ONLY print stylesheet (Single Source of Truth).
+- `src/index.css` — editor-only styles; must contain NO `@media print` rules.
+- `src/registry/sectionRegistry.js` — descriptor-based section registry.
+- `src/components/CV/BaseSection.jsx` and `BaseItem.jsx` — shared base components.
+- `src/context/CVContext.jsx` — global state, pageHeightPx, history.
+- `src/App.jsx` — editor layout, `recalculatePagination`, page break logic.
+
+**Git history** (`git log --oneline -40`): Read the git log to identify which files and bugs have been touched repeatedly. Files that appear in many commits are hotspots — treat them with special care and thorough testing.
+
+## Key Architecture Facts (already established)
+
+### Print CSS Pipeline (do NOT regress these)
+The iframe for print is built with three injected style tags, in order:
+1. `<style id="cv-base-styles">` — `src/index.css?raw` with editor artifacts regex-stripped
+2. `<style id="cv-print-styles">` — `src/styles/print.css?raw` (entire file, inside `@media print`)
+3. `<style id="cv-snapshot-breaks">` — dynamic CSS generated from `snapshotBreaksCSS()`
+
+### Known Constants (`staticHtmlPdfEngine.js` lines 9–11)
+```js
+A4_PAGE_HEIGHT_PX = 1123    // 96 DPI
+MAX_A4_2PAGE_HEIGHT_PX = 2246
+MIN_SCALE_FLOOR = 0.75
+```
+
+### Editor Gap NOT in Print
+`gapPx = 20` is a visual gap between page guides in the editor (`App.jsx`). This gap does NOT exist in the print iframe. It is a known source of drift between editor and print. Any refactoring must document this clearly and must not accidentally remove it from the editor or add it to the print path.
+
+### Section Registry Pattern
+`src/registry/sectionRegistry.js` uses a descriptor pattern: each section type has a descriptor object with `containerTag`, `containerClass`, `wrapperClass`, `printContainerStyle`, `printItemStyle`, `hasTitle`, `defaultColumn`. `getSectionDescriptor(type)` is the lookup. `PrintBaseSection` and `PrintBaseItem` consume this registry via `renderToStaticMarkup`. This pattern must be preserved and strengthened, not abandoned.
+
+## Requirements
+
+### R1. Print Engine Audit + Pixel-Parity Hardening
+
+Audit `staticHtmlPdfEngine.js` for:
+
+1. **Dead code**: Identify any code paths that are unreachable in the browser (snapshot) path. Document them. If safe to remove, remove them; if they serve JSDOM fallback only, annotate with a clear `// JSDOM-ONLY FALLBACK` comment.
+
+2. **CSS variable propagation**: Verify that CSS custom properties set on `#area-cv` in the editor (e.g., `--page-padding`, `--font-scale`, `--color-primary`, etc.) are being correctly transferred to the print iframe's root element. If they are not, implement the transfer.
+
+3. **`gapPx` offset documentation**: Add a clear block comment in `App.jsx` explaining the `gapPx = 20` editor gap, why it exists, and that it MUST NOT be introduced into the print path.
+
+4. **`margin-top` on page breaks**: Verify that `snapshotBreaksCSS` and the DOM injection at line 825 both use `var(--page-padding, 24px)` (not `0px` or a hardcoded value). These should already be correct — confirm and add a test if missing.
+
+5. **`min-height: 594mm` columns**: Audit whether `min-height: 594mm !important` on two-column layouts causes `box-decoration-break: clone` to add extra padding on page fragments. Document the finding. If it causes real drift, propose and apply a fix.
+
+### R2. CSS Single Source of Truth — Audit & Hardening
+
+1. **`src/index.css`**: Confirm there are ZERO `@media print` blocks remaining. If any are found, remove them.
+
+2. **`src/styles/print.css`**: Confirm ALL rules are inside a single top-level `@media print { }` block with no bare (non-media-wrapped) selectors. The only exceptions allowed are CSS custom property declarations on `:root` that are genuinely needed at the top level.
+
+3. **Inline styles in `staticHtmlPdfEngine.js`**: Audit all `element.style.X = Y` assignments in `executeCleanPrint`. For any property that is also declared in `print.css`, evaluate whether the inline assignment is:
+   - Necessary (dynamic value computed at runtime) → keep and add a comment explaining why it can't be in CSS
+   - Redundant (same value as the CSS rule) → remove the inline assignment, rely on the stylesheet
+   
+4. **CSS variable scoping**: Ensure that variables used in `print.css` (e.g., `--page-padding`) are defined either:
+   - On the `#area-cv` element (transferred to iframe root per R1.2), or
+   - With a fallback value in `var(--name, fallback)` syntax
+
+### R3. Test Suite — Remove Tautological Tests, Add Real Assertions
+
+Current test environment limitation: JSDOM returns 0 for all `getBoundingClientRect()` values. All geometry-dependent tests use `Object.defineProperty` mocks. This is acceptable for unit tests but must be clearly documented.
+
+1. **Identify tautological tests**: A test is tautological if it calls a function and then asserts the output equals what that same function would compute from the same inputs — i.e., it tests nothing about behavior. Document each tautological test found.
+
+2. **Fix or remove tautological tests**: For each tautological test:
+   - If the test can be rewritten to assert a specific known-correct value (hardcoded expected output), rewrite it.
+   - If the test cannot be meaningfully rewritten without a real browser, mark it with `// TODO: requires Playwright/Puppeteer for real geometry` and replace the body with a documented no-op that always passes.
+   - Do NOT delete the test file — preserve the structure and comments.
+
+3. **Add missing assertions**:
+   - `cleanPrintEngineVerification.test.jsx` Pillar 3: verify that ALL three style tags (`cv-base-styles`, `cv-print-styles`, `cv-snapshot-breaks`) are present in the generated iframe document, not just any style tag.
+   - Add a test that verifies CSS variables from the editor (e.g., `--page-padding`) are transferred to the iframe root.
+
+4. **Ensure all tests pass**: After all changes, `npm test -- --run` must show 0 failures. The current baseline is 634 passing tests. Do not reduce this count.
+
+## Acceptance Criteria
+
+### Build & Tests
+- [ ] `npm run build` completes with 0 errors and 0 warnings
+- [ ] `npm test -- --run` shows 0 failures, ≥634 tests passing
+- [ ] No new ESLint errors introduced (run `npm run lint` if a lint script exists)
+
+### Print Engine
+- [ ] `snapshotBreaksCSS` uses `var(--page-padding, 24px)` for `margin-top` (not `0px`)
+- [ ] DOM injection at `executeCleanPrint` line ~825 uses `var(--page-padding, 24px)` (not `'0px'`)
+- [ ] CSS custom properties from the editor are transferred to the print iframe root
+- [ ] All dead/unreachable code paths are documented with clear comments
+- [ ] `gapPx = 20` in `App.jsx` is annotated explaining it's editor-only, not print
+
+### CSS Architecture
+- [ ] `src/index.css` contains zero `@media print` blocks
+- [ ] `src/styles/print.css` has all rules inside a single `@media print { }` — no bare selectors
+- [ ] Redundant inline style assignments removed from `executeCleanPrint`
+- [ ] All `var()` usages in `print.css` have fallback values
+
+### Tests
+- [ ] Tautological tests identified and either rewritten or annotated
+- [ ] All three style tag IDs verified in Pillar 3 tests
+- [ ] CSS variable transfer test added
+
+## Deliverables
+
+1. **Audit Report** (markdown artifact): Document every finding before making changes, organized by category (Print Engine, CSS, Tests). Include file paths, line numbers, and severity (critical/warning/info).
+
+2. **Modified source files**: Apply all changes described above with clear commit-ready code.
+
+3. **Test run output**: Show final `npm test -- --run` output confirming 0 failures.
+
+4. **Build output**: Show final `npm run build` output confirming clean build.
+
+## 2026-09-11T19:20:26Z
+
+# Teamwork Project — Auditoría, Refactorización Integral y Pase a Producción
+
+Equipo solicitado: Equipo completo multi-agente (Auditor forense, Refactorizador, Especialista en UI/Iconos y Redactor técnico de documentación).
+
+Auditoría integral, refactorización profunda y preparación para pase a producción del proyecto Ressume, enfocada en la calidad, mantenibilidad y escalabilidad del código como editor editable, saneando archivos huérfanos y legacy, deduplicando lógica redundante, migrando toda la iconografía al estándar homogéneo de `lucide-react`, redactando documentación técnica exhaustiva en `/docs` y asegurando paridad visual 1:1 entre el editor WYSIWYG y la exportación PDF.
+
+Working directory: C:\Users\usuariodgc\Documents\Ressume
+Integrity mode: development
+
+MANDATORY RULES:
+- Seguir estrictamente las reglas de AGENTS.md (no usar swapy, solo @dnd-kit; tooltips dinámicos con getBoundingClientRect(); callouts estilo Obsidian).
+- El criterio de aceptación primordial es la CALIDAD Y MANTENIBILIDAD DEL CÓDIGO para ser editable y escalable, no conformarse únicamente con que los tests pasen.
+
+## Requirements
+
+### R1. Saneamiento de Archivos Huérfanos, Código Muerto y Legacy
+Identificar, aislar o eliminar todos los módulos, componentes, utilidades y suites de pruebas experimentales u obsoletas que no estén enlazadas activamente en la aplicación o que hayan quedado desactualizadas tras las sucesivas migraciones. Mantener intacta la compilación de producción y la funcionalidad del sistema.
+
+### R2. Refactorización y Deduplicación de Lógica Repetida
+Examinar el código en busca de patrones repetidos en el cálculo de dimensiones, manipulación del árbol DOM, gestión de estados y selectores. Extraer funciones puras, hooks y utilidades compartidas que simplifiquen los componentes principales (`App.jsx`, `BaseSection.jsx`, `staticHtmlPdfEngine.js`) para maximizar la legibilidad y la facilidad de mantenimiento a largo plazo.
+
+### R3. Unificación Homogénea de Iconografía en `lucide-react`
+Consolidar el 100% de la iconografía de la aplicación en la librería `lucide-react`. Reemplazar todas las clases heredadas de `boxicons` (`bx bx-*`) en botones de acción, menús laterales (`ActionMenu`), modales, drag handles y cabeceras de sección por sus equivalentes nativos de `lucide-react`, eliminando la dependencia de estilos de fuentes de íconos externas.
+
+### R4. Paridad Visual 1:1 y Estabilidad de Paginación
+Garantizar que la visualización del documento en el editor visual (`#area-cv`) y la salida producida en la impresión PDF nativa (`window.print()` / iframe) mantengan paridad pixel-perfect en márgenes, tipografías, cortes de página y respeto incondicional de las zonas prohibidas, garantizando que el código permanezca completamente editable y extensible.
+
+### R5. Documentación Exhaustiva y Guías de Desarrollo en `/docs`
+Elaborar una suite documental completa y estructurada en la carpeta `/docs`, que sirva como referencia indispensable para futuros desarrolladores:
+- `arquitectura.md`: Explicación de la arquitectura del editor, el flujo de datos unidireccional y el motor de paginación.
+- `guia-extensibilidad-secciones.md`: Paso a paso detallado para añadir nuevos tipos de sección o ítems mediante `sectionRegistry.js`.
+- `diseno-invariantes.md`: Guía de estilos, accesibilidad, estándares de callouts (Obsidian style) y posicionamiento de tooltips dinámicos.
+- `motor-impresion-pdf.md`: Documentación del pipeline de renderizado estático y paridad de impresión.
+
+## Acceptance Criteria
+
+### Calidad de Código y Limpieza
+- [ ] No existen archivos huérfanos ni módulos no referenciados en el árbol de `src/`
+- [ ] La librería `boxicons` ha sido reemplazada en su totalidad por componentes de `lucide-react` en toda la interfaz
+- [ ] Las funciones utilitarias y algoritmos de coordenadas están modularizados sin bloques de código duplicados
+- [ ] `npm run build` genera el bundle de producción en Vite sin advertencias ni errores
+
+### Paridad y Robustez Funcional
+- [ ] El editor WYSIWYG y la vista previa de impresión PDF presentan paridad visual 1:1 en saltos de página y márgenes
+- [ ] Ningún elemento de contenido invade las zonas de margen prohibidas en modo ATS (1-columna) ni en modo tradicional (2-columnas)
+- [ ] Todas las interacciones del usuario (drag & drop, edición inline, toggles de diseño, adición de secciones) responden con fluidez y sin errores en consola
+
+### Documentación y Mantenibilidad
+- [ ] Carpeta `/docs` completa con las 4 guías técnicas estructuradas y enlazadas
+- [ ] La suite de pruebas automatizadas ejecuta y pasa limpiamente reflejando las nuevas mejoras de refactorización
+
+### Commit & Finalización
+Al concluir exitosamente la auditoría, refactorización, documentación y verificación del build, el equipo debe consolidar los cambios en git.
+

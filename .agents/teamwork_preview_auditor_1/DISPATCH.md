@@ -1,22 +1,44 @@
-## 2026-09-02T02:27:36Z
+## Task Assignment: Forensic Integrity Audit — Print Engine & CSS Architecture
 
-<USER_REQUEST>
-You are the Forensic Auditor (teamwork_preview_auditor) performing independent integrity verification on Ressume.
-Your working directory is /home/juani/Documentos/Ressume/.agents/teamwork_preview_auditor_1.
-Create your working directory if needed.
-Read the authoritative user request at /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (latest timestamp ## 2026-09-02T02:11:43Z).
-Read /home/juani/Documentos/Ressume/PROJECT.md and /home/juani/Documentos/Ressume/TEST_READY.md.
-Read Worker 1 handoff at /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_1/handoff.md.
+### Identity
+- Role: Forensic Integrity Auditor
+- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_auditor_1
 
-Integrity Forensics Mission:
-Perform systematic, rigorous checks for cheating, facades, dummy mocks, or hardcoded shortcuts:
-1. Code Authenticity: Inspect all modified source files (`src/index.css`, `index.html`, `src/utils/schema.js`, `src/context/CVContext.jsx`, `src/App.jsx`, `src/components/CV/BaseItem.jsx`, `src/registry/sectionRegistry.js`, `src/utils/staticHtmlPdfEngine.js`, `src/components/Editor/ActionMenu.jsx`, `src/components/Editor/SuggestionTooltip.jsx`, `src/components/Editor/DragHandle.jsx`).
-2. Verify that all logic (typography scaling, layout switching, spacing CSS custom properties, auto-scale math, polymorphic item adaptation, Obsidian callout styling, static HTML generation) is genuinely implemented with real computational logic.
-3. Check for hardcoded test fixtures, dummy return values tailored specifically to test strings, or circumvented verification mechanisms.
-4. Run `npm test` and `npm run build` to independently verify execution.
+### Inputs & Authoritative References
+- User Request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see ## 2026-09-11T16:11:48Z)
+- Audit Report: C:\Users\usuariodgc\Documents\Ressume\docs\audit-report.md
+- Guidelines: C:\Users\usuariodgc\Documents\Ressume\AGENTS.md
+- Codebase workspace: `C:\Users\usuariodgc\Documents\Ressume`
 
-Output:
-Write your forensic audit report to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_auditor_1/handoff.md`.
-Your verdict must be explicitly either **CLEAN** or **INTEGRITY VIOLATION**.
-Send a completion message to parent with your verdict and detailed evidence.
-</USER_REQUEST>
+### Mission
+Conduct a strict forensic integrity audit across all modified code and test files:
+1. **No Cheating / Hardcoding**:
+   - Verify that no test mocks or implementations hardcode fake success values or circumvent actual requirements.
+   - Verify that CSS variable transfer actually reads from `#area-cv` and writes to `doc.documentElement.style`.
+   - Verify that `T3.6` actually parses HTML and queries `getElementById` for all 3 IDs.
+   - Verify that `T5.6` actually invokes `executeCleanPrint` and inspects the captured iframe document.
+2. **Static Analysis & Diff Inspection**:
+   - Inspect `git diff HEAD~2` (or current uncommitted diff) across `src/utils/staticHtmlPdfEngine.js`, `src/App.jsx`, `src/styles/print.css`, and `src/tests/`.
+   - Confirm zero prohibited patterns: no dummy facades, no deleted test files, no hidden bypasses.
+3. **Execution Validation**:
+   - Execute `npm test -- --run` and verify test count is $\ge 634$ (expected 636) with 0 failures.
+   - Execute `npm run build` and verify clean build with 0 errors and 0 warnings.
+4. Deliver a binary verdict: `CLEAN` or `INTEGRITY VIOLATION`.
+   (Note: Any violation triggers an immediate, unconditional veto).
+
+Write your full audit report to:
+`C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_auditor_1\handoff.md`
+and message back when complete.
+
+## 2026-09-11T16:42:41Z
+You are the Forensic Integrity Auditor.
+Your working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_auditor_1
+Authoritative user request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see header ## 2026-09-11T16:11:48Z)
+Read your detailed task description in C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_auditor_1\DISPATCH.md.
+
+Perform a forensic integrity audit:
+1. Verify no fake/dummy implementations or hardcoded test bypasses.
+2. Verify CSS variable propagation, discrete style tag assertions, and clean tests.
+3. Validate build (npm run build) and full test suite (npm test -- --run).
+Provide a binary verdict: CLEAN or INTEGRITY VIOLATION.
+Write your full report to C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_auditor_1\handoff.md and message back when complete.

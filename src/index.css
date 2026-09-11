@@ -128,12 +128,20 @@ body {
   box-sizing: border-box !important;
 }
 
-/* 3. Modo 1 Columna (ATS) */
+/* 3. Modo 1 Columna (ATS) - BFC Flexbox Architecture (Zero Margin Collapse) */
 #area-cv.resume__single-column {
-  display: block;
+  display: flex !important;
+  flex-direction: column !important;
   padding: var(--page-padding, 24px);
-  /* Aquí sí aplica el padding de hoja entera */
   background: #ffffff;
+}
+
+.resume__single-column {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100%;
+  max-width: 794px;
+  margin: 0 auto;
 }
 
 
@@ -170,6 +178,9 @@ img {
 .section,
 .cv-section,
 .editable-section-container {
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
   margin-bottom: var(--section-gap, 20px) !important;
   position: relative;
 }
@@ -1771,6 +1782,69 @@ body.ats-mode-active .a4-page-fold-badge {
   background: rgba(255, 255, 255, 0.1);
   color: #94a3b8;
 }
+
+/* ==========================================================
+   A4 PAGE MARGIN INSETS (editor-only visual guides)
+   These mark the implicit per-page content boundaries that
+   the pagination algorithm enforces via contentAreaBottom
+   and nextContentAreaTop. Hidden in print via .no-print.
+   ========================================================== */
+
+.a4-page-inset {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Bottom inset: warm amber stripe — "content stops here" */
+.a4-page-inset--bottom {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(219, 139, 0, 0.07) 4px,
+    rgba(219, 139, 0, 0.07) 8px
+  );
+  border-top: 1px dashed rgba(219, 139, 0, 0.3);
+}
+
+/* Top inset: cool blue stripe — "content resumes here" */
+.a4-page-inset--top {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(8, 109, 221, 0.07) 4px,
+    rgba(8, 109, 221, 0.07) 8px
+  );
+  border-bottom: 1px dashed rgba(8, 109, 221, 0.3);
+}
+
+/* ATS mode: desaturated neutral variants */
+body.ats-mode-active .a4-page-inset--bottom {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    rgba(148, 163, 184, 0.08) 4px,
+    rgba(148, 163, 184, 0.08) 8px
+  );
+  border-top-color: rgba(148, 163, 184, 0.25);
+}
+
+body.ats-mode-active .a4-page-inset--top {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(148, 163, 184, 0.08) 4px,
+    rgba(148, 163, 184, 0.08) 8px
+  );
+  border-bottom-color: rgba(148, 163, 184, 0.25);
+}
+
 /* ==========================================================
    SPACER & VERTICAL WHITESPACE COMPONENT
    ========================================================== */

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import ContactTypePicker from '../../Editor/ContactTypePicker';
-import { normalizeItemContacts, getContactConfig, syncFlatContactFields } from '../../../utils/contactTypes';
+import { normalizeItemContacts, getContactConfig, syncFlatContactFields, ContactIcon } from '../../../utils/contactTypes';
+import { Minus, Plus } from 'lucide-react';
 
 const ProfileHeaderPrintView = ({ item }) => {
   const contacts = normalizeItemContacts(item);
@@ -40,7 +41,7 @@ const ProfileHeaderPrintView = ({ item }) => {
                   gap: '6px'
                 }}
               >
-                <i className={config.icon}></i>{' '}
+                <ContactIcon name={config.icon} size={14} />{' '}
                 <InlineEdit 
                   value={contact.value || ''} 
                   isPrint={true}
@@ -115,7 +116,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 gap: '6px'
               }}
             >
-              <i className={config.icon}></i>{' '}
+              <ContactIcon name={config.icon} size={14} />{' '}
               <InlineEdit 
                 value={contact.value || ''} 
                 placeholder={config.placeholder || config.label}
@@ -131,7 +132,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 title={`Eliminar ${config.label}`}
                 aria-label={`Eliminar ${config.label}`}
               >
-                <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
+                <Minus size={12} strokeWidth={2.5} />
               </button>
             </span>
           );
@@ -165,7 +166,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
             height: '24px'
           }}
         >
-          <i className='bx bx-plus' style={{ fontSize: '13px' }}></i>
+          <Plus size={13} strokeWidth={2.5} />
           <span>Contacto</span>
         </button>
       </div>

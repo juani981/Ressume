@@ -18,11 +18,77 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { Lightbulb, MoreHorizontal } from 'lucide-react';
+import { Lightbulb, MoreHorizontal, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+
+/**
+ * Checks whether the container tag should be rendered as a list container (ul/ol).
+ *
+ * @param {string} tag
+ * @returns {boolean}
+ */
+export const isListContainerTag = (tag) => tag === 'ul' || tag === 'ol';
+
+/**
+ * Resolves the CSS wrapper class for a section based on its descriptor.
+ *
+ * @param {Object} descriptor
+ * @returns {string}
+ */
+export const resolveSectionWrapperClass = (descriptor) =>
+  descriptor?.wrapperClass !== undefined
+    ? descriptor.wrapperClass
+    : `${descriptor?.sectionClass || ''}__container bd-grid`;
+
+/**
+ * Shared renderer for section item lists in both interactive and print modes.
+ *
+ * @param {Object} props
+ * @param {Array} props.items
+ * @param {string} props.sectionId
+ * @param {string} props.sectionType
+ * @param {Object} props.descriptor
+ * @param {boolean} [props.isPrint=false]
+ * @returns {React.ReactElement|React.ReactElement[]}
+ */
+export const SectionItemsRenderer = ({
+  items = [],
+  sectionId,
+  sectionType,
+  descriptor,
+  isPrint = false,
+}) => {
+  const ContainerTag = descriptor?.containerTag;
+  const isList = isListContainerTag(ContainerTag);
+  const containerClass = descriptor?.containerClass || '';
+  const containerStyle = isPrint
+    ? descriptor?.printContainerStyle || {}
+    : descriptor?.containerStyle || {};
+
+  const renderedItems = items.map((item, index) => (
+    <BaseItem
+      key={item.id || index}
+      item={item}
+      sectionId={sectionId}
+      sectionType={sectionType}
+      isPrint={isPrint}
+      isLast={index === items.length - 1}
+    />
+  ));
+
+  if (isList && ContainerTag) {
+    return (
+      <ContainerTag className={containerClass} style={containerStyle}>
+        {renderedItems}
+      </ContainerTag>
+    );
+  }
+
+  return renderedItems;
+};
 
 /**
  * PrintBaseSection
@@ -42,12 +108,8 @@ export const PrintBaseSection = ({ section }) => {
   }
 
   const items = section.items || [];
-  const ContainerTag = descriptor.containerTag;
-  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
   const bulletClasses = section.bulletStyle ? ` ${getBulletClasses(section.bulletStyle)}` : '';
-  const wrapperClass = descriptor.wrapperClass !== undefined 
-    ? descriptor.wrapperClass 
-    : `${descriptor.sectionClass}__container bd-grid`;
+  const wrapperClass = resolveSectionWrapperClass(descriptor);
 
   return (
     <section 
@@ -63,17 +125,13 @@ export const PrintBaseSection = ({ section }) => {
       )}
 
       <div className={wrapperClass}>
-        {isListContainer ? (
-          <ContainerTag className={descriptor.containerClass || ''} style={descriptor.printContainerStyle || {}}>
-            {items.map((item, index) => (
-              <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
-            ))}
-          </ContainerTag>
-        ) : (
-          items.map((item, index) => (
-            <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
-          ))
-        )}
+        <SectionItemsRenderer
+          items={items}
+          sectionId={section.id}
+          sectionType={section.type}
+          descriptor={descriptor}
+          isPrint={true}
+        />
       </div>
 
       <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
@@ -130,11 +188,7 @@ const EditableBaseSection = ({ section }) => {
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
   const containerDragListeners = createContainerDragListeners(listeners, false);
-  const ContainerTag = descriptor.containerTag;
-  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
-  const wrapperClass = descriptor.wrapperClass !== undefined 
-    ? descriptor.wrapperClass 
-    : `${descriptor.sectionClass}__container bd-grid`;
+  const wrapperClass = resolveSectionWrapperClass(descriptor);
 
   return (
     <section 
@@ -194,7 +248,7 @@ const EditableBaseSection = ({ section }) => {
               deleteSection(section.id);
             }}
           >
-            <i className='bx bx-trash' style={{ fontSize: '13px' }}></i>
+            <Trash2 size={13} />
           </button>
         )}
       </div>
@@ -207,17 +261,13 @@ const EditableBaseSection = ({ section }) => {
       
       <div className={wrapperClass}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
-          {isListContainer ? (
-            <ContainerTag className={descriptor.containerClass || ''} style={descriptor.containerStyle || {}}>
-              {(section.items || []).map(item => (
-                <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-              ))}
-            </ContainerTag>
-          ) : (
-            (section.items || []).map(item => (
-              <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-            ))
-          )}
+          <SectionItemsRenderer
+            items={section.items || []}
+            sectionId={section.id}
+            sectionType={section.type}
+            descriptor={descriptor}
+            isPrint={false}
+          />
         </SortableContext>
       </div>
 
@@ -232,7 +282,7 @@ const EditableBaseSection = ({ section }) => {
               addSectionItem(section.id);
             }}
           >
-            <i className='bx bx-plus' style={{ fontSize: '18px', fontWeight: 'bold' }}></i>
+            <Plus size={18} strokeWidth={2.5} />
           </button>
         </div>
       )}

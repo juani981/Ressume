@@ -901,7 +901,7 @@ const ActionMenu = () => {
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <i className='bx bx-export' style={{ fontSize: '20px' }}></i>
+            <FileDown size={20} />
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>

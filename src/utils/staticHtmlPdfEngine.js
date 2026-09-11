@@ -13,13 +13,12 @@ const MIN_SCALE_FLOOR = 0.75;
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { renderRichHTML, stripHtml } from './richTextEngine';
-import { normalizeItemContacts, getContactConfig } from './contactTypes';
-import { getBulletClasses } from './bulletStyles';
 import { getSectionDescriptor } from '../registry/sectionRegistry';
 import { PrintBaseSection } from '../components/CV/BaseSection';
-import { PrintBaseItem } from '../components/CV/BaseItem';
 import baseStyles from '../index.css?raw';
 import printStyles from '../styles/print.css?raw';
+import { getDynamicTextColors } from './colorUtils';
+import { getRulerHeightPx } from './pageGeometry';
 export { renderRichHTML, stripHtml };
 
 /**
@@ -184,57 +183,9 @@ export const calculatePrintScale = (renderedHeight, maxPages = 2) => {
 };
 
 /**
- * Computes YIQ contrast colors for backgrounds
+ * Computes YIQ contrast colors for backgrounds (delegated to colorUtils)
  */
-const getDynamicTextColors = (hexcolor) => {
-  let calcHex = hexcolor || '#ffffff';
-  let hex = calcHex.replace("#", "");
-  if (hex.length === 3) {
-    hex = hex.split('').map(char => char + char).join('');
-  }
-  const r = parseInt(hex.substr(0, 2), 16) || 0;
-  const g = parseInt(hex.substr(2, 2), 16) || 0;
-  const b = parseInt(hex.substr(4, 2), 16) || 0;
-  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-  
-  const adjustColor = (color, amount) => {
-    return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
-  };
-  const circleColor = adjustColor(calcHex, yiq >= 128 ? -40 : 40);
-
-  if (yiq < 128) {
-    return {
-      titleColor: '#fcfcfc',
-      textColor: '#f0efef',
-      textColorLight: '#cccccc',
-      containerColorAlt: 'rgba(255, 255, 255, 0.1)',
-      circleColor
-    };
-  } else {
-    return {
-      titleColor: '#0b0a0a',
-      textColor: '#403a3a',
-      textColorLight: '#707070',
-      containerColorAlt: 'rgba(0, 0, 0, 0.05)',
-      circleColor
-    };
-  }
-};
-
-/**
- * Renders an item to clean static HTML via real React PrintBaseItem (Single Source of Truth)
- */
-export const renderItemHTML = (item, sectionType, isLast = false) => {
-  if (!item) return '';
-  return renderToStaticMarkup(
-    React.createElement(PrintBaseItem, {
-      item,
-      sectionId: sectionType,
-      sectionType,
-      isLast
-    })
-  );
-};
+// getDynamicTextColors imported from ./colorUtils
 
 /**
  * Renders a section to clean static HTML via real React PrintBaseSection
@@ -261,19 +212,7 @@ export const captureEditorSnapshot = () => {
   const width = Math.round((rect && rect.width) || areaCv.offsetWidth || 0);
   const height = Math.round(areaCv.scrollHeight || areaCv.offsetHeight || 0);
 
-  let pageHeightPx = A4_PAGE_HEIGHT_PX;
-  try {
-    const ruler = document.createElement('div');
-    ruler.style.height = '297mm';
-    ruler.style.position = 'absolute';
-    ruler.style.visibility = 'hidden';
-    ruler.style.top = '-9999px';
-    document.body.appendChild(ruler);
-    if (ruler.offsetHeight > 0) {
-      pageHeightPx = ruler.offsetHeight;
-    }
-    ruler.remove();
-  } catch (_) {}
+  const pageHeightPx = getRulerHeightPx(document.body);
 
   const brokenElements = [];
   const brokenNodes = areaCv.querySelectorAll('[data-editor-break-forced="true"]');
@@ -479,7 +418,6 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <style id="cv-base-styles">
     :root,
     #area-cv {
@@ -561,6 +499,7 @@ ${snapshotBreaksCSS}
  * @param {number} pageHeightPx Height of one A4 page in pixels (default: 1123)
  * @returns {{ totalPages: number, targetHeightMm: number, breaksApplied: Array }}
  */
+// JSDOM-ONLY FALLBACK: unreachable in browser where #area-cv snapshot is available
 export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = A4_PAGE_HEIGHT_PX) => {
   if (!areaCv) {
     return { totalPages: 1, targetHeightMm: 297, breaksApplied: [] };
@@ -666,7 +605,7 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
 
             const pushDistance = Math.max(0, foldY - top);
             if (pushDistance > 0) {
-              item.style.setProperty('margin-top', `${pushDistance + 10}px`, 'important');
+              item.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
             }
 
             breaksApplied.push({
@@ -702,6 +641,7 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
   areaCv.style.setProperty('--print-total-pages', String(totalPages));
   areaCv.style.alignItems = 'stretch';
 
+  // JSDOM-ONLY FALLBACK: Required for unit test assertions without real CSS engine
   leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
   leftCol.style.setProperty('height', '100%', 'important');
   leftCol.style.setProperty('align-self', 'stretch', 'important');
@@ -779,6 +719,20 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
           if (doc) {
             doc.title = dynamicDocumentTitle;
           }
+          // Transfer CSS custom properties from editor #area-cv to print document root
+          if (typeof document !== 'undefined') {
+            const editorAreaCv = document.getElementById('area-cv');
+            if (editorAreaCv && editorAreaCv.style && doc.documentElement) {
+              for (let i = 0; i < editorAreaCv.style.length; i++) {
+                const prop = editorAreaCv.style[i];
+                if (prop && prop.startsWith('--')) {
+                  const val = editorAreaCv.style.getPropertyValue(prop);
+                  const priority = editorAreaCv.style.getPropertyPriority(prop);
+                  doc.documentElement.style.setProperty(prop, val, priority);
+                }
+              }
+            }
+          }
           // Await font readiness with timeout fallback (max 1000ms)
           if (doc.fonts && typeof doc.fonts.ready?.then === 'function') {
             await Promise.race([
@@ -845,15 +799,9 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
             const rightCol = areaCv?.querySelector?.('.resume__right');
             if (leftCol && leftCol.style) {
               leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-              leftCol.style.setProperty('height', '100%', 'important');
-              leftCol.style.setProperty('align-self', 'stretch', 'important');
-              leftCol.style.setProperty('box-sizing', 'border-box', 'important');
             }
             if (rightCol && rightCol.style) {
               rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-              rightCol.style.setProperty('height', '100%', 'important');
-              rightCol.style.setProperty('align-self', 'stretch', 'important');
-              rightCol.style.setProperty('box-sizing', 'border-box', 'important');
             }
 
             // Anti-orphan safeguard: Verify that no section title is separated from its first child across page folds
@@ -905,6 +853,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
               iframe.style.height = `${totalPages * pageHeightPx}px`;
             }
           } else {
+            // JSDOM-ONLY FALLBACK: unreachable in browser where #area-cv snapshot is available
             // Fallback for headless environments without snapshot
             const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
 

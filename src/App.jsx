@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Joyride } from "react-joyride";
 import { CustomTooltip } from "./components/CustomTooltip";
 
@@ -8,24 +8,20 @@ import AddSectionModal from "./components/Editor/AddSectionModal";
 import SuggestionTooltip from "./components/Editor/SuggestionTooltip";
 import ToastNotification from "./components/Editor/ToastNotification";
 import { useCV } from "./context/CVContext";
-import CVSection from "./components/CV/CVSection";
+import BaseSection from "./components/CV/BaseSection";
+import { PlusCircle } from "lucide-react";
 import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
-import {
-   DndContext,
-   closestCorners,
-   PointerSensor,
-   KeyboardSensor,
-   useSensor,
-   useSensors,
-   DragOverlay,
-   useDroppable,
-} from "@dnd-kit/core";
-import {
-   SortableContext,
-   verticalListSortingStrategy,
-   arrayMove,
-   sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
+import { DndContext, useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+
+import { usePaginationEngine } from "./hooks/usePaginationEngine";
+import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
+import { useColumnResizer } from "./hooks/useColumnResizer";
+import { computeTypographyTokens } from "./utils/typographyUtils";
+import { getDynamicTextVariables } from "./utils/colorUtils";
+import A4PageGuides from "./components/Editor/A4PageGuides";
+import ColumnResizer from "./components/Editor/ColumnResizer";
+import CVDragOverlay from "./components/Editor/CVDragOverlay";
 
 function DroppableColumn({ id, column, className, style, children }) {
    const { setNodeRef } = useDroppable({
@@ -46,14 +42,10 @@ function DroppableColumn({ id, column, className, style, children }) {
 function App() {
    const {
       cvData,
-      reorderSections,
-      updateSectionColumn,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
-      addSection,
       updateLayout,
       activeTooltip,
-      clearActiveTooltip,
       setTotalPages: setContextTotalPages,
       paginationTrigger,
    } = useCV();
@@ -63,429 +55,49 @@ function App() {
    }, []);
 
    const areaCvRef = useRef(null);
-   const [isResizing, setIsResizing] = useState(false);
-   const [totalPages, setTotalPages] = useState(1);
-   const [activeDragItem, setActiveDragItem] = useState(null);
-   const [activeDragSection, setActiveDragSection] = useState(null);
 
-   const isRecalculatingRef = useRef(false);
-   const pendingRecalcRef = useRef(false);
-   const rafIdRef = useRef(null);
+   // 1. DND Coordination Hook
+   const {
+      sensors,
+      collisionDetection,
+      handleDragStart,
+      handleDragOver,
+      handleDragEnd,
+      activeDragItem,
+      activeDragSection,
+   } = useCVDndCoordinator({
+      cvData,
+      moveItemBetweenSections,
+      moveSectionToColumnAndIndex,
+   });
 
-   const recalculatePagination = useCallback(() => {
-      if (!areaCvRef.current) return;
-      if (activeDragItem || activeDragSection) return;
+   // 2. Pagination Engine Hook
+   const { totalPages } = usePaginationEngine({
+      areaCvRef,
+      cvData,
+      setContextTotalPages,
+      activeDragItem,
+      activeDragSection,
+      paginationTrigger,
+   });
 
-      const areaCv = areaCvRef.current;
+   // 3. Column Resizer Hook
+   const { isResizing, handleResizerMouseDown } = useColumnResizer({
+      areaCvRef,
+      onResize: (clamped) => updateLayout("leftColumnWidth", clamped),
+      initialLeftWidth: cvData.layout?.leftColumnWidth,
+   });
 
-      // 1. Reset previously forced breaks
-      const previouslyBroken = areaCv.querySelectorAll(
-         '[data-editor-break-forced="true"]',
-      );
-      previouslyBroken.forEach((el) => {
-         el.style.removeProperty("margin-top");
-         el.removeAttribute("data-editor-break-forced");
-         el.removeAttribute("data-editor-break-fold");
-      });
-
-      // 2. Measure ruler height for 297mm
-      let pageHeightPx = 1123;
-      if (typeof document !== "undefined") {
-         try {
-            const ruler = document.createElement("div");
-            ruler.style.height = "297mm";
-            ruler.style.position = "absolute";
-            ruler.style.visibility = "hidden";
-            ruler.style.top = "-9999px";
-            document.body.appendChild(ruler);
-            if (ruler.offsetHeight > 0) {
-               pageHeightPx = ruler.offsetHeight;
-            }
-            ruler.remove();
-         } catch (_) {}
-      }
-
-      const gapPx = 20;
-
-      const getRelativeBounds = (el) => {
-         if (
-            typeof el.getBoundingClientRect === "function" &&
-            typeof areaCv.getBoundingClientRect === "function"
-         ) {
-            const elRect = el.getBoundingClientRect();
-            const areaRect = areaCv.getBoundingClientRect();
-            return {
-               top: elRect.top - areaRect.top,
-               bottom: elRect.bottom - areaRect.top,
-               height: elRect.height || el.offsetHeight || 0,
-            };
-         }
-         const top = el.offsetTop || 0;
-         const height = el.offsetHeight || 0;
-         return { top, bottom: top + height, height };
-      };
-
-      const getBreakableComponents = (containerEl) => {
-         if (!containerEl) return [];
-         const selector =
-            ".section-title, .cv-block, .experience__content, .education__content, .skills__name, .profile__description, .home__data, .simple-list-item, li.cv-block, .contact__item, .editable-item-container";
-         const rawList = Array.from(containerEl.querySelectorAll(selector));
-         return rawList.filter((item, idx, arr) => {
-            if (item.classList.contains("section-title")) return true;
-            const hasParentInList = arr.some(
-               (other) =>
-                  other !== item &&
-                  other.contains(item) &&
-                  !other.classList.contains("section-title"),
-            );
-            return !hasParentInList;
-         });
-      };
-
-      const is2ColumnMode =
-         cvData.layout?.type === "2-column" && !cvData.layout?.isAtsMode;
-      const leftCol = areaCv.querySelector(".resume__left");
-      const rightCol = areaCv.querySelector(".resume__right");
-      const singleCol = areaCv.querySelector(".resume__single-column");
-
-      const colDefs =
-         is2ColumnMode && leftCol && rightCol
-            ? [
-                 {
-                    name: "left",
-                    el: leftCol,
-                    items: getBreakableComponents(leftCol),
-                 },
-                 {
-                    name: "right",
-                    el: rightCol,
-                    items: getBreakableComponents(rightCol),
-                 },
-              ]
-            : [
-                 {
-                    name: "single",
-                    el: singleCol || areaCv,
-                    items: getBreakableComponents(singleCol || areaCv),
-                 },
-              ];
-
-      let passes = 0;
-      let hasChanges = true;
-
-      while (hasChanges && passes < 6) {
-         passes++;
-         hasChanges = false;
-
-         const currentMaxHeight = Math.max(
-            ...colDefs.map((c) => c.el.scrollHeight || c.el.offsetHeight || 0),
-            areaCv.scrollHeight || 0,
-            pageHeightPx,
-         );
-         const estimatedPages = Math.max(
-            1,
-            Math.ceil((currentMaxHeight + gapPx) / (pageHeightPx + gapPx)),
-         );
-
-         const pagePadding = Number(cvData.layout?.pagePadding ?? 24);
-
-         for (let pageNum = 1; pageNum <= estimatedPages; pageNum++) {
-            const foldTop = pageNum * pageHeightPx + (pageNum - 1) * gapPx;
-            const foldBottom = foldTop + gapPx;
-            const contentAreaBottom = foldTop - pagePadding;
-            const nextContentAreaTop = foldBottom + pagePadding;
-
-            for (const col of colDefs) {
-               for (const item of col.items) {
-                  if (
-                     item.getAttribute("data-editor-break-forced") === "true"
-                  ) {
-                     continue;
-                  }
-
-                  const { top, bottom, height } = getRelativeBounds(item);
-
-                  if (height <= 0) continue;
-
-                  if (top >= nextContentAreaTop) {
-                     continue;
-                  }
-
-                  let isOrphanTitle = false;
-                  if (
-                     item.classList.contains("section-title") ||
-                     item.hasAttribute("data-section-title")
-                  ) {
-                     const itemIdx = col.items.indexOf(item);
-                     const nextItem =
-                        itemIdx !== -1 && itemIdx + 1 < col.items.length
-                           ? col.items[itemIdx + 1]
-                           : null;
-                     if (
-                        nextItem &&
-                        !nextItem.classList.contains("section-title")
-                     ) {
-                        const nextBounds = getRelativeBounds(nextItem);
-                        if (
-                           nextBounds &&
-                           nextBounds.bottom > contentAreaBottom - 4
-                        ) {
-                           isOrphanTitle = true;
-                        }
-                     }
-                     if (
-                        !isOrphanTitle &&
-                        top < contentAreaBottom &&
-                        bottom > contentAreaBottom - 60
-                     ) {
-                        isOrphanTitle = true;
-                     }
-                  }
-
-                  if (!isOrphanTitle && bottom <= contentAreaBottom - 4) {
-                     continue;
-                  }
-
-                  item.setAttribute("data-editor-break-forced", "true");
-                  item.setAttribute("data-editor-break-fold", String(pageNum));
-
-                  const pushDistance = Math.max(0, nextContentAreaTop - top);
-                  item.style.setProperty(
-                     "margin-top",
-                     `${pushDistance}px`,
-                     "important",
-                  );
-
-                  hasChanges = true;
-                  break;
-               }
-            }
-         }
-      }
-
-      const finalMaxHeight = Math.max(
-         ...colDefs.map((c) => c.el.scrollHeight || c.el.offsetHeight || 0),
-         areaCv.scrollHeight || 0,
-         pageHeightPx,
-      );
-      const finalPages = Math.max(
-         1,
-         Math.ceil((finalMaxHeight + gapPx) / (pageHeightPx + gapPx)),
-      );
-      setTotalPages((prev) => (prev !== finalPages ? finalPages : prev));
-      if (typeof setContextTotalPages === "function") {
-         setContextTotalPages(finalPages);
-      }
-   }, [cvData, activeDragItem, activeDragSection, setContextTotalPages]);
-
-   const schedulePaginationRecalc = useCallback(() => {
-      if (rafIdRef.current) {
-         cancelAnimationFrame(rafIdRef.current);
-      }
-      rafIdRef.current = requestAnimationFrame(() => {
-         // 1. Si hay un cálculo en progreso, registrar que queda un recálculo pendiente y salir
-         if (isRecalculatingRef.current) {
-            pendingRecalcRef.current = true;
-            return;
-         }
-         try {
-            isRecalculatingRef.current = true;
-            recalculatePagination();
-         } finally {
-            // 2. Cooldown de 30ms para evitar Layout Thrashing
-            setTimeout(() => {
-               isRecalculatingRef.current = false;
-               // 3. Trailing Call: Si hubo eventos descartados durante el proceso, re-ejecutar
-               if (pendingRecalcRef.current) {
-                  pendingRecalcRef.current = false;
-                  schedulePaginationRecalc();
-               }
-            }, 30);
-         }
-      });
-   }, [recalculatePagination]); 
-
-   // 1. Trigger when cvData, drag items, or context paginationTrigger change
-   useEffect(() => {
-      schedulePaginationRecalc();
-   }, [cvData, activeDragItem, activeDragSection, paginationTrigger, schedulePaginationRecalc]);
-
-   // 2. Real-time Live Resize Event listener (fires on EVERY pixel move during drag or keydown)
-   useEffect(() => {
-      const handleLiveResize = () => {
-         schedulePaginationRecalc();
-      };
-      window.addEventListener('cv-spacer-live-resize', handleLiveResize);
-      return () => window.removeEventListener('cv-spacer-live-resize', handleLiveResize);
-   }, [schedulePaginationRecalc]);
-
-   // 3. ResizeObserver on #area-cv for ANY DOM dimensional mutation (typing, scale, font, padding)
-   useEffect(() => {
-      const areaCv = areaCvRef.current;
-      if (!areaCv || typeof ResizeObserver === 'undefined') return;
-
-      const observer = new ResizeObserver(() => {
-         if (!isRecalculatingRef.current) {
-            schedulePaginationRecalc();
-         }
-      });
-
-      observer.observe(areaCv);
-      const leftCol = areaCv.querySelector('.resume__left');
-      const rightCol = areaCv.querySelector('.resume__right');
-      if (leftCol) observer.observe(leftCol);
-      if (rightCol) observer.observe(rightCol);
-
-      return () => {
-         observer.disconnect();
-         if (rafIdRef.current) {
-            cancelAnimationFrame(rafIdRef.current);
-         }
-      };
-   }, [schedulePaginationRecalc]);
-
+   // Modal State
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
-   const [addSectionTargetColumn, setAddSectionTargetColumn] =
-      useState("right");
+   const [addSectionTargetColumn, setAddSectionTargetColumn] = useState("right");
 
    const handleOpenAddSection = (column = "right") => {
       setAddSectionTargetColumn(column);
       setIsAddSectionModalOpen(true);
    };
 
-   const sensors = useSensors(
-      useSensor(PointerSensor, {
-         activationConstraint: {
-            distance: 5, // Avoids triggering drag on simple clicks or text selection
-         },
-      }),
-      useSensor(KeyboardSensor, {
-         coordinateGetter: sortableKeyboardCoordinates,
-      }),
-   );
-
-   const handleDragStart = (event) => {
-      const { active } = event;
-      const data = active.data.current;
-
-      if (data?.type === "item") {
-         setActiveDragItem(data);
-         setActiveDragSection(null);
-      } else if (data?.type === "section") {
-         setActiveDragSection(data);
-         setActiveDragItem(null);
-      }
-   };
-
-   const handleDragOver = (event) => {
-      // Keep drag over lightweight to avoid re-rendering layout during active drag gesture
-   };
-
-   const handleDragEnd = (event) => {
-      const { active, over } = event;
-      setActiveDragItem(null);
-      setActiveDragSection(null);
-
-      if (!over) return;
-
-      const activeData = active.data.current;
-      const overData = over.data.current;
-
-      // 1. Moving an Item (Within same section, cross-section, or cross-column)
-      if (activeData?.type === "item") {
-         const activeItemId = active.id;
-         const activeSectionId = activeData.sectionId;
-
-         let targetSectionId = null;
-         let overItemId = null;
-
-         if (overData?.type === "item") {
-            targetSectionId = overData.sectionId;
-            overItemId = over.id;
-         } else if (overData?.type === "section") {
-            targetSectionId = over.id;
-            overItemId = null;
-         } else if (overData?.type === "column") {
-            const colSections = cvData.sections.filter(
-               (s) => s.column === overData.column,
-            );
-            if (colSections.length > 0) {
-               targetSectionId = colSections[colSections.length - 1].id;
-            }
-         } else {
-            // Find which section contains over.id
-            const foundSec = cvData.sections.find(
-               (s) =>
-                  s.id === over.id ||
-                  (s.items || []).some((i) => i.id === over.id),
-            );
-            if (foundSec) {
-               targetSectionId = foundSec.id;
-               if (foundSec.id !== over.id) {
-                  overItemId = over.id;
-               }
-            }
-         }
-
-         if (activeSectionId && targetSectionId) {
-            moveItemBetweenSections(
-               activeItemId,
-               overItemId,
-               activeSectionId,
-               targetSectionId,
-            );
-         }
-         return;
-      }
-
-      // 2. Moving a Section (Cross-column or intra-column reordering)
-      if (activeData?.type === "section") {
-         const activeSectionId = active.id;
-         const activeSection = cvData.sections.find(
-            (s) => s.id === activeSectionId,
-         );
-         if (!activeSection) return;
-
-         let targetColumn = activeSection.column;
-         let overSectionId = null;
-
-         if (overData?.type === "column") {
-            targetColumn = overData.column;
-            overSectionId = null;
-         } else if (overData?.type === "section") {
-            const overSection = cvData.sections.find((s) => s.id === over.id);
-            if (overSection) {
-               targetColumn = overSection.column;
-               overSectionId = overSection.id;
-            }
-         } else if (overData?.type === "item") {
-            const overSection = cvData.sections.find(
-               (s) => s.id === overData.sectionId,
-            );
-            if (overSection) {
-               targetColumn = overSection.column;
-               overSectionId = overSection.id;
-            }
-         } else {
-            const foundSec = cvData.sections.find(
-               (s) =>
-                  s.id === over.id ||
-                  (s.items || []).some((i) => i.id === over.id),
-            );
-            if (foundSec) {
-               targetColumn = foundSec.column;
-               overSectionId = foundSec.id;
-            }
-         }
-
-         moveSectionToColumnAndIndex(
-            activeSectionId,
-            targetColumn,
-            overSectionId,
-         );
-      }
-   };
-
+   // Layout Modes & Class Toggles
    const isAtsMode =
       cvData.layout?.isAtsMode === true || cvData.layout?.type === "1-column";
    const is2Col =
@@ -501,92 +113,12 @@ function App() {
          document.body.classList.remove("ats-mode-active");
       };
    }, [isAtsMode]);
-   const leftSections = cvData.sections.filter((s) => s.column === "left");
-   const rightSections = cvData.sections.filter((s) => s.column === "right");
 
-   const fontFamilies = {
-      Poppins: "'Poppins', sans-serif",
-      Inter: "'Inter', sans-serif",
-      Roboto: "'Roboto', sans-serif",
-      Merriweather: "'Merriweather', serif",
-      "JetBrains Mono": "'JetBrains Mono', monospace",
-   };
-   const currentFontFamily =
-      fontFamilies[cvData.layout?.fontFamily] ||
-      cvData.layout?.fontFamily ||
-      "'Poppins', sans-serif";
-   const fontScale = cvData.layout?.fontScale ?? 1.0;
-   const titleScale = cvData.layout?.titleScale ?? 1.0;
-   const bodyScale = cvData.layout?.bodyScale ?? 1.0;
-   const listScale = cvData.layout?.listScale ?? 1.0;
-   const lineHeight = cvData.layout?.lineHeight ?? 1.45;
-   const pagePadding = cvData.layout?.pagePadding ?? 24;
-   const sectionGap = cvData.layout?.sectionGap ?? 20;
-   const itemGap = cvData.layout?.itemGap ?? 8;
+   const leftSections = (cvData.sections || []).filter((s) => s.column === "left");
+   const rightSections = (cvData.sections || []).filter((s) => s.column === "right");
 
-   const dynamicSpacing = {
-      "--body-font": currentFontFamily,
-      "--font-scale": `${fontScale}`,
-      "--title-scale": `${titleScale}`,
-      "--body-scale": `${bodyScale}`,
-      "--list-scale": `${listScale}`,
-      "--line-height": `${lineHeight}`,
-      "--page-padding": `${pagePadding}px`,
-      "--section-gap": `${sectionGap}px`,
-      "--item-gap": `${itemGap}px`,
-   };
-
-   // YIQ Contrast Intelligence
-   const getDynamicTextColors = (hexcolor) => {
-      let calcHex = hexcolor || "#ffffff";
-      let hex = calcHex.replace("#", "");
-      if (hex.length === 3) {
-         hex = hex
-            .split("")
-            .map((char) => char + char)
-            .join("");
-      }
-      const r = parseInt(hex.substr(0, 2), 16) || 0;
-      const g = parseInt(hex.substr(2, 2), 16) || 0;
-      const b = parseInt(hex.substr(4, 2), 16) || 0;
-      const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-
-      const adjustColor = (color, amount) => {
-         return (
-            "#" +
-            color
-               .replace(/^#/, "")
-               .replace(/../g, (c) =>
-                  (
-                     "0" +
-                     Math.min(
-                        255,
-                        Math.max(0, parseInt(c, 16) + amount),
-                     ).toString(16)
-                  ).substr(-2),
-               )
-         );
-      };
-      const circleColor = adjustColor(calcHex, yiq >= 128 ? -40 : 40);
-
-      if (yiq < 128) {
-         return {
-            "--title-color": "#fcfcfc",
-            "--text-color": "#f0efef",
-            "--text-color-light": "#cccccc",
-            "--container-color-alt": "rgba(255, 255, 255, 0.1)",
-            "--circle-color": circleColor,
-         };
-      } else {
-         return {
-            "--title-color": "#0b0a0a",
-            "--text-color": "#403a3a",
-            "--text-color-light": "#707070",
-            "--container-color-alt": "rgba(0, 0, 0, 0.05)",
-            "--circle-color": circleColor,
-         };
-      }
-   };
+   // Dynamic typography and spacing tokens
+   const dynamicSpacing = computeTypographyTokens(cvData.layout);
 
    const leftColumnWidth = cvData.layout?.leftColumnWidth;
    const leftColPercent = leftColumnWidth || 33.33;
@@ -596,43 +128,7 @@ function App() {
          : "1fr 2fr"
       : undefined;
 
-   const handleResizerMouseDown = (e) => {
-      e.preventDefault();
-      if (!areaCvRef.current) return;
-      setIsResizing(true);
-
-      const handleMove = (moveEvent) => {
-         if (!areaCvRef.current) return;
-         const rect = areaCvRef.current.getBoundingClientRect();
-         const clientX =
-            moveEvent.clientX ??
-            (moveEvent.touches && moveEvent.touches[0]
-               ? moveEvent.touches[0].clientX
-               : 0);
-         const offsetX = clientX - rect.left;
-         const rawPercent = (offsetX / rect.width) * 100;
-         const clamped = Math.round(Math.min(55, Math.max(20, rawPercent)));
-         updateLayout("leftColumnWidth", clamped);
-      };
-
-      const handleUp = () => {
-         setIsResizing(false);
-         window.removeEventListener("mousemove", handleMove);
-         window.removeEventListener("mouseup", handleUp);
-         window.removeEventListener("touchmove", handleMove);
-         window.removeEventListener("touchend", handleUp);
-         document.body.style.cursor = "";
-         document.body.style.userSelect = "";
-      };
-
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-      window.addEventListener("mousemove", handleMove);
-      window.addEventListener("mouseup", handleUp);
-      window.addEventListener("touchmove", handleMove);
-      window.addEventListener("touchend", handleUp);
-   };
-
+   // Onboarding Tour Steps & State
    const steps = [
       {
          content: (
@@ -686,15 +182,11 @@ function App() {
          if (!hasSeenTour) {
             setRunTour(true);
          }
-      } catch (e) {
-         // safe fallback for test/SSR environments
-      }
+      } catch (_) {}
    }, []);
 
-   // Callback para guardar en localStorage cuando el usuario termine o salte el tour
    const handleJoyrideCallback = (data) => {
       const { status, type } = data || {};
-
       if (
          status === "finished" ||
          status === "skipped" ||
@@ -730,7 +222,7 @@ function App() {
 
          <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={collisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}>
@@ -764,7 +256,10 @@ function App() {
                         ? `linear-gradient(to right, ${cvData.layout?.leftBg || "#f3f4f6"} 0%, ${cvData.layout?.leftBg || "#f3f4f6"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} 100%)`
                         : "#ffffff",
                      gap: 0,
-                     minHeight: totalPages > 1 ? `calc(${totalPages * 297}mm + ${(totalPages - 1) * 20}px)` : `${totalPages * 297}mm`,
+                     minHeight:
+                        totalPages > 1
+                           ? `calc(${totalPages * 297}mm + ${(totalPages - 1) * 20}px)`
+                           : `${totalPages * 297}mm`,
                      position: "relative",
                      ...(is2Col
                         ? {
@@ -779,27 +274,12 @@ function App() {
                         : {}),
                      ...dynamicSpacing,
                   }}>
+                  {/* Visual A4 Page Fold Guides & Margin Insets */}
+                  <A4PageGuides
+                     totalPages={totalPages}
+                     pagePadding={cvData.layout?.pagePadding}
+                  />
 
-                  {/* Visual A4 Page Fold Guides (20px gap representation in live editor) */}
-                  {Array.from({ length: Math.max(0, totalPages - 1) }).map((_, i) => (
-                     <div
-                        key={`page-fold-${i}`}
-                        className="a4-page-fold-guide no-print"
-                        data-testid={`a4-page-fold-${i + 1}`}
-                        style={{
-                           position: "absolute",
-                           top: `calc(${(i + 1) * 297}mm + ${i * 20}px)`,
-                           left: 0,
-                           right: 0,
-                           height: "20px",
-                           zIndex: 35,
-                           pointerEvents: "none",
-                        }}>
-                        <div className="a4-page-fold-line" />
-                        <span className="a4-page-fold-badge">Página {i + 2}</span>
-                     </div>
-                  ))}
-             
                   {is2Col ? (
                      <>
                         <DroppableColumn
@@ -820,13 +300,13 @@ function App() {
                               minWidth: 0,
                               maxWidth: "100%",
                               color: "var(--text-color)",
-                              ...getDynamicTextColors(cvData.layout?.leftBg),
+                              ...getDynamicTextVariables(cvData.layout?.leftBg),
                            }}>
                            <SortableContext
                               items={leftSections.map((s) => s.id)}
                               strategy={verticalListSortingStrategy}>
                               {leftSections.map((section) => (
-                                 <CVSection
+                                 <BaseSection
                                     key={section.id}
                                     section={section}
                                  />
@@ -844,88 +324,18 @@ function App() {
                                  className="add-section-btn no-print"
                                  onClick={() => handleOpenAddSection("left")}
                                  title="Agregar nueva sección a la columna lateral">
-                                 <i className="bx bx-plus-circle"></i> Agregar
+                                 <PlusCircle size={16} /> Agregar
                                  Sección Lateral
                               </button>
                            </div>
                         </DroppableColumn>
 
                         {/* Draggable Column Divider / Resizer */}
-                        <div
-                           className="column-resizer no-print"
-                           onMouseDown={handleResizerMouseDown}
-                           onTouchStart={handleResizerMouseDown}
-                           title="Arrastra para ajustar el ancho de las columnas"
-                           aria-label="Divisor de columnas arrastrable"
-                           data-testid="column-resizer"
-                           style={{
-                              position: "absolute",
-                              left: `calc(${leftColPercent}% - 20px)`,
-                              top: 0,
-                              bottom: 0,
-                              width: "40px",
-                              cursor: "col-resize",
-                              zIndex: 20,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              userSelect: "none",
-                              touchAction: "none",
-                           }}>
-                           <div
-                              className={`column-resizer-bar ${isResizing ? "active" : ""}`}
-                              style={{
-                                 width: isResizing ? "2px" : "1px",
-                                 height: "100%",
-                                 background: isResizing
-                                    ? "#3874ff"
-                                    : "rgba(56, 116, 255, 0.2)",
-                                 boxShadow: isResizing
-                                    ? "0 0 6px rgba(56, 116, 255, 0.4)"
-                                    : "none",
-                                 transition:
-                                    "background 0.15s ease, width 0.15s ease",
-                                 position: "relative",
-                                 display: "flex",
-                                 alignItems: "center",
-                                 justifyContent: "center",
-                              }}>
-                              <div
-                                 className="column-resizer-handle"
-                                 style={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    width: "8px",
-                                    height: "36px",
-                                    borderRadius: "999px",
-                                    background: isResizing
-                                       ? "#3874ff"
-                                       : "rgba(255, 255, 255, 0.95)",
-                                    boxShadow: "0 1px 4px rgba(0,0,0,0.14)",
-                                    border: isResizing
-                                       ? "1px solid #3874ff"
-                                       : "1px solid rgba(148, 163, 184, 0.45)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    cursor: "col-resize",
-                                    transition: "all 0.15s ease",
-                                 }}>
-                                 <div
-                                    style={{
-                                       width: "2px",
-                                       height: "14px",
-                                       borderRadius: "1px",
-                                       background: isResizing
-                                          ? "#ffffff"
-                                          : "#94a3b8",
-                                       transition: "background 0.15s ease",
-                                    }}
-                                 />
-                              </div>
-                           </div>
-                        </div>
+                        <ColumnResizer
+                           leftColPercent={leftColPercent}
+                           isResizing={isResizing}
+                           onStartResize={handleResizerMouseDown}
+                        />
 
                         <DroppableColumn
                            id="column-right"
@@ -945,13 +355,13 @@ function App() {
                               minWidth: 0,
                               maxWidth: "100%",
                               color: "var(--text-color)",
-                              ...getDynamicTextColors(cvData.layout?.rightBg),
+                              ...getDynamicTextVariables(cvData.layout?.rightBg),
                            }}>
                            <SortableContext
                               items={rightSections.map((s) => s.id)}
                               strategy={verticalListSortingStrategy}>
                               {rightSections.map((section) => (
-                                 <CVSection
+                                 <BaseSection
                                     key={section.id}
                                     section={section}
                                  />
@@ -969,7 +379,7 @@ function App() {
                                  className="add-section-btn no-print"
                                  onClick={() => handleOpenAddSection("right")}
                                  title="Agregar nueva sección a la columna principal">
-                                 <i className="bx bx-plus-circle"></i> Agregar
+                                 <PlusCircle size={16} /> Agregar
                                  Sección Principal
                               </button>
                            </div>
@@ -979,16 +389,18 @@ function App() {
                      <div
                         className="resume__single-column"
                         style={{
+                           display: "flex",
+                           flexDirection: "column",
                            width: "100%",
                            maxWidth: "794px",
                            margin: "0 auto",
                            padding: 0,
                         }}>
                         <SortableContext
-                           items={cvData.sections.map((s) => s.id)}
+                           items={(cvData.sections || []).map((s) => s.id)}
                            strategy={verticalListSortingStrategy}>
-                           {cvData.sections.map((section) => (
-                              <CVSection key={section.id} section={section} />
+                           {(cvData.sections || []).map((section) => (
+                              <BaseSection key={section.id} section={section} />
                            ))}
                         </SortableContext>
 
@@ -1000,7 +412,7 @@ function App() {
                               className="add-section-btn no-print"
                               onClick={() => handleOpenAddSection("left")}
                               title="Agregar nueva sección">
-                              <i className="bx bx-plus-circle"></i> Agregar
+                              <PlusCircle size={16} /> Agregar
                               Nueva Sección
                            </button>
                         </div>
@@ -1009,75 +421,11 @@ function App() {
                </div>
             </main>
 
-            {/* Drag Overlay for smooth 60fps ghost preview without DOM clipping */}
-            <DragOverlay
-               dropAnimation={{
-                  duration: 180,
-                  easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-               }}>
-               {activeDragItem ? (
-                  <div
-                     style={{
-                        background: "var(--container-color, #ffffff)",
-                        padding: "0.75rem 1rem",
-                        borderRadius: "8px",
-                        boxShadow: "0 12px 28px rgba(0,0,0,0.22)",
-                        border: "2px solid var(--first-color, #3874ff)",
-                        opacity: 0.95,
-                        maxWidth: "400px",
-                     }}>
-                     <div
-                        style={{
-                           fontWeight: 600,
-                           color: "var(--title-color, #111)",
-                        }}>
-                        {activeDragItem.item?.title ||
-                           activeDragItem.item?.text ||
-                           activeDragItem.item?.name ||
-                           "Elemento"}
-                     </div>
-                     {activeDragItem.item?.subtitle && (
-                        <div
-                           style={{
-                              fontSize: "0.85rem",
-                              color: "var(--text-color-light, #666)",
-                           }}>
-                           {activeDragItem.item.subtitle}
-                        </div>
-                     )}
-                  </div>
-               ) : activeDragSection ? (
-                  <div
-                     style={{
-                        background: "var(--container-color, #ffffff)",
-                        padding: "1rem 1.25rem",
-                        borderRadius: "10px",
-                        boxShadow: "0 16px 36px rgba(0,0,0,0.25)",
-                        border: "2px solid var(--first-color, #3874ff)",
-                        opacity: 0.95,
-                        minWidth: "280px",
-                     }}>
-                     <div
-                        style={{
-                           fontWeight: 700,
-                           fontSize: "1.1rem",
-                           color: "var(--title-color, #111)",
-                        }}>
-                        {activeDragSection.section?.title ||
-                           (activeDragSection.section?.type === 'spacer' ? 'Espacio en Blanco' : activeDragSection.section?.id)}
-                     </div>
-                     <div
-                        style={{
-                           fontSize: "0.8rem",
-                           color: "var(--text-color-light, #666)",
-                        }}>
-                        {activeDragSection.section?.type === 'spacer'
-                           ? `${activeDragSection.section?.height || 40}px de separación vertical`
-                           : `${activeDragSection.section?.items?.length || 0} elementos`}
-                     </div>
-                  </div>
-               ) : null}
-            </DragOverlay>
+            {/* Drag Overlay for ghost preview */}
+            <CVDragOverlay
+               activeDragItem={activeDragItem}
+               activeDragSection={activeDragSection}
+            />
          </DndContext>
 
          {/* Add Section Selection Modal */}
@@ -1087,7 +435,7 @@ function App() {
             targetColumn={addSectionTargetColumn}
          />
 
-         {/* Global Singleton AI Suggestion Tooltip (Fixed to Container Right, Non-obstructive) */}
+         {/* Global Singleton AI Suggestion Tooltip */}
          {activeTooltip && activeTooltip.section && activeTooltip.rect && (
             <SuggestionTooltip
                section={activeTooltip.section}

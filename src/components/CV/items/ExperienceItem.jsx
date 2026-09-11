@@ -2,6 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -235,7 +236,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
               onClick={handleAddBullet}
               title="Agregar viñeta / logro a este puesto"
             >
-              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
+              <Plus size={13} strokeWidth={2.5} />
               <span>Agregar viñeta</span>
             </button>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CONTACT_TYPES, CONTACT_CATEGORIES } from '../../utils/contactTypes';
-import { Search, X } from 'lucide-react';
+import { CONTACT_TYPES, CONTACT_CATEGORIES, ContactIcon } from '../../utils/contactTypes';
+import { Search, X, Plus } from 'lucide-react';
 
 /**
  * ContactTypePicker
@@ -288,7 +288,7 @@ const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
                   border: '1px solid rgba(0, 0, 0, 0.05)'
                 }}
               >
-                <i className={type.icon} style={{ fontSize: '16px', color: 'var(--first-color, #3874ff)' }}></i>
+                <ContactIcon name={type.icon} size={16} style={{ color: 'var(--first-color, #3874ff)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--title-color, #1e293b)' }}>
@@ -298,7 +298,7 @@ const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
                   {type.placeholder}
                 </div>
               </div>
-              <i className='bx bx-plus' style={{ color: 'var(--text-color-light, #94a3b8)', fontSize: '14px' }}></i>
+              <Plus size={14} style={{ color: 'var(--text-color-light, #94a3b8)' }} />
             </button>
           ))
         )}

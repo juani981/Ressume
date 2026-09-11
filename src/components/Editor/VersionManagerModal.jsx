@@ -34,8 +34,15 @@ import {
  * @param {object} props
  * @param {boolean} props.isOpen - Whether modal is visible.
  * @param {Function} props.onClose - Modal close handler.
+ * @param {object|null} [props.initialDeleteVersion=null] - Optional initial version for delete confirmation.
+ * @param {boolean} [props.initialConfirmBlank=false] - Optional flag to open with blank CV confirmation.
  */
-export const VersionManagerModal = ({ isOpen, onClose }) => {
+export const VersionManagerModal = ({ 
+  isOpen, 
+  onClose,
+  initialDeleteVersion = null,
+  initialConfirmBlank = false
+}) => {
   const context = useCV() || {};
   const { cvData, loadVersionSnapshot, showToast } = context;
 
@@ -52,8 +59,8 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
 
   // Confirmation dialog states
   const [confirmLoadVersion, setConfirmLoadVersion] = useState(null);
-  const [confirmDeleteVersion, setConfirmDeleteVersion] = useState(null);
-  const [confirmBlankCV, setConfirmBlankCV] = useState(false);
+  const [confirmDeleteVersion, setConfirmDeleteVersion] = useState(initialDeleteVersion);
+  const [confirmBlankCV, setConfirmBlankCV] = useState(initialConfirmBlank);
 
   // Generate suggested version name based on candidate & date
   const generateSuggestedName = useCallback(() => {
@@ -90,8 +97,8 @@ export const VersionManagerModal = ({ isOpen, onClose }) => {
       loadVersions();
       setNewVersionName(generateSuggestedName());
       setConfirmLoadVersion(null);
-      setConfirmDeleteVersion(null);
-      setConfirmBlankCV(false);
+      setConfirmDeleteVersion(initialDeleteVersion);
+      setConfirmBlankCV(initialConfirmBlank);
       setEditingVersionId(null);
 
       // Lock body scroll

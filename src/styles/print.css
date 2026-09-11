@@ -4,11 +4,6 @@
   Handles page geometry, super-container anti-rupture, and print media overrides.
 ===================================================================*/
 
-@page {
-  size: A4;
-  margin: 0;
-}
-
 @media print {
   @page {
     size: A4;
@@ -40,6 +35,8 @@
     margin: 0 auto !important;
     box-shadow: none !important;
     box-sizing: border-box !important;
+    -webkit-box-decoration-break: slice !important;
+    box-decoration-break: slice !important;
   }
 
   .resume__left,
@@ -50,8 +47,9 @@
     box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    -webkit-box-decoration-break: clone !important;
-    box-decoration-break: clone !important;
+    /* Migrated to slice to prevent 48px double-padding on page 2 */
+    -webkit-box-decoration-break: slice !important;
+    box-decoration-break: slice !important;
   }
 
   #area-cv.resume__single-column {
@@ -178,7 +176,7 @@
   ul.experience__bullets li::marker,
   .experience__bullets li::marker,
   ul.simple-list-ul li::marker {
-    color: var(--circle-color, var(--text-color)) !important;
+    color: var(--circle-color, var(--text-color, #334155)) !important;
     font-size: 0.85em;
   }
 

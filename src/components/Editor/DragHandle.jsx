@@ -1,15 +1,20 @@
 import React from 'react';
+import { GripVertical } from 'lucide-react';
 
 const DragHandle = ({ isInner = false, listeners, attributes }) => {
   return (
-    <div 
-      className={`drag-handle ${isInner ? "item-drag-handle" : "section-drag-handle"} no-print`}
-      {...listeners}
-      {...attributes}
-      title={isInner ? "Arrastrar elemento para reordenar" : "Arrastrar sección para reordenar"}
-    >
-      <i className='bx bx-grid-vertical'></i>
-    </div>
+     <div
+        className={`drag-handle ${isInner ? "item-drag-handle" : "section-drag-handle"} no-print`}
+        {...listeners}
+        {...attributes}
+        title={
+           isInner
+              ? "Arrastrar elemento para reordenar"
+              : "Arrastrar sección para reordenar"
+        }
+        style={{ cursor: "row-resize" }}>
+        <GripVertical size={16} />
+     </div>
   );
 };
 

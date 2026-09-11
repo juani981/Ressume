@@ -304,7 +304,7 @@ describe('Goal: 2-Column PDF Generation Integrity & Full-Page Left Column Extens
       // Check @media print rules
       expect(html).toContain('var(--print-target-height-mm, 297mm)');
       expect(html).toContain('align-self: stretch !important;');
-      expect(html).toContain('box-decoration-break: clone !important;');
+      expect(html).toContain('box-decoration-break: slice !important;');
 
       // Check break-inside avoid on all component types
       expect(html).toMatch(/\.cv-block[\s\S]*?break-inside:\s*avoid\s*!important/);

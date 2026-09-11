@@ -323,38 +323,38 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
       expect(spanElements.length).toBeGreaterThanOrEqual(10);
     });
 
-    it('T1.4: renders vector font icons (<i class="bx ..."></i>) with correct BoxIcons classes and 0 raster artifacts', () => {
+    it('T1.4: renders vector icons (lucide-react SVGs) with correct Lucide classes and 0 raster artifacts', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
 
-      const icons = doc.querySelectorAll('i');
-      expect(icons.length).toBeGreaterThanOrEqual(8);
+      const svgs = doc.querySelectorAll('svg');
+      expect(svgs.length).toBeGreaterThanOrEqual(8);
 
-      const iconClasses = Array.from(icons).map(i => i.className);
+      const svgClasses = Array.from(svgs).map(s => s.getAttribute('class') || '');
 
       // Contact vector icons
-      expect(iconClasses.some(c => c.includes('bx-map'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-envelope'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-phone'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bxl-linkedin-square'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bxl-github'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-map-pin'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-mail'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-phone'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-share-2') || c.includes('lucide-share2'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-folder-git-2') || c.includes('lucide-folder-git2'))).toBe(true);
 
       // Section badges and action vector icons
-      expect(iconClasses.some(c => c.includes('bx-badge-check'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-trophy'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-book-open'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-user-check'))).toBe(true);
-      expect(iconClasses.some(c => c.includes('bx-link-external'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-badge-check'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-trophy'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-book-open'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-user-check'))).toBe(true);
+      expect(svgClasses.some(c => c.includes('lucide-external-link'))).toBe(true);
 
       // Ensure no icons enclose raster images
-      for (const icon of icons) {
-        expect(icon.querySelector('img')).toBeNull();
-        expect(icon.querySelector('canvas')).toBeNull();
+      for (const svg of svgs) {
+        expect(svg.querySelector('img')).toBeNull();
+        expect(svg.querySelector('canvas')).toBeNull();
       }
 
-      // Ensure external BoxIcons stylesheet is referenced
+      // Ensure external BoxIcons stylesheet is strictly absent
       const boxiconsLink = doc.querySelector('link[href*="boxicons"]');
-      expect(boxiconsLink).not.toBeNull();
+      expect(boxiconsLink).toBeNull();
     });
 
     it('T1.5: extracts 100% selectable text stream without content degradation or missing entities', () => {
@@ -487,6 +487,22 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
       expect(styleContent).toMatch(/size:\s*A4/i);
       expect(styleContent).toMatch(/print-color-adjust:\s*exact\s*!important/i);
       expect(styleContent).toMatch(/-webkit-print-color-adjust:\s*exact\s*!important/i);
+    });
+
+    it('T3.6: verifies that all three required print style tags (cv-base-styles, cv-print-styles, cv-snapshot-breaks) are injected with discrete IDs', () => {
+      const html = generateCleanPrintHTML(fullCVData);
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+
+      const baseStylesTag = doc.getElementById('cv-base-styles');
+      const printStylesTag = doc.getElementById('cv-print-styles');
+      const snapshotBreaksTag = doc.getElementById('cv-snapshot-breaks');
+
+      expect(baseStylesTag, '<style id="cv-base-styles"> is missing').not.toBeNull();
+      expect(printStylesTag, '<style id="cv-print-styles"> is missing').not.toBeNull();
+      expect(snapshotBreaksTag, '<style id="cv-snapshot-breaks"> is missing').not.toBeNull();
+
+      expect(baseStylesTag.textContent).toContain('--page-padding:');
+      expect(printStylesTag.textContent).toContain('@media print');
     });
   });
 
@@ -735,6 +751,59 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
 
       const iframesAfter = document.querySelectorAll('iframe');
       expect(iframesAfter.length).toBe(0);
+    });
+
+    it('T5.6: executeCleanPrint transfers dynamic CSS custom properties from editor #area-cv to print iframe root element', async () => {
+      vi.useRealTimers();
+      const editorAreaCv = document.createElement('div');
+      editorAreaCv.id = 'area-cv';
+      editorAreaCv.style.setProperty('--page-padding', '42px');
+      editorAreaCv.style.setProperty('--section-gap', '30px');
+      editorAreaCv.style.setProperty('--font-scale', '1.2');
+      document.body.appendChild(editorAreaCv);
+
+      let capturedDoc = null;
+      const originalAppendChild = document.body.appendChild.bind(document.body);
+      const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(function (child) {
+        if (child && child.tagName === 'IFRAME') {
+          const doc = document.implementation.createHTMLDocument('Print Preview');
+          Object.defineProperty(doc, 'readyState', {
+            get: () => 'complete',
+            configurable: true
+          });
+          Object.defineProperty(doc, 'fonts', {
+            get: () => ({ ready: Promise.resolve() }),
+            configurable: true
+          });
+          capturedDoc = doc;
+          Object.defineProperty(child, 'contentDocument', { get: () => doc, configurable: true });
+          Object.defineProperty(child, 'contentWindow', {
+            get: () => ({
+              document: doc,
+              focus: vi.fn(),
+              print: vi.fn(),
+              addEventListener: (evt, cb) => { if (evt === 'load') cb(); }
+            }),
+            configurable: true
+          });
+        }
+        return originalAppendChild(child);
+      });
+
+      try {
+        await executeCleanPrint(fullCVData);
+
+        expect(capturedDoc).not.toBeNull();
+        const rootStyle = capturedDoc.documentElement.style;
+        expect(rootStyle.getPropertyValue('--page-padding')).toBe('42px');
+        expect(rootStyle.getPropertyValue('--section-gap')).toBe('30px');
+        expect(rootStyle.getPropertyValue('--font-scale')).toBe('1.2');
+      } finally {
+        appendSpy.mockRestore();
+        if (editorAreaCv.parentNode) {
+          editorAreaCv.parentNode.removeChild(editorAreaCv);
+        }
+      }
     });
   });
 });

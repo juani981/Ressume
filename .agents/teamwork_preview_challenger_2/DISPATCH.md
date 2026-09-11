@@ -1,20 +1,32 @@
-## 2026-09-02T02:27:36Z
+## Task Assignment: Adversarial Stress Verification — CSS Single Source of Truth & Media Boundaries
 
-You are Challenger 2 for Adversarial Stress & Edge Case Verification of Ressume.
-Your working directory is /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2.
-Create your working directory if needed.
-Read the authoritative user request at /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md.
-Read /home/juani/Documentos/Ressume/PROJECT.md and /home/juani/Documentos/Ressume/TEST_READY.md.
-Read Worker 1 handoff at /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_1/handoff.md.
+### Identity
+- Role: Adversarial Challenger 2
+- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
 
-Challenger Mission:
-Adversarially challenge edge cases and failure modes:
-1. Auto-scaling math: verify `calculatePrintScale` with boundary inputs (heights 0, 1000, 2246, 2247, 3000, 5000, 10000, 100000, NaN, undefined) and verify strict clamp at 0.75 floor.
-2. Zero-Split page-break rules: verify `break-inside: avoid !important` on `.cv-section` and `.cv-block`.
-3. Tooltip positioning under extreme viewport coordinates (near right/bottom/top edges, small screens).
-4. Corrupted state and XSS strings: verify sanitization in static HTML export.
-5. Run tests via `npm test` and `npm run build`.
+### Inputs & Authoritative References
+- User Request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see ## 2026-09-11T16:11:48Z)
+- Audit Report: C:\Users\usuariodgc\Documents\Ressume\docs\audit-report.md
+- Guidelines: C:\Users\usuariodgc\Documents\Ressume\AGENTS.md
 
-Output:
-Write your stress-test report and verdict (APPROVE or REQUEST_CHANGES) to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2/handoff.md`.
-Send completion message to parent with summary and verdict.
+### Mission
+Empirically test CSS media encapsulation, selector leakage, and test suite rigor:
+1. Probe `src/styles/print.css` to verify zero selector leakage outside `@media print` queries.
+2. Probe `src/index.css` to verify 0 `@media print` declarations.
+3. Verify that the 24 modernized tests remain non-regressive and that T3.6 & T5.6 fail if their underlying implementation invariants are violated.
+4. Execute `npm run build` and `npm test -- --run`.
+5. Deliver an empirical verdict: `CONFIRMED_CORRECT` or `CHALLENGE_FAILED`.
+
+Write your full report to:
+`C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\handoff.md`
+
+## 2026-09-11T16:42:41Z
+You are Adversarial Challenger 2.
+Your working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
+Authoritative user request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see header ## 2026-09-11T16:11:48Z)
+Read your detailed task description in C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\DISPATCH.md.
+
+Empirically test CSS media encapsulation, absence of bare selectors, and test assertion rigor.
+Run build and tests.
+Provide an empirical verdict: CONFIRMED_CORRECT or CHALLENGE_FAILED.
+Write your report to C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\handoff.md and message back when complete.

@@ -1,5 +1,6 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
+import { Trophy } from 'lucide-react';
 
 const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
@@ -18,7 +19,7 @@ const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           marginTop: '2px'
         }}
       >
-        <i className='bx bx-trophy' style={{ fontSize: '15px' }}></i>
+        <Trophy size={15} />
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>

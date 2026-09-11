@@ -242,12 +242,12 @@ describe('R5: Dedicated Static HTML PDF Rendering Core (Max 2 A4 Pages with Auto
       expect(layout3Spill.scale).toBeCloseTo(3369 / 3500, 2);
     });
 
-    it('T2.10: Preserves strict page-break avoidance and box-decoration-break clone across fragmented columns', () => {
+    it('T2.10: Preserves strict page-break avoidance and box-decoration-break slice across fragmented columns', () => {
       const html = generateCleanPrintHTML(sampleCVData);
       expect(html).toContain('break-inside: avoid !important');
       expect(html).toContain('page-break-inside: avoid !important');
       expect(html).toContain('break-after: avoid !important');
-      expect(html).toContain('box-decoration-break: clone');
+      expect(html).toContain('box-decoration-break: slice');
     });
   });
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -258,7 +259,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
               onClick={handleAddBullet}
               title="Agregar logro / funcionalidad al proyecto"
             >
-              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
+              <Plus size={13} strokeWidth={2.5} />
               <span>Agregar viñeta de impacto</span>
             </button>
           </div>

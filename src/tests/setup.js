@@ -66,8 +66,34 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect() {}
 };
 
-// Mock window.print
+// Mock window.print and window.focus
 window.print = vi.fn();
+window.focus = vi.fn();
+
+// Mock iframe.contentWindow print and focus to silence JSDOM print noise
+if (typeof HTMLIFrameElement !== 'undefined') {
+  const originalContentWindow = Object.getOwnPropertyDescriptor(
+    HTMLIFrameElement.prototype,
+    'contentWindow'
+  );
+  if (originalContentWindow && originalContentWindow.get) {
+    Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+      get() {
+        const win = originalContentWindow.get.call(this);
+        if (win) {
+          try {
+            win.print = vi.fn();
+            win.focus = vi.fn();
+          } catch (e) {
+            // ignore if restricted
+          }
+        }
+        return win;
+      },
+      configurable: true,
+    });
+  }
+}
 
 // Mock window.scrollTo
 window.scrollTo = vi.fn();

@@ -25,9 +25,23 @@ export const useCV = () => useContext(CVContext);
  * @param {React.ReactNode} props.children - Child components.
  * @returns {JSX.Element} Provider wrapping children.
  */
-export const CVProvider = ({ children }) => {
+export const CVProvider = ({ children, initialCV = null }) => {
   // Shared CV document state holder
-  const [cvData, setCvData] = useState(loadInitialCVData);
+  const [cvData, setCvData] = useState(() => {
+    if (initialCV) {
+      const base = loadInitialCVData();
+      const overrides = typeof initialCV === 'function' ? initialCV() : initialCV;
+      return {
+        ...base,
+        ...overrides,
+        layout: {
+          ...(base.layout || {}),
+          ...(overrides.layout || {})
+        }
+      };
+    }
+    return loadInitialCVData();
+  });
 
   // 1. History stack & undo/redo engine
   const history = useCVHistory(setCvData);

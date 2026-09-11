@@ -13,6 +13,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
+import { Minus } from 'lucide-react';
 import SimpleListItem from './items/SimpleListItem';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 
@@ -94,7 +95,7 @@ export const SortableBulletItem = ({
           onDeleteBullet(bulletIndex);
         }}
       >
-        <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
+        <Minus size={12} strokeWidth={2.5} />
       </button>
     </li>
   );

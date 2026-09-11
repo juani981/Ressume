@@ -13,6 +13,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandle from '../Editor/DragHandle';
+import { Minus } from 'lucide-react';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
@@ -115,7 +116,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
             deleteSectionItem(sectionId, item?.id);
           }}
         >
-          <i className='bx bx-minus' style={{ fontSize: '14px', fontWeight: 'bold' }}></i>
+          <Minus size={14} strokeWidth={2.5} />
         </button>
       )}
       {ItemComponent && (

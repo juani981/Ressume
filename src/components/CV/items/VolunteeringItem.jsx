@@ -1,6 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -237,7 +238,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
               onClick={handleAddBullet}
               title="Agregar viñeta de impacto voluntario"
             >
-              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
+              <Plus size={13} strokeWidth={2.5} />
               <span>Agregar viñeta</span>
             </button>
           </div>

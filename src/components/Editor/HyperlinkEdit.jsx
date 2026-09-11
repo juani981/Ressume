@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { ExternalLink, Check, Copy, Unlink, X } from 'lucide-react';
+
+const renderLinkIcon = (iconProp) => {
+  if (!iconProp) return null;
+  if (React.isValidElement(iconProp)) return iconProp;
+  return <ExternalLink size={14} className="lucide lucide-external-link" />;
+};
 
 const HyperlinkPrintView = ({ 
   url = '', 
   text = '', 
-  icon = 'bx bx-link-external',
+  icon = 'ExternalLink',
   className = ''
 }) => {
   if (!url && !text) return null;
@@ -27,7 +34,7 @@ const HyperlinkPrintView = ({
         borderRadius: '4px'
       }}
     >
-      {icon && <i className={icon}></i>}
+      {renderLinkIcon(icon)}
       <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>{displayLabel}</span>
     </a>
   );
@@ -38,7 +45,7 @@ const HyperlinkEditEditor = ({
   text = '', 
   onSave, 
   onRemove, 
-  icon = 'bx bx-link-external',
+  icon = 'ExternalLink',
   className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -214,7 +221,7 @@ const HyperlinkEditEditor = ({
           }}
           title="Abrir enlace en una nueva pestaña"
         >
-          <i className='bx bx-link-external' style={{ fontSize: '1rem' }}></i>
+          <ExternalLink size={16} />
           <span>IR AL HIPERVÍNCULO</span>
         </a>
 
@@ -235,7 +242,7 @@ const HyperlinkEditEditor = ({
               fontSize: '1rem'
             }}
           >
-            <i className={copied ? 'bx bx-check' : 'bx bx-copy'}></i>
+            {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
 
           {/* Remove Link Button */}
@@ -255,7 +262,7 @@ const HyperlinkEditEditor = ({
                 fontSize: '1rem'
               }}
             >
-              <i className='bx bx-unlink'></i>
+              <Unlink size={16} />
             </button>
           )}
 
@@ -275,7 +282,7 @@ const HyperlinkEditEditor = ({
               fontSize: '1rem'
             }}
           >
-            <i className='bx bx-x'></i>
+            <X size={16} />
           </button>
         </div>
       </div>
@@ -397,7 +404,7 @@ const HyperlinkEditEditor = ({
           transition: 'background 0.15s ease'
         }}
       >
-        <i className={icon}></i>
+        {renderLinkIcon(icon)}
         <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}>
           {displayLabel}
         </span>
