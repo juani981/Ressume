@@ -69,6 +69,7 @@ function App() {
    const [activeDragSection, setActiveDragSection] = useState(null);
 
    const isRecalculatingRef = useRef(false);
+   const pendingRecalcRef = useRef(false);
    const rafIdRef = useRef(null);
 
    const recalculatePagination = useCallback(() => {
@@ -82,7 +83,7 @@ function App() {
          '[data-editor-break-forced="true"]',
       );
       previouslyBroken.forEach((el) => {
-         el.style.marginTop = "";
+         el.style.removeProperty("margin-top");
          el.removeAttribute("data-editor-break-forced");
          el.removeAttribute("data-editor-break-fold");
       });
@@ -150,8 +151,16 @@ function App() {
       const colDefs =
          is2ColumnMode && leftCol && rightCol
             ? [
-                 { name: "left", el: leftCol, items: getBreakableComponents(leftCol) },
-                 { name: "right", el: rightCol, items: getBreakableComponents(rightCol) },
+                 {
+                    name: "left",
+                    el: leftCol,
+                    items: getBreakableComponents(leftCol),
+                 },
+                 {
+                    name: "right",
+                    el: rightCol,
+                    items: getBreakableComponents(rightCol),
+                 },
               ]
             : [
                  {
@@ -169,9 +178,7 @@ function App() {
          hasChanges = false;
 
          const currentMaxHeight = Math.max(
-            ...colDefs.map(
-               (c) => c.el.scrollHeight || c.el.offsetHeight || 0,
-            ),
+            ...colDefs.map((c) => c.el.scrollHeight || c.el.offsetHeight || 0),
             areaCv.scrollHeight || 0,
             pageHeightPx,
          );
@@ -190,7 +197,9 @@ function App() {
 
             for (const col of colDefs) {
                for (const item of col.items) {
-                  if (item.getAttribute("data-editor-break-forced") === "true") {
+                  if (
+                     item.getAttribute("data-editor-break-forced") === "true"
+                  ) {
                      continue;
                   }
 
@@ -198,7 +207,7 @@ function App() {
 
                   if (height <= 0) continue;
 
-                  if (top >= foldBottom) {
+                  if (top >= nextContentAreaTop) {
                      continue;
                   }
 
@@ -212,13 +221,23 @@ function App() {
                         itemIdx !== -1 && itemIdx + 1 < col.items.length
                            ? col.items[itemIdx + 1]
                            : null;
-                     if (nextItem && !nextItem.classList.contains("section-title")) {
+                     if (
+                        nextItem &&
+                        !nextItem.classList.contains("section-title")
+                     ) {
                         const nextBounds = getRelativeBounds(nextItem);
-                        if (nextBounds && nextBounds.bottom > contentAreaBottom - 4) {
+                        if (
+                           nextBounds &&
+                           nextBounds.bottom > contentAreaBottom - 4
+                        ) {
                            isOrphanTitle = true;
                         }
                      }
-                     if (!isOrphanTitle && top < contentAreaBottom && bottom > contentAreaBottom - 60) {
+                     if (
+                        !isOrphanTitle &&
+                        top < contentAreaBottom &&
+                        bottom > contentAreaBottom - 60
+                     ) {
                         isOrphanTitle = true;
                      }
                   }
@@ -245,9 +264,7 @@ function App() {
       }
 
       const finalMaxHeight = Math.max(
-         ...colDefs.map(
-            (c) => c.el.scrollHeight || c.el.offsetHeight || 0,
-         ),
+         ...colDefs.map((c) => c.el.scrollHeight || c.el.offsetHeight || 0),
          areaCv.scrollHeight || 0,
          pageHeightPx,
       );
@@ -266,17 +283,27 @@ function App() {
          cancelAnimationFrame(rafIdRef.current);
       }
       rafIdRef.current = requestAnimationFrame(() => {
-         if (isRecalculatingRef.current) return;
+         // 1. Si hay un cálculo en progreso, registrar que queda un recálculo pendiente y salir
+         if (isRecalculatingRef.current) {
+            pendingRecalcRef.current = true;
+            return;
+         }
          try {
             isRecalculatingRef.current = true;
             recalculatePagination();
          } finally {
+            // 2. Cooldown de 30ms para evitar Layout Thrashing
             setTimeout(() => {
                isRecalculatingRef.current = false;
+               // 3. Trailing Call: Si hubo eventos descartados durante el proceso, re-ejecutar
+               if (pendingRecalcRef.current) {
+                  pendingRecalcRef.current = false;
+                  schedulePaginationRecalc();
+               }
             }, 30);
          }
       });
-   }, [recalculatePagination]);
+   }, [recalculatePagination]); 
 
    // 1. Trigger when cvData, drag items, or context paginationTrigger change
    useEffect(() => {

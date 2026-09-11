@@ -436,7 +436,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.1: enforces break-inside: avoid !important and page-break-inside: avoid !important in style block', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toMatch(/break-inside:\s*avoid\s*!important/i);
       expect(styleContent).toMatch(/page-break-inside:\s*avoid\s*!important/i);
@@ -445,7 +445,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.2: super-container rule block targets .cv-section, .cv-block, .experience__content, .education__content, and .skills__name', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toContain('.cv-section');
       expect(styleContent).toContain('.cv-block');
@@ -457,7 +457,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.3: enforces orphan header protection on headings with break-after: avoid !important', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toMatch(/break-after:\s*avoid\s*!important/i);
       expect(styleContent).toMatch(/page-break-after:\s*avoid\s*!important/i);
@@ -481,7 +481,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
     it('T3.5: embeds @media print rules enforcing A4 size, zero margins, and exact color reproduction', () => {
       const html = generateCleanPrintHTML(fullCVData);
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const styleContent = doc.querySelector('style')?.textContent || '';
+      const styleContent = Array.from(doc.querySelectorAll('style')).map(s => s.textContent).join('\n');
 
       expect(styleContent).toContain('@media print');
       expect(styleContent).toMatch(/size:\s*A4/i);

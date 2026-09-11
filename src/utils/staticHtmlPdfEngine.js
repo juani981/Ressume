@@ -420,7 +420,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
         ${selector} {
           break-before: page !important;
           page-break-before: always !important;
-          margin-top: 0 !important;
+          margin-top: var(--page-padding, 24px) !important;
         }
       `;
     }).join('\n');
@@ -822,7 +822,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
               if (targetEl) {
                 targetEl.style.setProperty('break-before', 'page', 'important');
                 targetEl.style.setProperty('page-break-before', 'always', 'important');
-                targetEl.style.setProperty('margin-top', '0px', 'important');
+                targetEl.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
                 targetEl.classList.add('force-page-break-before');
                 targetEl.setAttribute('data-page-break-forced', 'true');
                 targetEl.setAttribute('data-page-break-fold', String(b.fold || b.pageNum || 1));
