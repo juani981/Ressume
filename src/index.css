@@ -1882,7 +1882,7 @@ body.ats-mode-active .a4-page-fold-badge {
     list-style-type: disc !important;
     padding-left: 1.15rem !important;
     margin-top: 0.25rem !important;
-    margin-bottom: 0.25rem !important;
+    margin-bottom: 0 !important;
   }
 
   ul.experience__bullets li,
@@ -1891,7 +1891,6 @@ body.ats-mode-active .a4-page-fold-badge {
     display: list-item !important;
     list-style-type: disc !important;
     margin-top: 0 !important;
-    margin-bottom: var(--item-gap, 6px) !important;
     line-height: 1.45 !important;
     color: inherit !important;
     padding-left: 0 !important;

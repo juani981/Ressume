@@ -202,10 +202,26 @@ function App() {
                      continue;
                   }
 
-                  const isOrphanTitle =
-                     item.classList.contains("section-title") &&
-                     top < contentAreaBottom &&
-                     bottom > contentAreaBottom - 60;
+                  let isOrphanTitle = false;
+                  if (
+                     item.classList.contains("section-title") ||
+                     item.hasAttribute("data-section-title")
+                  ) {
+                     const itemIdx = col.items.indexOf(item);
+                     const nextItem =
+                        itemIdx !== -1 && itemIdx + 1 < col.items.length
+                           ? col.items[itemIdx + 1]
+                           : null;
+                     if (nextItem && !nextItem.classList.contains("section-title")) {
+                        const nextBounds = getRelativeBounds(nextItem);
+                        if (nextBounds && nextBounds.bottom > contentAreaBottom - 4) {
+                           isOrphanTitle = true;
+                        }
+                     }
+                     if (!isOrphanTitle && top < contentAreaBottom && bottom > contentAreaBottom - 60) {
+                        isOrphanTitle = true;
+                     }
+                  }
 
                   if (!isOrphanTitle && bottom <= contentAreaBottom - 4) {
                      continue;

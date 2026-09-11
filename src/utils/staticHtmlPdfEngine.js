@@ -492,7 +492,14 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       --container-color: #ffffff;
       --container-color-alt: #f3f4f6;
       --body-color: #ffffff;
-      --body-font: ${fontFamily};
+      --first-color: #3874ff;
+      --header-height: 3rem;
+      --font-medium: 500;
+      --font-semi-bold: 600;
+      --mb-1: .5rem;
+      --mb-2: 1rem;
+      --mb-3: 1.5rem;
+      --body-font: ${fontFamily && !fontFamily.includes(',') ? `'${fontFamily}', sans-serif` : (fontFamily || "'Poppins', sans-serif")};
       --font-scale: ${fontScale};
       --title-scale: ${titleScale};
       --body-scale: ${bodyScale};
@@ -847,6 +854,34 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
               rightCol.style.setProperty('height', '100%', 'important');
               rightCol.style.setProperty('align-self', 'stretch', 'important');
               rightCol.style.setProperty('box-sizing', 'border-box', 'important');
+            }
+
+            // Anti-orphan safeguard: Verify that no section title is separated from its first child across page folds
+            const querySections = typeof doc.querySelectorAll === 'function'
+              ? doc.querySelectorAll('.cv-section')
+              : (typeof doc.body?.querySelectorAll === 'function' ? doc.body.querySelectorAll('.cv-section') : []);
+            if (querySections && typeof querySections.forEach === 'function') {
+              querySections.forEach((sec) => {
+                const title = sec.querySelector?.('.section-title');
+                const firstItem = sec.querySelector?.('.cv-block, .experience__content, .education__content, .skills__name, .profile__description, .simple-list-item');
+                if (title && firstItem) {
+                  const titleRect = typeof title.getBoundingClientRect === 'function' ? title.getBoundingClientRect() : null;
+                  const itemRect = typeof firstItem.getBoundingClientRect === 'function' ? firstItem.getBoundingClientRect() : null;
+                  const areaRect = typeof areaCv?.getBoundingClientRect === 'function' ? areaCv.getBoundingClientRect() : null;
+                  if (titleRect && itemRect && areaRect) {
+                    const titleY = titleRect.top - areaRect.top;
+                    const itemY = itemRect.top - areaRect.top;
+                    const titlePage = Math.floor(titleY / pageHeightPx) + 1;
+                    const itemPage = Math.floor(itemY / pageHeightPx) + 1;
+                    
+                    if (itemPage > titlePage) {
+                      title.style.setProperty('break-before', 'page', 'important');
+                      title.style.setProperty('page-break-before', 'always', 'important');
+                      title.classList.add('force-page-break-before');
+                    }
+                  }
+                }
+              });
             }
 
             // Adaptive scale guard: if content in iframe slightly overflows totalPages due to browser font rendering differences,
