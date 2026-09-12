@@ -280,21 +280,13 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
         </CVProvider>
       );
 
-      const actionsBtn = screen.getByTestId('btn-open-actions');
-      expect(actionsBtn).toBeInTheDocument();
+      // Direct PDF download button is directly accessible in toolbar
+      const nativePrintBtn = screen.getByTestId('btn-action-native-print');
+      expect(nativePrintBtn).toBeInTheDocument();
 
-      const actionsSubmenu = screen.getByTestId('actions-submenu');
-      expect(actionsSubmenu).toBeInTheDocument();
-
-      fireEvent.click(actionsBtn);
-      expect(actionsSubmenu.style.opacity).toBe('1');
-      expect(actionsSubmenu.style.pointerEvents).toBe('auto');
-
-      // Close via X button
-      const closeBtn = screen.getByLabelText(/cerrar panel de acciones/i);
-      fireEvent.click(closeBtn);
-      expect(actionsSubmenu.style.opacity).toBe('0');
-      expect(actionsSubmenu.style.pointerEvents).toBe('none');
+      // Obsolete actions popover is streamlined and not rendered in DOM
+      expect(screen.queryByTestId('actions-submenu')).toBeNull();
+      expect(screen.queryByTestId('btn-open-actions')).toBeNull();
     });
 
     it('T3.2: opening Acciones closes Diseño and vice-versa', () => {
@@ -305,19 +297,20 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       );
 
       const designBtn = screen.getByTestId('btn-open-design');
-      const actionsBtn = screen.getByTestId('btn-open-actions');
       const designSubmenu = screen.getByTestId('design-submenu');
-      const actionsSubmenu = screen.getByTestId('actions-submenu');
+
+      // Initially closed
+      expect(designSubmenu.style.opacity).toBe('0');
 
       // Open design
       fireEvent.click(designBtn);
       expect(designSubmenu.style.opacity).toBe('1');
-      expect(actionsSubmenu.style.opacity).toBe('0');
+      expect(designSubmenu.style.pointerEvents).toBe('auto');
 
-      // Open actions
-      fireEvent.click(actionsBtn);
-      expect(actionsSubmenu.style.opacity).toBe('1');
+      // Toggle close design
+      fireEvent.click(designBtn);
       expect(designSubmenu.style.opacity).toBe('0');
+      expect(designSubmenu.style.pointerEvents).toBe('none');
     });
 
     it('T3.3: Direct "Descargar como PDF" button in toolbar triggers clean print and vector PDF is absent', async () => {

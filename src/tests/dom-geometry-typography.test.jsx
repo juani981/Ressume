@@ -4,6 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { CVProvider, useCV } from '../context/CVContext';
 import App from '../App';
 import ActionMenu from '../components/Editor/ActionMenu';
+import LayoutModeToggle from '../components/Editor/LayoutModeToggle';
 import DragHandle from '../components/Editor/DragHandle';
 import BaseSection from '../components/CV/BaseSection';
 import BaseItem from '../components/CV/BaseItem';
@@ -475,12 +476,12 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       it('F6.5: ActionMenu button toggles layout mode on click', () => {
         render(
           <CVProvider>
-            <ActionMenu />
+            <LayoutModeToggle />
             <ContextHarness />
           </CVProvider>
         );
 
-        const toggleBtn = screen.getByRole('button', { name: /cambiar a 1 columna|cambiar a 2 columnas/i });
+        const toggleBtn = screen.getByTestId('ats-mode-toggle');
         expect(toggleBtn).toBeInTheDocument();
         fireEvent.click(toggleBtn);
         expect(screen.getByTestId('layout-type').textContent).toBe('1-column');
@@ -820,12 +821,13 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
         render(<CVProvider><ActionMenu /></CVProvider>);
         expect(screen.getByRole('button', { name: /deshacer/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /rehacer/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /restablecer/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /ajustes de diseño/i })).toBeInTheDocument();
       });
 
       it('F13.3: ActionMenu contains language translation modal trigger button', () => {
         render(<CVProvider><ActionMenu /></CVProvider>);
-        expect(screen.getByRole('button', { name: /idiomas/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /generar prompts de ia/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /gestor de versiones/i })).toBeInTheDocument();
       });
 
       it('F13.4: ActionMenu contains native PDF print export button', () => {

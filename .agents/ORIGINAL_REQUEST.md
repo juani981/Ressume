@@ -586,3 +586,72 @@ Elaborar una suite documental completa y estructurada en la carpeta `/docs`, que
 ### Commit & Finalización
 Al concluir exitosamente la auditoría, refactorización, documentación y verificación del build, el equipo debe consolidar los cambios en git.
 
+## 2026-09-12T02:45:08Z
+
+Refactorizar y potenciar el subsistema de Abstracción de CV y Generación de Prompts de Inteligencia Artificial en Ressume, sustituyendo opciones y selectores dispersos por una solución de diseño opinionada donde el Markdown enriquecido (con Frontmatter exhaustivo que refleja 1:1 el estado del documento impreso) sea la fuente canónica de verdad. Se incorpora personalización mediante comentarios libres del usuario (`user_commentary`), detección automática del layout activo sin selectores manuales, estandarización rigurosa de todos los `output_format` al nivel exhaustivo de la Auditoría ATS (17 puntos), creación de al menos 5 nuevos prompts altamente especializados en preparación técnica de empleo IT, y generación de un payload de traducción y localización que produce un JSON nativo de `cvData` directamente importable en el Gestor de Versiones.
+
+Working directory: /home/juani/Documentos/Ressume
+Integrity mode: benchmark
+
+## Requirements
+
+### R1. Experiencia Opinionada y Limpia en Modal de IA (`AIExportModal.jsx`)
+- Detectar automáticamente el modo de layout activo (`cvData.layout?.type` / `isAtsMode`) al abrir el modal, sin ofrecer controles ni selectores interactivos de layout o de formato (mantener ocultos/comentados los selectores prescindibles).
+- Ofrecer como única fuente de exportación y abstracción el formato Semantic Markdown de máxima fidelidad.
+- Proveer un campo de entrada opcional de texto libre (`user_commentary`) para que el usuario agregue instrucciones o notas contextuales a cualquier prompt seleccionado.
+- Mantener el campo `"job_description"` exclusivamente cuando el prompt seleccionado lo requiera (`job_matcher`), coexistiendo armoniosamente con `user_commentary`.
+- La vista previa del payload debe reflejar instantáneamente el contenido estructurado de ambos campos.
+
+### R2. Abstracción Markdown Exhaustiva como Fuente de Verdad 1:1 (`aiExporter.js`)
+- Enriquecer `exportToAIMarkdown` para que el Frontmatter YAML contenga la totalidad de los metadatos estructurales y visuales del CV (tipo de layout, orden canónico o visual de secciones, tipografía, escalas de fuente, padding de página, gaps entre secciones e items, estilos de viñetas, colores de contenedores y datos completos de perfil/contacto).
+- Garantizar que el cuerpo Markdown capture exhaustivamente el 100% de las secciones, items, fechas, subtítulos, viñetas, enlaces y descripciones del CV sin omisiones ni ambigüedades.
+- En el caso específico del prompt de Traducción y Localización, inyectar adicionalmente dentro del bloque de entrada una copia compacta del schema JSON nativo de `cvData` para orientar y anclar la estructura del resultado.
+
+### R3. Catálogo de Prompts Existente: Rúbricas Rigurosas y Salidas Estructuradas (`output_format`)
+- Analizar e investigar las necesidades actuales del mercado de contratación IT (tanto reclutadores técnicos como candidatos) para perfeccionar los prompts existentes en `src/locales/es/prompts.json`, `src/locales/en/prompts.json` y `src/ai-knowledge/prompts.json`.
+- Dotar a todos los prompts que carezcan de formato de salida (`job_matcher`, `star_enhancer`, `technical_interview`, `translate_english`, `layout_advisor`) de un `output_format` explícito, granular y acotado, tomando como estándar de referencia la minuciosidad del prompt de **Auditoría ATS (17 puntos)**.
+- Para el prompt de **Traducción & Localización**:
+  - Exigir con precisión quirúrgica que la salida sea estrictamente un bloque de código JSON con el schema exacto de `cvData` de Ressume, de forma que el usuario pueda copiarlo e importarlo directamente en el Gestor de Versiones como una nueva versión funcional del CV.
+- Para los demás prompts (`job_matcher`, `star_enhancer`, `technical_interview`, `layout_advisor`), detallar matrices de evaluación, rúbricas cuantitativas (0-100), transformaciones con la fórmula Google XYZ / STAR y análisis de contraste WCAG AA.
+
+### R4. Nuevos Prompts Especializados para la Búsqueda de Empleo Tech (Mínimo 5 Prompts)
+Diseñar e incorporar en `src/locales/es/prompts.json`, `src/locales/en/prompts.json` y `src/ai-knowledge/prompts.json` una suite de nuevos prompts de alto impacto laboral, todos con el mismo estándar de especificidad, rúbrica estricta y `output_format` estructurado:
+1. **Simulador de Entrevista de Diseño de Sistemas y Arquitectura (`system_design_simulator`)**: Desafío de escalabilidad, microservicios, bases de datos SQL/NoSQL, concurrencia y tradeoffs arquitectónicos adaptados al stack específico del candidato, con rúbrica de evaluación y diagrama arquitectural en texto/Mermaid.
+2. **Entrenamiento de Algoritmos y Live Coding (`live_coding_coach`)**: Detección de patrones algorítmicos esperables para el stack y seniority (sliding window, two pointers, grafos, dynamic programming), con guía de resolución, complejidades Big-O esperadas y casos de prueba frontera.
+3. **Entrevista Conductual y Liderazgo Tech (`behavioral_leadership_prep`)**: Preguntas situacionales bajo estándares FAANG/Tier-1 Tech (ej. Principios de Liderazgo de Amazon, resolución de conflictos técnicos, gestión de deuda técnica y post-mortems), con rúbricas de respuesta STAR y trampas comunes.
+4. **Hoja de Ruta de Upskilling y Recursos Externos Recomendados (`career_upskilling_roadmap`)**: Diagnóstico de brechas técnicas frente a roles Senior/Staff y recomendaciones concretas de recursos de élite (libros estándar de la industria como *Designing Data-Intensive Applications*, repositorios open source clave para contribuir, papers y laboratorios prácticos) organizados en un plan de 30/60/90 días.
+5. **Playbook de Contacto Directo y Networking para Tech (`cold_outreach_generator`)**: Generación de mensajes de alto impacto y personalización para contactar a Engineering Managers, Tech Leads y Recruiters en LinkedIn o email en base a los logros más destacados del CV, evitando plantillas genéricas.
+6. **Estrategia y Negociación de Ofertas Salariales Tech (`salary_negotiation_advisor`)**: Análisis de bandas de compensación según stack y seniority, argumentos de valor basados en el CV, guiones de conversación para llamadas salariales y manejo de contraofertas.
+
+### R5. Integración del Payload y Verificación con Vitest
+- Modificar `buildAIPromptPayload` para ensamblar ordenadamente las secciones del payload (`role`, `task`, `output_format`, `user_commentary` si está presente, `job_description` si aplica, y los datos de entrada del CV).
+- Crear y ejecutar tests automatizados en Vitest que certifiquen:
+  - Presencia del bloque `user_commentary` cuando es provisto y omisión limpia cuando está vacío.
+  - Generación de Frontmatter exhaustivo en `exportToAIMarkdown`.
+  - Conformidad de los esquemas de prompts en español e inglés (verificando que ningún prompt carezca de `output_format` no vacío y que los nuevos prompts estén presentes en ambos idiomas).
+- Todos los 727+ tests preexistentes del repositorio deben pasar limpiamente (0 fallos).
+- **Regla estricta:** NO realizar commits automáticos a git. Los cambios deben quedar listos en el working tree para que el usuario los revise y confirme.
+
+## Acceptance Criteria
+
+### Modal de Prompts de IA
+- [ ] Al abrir `AIExportModal`, el layout utilizado coincide con el tipo de layout actual del CV sin mostrar dropdowns de selección de layout ni de formato.
+- [ ] El modal presenta un textarea para `user_commentary` accesible para todos los prompts.
+- [ ] Si se escribe un comentario de usuario, aparece reflejado bajo la sección `user_commentary:` en la vista previa del payload.
+- [ ] Si se selecciona `job_matcher`, se muestra tanto el campo de `job_description` como el de `user_commentary`.
+- [ ] El selector de prompts incluye todos los prompts preexistentes y la nueva suite de prompts tech.
+
+### Abstracción Markdown (Fuente de Verdad)
+- [ ] El Frontmatter YAML generado por `exportToAIMarkdown` incluye metadatos de configuración visual (`layout_type`, `page_padding`, `section_gap`, `item_gap`, `font_family`, `font_scale`) además de los datos de contacto y orden de secciones.
+- [ ] La abstracción cubre todos los tipos de secciones estándar y personalizadas sin descartar campos de texto, enlaces o fechas.
+- [ ] Para el prompt de traducción, el payload inyecta tanto el Markdown enriquecido como la estructura JSON nativa compacta de `cvData`.
+
+### Catálogo de Prompts y Output Formats
+- [ ] En `src/locales/es/prompts.json`, `src/locales/en/prompts.json` y `src/ai-knowledge/prompts.json`, el 100% de los prompts tienen una propiedad `output_format` no vacía y detallada.
+- [ ] El prompt de traducción (`translate_english` / equivalente) estipula como formato de salida un bloque de código JSON estricto con el schema completo de `cvData` de Ressume, compatible con el validador del Gestor de Versiones (`src/utils/versionValidator.js`).
+- [ ] Existen al menos 5 nuevos prompts enfocados en búsqueda laboral técnica (System Design, Live Coding, Behavioral Leadership, Upskilling Roadmap, Cold Outreach, Salary Negotiation) con textos bilingües (`es` y `en`).
+- [ ] Todos los prompts poseen un nivel de detalle, rúbricas y pasos análogo al estándar de la Auditoría ATS.
+
+### Calidad y Reglas de Integración
+- [ ] La suite de tests pasa con 100% de éxito (`npx vitest run` exit code 0).
+- [ ] Ningún commit automático es ejecutado en git.

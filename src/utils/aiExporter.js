@@ -1,7 +1,11 @@
-import { getPrompts } from '../locales/index';
+import { getPrompts } from '../locales/index.js';
 import prompts from '../locales/es/prompts.json' with { type: 'json' };
-import { getSectionDescriptor } from '../registry/sectionRegistry';
-import { baseItemMarkdown, baseItemXML } from '../registry/itemFormatters';
+import { getSectionDescriptor } from '../registry/sectionRegistry.js';
+import { baseItemMarkdown, baseItemXML, aboutMarkdown } from '../registry/itemFormatters.js';
+import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
+import { getDynamicTextColors } from './colorUtils.js';
+import { sanitizeAndValidateCVSnapshot } from './versionValidator.js';
+import { stripHtml } from './richTextEngine.js';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -27,13 +31,37 @@ const CANONICAL_ATS_ORDER = [
 ];
 
 /**
- * Converts cvData into rich Semantic Markdown with YAML Frontmatter.
+ * Escapes characters for safe double-quoted YAML strings
  */
-export const exportToAIMarkdown = (cvData) => {
+const escapeYaml = (str) => {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, ' ');
+};
+
+/**
+ * Formats URLs with https:// protocol if not already present
+ */
+const formatContactUrl = (val) => {
+  if (!val) return '';
+  const trimmed = val.trim();
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    ? trimmed
+    : `https://${trimmed.replace(/^https?:\/\//, '').replace(/^\/+/, '')}`;
+};
+
+/**
+ * Converts cvData into rich Semantic Markdown with exhaustive YAML Frontmatter.
+ */
+export const exportToAIMarkdown = (cvData, options = {}) => {
   if (!cvData) return '';
 
   const layout = cvData.layout || { type: '1-column', leftBg: '', rightBg: '' };
-  const is1Col = layout.type === '1-column';
+  const isAtsMode = Boolean(layout.isAtsMode === true || layout.type === '1-column');
+  const is1Col = isAtsMode;
+  const layoutType = is1Col ? '1-column' : '2-column';
 
   const profileSection = cvData.sections?.find(s => s.type === 'profile_header');
   const profileItem = profileSection?.items?.[0] || {};
@@ -45,72 +73,233 @@ export const exportToAIMarkdown = (cvData) => {
   // ==========================================
   // YAML Frontmatter (Zero-Ambiguity Metadata)
   // ==========================================
-  lines.push('```markdown');
+  if (!options.raw) {
+    lines.push('```markdown');
+  }
   lines.push('---');
+  lines.push(`layout_type: "${layoutType}"`);
+  lines.push(`is_ats_mode: ${isAtsMode}`);
+  lines.push(`target_audience: "${is1Col ? 'ATS Parsers (Workday, Taleo, Greenhouse, Lever) & Technical Recruiters' : 'Human Hiring Managers & Portfolio Visual Review'}"`);
+  lines.push(`reading_flow: "${is1Col ? 'strictly_linear_top_to_bottom' : 'two_column_visual_hierarchy'}"`);
+
+  // Typography
+  lines.push('typography:');
+  lines.push(`  font_family: "${escapeYaml(layout.fontFamily || 'Poppins')}"`);
+  lines.push(`  font_scale: ${layout.fontScale ?? 1.0}`);
+  lines.push(`  title_scale: ${layout.titleScale ?? 1.0}`);
+  lines.push(`  body_scale: ${layout.bodyScale ?? 1.0}`);
+  lines.push(`  list_scale: ${layout.listScale ?? 1.0}`);
+  lines.push(`  line_height: ${layout.lineHeight ?? 1.45}`);
+
+  // Spacing
+  lines.push('spacing:');
+  lines.push(`  page_padding: ${layout.pagePadding ?? 24}`);
+  lines.push(`  section_gap: ${layout.sectionGap ?? 20}`);
+  lines.push(`  item_gap: ${layout.itemGap ?? 8}`);
+
+  // Styling & Container Colors
+  const primaryBulletSection = cvData.sections?.find(s => s.bulletStyle);
+  const bulletStyle = primaryBulletSection?.bulletStyle || { size: 'normal', variant: 'bold', showLine: true };
+  const leftBg = layout.leftBg || '#fafafa';
+  const rightBg = layout.rightBg || '#ffffff';
+  const containerColor = is1Col ? (layout.rightBg || layout.leftBg || '#ffffff') : (layout.rightBg || '#ffffff');
+  const textColors = getDynamicTextColors(containerColor);
+  const titleColor = textColors.titleColor || '#0b0a0a';
+  const textColor = textColors.textColor || '#403a3a';
+
+  lines.push('styling:');
+  lines.push('  bullet_style:');
+  lines.push(`    size: "${bulletStyle.size || 'normal'}"`);
+  lines.push(`    variant: "${bulletStyle.variant || 'bold'}"`);
+  lines.push(`    show_line: ${bulletStyle.showLine !== false}`);
+  lines.push('  container_colors:');
+  lines.push(`    left_bg: "${leftBg}"`);
+  lines.push(`    right_bg: "${rightBg}"`);
+  lines.push(`    title_color: "${titleColor}"`);
+  lines.push(`    text_color: "${textColor}"`);
+  lines.push(`    container_color: "${containerColor}"`);
+
+  // Section Ordering
   if (is1Col) {
-    lines.push('layout_type: "1-column"');
-    lines.push('target_audience: "ATS Parsers (Workday, Taleo, Greenhouse, Lever) & Technical Recruiters"');
-    lines.push('reading_flow: "top to bottom"');
     lines.push('section_order:');
+    const seenSecIds = new Set();
+    if (profileSection) {
+      lines.push(`  - id: "${escapeYaml(profileSection.id)}"`);
+      lines.push(`    title: "${escapeYaml(profileSection.title || 'Cabecera de Perfil')}"`);
+      lines.push('    type: "profile_header"');
+      lines.push('    item_count: 1');
+      seenSecIds.add(profileSection.id);
+    }
     CANONICAL_ATS_ORDER.forEach(secId => {
-      const sec = cvData.sections?.find(s => s.id === secId || s.type === secId);
-      if (sec) {
-        lines.push(`  - id: "${sec.id}"`);
-        lines.push(`    title: "${sec.title || sec.id}"`);
+      const sec = cvData.sections?.find(s => s.id === secId || (secId === 'about_section' && s.type === 'about'));
+      if (sec && !seenSecIds.has(sec.id)) {
+        lines.push(`  - id: "${escapeYaml(sec.id)}"`);
+        lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
+        lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
+        lines.push(`    item_count: ${Array.isArray(sec.items) ? sec.items.length : 1}`);
+        if (sec.bulletStyle) {
+          lines.push(`    bullet_style: { size: "${sec.bulletStyle.size || 'normal'}", variant: "${sec.bulletStyle.variant || 'bold'}", show_line: ${sec.bulletStyle.showLine !== false} }`);
+        }
+        seenSecIds.add(sec.id);
+      }
+    });
+    (cvData.sections || []).forEach(sec => {
+      if (!seenSecIds.has(sec.id)) {
+        lines.push(`  - id: "${escapeYaml(sec.id)}"`);
+        lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
+        lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
+        lines.push(`    item_count: ${Array.isArray(sec.items) ? sec.items.length : 1}`);
+        if (sec.bulletStyle) {
+          lines.push(`    bullet_style: { size: "${sec.bulletStyle.size || 'normal'}", variant: "${sec.bulletStyle.variant || 'bold'}", show_line: ${sec.bulletStyle.showLine !== false} }`);
+        }
+        seenSecIds.add(sec.id);
       }
     });
   } else {
-    lines.push('layout_type: "2-column"');
-    lines.push('target_audience: "Human Hiring Managers & Portfolio Visual Review"');
+    // 2-column mode
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+
+    lines.push('left_column_sections:');
+    leftSections.forEach(sec => {
+      lines.push(`  - id: "${escapeYaml(sec.id)}"`);
+      lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
+      lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
+      lines.push(`    item_count: ${Array.isArray(sec.items) ? sec.items.length : 0}`);
+    });
+
+    lines.push('right_column_sections:');
+    rightSections.forEach(sec => {
+      lines.push(`  - id: "${escapeYaml(sec.id)}"`);
+      lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
+      lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
+      lines.push(`    item_count: ${Array.isArray(sec.items) ? sec.items.length : 0}`);
+      if (sec.bulletStyle) {
+        lines.push(`    bullet_style: { size: "${sec.bulletStyle.size || 'normal'}", variant: "${sec.bulletStyle.variant || 'bold'}", show_line: ${sec.bulletStyle.showLine !== false} }`);
+      }
+    });
+
+    lines.push('section_order:');
+    lines.push('  left_column_sections:');
+    leftSections.forEach(sec => {
+      lines.push(`    - id: "${escapeYaml(sec.id)}"`);
+      lines.push(`      title: "${escapeYaml(sec.title || sec.id)}"`);
+    });
+    lines.push('  right_column_sections:');
+    rightSections.forEach(sec => {
+      lines.push(`    - id: "${escapeYaml(sec.id)}"`);
+      lines.push(`      title: "${escapeYaml(sec.title || sec.id)}"`);
+    });
+
     lines.push('visual_theme:');
     lines.push(`  left_sidebar_color: "${layout.leftBg || 'default'}"`);
     lines.push(`  right_main_color: "${layout.rightBg || 'default'}"`);
     lines.push('  sidebar_sections:');
-    (cvData.sections || []).filter(s => s.column === 'left' && s.type !== 'profile_header').forEach(sec => {
-      lines.push(`    - "${sec.id}" (${sec.title || sec.id})`);
+    leftSections.forEach(sec => {
+      lines.push(`    - "${escapeYaml(sec.id)} (${escapeYaml(sec.title || sec.id)})"`);
     });
     lines.push('  main_content_sections:');
-    (cvData.sections || []).filter(s => s.column === 'right').forEach(sec => {
-      lines.push(`    - "${sec.id}" (${sec.title || sec.id})`);
+    rightSections.forEach(sec => {
+      lines.push(`    - "${escapeYaml(sec.id)} (${escapeYaml(sec.title || sec.id)})"`);
     });
   }
 
+  // Candidate Profile
+  const candidateName = stripHtml(profileItem.name || cvData.profile?.name || '');
+  const candidateHeadline = stripHtml(profileItem.subtitle || '');
+  const candidateLocation = stripHtml(profileItem.location || '');
+
+  const contactsMap = {};
+  if (profileItem.email) contactsMap.email = profileItem.email;
+  if (profileItem.phone) contactsMap.phone = profileItem.phone;
+  if (profileItem.linkedin) contactsMap.linkedin = formatContactUrl(profileItem.linkedin);
+  if (profileItem.github) contactsMap.github = formatContactUrl(profileItem.github);
+
+  const dynamicContacts = normalizeItemContacts(profileItem);
+  dynamicContacts.forEach(c => {
+    if (!c || !c.type || !c.value) return;
+    if (c.type === 'location') return;
+    const key = c.type.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const isUrlType = ['linkedin', 'github', 'gitlab', 'leetcode', 'stackoverflow', 'portfolio', 'website', 'blog', 'figma', 'dribbble'].includes(c.type) || c.value.startsWith('http');
+    contactsMap[key] = isUrlType ? formatContactUrl(c.value) : c.value;
+  });
+
+  if (!contactsMap.email) contactsMap.email = '';
+  if (!contactsMap.phone) contactsMap.phone = '';
+  if (!contactsMap.linkedin) contactsMap.linkedin = '';
+  if (!contactsMap.github) contactsMap.github = '';
+
   lines.push('candidate_profile:');
-  lines.push(`  name: "${profileItem.name || cvData.profile?.name || ''}"`);
-  lines.push(`  headline: "${profileItem.subtitle || ''}"`);
-  lines.push(`  location: "${profileItem.location || ''}"`);
+  lines.push(`  name: "${escapeYaml(candidateName)}"`);
+  lines.push(`  headline: "${escapeYaml(candidateHeadline)}"`);
+  lines.push(`  location: "${escapeYaml(candidateLocation)}"`);
   lines.push('  contact:');
-  lines.push(`    email: "${profileItem.email || ''}"`);
-  lines.push(`    phone: "${profileItem.phone || ''}"`);
-  lines.push(`    linkedin: "https://${(profileItem.linkedin || '').replace(/^https?:\/\//, '')}"`);
-  lines.push(`    github: "https://${(profileItem.github || '').replace(/^https?:\/\//, '')}"`);
+  lines.push(`    email: "${escapeYaml(contactsMap.email)}"`);
+  lines.push(`    phone: "${escapeYaml(contactsMap.phone)}"`);
+  lines.push(`    linkedin: "${escapeYaml(contactsMap.linkedin)}"`);
+  lines.push(`    github: "${escapeYaml(contactsMap.github)}"`);
+
+  const standardKeys = new Set(['email', 'phone', 'linkedin', 'github']);
+  Object.keys(contactsMap).forEach(k => {
+    if (!standardKeys.has(k)) {
+      lines.push(`    ${k}: "${escapeYaml(contactsMap[k])}"`);
+    }
+  });
+
   lines.push('---');
 
   // ==========================================
   // Header Block
   // ==========================================
-  lines.push(`# ${profileItem.name || cvData.profile?.name || 'Curriculum Vitae'}`);
-  if (profileItem.subtitle) lines.push(`**${profileItem.subtitle}**\n`);
+  lines.push(`# ${candidateName || 'Curriculum Vitae'}`);
+  if (candidateHeadline) lines.push(`**${candidateHeadline}**\n`);
 
-  const contacts = [];
-  if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
-    profileItem.contacts.forEach(c => {
+  const contactsList = [];
+  if (dynamicContacts.length > 0) {
+    dynamicContacts.forEach(c => {
       if (!c || !c.value) return;
-      if (c.type === 'linkedin') contacts.push(`[LinkedIn](https://${c.value.replace(/^https?:\/\//, '')})`);
-      else if (c.type === 'github') contacts.push(`[GitHub](https://${c.value.replace(/^https?:\/\//, '')})`);
-      else if (c.type === 'leetcode') contacts.push(`[LeetCode](https://${c.value.replace(/^https?:\/\//, '')})`);
-      else contacts.push(c.value);
+      const type = c.type?.toLowerCase() || '';
+      const val = c.value.trim();
+      if (!val) return;
+
+      if (type === 'linkedin') {
+        contactsList.push(`[LinkedIn](${formatContactUrl(val)})`);
+      } else if (type === 'github') {
+        contactsList.push(`[GitHub](${formatContactUrl(val)})`);
+      } else if (type === 'leetcode') {
+        contactsList.push(`[LeetCode](${formatContactUrl(val)})`);
+      } else if (type === 'gitlab') {
+        contactsList.push(`[GitLab](${formatContactUrl(val)})`);
+      } else if (type === 'stackoverflow') {
+        contactsList.push(`[Stack Overflow](${formatContactUrl(val)})`);
+      } else if (type === 'portfolio') {
+        contactsList.push(`[Portfolio](${formatContactUrl(val)})`);
+      } else if (type === 'website') {
+        contactsList.push(`[Sitio Web](${formatContactUrl(val)})`);
+      } else if (type === 'blog') {
+        contactsList.push(`[Blog](${formatContactUrl(val)})`);
+      } else if (type === 'figma') {
+        contactsList.push(`[Figma](${formatContactUrl(val)})`);
+      } else if (type === 'dribbble') {
+        contactsList.push(`[Dribbble](${formatContactUrl(val)})`);
+      } else if (val.startsWith('http://') || val.startsWith('https://')) {
+        const config = getContactConfig(type);
+        const label = config?.label || type;
+        contactsList.push(`[${label}](${val})`);
+      } else {
+        contactsList.push(val);
+      }
     });
   } else {
-    if (profileItem.location) contacts.push(profileItem.location);
-    if (profileItem.email) contacts.push(profileItem.email);
-    if (profileItem.phone) contacts.push(profileItem.phone);
-    if (profileItem.linkedin) contacts.push(`[LinkedIn](https://${profileItem.linkedin.replace(/^https?:\/\//, '')})`);
-    if (profileItem.github) contacts.push(`[GitHub](https://${profileItem.github.replace(/^https?:\/\//, '')})`);
+    if (candidateLocation) contactsList.push(candidateLocation);
+    if (profileItem.email) contactsList.push(profileItem.email);
+    if (profileItem.phone) contactsList.push(profileItem.phone);
+    if (profileItem.linkedin) contactsList.push(`[LinkedIn](${formatContactUrl(profileItem.linkedin)})`);
+    if (profileItem.github) contactsList.push(`[GitHub](${formatContactUrl(profileItem.github)})`);
   }
 
-  if (contacts.length > 0) {
-    lines.push(contacts.join(' | '));
+  if (contactsList.length > 0) {
+    lines.push(contactsList.join(' | '));
     lines.push('');
   }
   lines.push('---');
@@ -122,11 +311,17 @@ export const exportToAIMarkdown = (cvData) => {
   const renderSection = (sec) => {
     if (!sec || sec.type === 'profile_header') return;
 
+    if (sec.type === 'spacer') {
+      lines.push('<!-- spacer -->');
+      lines.push('');
+      return;
+    }
+
     if (sec.type === 'about') {
       const headerTitle = sec.title || 'Perfil Profesional';
-      const colTag = is1Col ? '' : ' [Visual Layout: Sidebar / Left Column]';
+      const colTag = is1Col ? '' : (sec.column === 'right' ? ' [Visual Layout: Main Column]' : ' [Visual Layout: Sidebar / Left Column]');
       lines.push(`## ${headerTitle}${colTag}`);
-      const aboutDesc = sec.items?.[0]?.description || aboutItem.description || '';
+      const aboutDesc = aboutMarkdown(sec.items?.[0]) || aboutMarkdown(aboutItem) || '';
       if (aboutDesc) lines.push(aboutDesc);
       lines.push('');
       lines.push('---');
@@ -136,7 +331,7 @@ export const exportToAIMarkdown = (cvData) => {
 
     const descriptor = getSectionDescriptor(sec.type);
     const headerTitle = sec.title || descriptor.defaultTitle || sec.id.toUpperCase();
-    const colTag = is1Col ? '' : (sec.column === 'left' ? ' [Visual Layout: Sidebar / Left Column]' : ' [Visual Layout: Main Column]');
+    const colTag = is1Col ? '' : (sec.column === 'right' ? ' [Visual Layout: Main Column]' : ' [Visual Layout: Sidebar / Left Column]');
     lines.push(`## ${headerTitle}${colTag}`);
 
     (sec.items || []).forEach(item => {
@@ -167,12 +362,30 @@ export const exportToAIMarkdown = (cvData) => {
       }
     });
   } else {
-    // In 2-column mode, render sections as configured
-    (cvData.sections || []).forEach(sec => {
-      renderSection(sec);
-    });
+    // In 2-column mode: group Left Column sections (Sidebar) and Right Column sections (Main Content) legibly
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+
+    if (leftSections.length > 0) {
+      lines.push('# COLUMNA LATERAL (BARRA LATERAL / SIDEBAR)');
+      lines.push('');
+      leftSections.forEach(sec => {
+        renderSection(sec);
+      });
+    }
+
+    if (rightSections.length > 0) {
+      lines.push('# CONTENIDO PRINCIPAL (COLUMNA DERECHA / MAIN CONTENT)');
+      lines.push('');
+      rightSections.forEach(sec => {
+        renderSection(sec);
+      });
+    }
   }
-  lines.push('```');
+
+  if (!options.raw) {
+    lines.push('```');
+  }
   return lines.join('\n');
 };
 
@@ -224,6 +437,7 @@ export const exportToAIXML = (cvData) => {
     xml.push(`    <professional_summary>${escapeXML(aboutItem.description)}</professional_summary>`);
   }
   xml.push('  </candidate>');
+  xml.push('  <sections>');
   const getOrderedSections = () => {
     if (!is1Col) return cvData.sections || [];
     const ordered = [];
@@ -365,14 +579,62 @@ export const exportToATSPlainText = (cvData) => {
 };
 
 /**
- * Builds a complete prompt bundle (System instruction + Task + Optional Job Description + Formatted CV)
+ * Produces a clean, compact JSON representation of cvData matching the native schema,
+ * directly valid under sanitizeAndValidateCVSnapshot for import into Version Manager.
+ */
+export const exportToAIJson = (cvData, options = {}) => {
+  if (!cvData) return '{}';
+  const validated = sanitizeAndValidateCVSnapshot(cvData);
+
+  const compact = {
+    profile: {
+      name: validated.profile?.name || ''
+    },
+    layout: {
+      type: validated.layout?.type || '1-column',
+      isAtsMode: Boolean(validated.layout?.isAtsMode),
+      fontFamily: validated.layout?.fontFamily || 'Poppins',
+      fontScale: validated.layout?.fontScale ?? 1.0,
+      titleScale: validated.layout?.titleScale ?? 1.0,
+      bodyScale: validated.layout?.bodyScale ?? 1.0,
+      listScale: validated.layout?.listScale ?? 1.0,
+      lineHeight: validated.layout?.lineHeight ?? 1.45,
+      pagePadding: validated.layout?.pagePadding ?? 24,
+      sectionGap: validated.layout?.sectionGap ?? 20,
+      itemGap: validated.layout?.itemGap ?? 8,
+      leftBg: validated.layout?.leftBg || '',
+      rightBg: validated.layout?.rightBg || '',
+      leftColumnWidth: validated.layout?.leftColumnWidth || null
+    },
+    sections: (validated.sections || []).map(sec => ({
+      id: sec.id,
+      column: sec.column || 'left',
+      type: sec.type || 'list',
+      title: sec.title || '',
+      ...(sec.bulletStyle ? { bulletStyle: sec.bulletStyle } : {}),
+      items: (sec.items || []).map(item => ({ ...item }))
+    }))
+  };
+
+  return JSON.stringify(compact, null, 2);
+};
+
+export const exportToAIText = exportToATSPlainText;
+
+/**
+ * Builds a complete prompt bundle (System instruction + Task + Output format + Optional Commentary + Optional Job Description + Formatted CV)
  * ready to be copied directly into ChatGPT, Claude, Gemini, DeepSeek, or an API call.
  */
 export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', options = {}) => {
-  const { format = 'markdown', jobDescription = '', lang = 'es' } = options;
+  const {
+    format = 'markdown',
+    jobDescription = '',
+    userCommentary = '',
+    lang = 'es'
+  } = options;
 
   const localizedPrompts = getPrompts(lang);
-  const promptDef = localizedPrompts.find(p => p.id === promptId) || localizedPrompts[0];
+  const promptDef = localizedPrompts.find(p => p.id === promptId) || localizedPrompts[0] || {};
 
   let cvFormatted = '';
   if (format === 'markdown') {
@@ -381,31 +643,74 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     cvFormatted = exportToAIXML(cvData);
   } else if (format === 'ats_text') {
     cvFormatted = exportToATSPlainText(cvData);
+  } else if (format === 'json') {
+    cvFormatted = exportToAIJson(cvData);
   } else {
-    cvFormatted = JSON.stringify(cvData, null, 2);
+    cvFormatted = exportToAIMarkdown(cvData);
   }
 
-
   const payload = [];
-  /*Instrucciones del sistema*/
-  payload.push("---");
-  payload.push('role: ' + promptDef.system_instruction);
+
+  /* Instrucciones del sistema */
+  payload.push('---');
+  payload.push('role: ' + (promptDef.system_instruction || ''));
   payload.push('');
-  /*Tarea a realizar*/
-  payload.push('task: ' + promptDef.task);
+
+  /* Tarea a realizar */
+  payload.push('task: ' + (promptDef.task || ''));
   payload.push('');
-  /*Formato de salida*/
-  payload.push('output_format: ' + promptDef.output_format);
+
+  /* Formato de salida */
+  payload.push('output_format: ' + (promptDef.output_format || ''));
   payload.push('');
-  /*Datos de entrada*/
-  if (jobDescription && jobDescription.trim()) {
+
+  /* Comentarios opcionales del usuario */
+  if (userCommentary && typeof userCommentary === 'string' && userCommentary.trim()) {
+    payload.push('user_commentary: ' + userCommentary.trim());
+    payload.push('');
+  }
+
+  /* Descripción de puesto requerida */
+  const requiresJobDesc = Array.isArray(promptDef?.required_inputs)
+    ? promptDef.required_inputs.includes('job_description')
+    : (promptId === 'job_matcher');
+
+  if (requiresJobDesc && jobDescription && typeof jobDescription === 'string' && jobDescription.trim()) {
     payload.push('job_description: ' + jobDescription.trim());
     payload.push('');
   }
+
   payload.push('---');
-  payload.push(`# DATOS DE ENTRADA DEL CURRÍCULUM VITAE (${format.toUpperCase()})`);
-  payload.push('A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:');
+
+  const isEn = lang === 'en';
+  const introHeader = isEn
+    ? `# CANDIDATE RESUME INPUT DATA (${format.toUpperCase()})`
+    : `# DATOS DE ENTRADA DEL CURRÍCULUM VITAE (${format.toUpperCase()})`;
+  const introText = isEn
+    ? 'Below is the candidate resume structured in Markdown format with comprehensive Frontmatter metadata. Analyze only the information contained within the following block:'
+    : 'A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:';
+
+  payload.push(introHeader);
+  payload.push(introText);
   payload.push(cvFormatted);
+
+  // For translation and localization prompts, inject the compact native cvData JSON schema
+  if (promptId === 'translate_english' || promptDef?.category === 'localization') {
+    payload.push('');
+    payload.push('---');
+    const schemaTitle = isEn
+      ? '# COMPACT NATIVE JSON SCHEMA (cvData)'
+      : '# SCHEMA JSON NATIVO COMPACTO (cvData)';
+    const schemaInstruction = isEn
+      ? 'To allow direct import of the translation into the Ressume Version Manager, the current native JSON structure of the CV is provided below. Your response MUST strictly be a single ```json ... ``` code block preserving this exact schema structure translated and adapted to the US Tech ecosystem:'
+      : 'Para que la traducción pueda ser importada directamente en el Gestor de Versiones de Ressume, a continuación se proporciona la estructura JSON nativa actual del CV. Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` con esta misma estructura traducida y adaptada al ecosistema Tech de EE.UU.:';
+
+    payload.push(schemaTitle);
+    payload.push(schemaInstruction);
+    payload.push('```json');
+    payload.push(exportToAIJson(cvData));
+    payload.push('```');
+  }
 
   return payload.join('\n');
 };

@@ -357,33 +357,26 @@ describe('Empirical Challenger M3-1: Epic 3 Stress & Invariant Verification', ()
       );
 
       const designBtn = screen.getByTestId('btn-open-design');
-      const actionsBtn = screen.getByTestId('btn-open-actions');
       const designSubmenu = screen.getByTestId('design-submenu');
-      const actionsSubmenu = screen.getByTestId('actions-submenu');
+      const nativePrintBtn = screen.getByTestId('btn-action-native-print');
 
-      // Initially both closed
+      // Initially closed
       expect(designSubmenu.style.opacity).toBe('0');
-      expect(actionsSubmenu.style.opacity).toBe('0');
+      expect(nativePrintBtn).toBeInTheDocument();
 
       // Click Design -> opens Design
       fireEvent.click(designBtn);
       expect(designSubmenu.style.opacity).toBe('1');
-      expect(actionsSubmenu.style.opacity).toBe('0');
+      expect(designSubmenu.style.pointerEvents).toBe('auto');
 
       // Click Design again -> toggles closed
       fireEvent.click(designBtn);
       expect(designSubmenu.style.opacity).toBe('0');
-      expect(actionsSubmenu.style.opacity).toBe('0');
+      expect(designSubmenu.style.pointerEvents).toBe('none');
 
-      // Click Actions -> opens Actions
-      fireEvent.click(actionsBtn);
-      expect(actionsSubmenu.style.opacity).toBe('1');
-      expect(designSubmenu.style.opacity).toBe('0');
-
-      // Click Design while Actions is open -> opens Design and closes Actions
-      fireEvent.click(designBtn);
-      expect(designSubmenu.style.opacity).toBe('1');
-      expect(actionsSubmenu.style.opacity).toBe('0');
+      // Obsolete actions submenu is streamlined and absent
+      expect(screen.queryByTestId('actions-submenu')).toBeNull();
+      expect(screen.queryByTestId('btn-open-actions')).toBeNull();
     });
 
     it('CHAL-3.2: Typography controls update layout tokens and Reset Typography restores defaults', () => {
