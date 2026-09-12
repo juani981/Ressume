@@ -17,6 +17,8 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { usePaginationEngine } from "./hooks/usePaginationEngine";
 import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
 import { useColumnResizer } from "./hooks/useColumnResizer";
+import { useBlankPageCleaner } from "./hooks/useBlankPageCleaner";
+
 import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
 import A4PageGuides from "./components/Editor/A4PageGuides";
@@ -45,10 +47,12 @@ function App() {
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
+      updateSectionProperty,
       activeTooltip,
       setTotalPages: setContextTotalPages,
       paginationTrigger,
    } = useCV();
+
 
    useEffect(() => {
       setupDisableNativeTooltips();
@@ -72,7 +76,7 @@ function App() {
    });
 
    // 2. Pagination Engine Hook
-   const { totalPages } = usePaginationEngine({
+   const { totalPages, pageBreaks } = usePaginationEngine({
       areaCvRef,
       cvData,
       setContextTotalPages,
@@ -81,12 +85,25 @@ function App() {
       paginationTrigger,
    });
 
-   // 3. Column Resizer Hook
+   // 3. Blank Page Cleaner — runs after pagination, removes trailing empty pages
+   useBlankPageCleaner({
+      areaCvRef,
+      totalPages,
+      pageBreaks,
+      cvData,
+      updateSectionProperty,
+      isPrint: false,
+      activeDragItem,
+      activeDragSection,
+   });
+
+   // 4. Column Resizer Hook
    const { isResizing, handleResizerMouseDown } = useColumnResizer({
       areaCvRef,
       onResize: (clamped) => updateLayout("leftColumnWidth", clamped),
       initialLeftWidth: cvData.layout?.leftColumnWidth,
    });
+
 
    // Modal State
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);

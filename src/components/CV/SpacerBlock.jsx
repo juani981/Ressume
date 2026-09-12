@@ -192,7 +192,7 @@ export const SpacerResizeHandle = ({
         left: 0,
         right: 0,
         height: '14px',
-        cursor: 'row-resize',
+        cursor: 'ns-resize',
         zIndex: 35,
         display: 'flex',
         alignItems: 'center',
