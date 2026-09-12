@@ -120,7 +120,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <BrainCircuit size={28} color="#3874ff" />
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Generar Prompts de IA & Abstracción de CV</h3>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Generar Prompts de IA con ls datos de tu CV</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color-light, #777)' }}>
                 Reemplazo semántico del PDF para modelos de lenguaje (GPT, Claude, Gemini, DeepSeek) y ATS
               </p>
@@ -179,7 +179,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
               </select>
             </div>
 
-            {/* Layout Mode Selector */}
+            {/* Layout Mode Selector 
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
                 <Layout size={15} color="#6366f1" /> Disposición de Abstracción:
@@ -198,12 +198,12 @@ const AIExportModal = ({ isOpen, onClose }) => {
                   cursor: 'pointer'
                 }}
               >
-                <option value="1-column">1 Columna — Lineal ATS (&gt;95 Pts)</option>
+                <option value="1-column">1 Columna — Optimizado ATS</option>
                 <option value="2-column">2 Columnas — Visual para Reclutador</option>
               </select>
-            </div>
+            </div>*/}
 
-            {/* Abstraction Format Selector */}
+            {/* Abstraction Format Selector 
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
                 <FileText size={15} color="#10b981" /> Formato de Abstracción:
@@ -227,7 +227,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
                 <option value="ats_text">Texto Plano Lineal</option>
                 <option value="json">JSON Schema Nativo</option>
               </select>
-            </div>
+            </div>*/}
           </div>
 
           {/* Description of Selected Prompt */}
@@ -283,7 +283,7 @@ const AIExportModal = ({ isOpen, onClose }) => {
               padding: '1rem',
               borderRadius: '8px',
               fontSize: '0.8rem',
-              fontFamily: 'Consolas, Monaco, monospace',
+              fontFamily: '"Cascadia Code", Consolas, Monaco, monospace',
               maxHeight: '220px',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',

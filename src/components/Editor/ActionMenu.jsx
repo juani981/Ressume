@@ -154,7 +154,7 @@ const ActionMenu = () => {
           zIndex: 100 
         }}
       >
-        {/* 1. Modo ATS Switch */}
+        {/* 1. Modo ATS Switch 
         <div 
           className="ats-toggle-container action-menu-btn-wrap" 
           style={{ 
@@ -218,7 +218,7 @@ const ActionMenu = () => {
         </div>
 
         <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
-
+*/}
         {/* 2. Deshacer (Undo) */}
         <div className="action-menu-btn-wrap">
           <button 
@@ -263,7 +263,7 @@ const ActionMenu = () => {
           </span>
         </div>
 
-        {/* 4. Restablecer CV Original */}
+        {/* 4. Restablecer CV Original
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -283,8 +283,8 @@ const ActionMenu = () => {
             Restablecer CV
           </span>
         </div>
-
-        {/* 5. Idiomas y Traducción */}
+ */}
+        {/* 5. Idiomas y Traducción 
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -299,47 +299,22 @@ const ActionMenu = () => {
           <span className="action-menu-tooltip">
             Idiomas y Traducción
           </span>
-        </div>
-
-        <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
-
-        {/* 6. Generar Prompts de IA */}
-        <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            id='ia-prompts-item'
-            onClick={() => setIsAIModalOpen(true)} 
-            style={{ color: '#BE00F7' }}
-            aria-label="Generar Prompts de IA"
-            title="Generar Prompts de IA"
-          >
-            <BotMessageSquare/>
-          </button>
-          <span className="action-menu-tooltip">
-            Generar Prompts para análisis
-          </span>
-        </div>
-
-        {/* Gestor de Versiones */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="version-hub-btn action-menu-hub-btn"
-            id='versiones-item'
-            data-testid="btn-open-version-manager"
-            aria-label="Gestor de Versiones"
-            title="Gestor de Versiones"
-            onClick={() => setIsVersionModalOpen(true)}
-          >
-            <History size={20} color="#3b82f6" />
-          </button>
-          <span className="action-menu-tooltip">Gestor de Versiones</span>
-        </div>
+        </div>*/}
 
         <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
 
         {/* 7. Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="red" />
+          <stop offset="17%" stopColor="orange" />
+          <stop offset="33%" stopColor="yellow" />
+          <stop offset="50%" stopColor="green" />
+          <stop offset="67%" stopColor="blue" />
+          <stop offset="83%" stopColor="indigo" />
+          <stop offset="100%" stopColor="violet" />
+        </linearGradient>
+        </svg>
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -359,16 +334,68 @@ const ActionMenu = () => {
             title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
             data-testid="btn-open-design"
           >
-            <Palette size={20} />
+            <Palette size={20} stroke='url(#rainbow-gradient)'/>
           </button>
           <span className="action-menu-tooltip">
             Diseño (Colores, Espaciado, Tipografía)
           </span>
         </div>
 
-        {/* 8. Acciones de Exportación */}
+         {/* 6. Generar Prompts de IA */}
         <div className="action-menu-btn-wrap">
           <button 
+            type="button"
+            className="action-menu-btn"
+            id='ia-prompts-item'
+            onClick={() => setIsAIModalOpen(true)} 
+            style={{ color: '#BE00F7' }}
+            aria-label="Generar Prompts de IA"
+            title="Generar Prompts de IA"
+          >
+            <BotMessageSquare/>
+          </button>
+          <span className="action-menu-tooltip">
+            Generar Prompts para análisis
+          </span>
+        </div>
+                <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
+
+{/* Gestor de Versiones */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="version-hub-btn action-menu-hub-btn"
+            id='versiones-item'
+            data-testid="btn-open-version-manager"
+            aria-label="Gestor de Versiones"
+            title="Gestor de Versiones"
+            onClick={() => setIsVersionModalOpen(true)}
+          >
+            <History size={20} color="#3b82f6" />
+          </button>
+          <span className="action-menu-tooltip">Gestor de Versiones</span>
+        </div>
+        {/* 8. Acciones de Exportación */}
+        <div className="action-menu-btn-wrap">
+          {/* Action 1: Native Print / Clean PDF Export */}
+        <button
+          type="button"
+          className="action-menu-btn"
+          onClick={handleGeneratePDF}
+          disabled={loading}
+          aria-label="Descargar / Imprimir PDF"
+          title="Descargar / Imprimir PDF"
+          data-testid="btn-action-native-print"
+        >
+            
+
+            {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={20} color='#DC143C'/>}
+          
+          </button>
+          <span className="action-menu-tooltip">
+            Descargar/Imprimir PDF
+          </span>
+          {/* <button 
             type="button"
             className="action-menu-btn"
             onClick={() => {
@@ -390,7 +417,7 @@ const ActionMenu = () => {
           </button>
           <span className="action-menu-tooltip">
             Acciones de Exportación
-          </span>
+          </span> */}
         </div>
       </div>
 
@@ -809,7 +836,7 @@ const ActionMenu = () => {
       </div>
       {/* =========================================================================
           Grouped Submenu 2: 'Acciones' Popover (Export JSON, Print)
-          ========================================================================= */}
+          ========================================================================= 
       <div 
         className="actions-popover no-print"
         style={{
@@ -833,7 +860,7 @@ const ActionMenu = () => {
         }}
         data-testid="actions-submenu"
       >
-        {/* Header */}
+        
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.5rem' }}>
           <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--title-color, #111)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FolderDown size={18} color="#3874ff" /> Acciones de Exportación
@@ -848,40 +875,9 @@ const ActionMenu = () => {
           </button>
         </div>
 
-        {/* Action 1: Native Print / Clean PDF Export */}
-        <button
-          type="button"
-          className="action-popover-item"
-          onClick={handleGeneratePDF}
-          disabled={loading}
-          aria-label="Descargar / Imprimir PDF"
-          title="Descargar / Imprimir PDF (Impresión A4 Limpia)"
-          data-testid="btn-action-native-print"
-        >
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: '#fff1f2',
-            color: '#e11d48',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={20} />}
-          </div>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
-              Descargar / Imprimir PDF
-            </div>
-            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '1px' }}>
-              Documento A4 limpio y optimizado
-            </div>
-          </div>
-        </button>
+        
 
-        {/* Action 2: Export JSON State */}
+        
         <button
           type="button"
           className="action-popover-item"
@@ -912,7 +908,7 @@ const ActionMenu = () => {
             </div>
           </div>
         </button>
-      </div>
+      </div>*/}
 
       <AIExportModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
       <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
