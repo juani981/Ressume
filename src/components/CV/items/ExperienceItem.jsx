@@ -2,6 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import AddBulletPoint from '../../Editor/AddBulletPoint';
 import { Plus } from 'lucide-react';
 import { 
   DndContext, 
@@ -220,26 +221,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div 
-            className="bullet-add-row no-print" 
-            style={{ 
-              paddingLeft: '1.15rem',
-              height: 0,
-              lineHeight: 0,
-              overflow: 'visible',
-              position: 'relative'
-            }}
-          >
-            <button
-              type="button"
-              className="add-bullet-btn no-print"
-              onClick={handleAddBullet}
-              title="Agregar viñeta / logro a este puesto"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              <span>Agregar viñeta</span>
-            </button>
-          </div>
+          <AddBulletPoint helperText={"Agregar hito/logro en éste puesto"} handleAddBullet={handleAddBullet}  />
         </div>
       </div>
     </>

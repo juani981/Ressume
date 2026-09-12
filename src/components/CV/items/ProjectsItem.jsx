@@ -2,7 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
-import { Plus } from 'lucide-react';
+import { ListPlus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -17,6 +17,7 @@ import {
   arrayMove, 
   sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
+import AddBulletPoint from '../../Editor/AddBulletPoint';
 
 
 const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
@@ -243,26 +244,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div 
-            className="bullet-add-row no-print" 
-            style={{ 
-              paddingLeft: '1.15rem',
-              height: 0,
-              lineHeight: 0,
-              overflow: 'visible',
-              position: 'relative'
-            }}
-          >
-            <button
-              type="button"
-              className="add-bullet-btn no-print"
-              onClick={handleAddBullet}
-              title="Agregar logro / funcionalidad al proyecto"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              <span>Agregar viñeta de impacto</span>
-            </button>
-          </div>
+          <AddBulletPoint helperText = {"Agregar logro / funcionalidad al proyecto"} handleAddBullet={handleAddBullet} />
         </div>
       </div>
     </>

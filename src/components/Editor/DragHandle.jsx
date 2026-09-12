@@ -12,7 +12,7 @@ const DragHandle = ({ isInner = false, listeners, attributes }) => {
               ? "Arrastrar elemento para reordenar"
               : "Arrastrar sección para reordenar"
         }
-        style={{ cursor: "row-resize" }}>
+        >
         <GripVertical size={16} />
      </div>
   );

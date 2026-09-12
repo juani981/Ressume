@@ -192,7 +192,7 @@ export const SpacerResizeHandle = ({
         left: 0,
         right: 0,
         height: '14px',
-        cursor: 'ns-resize',
+        cursor: 'row-resize',
         zIndex: 35,
         display: 'flex',
         alignItems: 'center',
@@ -204,8 +204,9 @@ export const SpacerResizeHandle = ({
     >
       <div
         style={{
-          width: isHovered || isResizing ? '64px' : '36px',
-          height: isHovered || isResizing ? '12px' : '4px',
+          width: isHovered || isResizing ? '30%' : '40%',
+          height: isHovered || isResizing ? '6px' : '2px',
+          marginBottom: '-6px',
           borderRadius: '6px',
           position: 'absolute',
           background: isResizing ? '#3874ff' : (isHovered ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)'),
