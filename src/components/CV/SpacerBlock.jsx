@@ -43,9 +43,6 @@ export const PrintSpacerBlock = ({ section, height: propHeight, isBlack: propIsB
         border: 'none',
         outline: 'none',
         display: 'block',
-        pageBreakInside: 'avoid',
-        breakInside: 'avoid',
-        WebkitColumnBreakInside: 'avoid',
       }}
     />
   );
@@ -173,6 +170,7 @@ export const SpacerResizeHandle = ({
   return (
     <div
       className="spacer-resize-handle no-print"
+      data-editor-ui="true"
       data-testid={testId}
       role="slider"
       aria-label="Ajustar altura de espacio en blanco"
@@ -285,6 +283,7 @@ export const EditableIntegratedBottomSpacer = ({
   return (
     <div
       className="integrated-bottom-spacer no-print"
+      data-editor-ui="true"
       data-testid={`integrated-bottom-spacer-${containerId}`}
       data-spacer-height={localHeight}
       onMouseEnter={() => setIsHovered(true)}
@@ -483,6 +482,7 @@ export const EditableSpacerBlock = ({ section }) => {
       {/* 1. Sortable Drag Handle (top-left) */}
       <div
         className="no-print"
+        data-editor-ui="true"
         style={{
           position: 'absolute',
           top: '-12px',
@@ -498,6 +498,7 @@ export const EditableSpacerBlock = ({ section }) => {
       {/* 2. Floating Action Controls Bar (center) */}
       <div
         className="spacer-controls-bar no-print"
+        data-editor-ui="true"
         data-testid={`spacer-controls-${section.id}`}
         style={{
           position: 'absolute',

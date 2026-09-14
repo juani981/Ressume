@@ -89,6 +89,7 @@ export const SortableBulletItem = ({
       <button
         type="button"
         className="round-btn-del bullet-del-btn no-print"
+        data-editor-ui="true"
         title="Eliminar esta viñeta"
         onClick={(e) => {
           e.stopPropagation();

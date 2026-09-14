@@ -41,9 +41,11 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
     ...(descriptor.itemStyle || {})
   };
 
+  const hasPageBreak = Boolean(item?.pageBreak === 'before' || item?.breakBefore || item?.isForcedBreak);
+
   return (
     <ItemTag 
-      className={`${descriptor.itemClass || 'experience__content'} cv-block`}
+      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
       style={style}
@@ -110,6 +112,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         <button
           type="button"
           className="round-btn-del item-del-btn no-print"
+          data-editor-ui="true"
           title="Eliminar este elemento"
           onClick={(e) => {
             e.stopPropagation();

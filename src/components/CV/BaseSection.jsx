@@ -111,15 +111,21 @@ export const PrintBaseSection = ({ section }) => {
   const bulletClasses = section.bulletStyle ? ` ${getBulletClasses(section.bulletStyle)}` : '';
   const wrapperClass = resolveSectionWrapperClass(descriptor);
 
+  const hasPageBreak = Boolean(section.pageBreak === 'before' || section.breakBefore || section.isForcedBreak);
+  const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
+
   return (
     <section 
-      className={`${descriptor.sectionClass} section cv-section${bulletClasses}`} 
+      className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
       id={section.id}
       data-section-id={section.id}
       style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
     >
       {descriptor.hasTitle !== false && section.title && (
-        <h2 className="section-title" data-section-title={section.id}>
+        <h2 
+          className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
+          data-section-title={section.id}
+        >
           <InlineEdit value={section.title || ''} isPrint={true} />
         </h2>
       )}
@@ -204,6 +210,7 @@ const EditableBaseSection = ({ section }) => {
       
       <div 
         className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+        data-editor-ui="true"
         data-testid={`section-actions-${section.id}`}
       >
         <button 
@@ -272,10 +279,11 @@ const EditableBaseSection = ({ section }) => {
       </div>
 
       {allowAddItem && (
-        <div className="section-add-container no-print">
+        <div className="section-add-container no-print" data-editor-ui="true">
           <button 
             type="button"
             className="round-btn-add no-print"
+            data-editor-ui="true"
             title={`Agregar nuevo elemento a ${section.title || 'esta sección'}`}
             onClick={(e) => {
               e.stopPropagation();

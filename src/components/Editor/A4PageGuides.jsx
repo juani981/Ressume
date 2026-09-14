@@ -25,6 +25,7 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24 }) => {
         <div
           key={`page-fold-${i}`}
           className="a4-page-fold-guide no-print"
+          data-editor-ui="true"
           data-testid={`a4-page-fold-${i + 1}`}
           style={{
             position: 'absolute',
@@ -50,6 +51,7 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24 }) => {
             {i < totalPages - 1 && (
               <div
                 className="a4-page-inset a4-page-inset--bottom no-print"
+                data-editor-ui="true"
                 data-testid={`a4-page-inset-bottom-${i + 1}`}
                 style={{
                   position: 'absolute',
@@ -65,6 +67,7 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24 }) => {
             {i < totalPages - 1 && (
               <div
                 className="a4-page-inset a4-page-inset--top no-print"
+                data-editor-ui="true"
                 data-testid={`a4-page-inset-top-${i + 2}`}
                 style={{
                   position: 'absolute',

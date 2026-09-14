@@ -24,6 +24,7 @@ export const ColumnResizer = ({
   return (
     <div
       className="column-resizer no-print"
+      data-editor-ui="true"
       onMouseDown={onStartResize}
       onTouchStart={onStartResize}
       title="Arrastra para ajustar el ancho de las columnas"

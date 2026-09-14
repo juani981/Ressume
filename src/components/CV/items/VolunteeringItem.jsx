@@ -224,6 +224,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
           {/* Add Bullet Button */}
           <div 
             className="bullet-add-row no-print" 
+            data-editor-ui="true"
             style={{ 
               paddingLeft: '1.15rem',
               height: 0,
@@ -235,6 +236,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
             <button
               type="button"
               className="add-bullet-btn no-print"
+              data-editor-ui="true"
               onClick={handleAddBullet}
               title="Agregar viñeta de impacto voluntario"
             >

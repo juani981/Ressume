@@ -125,6 +125,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
               <button
                 type="button"
                 className="contact-del-btn bullet-del-btn no-print"
+                data-editor-ui="true"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteContact(contact.id);
@@ -142,6 +143,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
         <button
           type="button"
           className="add-contact-btn no-print"
+          data-editor-ui="true"
           onClick={(e) => {
             e.stopPropagation();
             const rect = e.currentTarget.getBoundingClientRect();

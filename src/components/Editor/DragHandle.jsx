@@ -5,6 +5,7 @@ const DragHandle = ({ isInner = false, listeners, attributes }) => {
   return (
      <div
         className={`drag-handle ${isInner ? "item-drag-handle" : "section-drag-handle"} no-print`}
+        data-editor-ui="true"
         {...listeners}
         {...attributes}
         title={

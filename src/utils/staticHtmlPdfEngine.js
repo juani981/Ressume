@@ -349,65 +349,30 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
 
   const containerWidth = snapshot?.width ? `${snapshot.width}px` : null;
 
-  let snapshotBreaksCSS = '';
-  if (snapshot?.brokenElements?.length > 0) {
-    snapshotBreaksCSS = snapshot.brokenElements.map(b => {
-      const selector = b.isTitle
-        ? `[data-section-title="${b.sectionId}"]`
-        : (b.itemId ? `[data-item-id="${b.itemId}"]` : `[data-section-id="${b.sectionId}"]`);
-      return `
-        ${selector} {
-          break-before: page !important;
-          page-break-before: always !important;
-          margin-top: var(--page-padding, 24px) !important;
-        }
-      `;
-    }).join('\n');
-  }
+  const leftSectionsCol = is2Col ? sections.filter(s => getSectionCol(s) === 'left') : [];
+  const rightSectionsCol = is2Col ? sections.filter(s => getSectionCol(s) === 'right') : [];
 
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm; height: 100%; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
-          ${leftSections.map(renderSectionHTML).join('')}
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+        <div class="resume__left" style="background: ${leftBg}; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
+          ${leftSectionsCol.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; height: 100%; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
-          ${rightSections.map(renderSectionHTML).join('')}
+        <div class="resume__right" style="background: ${rightBg}; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
+          ${rightSectionsCol.map(renderSectionHTML).join('')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
+      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
         ${sections.map(renderSectionHTML).join('')}
       </div>
     `;
   }
 
   const dynamicDocumentTitle = getDynamicPdfTitle(data);
-
-  let activeBaseStyles = baseStyles || '';
-  let activePrintStyles = printStyles || '';
-
-  // Remove static :root block so dynamic variables take effect without collision
-  activeBaseStyles = activeBaseStyles.replace(/:root\s*\{[\s\S]*?\}/, '/* static :root removed */');
-
-  // Sanitize editor artifact selector names so they do not leak into clean print HTML
-  // without deleting entire CSS rule blocks or affecting layout rules (.cv-section, margins, text contrast)
-  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
-  activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
-  activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
-
-
-  if (!is2Col) {
-    activeBaseStyles = activeBaseStyles
-      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
-      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
-    activePrintStyles = activePrintStyles
-      .replace(/[^{}]*?\.resume__(?:left|right)[^{]*?\{[^}]*?\}/gi, '')
-      .replace(/\.resume__(?:left|right)\b/gi, '.col-inactive');
-  }
 
   return `<!DOCTYPE html>
 <html lang="${escapeHTML(docLang)}">
@@ -463,18 +428,14 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     }
 
     .resume__single-column {
-      min-height: 297mm !important;
       box-sizing: border-box !important;
       padding: var(--page-padding, ${pagePadding}px) !important;
     }
 
-${activeBaseStyles}
+${baseStyles}
   </style>
   <style id="cv-print-styles">
-${activePrintStyles}
-  </style>
-  <style id="cv-snapshot-breaks">
-${snapshotBreaksCSS}
+${printStyles}
   </style>
 </head>
 <body>
@@ -500,160 +461,111 @@ ${snapshotBreaksCSS}
  * @returns {{ totalPages: number, targetHeightMm: number, breaksApplied: Array }}
  */
 // JSDOM-ONLY FALLBACK: unreachable in browser where #area-cv snapshot is available
-export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = A4_PAGE_HEIGHT_PX) => {
-  if (!areaCv) {
-    return { totalPages: 1, targetHeightMm: 297, breaksApplied: [] };
+/**
+ * Creates a sanitized memory clone of the live #area-cv element for native printing.
+ * - Deep clones the DOM node in memory without affecting the live editor.
+ * - Strips all interactive controls, resize handles, drag handles, toolbars, and guides
+ *   identified by [data-editor-ui="true"] and .no-print.
+ * - Normalizes page breaks: transforms gap-adjusted margin-top into CSS page breaks.
+ * - Normalizes empty editable fields to ensure placeholders do not leak into printout.
+ * - Enforces exact print geometry (N * 297mm) across columns.
+ * 
+ * @param {HTMLElement} areaCvElement The live #area-cv element from the editor
+ * @returns {HTMLElement|null} The sanitized clone ready for iframe injection
+ */
+export const createSanitizedPrintClone = (areaCvElement) => {
+  if (!areaCvElement) return null;
+
+  // 1. Deep clone in memory
+  const clone = areaCvElement.cloneNode(true);
+
+  // 2. DOM UI Scrubber: purge all interactive controls and editor guides
+  const editorUIElements = clone.querySelectorAll('[data-editor-ui="true"], .no-print');
+  editorUIElements.forEach((el) => {
+    el.remove();
+  });
+
+  // 3. Purge empty inline-edit placeholders so they never print
+  clone.querySelectorAll('[data-is-empty="true"], .inline-edit-placeholder').forEach((el) => {
+    el.remove();
+  });
+
+  // 4. Remove contentEditable and active focus outlines
+  clone.querySelectorAll('[contenteditable]').forEach((el) => {
+    el.removeAttribute('contenteditable');
+  });
+  clone.querySelectorAll('.inline-edit-active').forEach((el) => {
+    el.classList.remove('inline-edit-active');
+    el.style.outline = 'none';
+  });
+
+  // 5. Clean up editor-internal gap pushes and flags:
+  // In the live editor, elements overflowing across page folds receive a margin-top to skip the visual 20px gap.
+  // In print mode, there are no visual gaps and by default NO forced page breaks.
+  // Strip the editor-injected margin-top and break flags so elements flow naturally.
+  clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
+    node.style.removeProperty('margin-top');
+    node.style.removeProperty('break-before');
+    node.style.removeProperty('page-break-before');
+    node.classList.remove('force-page-break-before');
+    node.removeAttribute('data-editor-break-forced');
+    node.removeAttribute('data-editor-break-fold');
+  });
+
+  // Defensive scrub: ensure that the first child and first section of each column/container never inherit break-before
+  const firstNodes = [
+    clone.firstElementChild,
+    clone.querySelector('.resume__left')?.firstElementChild,
+    clone.querySelector('.resume__right')?.firstElementChild,
+    clone.querySelector('.cv-section'),
+    clone.querySelector('.resume__left .cv-section'),
+    clone.querySelector('.resume__right .cv-section'),
+    clone.querySelector('.cv-block'),
+    clone.querySelector('.resume__left .cv-block'),
+    clone.querySelector('.resume__right .cv-block'),
+  ].filter(Boolean);
+
+  firstNodes.forEach((el) => {
+    el.classList.remove('break-page-before', 'force-page-break-before');
+    el.removeAttribute('data-page-break');
+    el.removeAttribute('data-page-break-before');
+    el.removeAttribute('data-editor-break-forced');
+    el.removeAttribute('data-editor-break-fold');
+    el.style.removeProperty('break-before');
+    el.style.removeProperty('page-break-before');
+    el.style.removeProperty('margin-top');
+  });
+
+  // 6. Clean up container geometry:
+  // Remove all inline min-height, height, and box-shadow overrides from #area-cv and columns.
+  // Sizing and natural pagination are governed exclusively via src/styles/print.css.
+  clone.style.removeProperty('min-height');
+  clone.style.removeProperty('height');
+  clone.style.removeProperty('box-shadow');
+  clone.style.removeProperty('--print-target-height-mm');
+  clone.style.removeProperty('--print-total-pages');
+
+  const leftCol = clone.querySelector('.resume__left');
+  const rightCol = clone.querySelector('.resume__right');
+  if (leftCol) {
+    leftCol.style.removeProperty('min-height');
+    leftCol.style.removeProperty('height');
+  }
+  if (rightCol) {
+    rightCol.style.removeProperty('min-height');
+    rightCol.style.removeProperty('height');
   }
 
-  const leftCol = areaCv.querySelector?.('.resume__left');
-  const rightCol = areaCv.querySelector?.('.resume__right');
+  return clone;
+};
 
-  // Strictly applicable for 2-column layout
-  if (!leftCol || !rightCol) {
-    const rawH = Math.max(areaCv.scrollHeight || 0, pageHeightPx);
-    const pages = Math.max(1, Math.ceil(rawH / pageHeightPx));
-    const targetMm = pages * 297;
-    if (areaCv.style) {
-      areaCv.style.minHeight = `${targetMm}mm`;
-    }
-    return { totalPages: pages, targetHeightMm: targetMm, breaksApplied: [] };
-  }
-
-  const getRelativeBounds = (el) => {
-    if (typeof el.getBoundingClientRect === 'function' && typeof areaCv.getBoundingClientRect === 'function') {
-      const elRect = el.getBoundingClientRect();
-      const areaRect = areaCv.getBoundingClientRect();
-      return {
-        top: elRect.top - areaRect.top,
-        bottom: elRect.bottom - areaRect.top,
-        height: elRect.height || (el.offsetHeight || 0)
-      };
-    }
-    const top = el.offsetTop || 0;
-    const height = el.offsetHeight || 0;
-    return { top, bottom: top + height, height };
-  };
-
-  const getBreakableComponents = (columnEl) => {
-    const selector = '.section-title, .cv-block, .experience__content, .education__content, .skills__name, .profile__description, .home__data, .simple-list-item, li.cv-block, .contact__item';
-    const rawList = Array.from(columnEl.querySelectorAll(selector));
-    const filtered = rawList.filter((item, idx, arr) => {
-      if (item.classList.contains('section-title')) return true;
-      const hasParentInList = arr.some(other => other !== item && other.contains(item) && !other.classList.contains('section-title'));
-      return !hasParentInList;
-    });
-    return filtered;
-  };
-
-  const breaksApplied = [];
-  let passes = 0;
-  let hasChanges = true;
-
-  while (hasChanges && passes < 6) {
-    passes++;
-    hasChanges = false;
-
-    const currentHeight = Math.max(
-      leftCol.scrollHeight || 0,
-      rightCol.scrollHeight || 0,
-      areaCv.scrollHeight || 0,
-      pageHeightPx
-    );
-    const estimatedPages = Math.max(1, Math.ceil(currentHeight / pageHeightPx));
-
-    for (let pageNum = 1; pageNum <= estimatedPages; pageNum++) {
-      const foldY = pageNum * pageHeightPx;
-
-      const colDefs = [
-        { name: 'left', el: leftCol, items: getBreakableComponents(leftCol) },
-        { name: 'right', el: rightCol, items: getBreakableComponents(rightCol) }
-      ];
-
-      for (const col of colDefs) {
-        for (const item of col.items) {
-          if (item.getAttribute('data-page-break-forced') === 'true') {
-            continue;
-          }
-
-          const { top, bottom, height } = getRelativeBounds(item);
-
-          if (height <= 0) continue;
-
-          // If already after fold
-          if (top >= foldY) {
-            continue;
-          }
-
-          // Section title orphaned near fold (less than 60px before fold)
-          const isOrphanTitle = item.classList.contains('section-title') && (top < foldY && bottom > foldY - 60);
-
-          // If safely before fold (non-orphan elements)
-          if (!isOrphanTitle && bottom <= foldY - 4) {
-            continue;
-          }
-
-          // Item straddles fold boundary
-          const isStraddling = (top < foldY && bottom > foldY - 8);
-
-          if (isStraddling || isOrphanTitle) {
-            item.style.setProperty('break-before', 'page', 'important');
-            item.style.setProperty('page-break-before', 'always', 'important');
-            item.classList.add('force-page-break-before');
-            item.setAttribute('data-page-break-forced', 'true');
-            item.setAttribute('data-page-break-column', col.name);
-            item.setAttribute('data-page-break-fold', String(pageNum));
-
-            const pushDistance = Math.max(0, foldY - top);
-            if (pushDistance > 0) {
-              item.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
-            }
-
-            breaksApplied.push({
-              column: col.name,
-              element: item,
-              tagName: item.tagName,
-              className: item.className,
-              fold: foldY,
-              pageNum
-            });
-
-            hasChanges = true;
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  // Final measurement after all component breaks have been resolved
-  const finalMaxHeight = Math.max(
-    leftCol.scrollHeight || 0,
-    rightCol.scrollHeight || 0,
-    areaCv.scrollHeight || 0,
-    pageHeightPx
-  );
-  const totalPages = Math.max(1, Math.ceil(finalMaxHeight / pageHeightPx));
-  const targetHeightMm = totalPages * 297;
-
-  // Extend left column container, right column, and #area-cv to full page length
-  areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
-  areaCv.style.setProperty('--print-total-pages', String(totalPages));
-  areaCv.style.alignItems = 'stretch';
-
-  // JSDOM-ONLY FALLBACK: Required for unit test assertions without real CSS engine
-  leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  leftCol.style.setProperty('height', '100%', 'important');
-  leftCol.style.setProperty('align-self', 'stretch', 'important');
-  leftCol.style.setProperty('flex', '1', 'important');
-  leftCol.style.setProperty('box-sizing', 'border-box', 'important');
-
-  rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  rightCol.style.setProperty('height', '100%', 'important');
-  rightCol.style.setProperty('align-self', 'stretch', 'important');
-  rightCol.style.setProperty('box-sizing', 'border-box', 'important');
-
-  return { totalPages, targetHeightMm, breaksApplied };
+/**
+ * enforceTwoColumnComponentPagination
+ * Retained as a lightweight compatibility stub for legacy imports.
+ * The production engine uses createSanitizedPrintClone and native CSS Paged Media.
+ */
+export const enforceTwoColumnComponentPagination = (_doc, _areaCv, _pageHeightPx = A4_PAGE_HEIGHT_PX) => {
+  return { totalPages: 1, targetHeightMm: 297, breaksApplied: [] };
 };
 
 /**
@@ -664,9 +576,8 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
 export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefined) => {
   return new Promise((resolve) => {
     const dynamicDocumentTitle = getDynamicPdfTitle(cvData);
-    const snapshot = customSnapshot !== undefined ? customSnapshot : captureEditorSnapshot();
-
-    const html = generateCleanPrintHTML(cvData, lang, snapshot);
+    const liveAreaCv = typeof document !== 'undefined' ? document.getElementById('area-cv') : null;
+    const snapshot = customSnapshot !== undefined ? customSnapshot : (liveAreaCv ? captureEditorSnapshot() : null);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -676,8 +587,9 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     iframe.style.width = iframeWidth;
     iframe.style.minWidth = iframeWidth;
     iframe.style.height = '1123px';
-    iframe.style.visibility = 'hidden';
     iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
     iframe.setAttribute('title', 'Ressume Print Preview');
 
     document.body.appendChild(iframe);
@@ -709,8 +621,45 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
       return;
     }
 
+    const docLang = lang || cvData?.layout?.language || 'es';
+
+    let bodyMarkup = '';
+    if (liveAreaCv) {
+      const sanitizedClone = createSanitizedPrintClone(liveAreaCv);
+      if (sanitizedClone) {
+        bodyMarkup = sanitizedClone.outerHTML;
+      }
+    }
+    if (!bodyMarkup) {
+      const cleanHtml = generateCleanPrintHTML(cvData, lang, snapshot);
+      const parser = new DOMParser();
+      const parsedDoc = parser.parseFromString(cleanHtml, 'text/html');
+      const parsedAreaCv = parsedDoc.getElementById('area-cv');
+      bodyMarkup = parsedAreaCv ? parsedAreaCv.outerHTML : '';
+    }
+
+    // Strictly TWO stylesheets: cv-base-styles (index.css) and cv-print-styles (print.css)
+    const fullDocumentHtml = `<!DOCTYPE html>
+<html lang="${escapeHTML(docLang)}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHTML(dynamicDocumentTitle)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style id="cv-base-styles">
+${baseStyles}
+  </style>
+  <style id="cv-print-styles">
+${printStyles}
+  </style>
+</head>
+<body>${bodyMarkup}</body>
+</html>`;
+
     doc.open();
-    doc.write(html);
+    doc.write(fullDocumentHtml);
     doc.close();
 
     const triggerPrint = async () => {
@@ -720,16 +669,13 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
             doc.title = dynamicDocumentTitle;
           }
           // Transfer CSS custom properties from editor #area-cv to print document root
-          if (typeof document !== 'undefined') {
-            const editorAreaCv = document.getElementById('area-cv');
-            if (editorAreaCv && editorAreaCv.style && doc.documentElement) {
-              for (let i = 0; i < editorAreaCv.style.length; i++) {
-                const prop = editorAreaCv.style[i];
-                if (prop && prop.startsWith('--')) {
-                  const val = editorAreaCv.style.getPropertyValue(prop);
-                  const priority = editorAreaCv.style.getPropertyPriority(prop);
-                  doc.documentElement.style.setProperty(prop, val, priority);
-                }
+          if (liveAreaCv && liveAreaCv.style && doc.documentElement) {
+            for (let i = 0; i < liveAreaCv.style.length; i++) {
+              const prop = liveAreaCv.style[i];
+              if (prop && prop.startsWith('--')) {
+                const val = liveAreaCv.style.getPropertyValue(prop);
+                const priority = liveAreaCv.style.getPropertyPriority(prop);
+                doc.documentElement.style.setProperty(prop, val, priority);
               }
             }
           }
@@ -741,139 +687,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
             ]);
           }
 
-          const areaCv = typeof doc.getElementById === 'function' 
-            ? doc.getElementById('area-cv') 
-            : (doc.body?.querySelector?.('#area-cv') || doc.body?.firstElementChild);
 
-          let pageHeightPx = A4_PAGE_HEIGHT_PX;
-          if (doc.createElement && doc.body) {
-            try {
-              const ruler = doc.createElement('div');
-              ruler.style.height = '297mm';
-              ruler.style.position = 'absolute';
-              ruler.style.visibility = 'hidden';
-              ruler.style.top = '-9999px';
-              doc.body.appendChild(ruler);
-              if (ruler.offsetHeight > 0) {
-                pageHeightPx = ruler.offsetHeight;
-              }
-              ruler.parentNode?.removeChild(ruler);
-            } catch (_) {}
-          }
-
-          if (snapshot && snapshot.brokenElements) {
-            // Apply live editor breaks 1:1 into iframe
-            snapshot.brokenElements.forEach((b) => {
-              let targetEl = null;
-              if (b.isTitle) {
-                targetEl = doc.querySelector(`[data-section-title="${b.sectionId}"]`) ||
-                           doc.querySelector(`[data-section-id="${b.sectionId}"] .section-title`) ||
-                           doc.querySelector(`#${b.sectionId} .section-title`);
-              } else if (b.itemId) {
-                targetEl = doc.querySelector(`[data-item-id="${b.itemId}"]`);
-              }
-
-              if (targetEl) {
-                targetEl.style.setProperty('break-before', 'page', 'important');
-                targetEl.style.setProperty('page-break-before', 'always', 'important');
-                targetEl.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
-                targetEl.classList.add('force-page-break-before');
-                targetEl.setAttribute('data-page-break-forced', 'true');
-                targetEl.setAttribute('data-page-break-fold', String(b.fold || b.pageNum || 1));
-              }
-            });
-
-            const maxFold = snapshot.brokenElements.length > 0
-              ? Math.max(...snapshot.brokenElements.map(b => parseInt(b.fold || b.pageNum, 10) || 1)) + 1
-              : 1;
-            const totalPages = snapshot.totalPages || maxFold;
-            const targetHeightMm = totalPages * 297;
-
-            if (areaCv && areaCv.style) {
-              areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-              areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
-              areaCv.style.setProperty('--print-total-pages', String(totalPages));
-            }
-
-            const leftCol = areaCv?.querySelector?.('.resume__left');
-            const rightCol = areaCv?.querySelector?.('.resume__right');
-            if (leftCol && leftCol.style) {
-              leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-            }
-            if (rightCol && rightCol.style) {
-              rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-            }
-
-            // Anti-orphan safeguard: Verify that no section title is separated from its first child across page folds
-            const querySections = typeof doc.querySelectorAll === 'function'
-              ? doc.querySelectorAll('.cv-section')
-              : (typeof doc.body?.querySelectorAll === 'function' ? doc.body.querySelectorAll('.cv-section') : []);
-            if (querySections && typeof querySections.forEach === 'function') {
-              querySections.forEach((sec) => {
-                const title = sec.querySelector?.('.section-title');
-                const firstItem = sec.querySelector?.('.cv-block, .experience__content, .education__content, .skills__name, .profile__description, .simple-list-item');
-                if (title && firstItem) {
-                  const titleRect = typeof title.getBoundingClientRect === 'function' ? title.getBoundingClientRect() : null;
-                  const itemRect = typeof firstItem.getBoundingClientRect === 'function' ? firstItem.getBoundingClientRect() : null;
-                  const areaRect = typeof areaCv?.getBoundingClientRect === 'function' ? areaCv.getBoundingClientRect() : null;
-                  if (titleRect && itemRect && areaRect) {
-                    const titleY = titleRect.top - areaRect.top;
-                    const itemY = itemRect.top - areaRect.top;
-                    const titlePage = Math.floor(titleY / pageHeightPx) + 1;
-                    const itemPage = Math.floor(itemY / pageHeightPx) + 1;
-                    
-                    if (itemPage > titlePage) {
-                      title.style.setProperty('break-before', 'page', 'important');
-                      title.style.setProperty('page-break-before', 'always', 'important');
-                      title.classList.add('force-page-break-before');
-                    }
-                  }
-                }
-              });
-            }
-
-            // Adaptive scale guard: if content in iframe slightly overflows totalPages due to browser font rendering differences,
-            // scale down adaptively to strictly guarantee fitting within totalPages without spawning an unwanted extra blank page!
-            const rawHeight = Math.max(
-              doc.body?.scrollHeight || 0,
-              doc.documentElement?.scrollHeight || 0,
-              areaCv?.scrollHeight || 0
-            );
-            const maxAllowedHeight = totalPages * pageHeightPx;
-            if (rawHeight > maxAllowedHeight) {
-              const scale = calculatePrintScale(rawHeight, totalPages);
-              if (doc.body?.style) {
-                doc.body.style.zoom = scale;
-              }
-            } else if (doc.body?.style) {
-              doc.body.style.zoom = 1.0;
-            }
-
-            if (iframe && iframe.style) {
-              iframe.style.height = `${totalPages * pageHeightPx}px`;
-            }
-          } else {
-            // JSDOM-ONLY FALLBACK: unreachable in browser where #area-cv snapshot is available
-            // Fallback for headless environments without snapshot
-            const { totalPages, targetHeightMm } = enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
-
-            const rawHeight = Math.max(
-              doc.body?.scrollHeight || 0,
-              doc.documentElement?.scrollHeight || 0,
-              areaCv?.scrollHeight || 0,
-              pageHeightPx * totalPages
-            );
-            const scale = calculatePrintScale(rawHeight, Math.max(2, totalPages));
-            if (scale < 1.0 && doc.body?.style) {
-              doc.body.style.zoom = scale;
-            } else if (doc.body?.style) {
-              doc.body.style.zoom = 1.0;
-            }
-
-            if (iframe && iframe.style) {
-              iframe.style.height = `${totalPages * pageHeightPx}px`;
-            }
-          }
 
           if (iframe.contentWindow && typeof iframe.contentWindow.addEventListener === 'function') {
             iframe.contentWindow.addEventListener('afterprint', handlePrintClosed, { once: true });

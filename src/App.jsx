@@ -332,6 +332,7 @@ function App() {
 
                            <div
                               className="column-add-section no-print"
+                              data-editor-ui="true"
                               style={{
                                  textAlign: "center",
                                  marginTop: "1.5rem",
@@ -387,6 +388,7 @@ function App() {
 
                            <div
                               className="column-add-section no-print"
+                              data-editor-ui="true"
                               style={{
                                  textAlign: "center",
                                  marginTop: "1.5rem",
@@ -423,6 +425,7 @@ function App() {
 
                         <div
                            className="column-add-section no-print"
+                              data-editor-ui="true"
                            style={{ textAlign: "center", marginTop: "1.5rem" }}>
                            <button
                               type="button"
