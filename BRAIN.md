@@ -302,44 +302,63 @@ gives us full control and enables live preview, which is the core product featur
 
 ---
 
-## 8. The PDF Print Engine — Pixel Parity
+## 8. The PDF Print Engine — Pixel Parity (cloneNode Architecture)
 
 **Invariant**: The exported PDF must be pixel-for-pixel identical to the editor
 at the moment of export. Zero CSS drift allowed.
 
-### Pipeline
+### 8.1 The Evolution: From Synthetic Dual-Tree to DOM Mirroring (`cloneNode`)
+
+Historically, the engine used a **synthetic dual-tree pipeline**: `generateCleanPrintHTML()`
+re-rendered the CV from state using `renderToStaticMarkup(React.createElement(PrintBaseSection, ...))`
+and string concatenation. This caused inevitable discrepancies (different bullet DOM structures,
+regex mutations of layout classes like `.editable-section-container`, and arbitrary `body.style.zoom`).
+
+In commit `2fc0b8d` on branch `Re-do-total-de-impresion-PDF`, the engine transitioned to
+a **DOM Mirroring / cloneNode architecture**:
 
 ```
-useCVExport.exportCleanPDF()
-  → staticHtmlPdfEngine.generateCleanPrintHTML(cvData, lang, editorSnapshot)
-      → Strips 26 editor-only selectors via regex (ARTIFACTS_BLACKLIST)
-      → Builds HTML5 document string with inlined:
-          1. Sanitized index.css (editor base styles, minus @media print)
-          2. print.css (@media print overrides)
-          3. Computed page break margins (from pagination engine result)
-      → Writes to offscreen <iframe>
+User clicks "Export PDF" / ActionMenu
+  → executeCleanPrint(cvData, lang)
+  → Checks for live #area-cv element in DOM
+  → createSanitizedPrintClone(liveAreaCv)
+      1. cloneNode(true): Deep memory clone of live rendered DOM
+      2. UI Scrubber: Removes [data-editor-ui="true"] and .no-print elements
+      3. Placeholder Scrubber: Removes [data-is-empty="true"] and .inline-edit-placeholder
+      4. Focus/Editable Scrubber: Cleans contenteditable and .inline-edit-active outlines
+      5. Break Scrubber: Normalizes editor gap push margins ([data-editor-break-forced="true"])
+      6. Geometry Scrubber: Removes min-height/height overrides from #area-cv and columns
+  → Writes clean HTML to offscreen <iframe> with:
+      - cv-base-styles (index.css)
+      - cv-print-styles (print.css with @media print rules)
+      - Transfer of CSS custom properties (--*) from live #area-cv to doc.documentElement
+  → Waits for doc.fonts.ready
   → iframe.contentWindow.print()
-  → Browser renders → user saves PDF
 ```
 
-### Why no html2canvas / Puppeteer?
+### 8.2 The `data-editor-ui="true"` Standard
 
-- `html2canvas` rasterizes to PNG → text is not selectable, not ATS-safe
-- Puppeteer requires a server process
-- Browser native print is 100% vectorial, supports subpixel rendering, embeds fonts
+All editor-only controls (handles, resize bars, action buttons, popovers, guides) now carry
+`data-editor-ui="true"`. The `createSanitizedPrintClone` utility automatically purges any element
+with `[data-editor-ui="true"]` or `.no-print`.
 
-### The `isPrint` prop
+### 8.3 Print Stylesheet Philosophy (`src/styles/print.css`)
 
-`isPrint` is threaded from `App.jsx` → `BaseSection.jsx` → `BaseItem.jsx` →
-item components. When `true`, the `PrintView` branch of each item renders
-(no interactive controls, no DnD handles). This is a known architectural debt
-(see §15 — the `PrintModeContext` cleanup).
+- Uses native CSS Paged Media:
+  - `@page { size: A4; margin: 0; }`
+  - `print-color-adjust: exact !important;`
+  - `html, body, #area-cv, .resume, .resume__left, .resume__right` set to `height: auto !important; min-height: 0 !important;`
+  - Base rule: `break-before: auto` by default across sections and blocks.
+  - Avoid rule: First children of columns/containers have `break-before: avoid !important;` to prevent leading blank pages.
+  - Section-level: `.cv-section` has `break-inside: auto` to allow multi-item sections to paginate naturally.
+  - Block-level: `.cv-block, .experience__content, .education__content, ...` have `break-inside: avoid !important;` to prevent awkward splitting of atomic items.
+  - Terminal margin suppression: `.cv-section:last-child { margin-bottom: 0 !important; }` prevents trailing whitespace from spawning empty trailing pages.
 
-### The `MAX_A4_2PAGE_HEIGHT_PX` constraint
+### 8.4 Fallback Path (Headless / JSDOM)
 
-The system auto-scales typography if content overflows 2 A4 pages. This is
-implemented in `staticHtmlPdfEngine.js` as `calculatePrintScale()`. The formula
-computes a font-scale factor to compress content within bounds.
+When `document.getElementById('area-cv')` is not available (e.g. headless tests or SSR),
+`executeCleanPrint` falls back to `generateCleanPrintHTML(cvData, lang)` to construct
+the markup synthetically.
 
 ---
 
@@ -570,15 +589,43 @@ Reconstructed from git history and session conversations:
 | `2e05198` | Refactor: Add bullet points component |
 | `bff8451` | Simplified action menu |
 | `2f978ee` | **AI Prompts Epic** (Teamwork): AIExportModal opinionated UX, exhaustive Markdown frontmatter, 6 new Tech job-search prompts, `user_commentary` field, JSON-output translation prompt, 797/797 tests |
+| `2fc0b8d` | **cloneNode Print Engine Rewrite**: transition from synthetic dual-tree to direct memory cloning of `#area-cv`, data-editor-ui scrubbing, native CSS paged media rules in print.css |
 
 ---
 
-## 15. Known Technical Debt
+## 15. Known Technical Debt & Active Print Bugs (Branch: Re-do-total-de-impresion-PDF)
 
-These are documented issues from the code audit (`docs/code-review.md`)
-that have NOT been resolved:
+These are documented issues from recent commits and audits:
 
-### HIGH IMPACT
+### Active Bugs in the `cloneNode` Print Engine (Commit `2fc0b8d`):
+
+1. **Iframe Visibility Attribute Discrepancy**:
+   - `executeCleanPrint` changed `iframe.style.visibility = 'hidden'` to `iframe.style.opacity = '0'; iframe.style.pointerEvents = 'none';`.
+   - Unit tests expecting `expect(iframe.style.visibility).toBe('hidden')` fail in `challengerCleanPrintLifecycle.test.jsx`. Both properties should be retained.
+
+2. **Leaking `.drag-handle` in Inlined CSS (`cv-base-styles`)**:
+   - `fullDocumentHtml` now inlines raw `baseStyles` (`index.css`) directly without scrubbing selector names.
+   - Tests asserting that the full document string does not contain `'drag-handle'` fail because the CSS rule `.drag-handle { ... }` is present in `<style id="cv-base-styles">`.
+
+3. **1-Column Mode CSS Selector Retention**:
+   - In 1-column mode, `generateCleanPrintHTML` previously replaced `.resume__left` and `.resume__right` in CSS with `.col-inactive`.
+   - The new version inlines `baseStyles` unmodified, causing tests expecting `html.not.toContain('resume__left')` to fail.
+
+4. **Stubbed `enforceTwoColumnComponentPagination`**:
+   - Replaced by a no-op returning `{ totalPages: 1, targetHeightMm: 297, breaksApplied: [] }`.
+   - 9 unit tests in `two-column-pdf-pagination-and-extension.test.jsx` that test this utility directly fail.
+
+5. **Auto-Scale Zoom Removal (`body.style.zoom`)**:
+   - The dynamic scale fallback (`calculatePrintScale`) was removed from `executeCleanPrint`.
+   - Tests expecting `assignedZoom` on body when content exceeds 2246px fail.
+
+6. **Page Break Carry-Over from Live Editor**:
+   - `createSanitizedPrintClone` strips `[data-editor-break-forced="true"]` `margin-top` and `break-before` properties to remove editor visual gap offsets.
+   - However, elements that legitimately needed to break across page folds now rely entirely on browser native breaking (`.cv-block { break-inside: avoid }`), which in CSS Grid (2-column mode) can be unreliable in Chromium if not assisted.
+
+---
+
+### HIGH IMPACT ARCHITECTURAL DEBT
 
 **1. `App.jsx` is still a god component (~471 lines)**
 - Contains: DnD provider, column layout rendering, modal state, all useCV calls
@@ -589,10 +636,8 @@ that have NOT been resolved:
 
 **2. `isPrint` prop threaded 4+ levels deep**
 - `App.jsx` → `BaseSection.jsx` → `BaseItem.jsx` → item components
-- Better solution: A `PrintModeContext` with `usePrintMode()` hook
-- Every component reading `isPrint` can then `const { isPrint } = usePrintMode()`
-  without prop drilling
-- Risk: Low to implement; reduces component signatures
+- With the transition to `cloneNode`, `isPrint` is largely obsolete for printing, since the live DOM clone is used directly!
+- Refactoring route: Clean up `isPrint` props across `BaseSection`, `BaseItem`, and item components, or formalize `PrintModeContext`.
 
 **3. `sectionRegistry.js` is ~981 lines**
 - All 12 standard section descriptors are inline
@@ -744,11 +789,12 @@ The software is MIT-licensable. See `LICENSE` in the project root.
 
 ## 20. Git Commit History Summary
 
-**Branch**: `Reimplementacion-con-React`  
+**Active Branches**: `Re-do-total-de-impresion-PDF` (Current), `Reimplementacion-con-React` (Stable Base)  
 **Origin**: `https://github.com/juani981/Ressume`
 
 | Hash | Summary | Tests |
 |------|---------|-------|
+| `2fc0b8d` | **cloneNode Print Engine Rewrite**: transition from synthetic dual-tree to direct memory cloning of `#area-cv`, data-editor-ui scrubbing, native CSS paged media rules in print.css | WIP (47 failed in legacy tests) |
 | `2f978ee` | AI Prompts Epic: 11 prompts, exhaustive Markdown frontmatter, user_commentary, JSON translation output | 797/797 |
 | `bff8451` | Simplified action menu | — |
 | `0e32626` | `useBlankPageCleaner` — reactive blank page elimination | 727/727 |
