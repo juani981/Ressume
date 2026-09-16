@@ -47,8 +47,8 @@
 
   .resume__left,
   .resume__right {
-    height: auto !important;
-    min-height: 0 !important;
+    min-height: var(--print-target-height-mm, 297mm) !important;
+    height: 100% !important;
     align-self: stretch !important;
     box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
@@ -147,12 +147,22 @@
 
   /* 5. REGLAS DE ESPECIFICIDAD SELECTIVAS: Asignación explícita de saltos */
   /* Quiebre de página completa antes del elemento (nunca en el primer hijo) */
+  .force-page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+    padding-top: var(--page-padding, 24px) !important;
+    margin-top: var(--page-padding, 24px) !important;
+  }
+
   .break-page-before:not(:first-child),
   .force-page-break-before:not(:first-child),
   [data-page-break="before"]:not(:first-child),
-  [data-page-break-before="true"]:not(:first-child) {
+  [data-page-break-before="true"]:not(:first-child),
+  [data-editor-break-forced="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
+    padding-top: var(--page-padding, 24px) !important;
+    margin-top: var(--page-padding, 24px) !important;
   }
 
   /* Quiebre de página completa después del elemento */
