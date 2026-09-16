@@ -2,3 +2,5 @@ node_modules/
 dist/
 # Local Netlify folder
 .netlify
+cypress/videos/
+cypress/screenshots/
