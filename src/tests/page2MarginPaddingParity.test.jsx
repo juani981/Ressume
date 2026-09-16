@@ -20,11 +20,11 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     }
   });
 
-  it('1. CSS print.css enforces identical user-set padding-top and margin-top on page break elements', () => {
+  it('1. CSS print.css enforces identical user-set padding-top and margin-top: 0 on page break elements', () => {
     expect(printStyles).toContain('.force-page-break-before');
     expect(printStyles).toContain('break-before: page !important');
     expect(printStyles).toContain('padding-top: var(--page-padding, 24px) !important');
-    expect(printStyles).toContain('margin-top: var(--page-padding, 24px) !important');
+    expect(printStyles).toContain('margin-top: 0 !important');
 
     // Verify selector coverage for all break indicators
     expect(printStyles).toMatch(
@@ -35,7 +35,7 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     );
   });
 
-  it('2. createSanitizedPrintClone preserves [data-editor-break-forced="true"] and maps them to page break with padding-top and margin-top', () => {
+  it('2. createSanitizedPrintClone preserves [data-editor-break-forced="true"] and maps them to page break with padding-top and margin-top: 0', () => {
     const areaCv = document.createElement('div');
     areaCv.id = 'area-cv';
     areaCv.className = 'resume bd-grid';
@@ -79,7 +79,7 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     // Page 2 item HAS break-before: page and padding-top: var(--page-padding)
     expect(clonedPage2Item.style.breakBefore).toBe('page');
     expect(clonedPage2Item.style.paddingTop).toBe('var(--page-padding, 24px)');
-    expect(clonedPage2Item.style.marginTop).toBe('var(--page-padding, 24px)');
+    expect(clonedPage2Item.style.marginTop).toBe('0px');
     expect(clonedPage2Item.classList.contains('force-page-break-before')).toBe(true);
     expect(clonedPage2Item.classList.contains('break-page-before')).toBe(true);
     expect(clonedPage2Item.getAttribute('data-page-break')).toBe('before');

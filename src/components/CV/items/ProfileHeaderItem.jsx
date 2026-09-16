@@ -144,6 +144,7 @@ const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
           type="button"
           className="add-contact-btn no-print"
           data-editor-ui="true"
+          data-editor-add="true"
           onClick={(e) => {
             e.stopPropagation();
             const rect = e.currentTarget.getBoundingClientRect();

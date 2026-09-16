@@ -392,7 +392,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
           break-before: page !important;
           page-break-before: always !important;
           padding-top: var(--page-padding, 24px) !important;
-          margin-top: var(--page-padding, 24px) !important;
+          margin-top: 0 !important;
         }
       `;
     }).join('\n');
@@ -470,7 +470,9 @@ ${activeBaseStyles}
   <style id="cv-print-styles">
 ${activePrintStyles}
   </style>
-  ${snapshotBreaksCSS ? `<style id="cv-snapshot-breaks">\n${snapshotBreaksCSS}\n  </style>` : ''}
+  <style id="cv-snapshot-breaks">
+${snapshotBreaksCSS}
+  </style>
 </head>
 <body>
   ${bodyContent}
@@ -513,13 +515,66 @@ export const createSanitizedPrintClone = (areaCvElement) => {
   // 1. Deep clone in memory
   const clone = areaCvElement.cloneNode(true);
 
-  // 2. DOM UI Scrubber: purge all interactive controls and editor guides
-  const editorUIElements = clone.querySelectorAll('[data-editor-ui="true"], .no-print');
-  editorUIElements.forEach((el) => {
-    el.remove();
+  // 2. DOM UI Scrubber: eliminar controles destructivos y flotantes fuera de flujo
+  const nonAddArtifacts = clone.querySelectorAll(`
+    .round-btn-del, .section-del-btn, .item-del-btn, .contact-del-btn, .bullet-del-btn, .spacer-del-btn,
+    .drag-handle, .section-drag-handle, .item-drag-handle,
+    .column-resizer, .column-resizer-bar, .column-resizer-handle,
+    .spacer-resize-handle, .spacer-controls-bar,
+    .obsidian-callout, .suggestion-tooltip, .rich-toolbar, .floating-rich-toolbar,
+    .action-menu, .action-menu-btn-wrap, .add-section-modal, .add-section-backdrop, .l-navbar,
+    .a4-page-fold-guide, .a4-page-inset, .section-action-buttons
+  `);
+  nonAddArtifacts.forEach((el) => el.remove());
+
+  // 3. Preservar espaciadores integrados con su altura real y limpiar bordes/manijas
+  clone.querySelectorAll('.integrated-bottom-spacer').forEach((spacer) => {
+    spacer.classList.remove('no-print');
+    spacer.removeAttribute('data-editor-ui');
+    spacer.style.border = 'none';
+    spacer.style.background = 'transparent';
+    spacer.style.boxShadow = 'none';
+    spacer.style.outline = 'none';
+    spacer.querySelectorAll('.spacer-resize-handle').forEach((h) => h.remove());
   });
 
-  // 3. Purge empty inline-edit placeholders so they never print
+  // 4. Sanitizar componentes ADD como espaciadores dimensionales transparentes
+  const addElements = clone.querySelectorAll(`
+    [data-editor-add="true"],
+    .column-add-section,
+    .add-section-btn,
+    .section-add-container,
+    .round-btn-add,
+    .bullet-add-row,
+    .add-bullet-btn,
+    .add-contact-btn
+  `);
+  addElements.forEach((el) => {
+    el.classList.remove('no-print');
+    el.removeAttribute('data-editor-ui');
+    el.classList.add('print-transparent-spacer');
+    el.setAttribute('data-print-transparent-spacer', 'true');
+    el.setAttribute('tabindex', '-1');
+    el.setAttribute('aria-hidden', 'true');
+    el.style.setProperty('visibility', 'hidden', 'important');
+    el.style.setProperty('opacity', '0', 'important');
+    el.style.setProperty('pointer-events', 'none', 'important');
+    el.style.setProperty('border-color', 'transparent', 'important');
+    el.style.setProperty('background', 'transparent', 'important');
+    el.style.setProperty('color', 'transparent', 'important');
+    el.style.setProperty('box-shadow', 'none', 'important');
+    if (el.classList.contains('column-add-section') || el.classList.contains('bullet-add-row')) {
+      el.style.setProperty('display', 'block', 'important');
+    } else {
+      el.style.setProperty('display', 'inline-flex', 'important');
+    }
+  });
+
+  // Purgar cualquier residuo de UI no-aditivo
+  clone.querySelectorAll('[data-editor-ui="true"], .no-print')
+    .forEach((el) => el.remove());
+
+  // 5. Purge empty inline-edit placeholders so they never print
   clone.querySelectorAll('[data-is-empty="true"], .inline-edit-placeholder').forEach((el) => {
     el.remove();
   });
@@ -540,7 +595,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     node.style.setProperty('break-before', 'page', 'important');
     node.style.setProperty('page-break-before', 'always', 'important');
     node.style.setProperty('padding-top', 'var(--page-padding, 24px)', 'important');
-    node.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
+    node.style.setProperty('margin-top', '0', 'important');
     node.classList.add('force-page-break-before', 'break-page-before');
     node.setAttribute('data-page-break', 'before');
     node.setAttribute('data-page-break-before', 'true');
@@ -690,7 +745,7 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
             const pushDistance = Math.max(0, foldY - top);
             if (pushDistance > 0) {
               item.style.setProperty('padding-top', 'var(--page-padding, 24px)', 'important');
-              item.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
+              item.style.setProperty('margin-top', '0', 'important');
             }
 
             breaksApplied.push({
@@ -766,6 +821,12 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     iframe.style.pointerEvents = 'none';
     iframe.setAttribute('title', 'Ressume Print Preview');
 
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('iframe[title="Ressume Print Preview"]').forEach((oldIframe) => {
+        if (oldIframe.parentNode) oldIframe.parentNode.removeChild(oldIframe);
+      });
+    }
+
     document.body.appendChild(iframe);
 
     let printClosed = false;
@@ -781,7 +842,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
         window.dispatchEvent(new CustomEvent('print-dialog-closed'));
       } catch (_) {}
       setTimeout(() => {
-        if (iframe.parentNode) {
+        if (!window.__CYPRESS_PRINT_TEST__ && !window.Cypress && iframe.parentNode) {
           iframe.parentNode.removeChild(iframe);
         }
       }, 600);
@@ -830,7 +891,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
             break-before: page !important;
             page-break-before: always !important;
             padding-top: var(--page-padding, 24px) !important;
-            margin-top: var(--page-padding, 24px) !important;
+            margin-top: 0 !important;
           }
         `;
       }).join('\n');
@@ -852,7 +913,9 @@ ${activeBaseStyles}
   <style id="cv-print-styles">
 ${activePrintStyles}
   </style>
-  ${snapshotBreaksCSS ? `<style id="cv-snapshot-breaks">\n${snapshotBreaksCSS}\n  </style>` : ''}
+  <style id="cv-snapshot-breaks">
+${snapshotBreaksCSS}
+  </style>
 </head>
 <body>${bodyMarkup}</body>
 </html>`;
@@ -922,7 +985,7 @@ ${activePrintStyles}
                 targetEl.style.setProperty('break-before', 'page', 'important');
                 targetEl.style.setProperty('page-break-before', 'always', 'important');
                 targetEl.style.setProperty('padding-top', 'var(--page-padding, 24px)', 'important');
-                targetEl.style.setProperty('margin-top', 'var(--page-padding, 24px)', 'important');
+                targetEl.style.setProperty('margin-top', '0', 'important');
                 targetEl.classList.add('force-page-break-before', 'break-page-before');
                 targetEl.setAttribute('data-page-break', 'before');
                 targetEl.setAttribute('data-page-break-before', 'true');
@@ -937,28 +1000,19 @@ ${activePrintStyles}
             const totalPages = snapshot.totalPages || maxFold;
             const targetHeightMm = totalPages * 297;
 
-            if (areaCv && areaCv.style) {
-              areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-              areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
-              areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
             }
 
-            const leftCol = areaCv?.querySelector?.('.resume__left');
-            const rightCol = areaCv?.querySelector?.('.resume__right');
-            if (leftCol && leftCol.style) {
-              leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-            }
-            if (rightCol && rightCol.style) {
-              rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-            }
             const rawHeight = Math.max(
               doc.body?.scrollHeight || 0,
               doc.documentElement?.scrollHeight || 0,
               areaCv?.scrollHeight || 0
             );
             const maxAllowedHeight = totalPages * pageHeightPx;
+            let scale = 1.0;
             if (rawHeight > maxAllowedHeight) {
-              const scale = calculatePrintScale(rawHeight, totalPages);
+              scale = calculatePrintScale(rawHeight, totalPages);
               if (doc.body?.style) {
                 doc.body.style.zoom = scale;
               }
@@ -966,8 +1020,22 @@ ${activePrintStyles}
               doc.body.style.zoom = 1.0;
             }
 
-            if (iframe && iframe.style) {
-              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            // In zoomed coordinates, min-height must be scaled so that on unzoomed physical paper it does not exceed targetHeightMm
+            const effectiveTargetMm = scale < 1.0 ? +(targetHeightMm * scale).toFixed(2) : targetHeightMm;
+
+            if (areaCv && areaCv.style) {
+              areaCv.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
+              areaCv.style.setProperty('--print-target-height-mm', `${effectiveTargetMm}mm`);
+              areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            }
+
+            const leftCol = areaCv?.querySelector?.('.resume__left');
+            const rightCol = areaCv?.querySelector?.('.resume__right');
+            if (leftCol && leftCol.style) {
+              leftCol.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
+            }
+            if (rightCol && rightCol.style) {
+              rightCol.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
             }
           } else if (areaCv) {
             enforceTwoColumnComponentPagination(doc, areaCv, pageHeightPx);
@@ -998,7 +1066,7 @@ ${activePrintStyles}
           if (!printClosed) {
             handlePrintClosed();
           }
-          if (iframe.parentNode) {
+          if (!window.__CYPRESS_PRINT_TEST__ && !window.Cypress && iframe.parentNode) {
             iframe.parentNode.removeChild(iframe);
           }
         }, 1000);

@@ -151,7 +151,7 @@
     break-before: page !important;
     page-break-before: always !important;
     padding-top: var(--page-padding, 24px) !important;
-    margin-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
   }
 
   .break-page-before:not(:first-child),
@@ -162,7 +162,7 @@
     break-before: page !important;
     page-break-before: always !important;
     padding-top: var(--page-padding, 24px) !important;
-    margin-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
   }
 
   /* Quiebre de página completa después del elemento */
@@ -231,6 +231,76 @@
   [data-editor-ui="true"],
   .inline-edit-placeholder,
   [data-is-empty="true"] {
+    display: none !important;
+  }
+
+  /*===================================================================
+    EXCEPCIÓN COMPONENTES EN-FLUJO: PRESERVAR ESPACIO PARA CERO DESPLAZAMIENTOS
+    Ocupan el mismo espacio dimensional en el PDF sin ser visibles
+  ===================================================================*/
+  .column-add-section,
+  .column-add-section.no-print,
+  .add-section-btn,
+  .add-section-btn.no-print,
+  .section-add-container,
+  .section-add-container.no-print,
+  .round-btn-add,
+  .round-btn-add.no-print,
+  .bullet-add-row,
+  .bullet-add-row.no-print,
+  .add-bullet-btn,
+  .add-bullet-btn.no-print,
+  .add-contact-btn,
+  .add-contact-btn.no-print,
+  .print-transparent-spacer,
+  [data-print-transparent-spacer="true"],
+  [data-editor-add="true"],
+  [data-editor-add="true"].no-print,
+  [data-editor-add="true"][data-editor-ui="true"] {
+    display: inherit !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    border-color: transparent !important;
+    background: transparent !important;
+    color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    user-select: none !important;
+  }
+
+  .column-add-section,
+  .column-add-section.no-print {
+    display: block !important;
+  }
+  .add-section-btn,
+  .add-section-btn.no-print {
+    display: inline-flex !important;
+  }
+  .bullet-add-row,
+  .bullet-add-row.no-print {
+    display: block !important;
+  }
+  .add-bullet-btn,
+  .add-bullet-btn.no-print {
+    display: inline-flex !important;
+  }
+  .add-contact-btn,
+  .add-contact-btn.no-print {
+    display: inline-flex !important;
+  }
+
+  /* Preservar espaciador integrado con su altura real sin bordes interactivos */
+  .integrated-bottom-spacer,
+  .integrated-bottom-spacer.no-print {
+    display: block !important;
+    visibility: visible !important;
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .integrated-bottom-spacer.no-print .spacer-resize-handle {
     display: none !important;
   }
 

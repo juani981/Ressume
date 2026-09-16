@@ -9,6 +9,7 @@ const AddBulletPoint = (helperText,handleAddBullet) => {
     <div
         className="bullet-add-row no-print"
         data-editor-ui="true"
+        data-editor-add="true"
         style={{
             paddingLeft: '1.15rem',
             height: 0,
@@ -21,6 +22,7 @@ const AddBulletPoint = (helperText,handleAddBullet) => {
             type="button"
             className="add-bullet-btn no-print"
             data-editor-ui="true"
+            data-editor-add="true"
             onClick={handleAddBullet}
             title={helperText}
         >

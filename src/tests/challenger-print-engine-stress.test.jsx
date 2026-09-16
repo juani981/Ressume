@@ -327,10 +327,10 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
       // Check break-before and margin-top rules
       expect(css).toContain('break-before: page !important;');
       expect(css).toContain('page-break-before: always !important;');
-      expect(css).toContain('margin-top: var(--page-padding, 24px) !important;');
+      expect(css).toContain('margin-top: 0 !important;');
     });
 
-    it('S2.3: applies DOM break injection in executeCleanPrint with var(--page-padding, 24px)', async () => {
+    it('S2.3: applies DOM break injection in executeCleanPrint with margin-top: 0', async () => {
       const { getCapturedDoc, restore } = setupMockIframe();
 
       const snapshot = {
@@ -357,7 +357,7 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
 
         const targetEl = doc.querySelector('[data-item-id="item_target_alpha"]');
         if (targetEl) {
-          expect(targetEl.style.getPropertyValue('margin-top')).toBe('var(--page-padding, 24px)');
+          expect(targetEl.style.getPropertyValue('margin-top')).toBe('0px');
           expect(targetEl.style.getPropertyPriority('margin-top')).toBe('important');
           expect(targetEl.getAttribute('data-page-break-forced')).toBe('true');
           expect(targetEl.getAttribute('data-page-break-fold')).toBe('1');

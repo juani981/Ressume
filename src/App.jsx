@@ -333,6 +333,7 @@ function App() {
                            <div
                               className="column-add-section no-print"
                               data-editor-ui="true"
+                              data-editor-add="true"
                               style={{
                                  textAlign: "center",
                                  marginTop: "1.5rem",
@@ -340,6 +341,7 @@ function App() {
                               <button
                                  type="button"
                                  className="add-section-btn no-print"
+                                 data-editor-add="true"
                                  onClick={() => handleOpenAddSection("left")}
                                  title="Agregar nueva sección a la columna lateral">
                                  <PlusCircle size={16} /> Agregar
@@ -389,6 +391,7 @@ function App() {
                            <div
                               className="column-add-section no-print"
                               data-editor-ui="true"
+                              data-editor-add="true"
                               style={{
                                  textAlign: "center",
                                  marginTop: "1.5rem",
@@ -396,6 +399,7 @@ function App() {
                               <button
                                  type="button"
                                  className="add-section-btn no-print"
+                                 data-editor-add="true"
                                  onClick={() => handleOpenAddSection("right")}
                                  title="Agregar nueva sección a la columna principal">
                                  <PlusCircle size={16} /> Agregar
@@ -425,11 +429,13 @@ function App() {
 
                         <div
                            className="column-add-section no-print"
-                              data-editor-ui="true"
+                           data-editor-ui="true"
+                           data-editor-add="true"
                            style={{ textAlign: "center", marginTop: "1.5rem" }}>
                            <button
                               type="button"
                               className="add-section-btn no-print"
+                              data-editor-add="true"
                               onClick={() => handleOpenAddSection("left")}
                               title="Agregar nueva sección">
                               <PlusCircle size={16} /> Agregar

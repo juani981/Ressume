@@ -464,10 +464,10 @@ describe('Milestone M3: Paridad Visual 1:1, Paginación y Zonas Prohibidas (R4)'
         snapshot
       );
 
-      // Verify print snapshot styling contains page-break and margin-top: var(--page-padding, 24px)
+      // Verify print snapshot styling contains page-break and margin-top: 0
       expect(printHTML).toContain('[data-item-id="exp-101"]');
       expect(printHTML).toContain('break-before: page !important;');
-      expect(printHTML).toContain('margin-top: var(--page-padding, 24px) !important;');
+      expect(printHTML).toContain('margin-top: 0 !important;');
 
       if (areaCv.parentNode) areaCv.parentNode.removeChild(areaCv);
     });

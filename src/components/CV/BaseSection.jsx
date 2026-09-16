@@ -279,11 +279,12 @@ const EditableBaseSection = ({ section }) => {
       </div>
 
       {allowAddItem && (
-        <div className="section-add-container no-print" data-editor-ui="true">
+        <div className="section-add-container no-print" data-editor-ui="true" data-editor-add="true">
           <button 
             type="button"
             className="round-btn-add no-print"
             data-editor-ui="true"
+            data-editor-add="true"
             title={`Agregar nuevo elemento a ${section.title || 'esta sección'}`}
             onClick={(e) => {
               e.stopPropagation();
