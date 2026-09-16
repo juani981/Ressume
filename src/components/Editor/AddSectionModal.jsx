@@ -16,12 +16,14 @@ import {
   ListCheck, 
   UserSquare2,
   Plus,
-  MoveVertical
+  MoveVertical,
+  Camera
 } from 'lucide-react';
 
 const iconMap = {
   'profile_header': UserSquare2,
   'about': UserSquare2,
+  'photo': Camera,
   'list': Briefcase,
   'projects': FolderGit2,
   'education': GraduationCap,

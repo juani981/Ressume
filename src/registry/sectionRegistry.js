@@ -16,6 +16,7 @@ import SpacerItem from '../components/CV/items/SpacerItem';
 import SpacerBlock from '../components/CV/SpacerBlock';
 // M5 extensibility smoke-test: new section type added with ONLY this import + registerSectionType below
 import MentoringItem from '../components/CV/items/MentoringItem';
+import PhotoItem from '../components/CV/items/PhotoItem';
 
 import {
   baseItemMarkdown,
@@ -922,6 +923,55 @@ registerSectionType({
     };
   },
   schema: { title: 'string', date: 'string', mentee: 'string', description: 'string' }
+});
+
+/**
+ * Modular Photo Section Component Registration
+ * Enables adding a customizable profile picture to the CV (left or right column)
+ * Supporting local file upload (Data URL) and external web image URLs.
+ */
+registerSectionType({
+  type: 'photo',
+  label: 'Foto de Perfil',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'Camera',
+  description: 'Fotografía profesional de perfil con carga de archivo local o enlace URL y formas personalizables.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: false,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  sectionClass: 'cv-section-photo',
+  containerTag: 'div',
+  containerClass: 'photo__container',
+  itemTag: 'div',
+  itemClass: 'photo__content',
+  itemStyle: { display: 'flex', justifyContent: 'center', width: '100%' },
+  printItemStyle: { display: 'flex', justifyContent: 'center', width: '100%' },
+  get itemComponent() { return PhotoItem; },
+  renderMarkdown: (item) => item?.url ? `![Foto de Perfil](${item.url})\n` : '',
+  renderXML: (item) => `<photo url="${item?.url || ''}" shape="${item?.shape || 'circle'}" size="${item?.size || 130}"/>`,
+  renderPlainText: () => '',
+  createDefaultItem: () => ({
+    id: generateUniqueId('photo'),
+    url: '',
+    shape: 'circle',
+    size: 130,
+    alt: 'Foto de Perfil'
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    return {
+      id: src.id || generateUniqueId('photo'),
+      url: src.url || src.image || '',
+      shape: src.shape || 'circle',
+      size: Number(src.size) || 130,
+      alt: src.alt || 'Foto de Perfil'
+    };
+  },
+  schema: { url: 'string', shape: 'string', size: 'number', alt: 'string' }
 });
 
 

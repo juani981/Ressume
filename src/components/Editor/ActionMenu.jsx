@@ -574,11 +574,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Títulos (Encabezados)</span>
-                <b style={{ color: '#4f46e5' }}>{titleScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {titleScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(H1: ~{Math.round(24 * fontScale * titleScale)}px, H2: ~{Math.round(20 * fontScale * titleScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.40} 
                 step={0.05}
                 value={titleScale} 
@@ -593,11 +595,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Cuerpo (Descripciones)</span>
-                <b style={{ color: '#4f46e5' }}>{bodyScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {bodyScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(~{Math.round(15 * fontScale * bodyScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.30} 
                 step={0.05}
                 value={bodyScale} 
@@ -612,11 +616,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Listas (Viñetas / Habilidades)</span>
-                <b style={{ color: '#4f46e5' }}>{listScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {listScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(~{Math.round(15 * fontScale * listScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.30} 
                 step={0.05}
                 value={listScale} 
@@ -637,11 +643,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span>Escala General (Multiplicador)</span>
-                <b>{fontScale.toFixed(2)}x</b>
+                <b>
+                  {fontScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(Base: ~{Math.round(15 * fontScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.85} 
+                min={0.50} 
                 max={1.25} 
                 step={0.05}
                 value={fontScale} 
