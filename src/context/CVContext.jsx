@@ -87,6 +87,7 @@ export const CVProvider = ({ children, initialCV = null }) => {
     switchLanguage: data.switchLanguage,
     importLanguagePack: data.importLanguagePack,
     getActiveDictionary: data.getActiveDictionary,
+    deletePage: data.deletePage,
 
     // History
     undo: history.undo,

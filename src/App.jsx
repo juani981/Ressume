@@ -51,6 +51,7 @@ function App() {
       activeTooltip,
       setTotalPages: setContextTotalPages,
       paginationTrigger,
+      deletePage,
    } = useCV();
 
 
@@ -295,6 +296,7 @@ function App() {
                   <A4PageGuides
                      totalPages={totalPages}
                      pagePadding={cvData.layout?.pagePadding}
+                     onDeletePage={deletePage}
                   />
 
                   {is2Col ? (

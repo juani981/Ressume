@@ -20,7 +20,8 @@ import {
   History,
   BotMessageSquare,
   Languages,
-  FolderDown
+  FolderDown,
+  FileX
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -33,7 +34,9 @@ const ActionMenu = () => {
     canUndo, 
     canRedo, 
     resetToDefault,
-    showToast 
+    showToast,
+    totalPages,
+    deletePage
   } = useCV();
 
   const [loading, setLoading] = useState(false);
@@ -394,6 +397,27 @@ const ActionMenu = () => {
           </button>
           <span className="action-menu-tooltip">
             Descargar/Imprimir PDF
+          </span>
+        </div>
+
+        {/* Eliminar Página */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="action-menu-btn delete-page-btn"
+            onClick={() => deletePage()}
+            aria-label="Eliminar página"
+            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
+            data-testid="btn-delete-page"
+            style={{
+              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
+              cursor: 'pointer'
+            }}
+          >
+            <FileX size={20} />
+          </button>
+          <span className="action-menu-tooltip">
+            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
           </span>
           {/* <button 
             type="button"

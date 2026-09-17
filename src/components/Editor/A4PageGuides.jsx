@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { Trash2 } from 'lucide-react';
 
 /**
  * Visual indicators for A4 sheet boundaries and content margins in the live editor.
@@ -13,9 +14,10 @@ import React from 'react';
  * @param {Object} props
  * @param {number} props.totalPages - Current estimated total pages
  * @param {number} [props.pagePadding=24] - Document page padding in pixels
+ * @param {Function} [props.onDeletePage] - Callback to delete a specific page
  * @returns {React.ReactElement}
  */
-export const A4PageGuides = ({ totalPages = 1, pagePadding = 24 }) => {
+export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage }) => {
   const pagePaddingPx = Number(pagePadding ?? 24);
 
   return (
@@ -37,7 +39,41 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24 }) => {
             pointerEvents: 'none',
           }}>
           <div className="a4-page-fold-line" />
-          <span className="a4-page-fold-badge">Página {i + 2}</span>
+          <span className="a4-page-fold-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            Página {i + 2}
+            {typeof onDeletePage === 'function' && (
+              <button
+                type="button"
+                className="a4-page-delete-btn"
+                data-testid={`btn-delete-page-${i + 2}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeletePage(i + 2);
+                }}
+                title={`Eliminar página ${i + 2}`}
+                style={{
+                  pointerEvents: 'auto',
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
+              >
+                <Trash2 size={12} />
+                Eliminar página
+              </button>
+            )}
+          </span>
         </div>
       ))}
 

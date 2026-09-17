@@ -79,7 +79,7 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
 
         {bullets.length > 0 && (
           <div className="experience__bullets-container">
-            <ul className="experience__bullets" style={{ paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
                 const bulletText = typeof b === 'string' ? b : (b?.text || '');
                 return (
@@ -87,8 +87,9 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
                     key={idx}
                     className="cv-block"
                     style={{
-                      display: 'list-item',
-                      listStyleType: 'disc',
+                      display: 'block',
+                      listStyle: 'none',
+                      listStyleType: 'none',
                       marginBottom: 'calc(var(--item-gap, 6px) / 2)',
                       lineHeight: 1.45,
                       color: 'inherit',

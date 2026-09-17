@@ -341,6 +341,20 @@
   }
 
   ul.experience__bullets li p,
+  ul.experience__bullets li span.inline-edit-display,
+  ul.experience__bullets li span.inline-edit-display * {
+    color: inherit !important;
+  }
+
+  /* Skills Bullet Rows: Guarantee 100% transparent background in PDF print */
+  .skills__name,
+  .skills__content,
+  li.skills__name {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  ul.experience__bullets li p,
   ul.experience__bullets li div,
   ul.experience__bullets li span.inline-edit-display,
   .experience__bullets li p,

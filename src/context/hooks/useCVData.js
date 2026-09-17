@@ -10,6 +10,7 @@ import { applyDictionaryToCVState, extractDictionaryFromCV } from '../../utils/t
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../../utils/itemAdapter';
 import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
 import { normalizeItemContacts } from '../../utils/contactTypes';
+import { deletePageFromDOMAndState } from '../../utils/pageDeletionEngine';
 
 /** Default language dictionaries from locales */
 export const baseDefaultContent = { es: LOCALES.es.content, en: LOCALES.en.content };
@@ -256,6 +257,14 @@ export const useCVData = ({
       ? languagePacks[activeLanguage] : extractDictionaryFromCV(cvData)
   ), [languagePacks, activeLanguage, cvData]);
 
+  const deletePage = useCallback((pageNumber) => {
+    return deletePageFromDOMAndState({
+      cvData,
+      applyStateWithHistory,
+      pageNumber
+    });
+  }, [cvData, applyStateWithHistory]);
+
   return {
     cvData, setCvData, languagePacks, activeLanguage,
     updateProfile, addSection, deleteSection, reorderSections,
@@ -263,6 +272,7 @@ export const useCVData = ({
     addSectionItem, deleteSectionItem, updateSectionItem, reorderSectionItems,
     moveItemBetweenSections, loadVersionSnapshot, resetToDefault,
     restoreContactSection, switchLanguage, importLanguagePack, getActiveDictionary,
+    deletePage,
   };
 };
 
