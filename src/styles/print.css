@@ -304,34 +304,40 @@
     display: none !important;
   }
 
-  /* Native Bullet Points in Print */
+  /* Suppress all native browser list bullets in Print (Zero Native li Bullets) */
+  ul,
+  ol,
+  li,
   ul.experience__bullets,
   .experience__bullets,
-  ul.simple-list-ul {
-    list-style-type: disc !important;
-    padding-left: 1.15rem !important;
-    margin-top: 0.25rem !important;
-    margin-bottom: 0 !important;
+  ul.simple-list-ul,
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li {
+    list-style: none !important;
+    list-style-type: none !important;
+  }
+
+  li::marker,
+  ul li::marker,
+  ol li::marker,
+  .experience__bullets li::marker,
+  ul.simple-list-ul li::marker {
+    display: none !important;
+    content: "" !important;
+    font-size: 0 !important;
   }
 
   ul.experience__bullets li,
   .experience__bullets li,
   ul.simple-list-ul li {
-    display: list-item !important;
-    list-style-type: disc !important;
+    display: block !important;
     margin-top: 0 !important;
     line-height: 1.45 !important;
     color: inherit !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     text-align: left !important;
-  }
-
-  ul.experience__bullets li::marker,
-  .experience__bullets li::marker,
-  ul.simple-list-ul li::marker {
-    color: var(--circle-color, var(--text-color, #334155)) !important;
-    font-size: 0.85em;
   }
 
   ul.experience__bullets li p,

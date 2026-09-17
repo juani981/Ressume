@@ -161,7 +161,7 @@ export const useCVData = ({
     applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: newItems } : s) }));
   }, [applyStateWithHistory]);
 
-  const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId) => {
+  const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId, position = null) => {
     applyStateWithHistory(prev => {
       const sourceSec = prev.sections.find(s => s.id === activeSectionId);
       const targetSec = prev.sections.find(s => s.id === overSectionId);
@@ -170,21 +170,41 @@ export const useCVData = ({
       if (!sourceItem) return prev;
 
       if (activeSectionId === overSectionId) {
+        if (activeItemId === overItemId) return prev;
+
         const oldIndex = sourceSec.items.findIndex(i => i.id === activeItemId);
         let newIndex = sourceSec.items.findIndex(i => i.id === overItemId);
-        if (newIndex === -1) newIndex = sourceSec.items.length - 1;
-        const updatedItems = [...sourceSec.items];
-        const [moved] = updatedItems.splice(oldIndex, 1);
-        updatedItems.splice(newIndex, 0, moved);
-        return { ...prev, sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s) };
+        if (newIndex === -1) {
+          newIndex = sourceSec.items.length - 1;
+        } else if (position === 'below' || position === 'after') {
+          if (oldIndex > newIndex) {
+            newIndex = newIndex + 1;
+          }
+        } else if (position === 'above' || position === 'before') {
+          if (oldIndex < newIndex) {
+            newIndex = newIndex - 1;
+          }
+        }
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const updatedItems = [...sourceSec.items];
+          const [moved] = updatedItems.splice(oldIndex, 1);
+          updatedItems.splice(newIndex, 0, moved);
+          return { ...prev, sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s) };
+        }
+        return prev;
       }
 
       const adaptedItem = adaptItemToSectionType(sourceItem, targetSec.type);
       const newSourceItems = sourceSec.items.filter(i => i.id !== activeItemId);
       const newTargetItems = [...(targetSec.items || [])];
       const insertIndex = newTargetItems.findIndex(i => i.id === overItemId);
-      if (insertIndex === -1) newTargetItems.push(adaptedItem);
-      else newTargetItems.splice(insertIndex, 0, adaptedItem);
+      if (insertIndex === -1) {
+        newTargetItems.push(adaptedItem);
+      } else {
+        const finalInsertIndex = (position === 'below' || position === 'after') ? insertIndex + 1 : insertIndex;
+        newTargetItems.splice(finalInsertIndex, 0, adaptedItem);
+      }
 
       return {
         ...prev,

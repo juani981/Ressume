@@ -588,6 +588,12 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     el.style.outline = 'none';
   });
 
+  // 5. Eliminar viñetas y bullets nativos de li/ul de raíz para impresión limpia
+  clone.querySelectorAll('ul, ol, li').forEach((el) => {
+    el.style.setProperty('list-style', 'none', 'important');
+    el.style.setProperty('list-style-type', 'none', 'important');
+  });
+
   // 5. Normalization of page breaks from live editor to print:
   // Elements overflowing across page folds have [data-editor-break-forced="true"].
   // Preserve them and ensure they break to the next page with the exact user-set page padding!

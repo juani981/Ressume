@@ -74,9 +74,22 @@ export function useCVDndCoordinator({
     setActiveDragSection(null);
 
     if (!over) return;
+    if (active.id === over.id) return;
 
     const activeData = active?.data?.current;
     const overData = over?.data?.current;
+
+    // Determine directional drop position ('below' vs 'above')
+    let position = null;
+    if (active?.rect?.current?.translated && over?.rect) {
+      const activeCenterY =
+        active.rect.current.translated.top +
+        active.rect.current.translated.height / 2;
+      const overCenterY = over.rect.top + over.rect.height / 2;
+      position = activeCenterY > overCenterY ? 'below' : 'above';
+    } else if (event?.delta?.y !== undefined && event.delta.y !== 0) {
+      position = event.delta.y > 0 ? 'below' : 'above';
+    }
 
     // 1. Moving an Item (within same section, cross-section, or cross-column)
     if (activeData?.type === 'item') {
@@ -120,6 +133,7 @@ export function useCVDndCoordinator({
           overItemId,
           activeSectionId,
           targetSectionId,
+          position,
         );
       }
       return;
@@ -170,6 +184,7 @@ export function useCVDndCoordinator({
           activeSectionId,
           targetColumn,
           overSectionId,
+          position,
         );
       }
     }
