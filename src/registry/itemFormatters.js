@@ -42,19 +42,25 @@ export const baseItemMarkdown = (item) => {
   const date = stripHtml(item.date || item.year || '');
   if (date) meta.push(`\`${date}\``);
   if (item.link) {
-    const rawLink = stripHtml(item.link);
+    const rawLink = stripHtml(item.link).replace(/\s+/g, '');
     const url = rawLink.startsWith('http') ? rawLink : `https://${rawLink}`;
     const text = stripHtml(item.linkText) || 'Enlace';
     meta.push(`[${text}](${url})`);
   }
   if (meta.length > 0) lines.push(meta.join(' | '));
 
-  const description = stripHtml(item.description || '');
+  const description = stripHtml(item.description || '')
+    .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+    .replace(/[☑☐✓✔🗹]/g, '')
+    .trim();
   if (description) lines.push(description);
 
   if (Array.isArray(item.bullets) && item.bullets.length > 0) {
     item.bullets.forEach(b => {
-      const cleanB = stripHtml(b);
+      const cleanB = stripHtml(b)
+        .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+        .replace(/[☑☐✓✔🗹]/g, '')
+        .trim();
       if (cleanB) lines.push(`- ${cleanB}`);
     });
   }
@@ -248,11 +254,20 @@ export const baseItemPlainText = (item) => {
   if (subtitle || item.date) {
     lines.push(`${subtitle} | ${stripHtml(item.date || '')}`);
   }
-  if (item.link) lines.push(`  Enlace: ${stripHtml(item.link)}`);
-  if (item.description) lines.push(stripHtml(item.description));
+  if (item.link) lines.push(`  Enlace: ${stripHtml(item.link).replace(/\s+/g, '')}`);
+  if (item.description) {
+    const cleanDesc = stripHtml(item.description)
+      .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+      .replace(/[☑☐✓✔🗹]/g, '')
+      .trim();
+    if (cleanDesc) lines.push(cleanDesc);
+  }
   if (Array.isArray(item.bullets) && item.bullets.length > 0) {
     item.bullets.forEach(b => {
-      const clean = stripHtml(b);
+      const clean = stripHtml(b)
+        .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+        .replace(/[☑☐✓✔🗹]/g, '')
+        .trim();
       if (clean) lines.push(`* ${clean}`);
     });
   }

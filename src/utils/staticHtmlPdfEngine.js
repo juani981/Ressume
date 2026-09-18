@@ -355,7 +355,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; margin: 0 auto; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
         <div class="resume__left" style="background: ${leftBg}; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
           ${leftSectionsCol.map(renderSectionHTML).join('')}
         </div>
@@ -382,7 +382,8 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
 
   let snapshotBreaksCSS = '';
-  if (snapshot?.brokenElements?.length > 0) {
+  // Only inject forced page breaks for ATS single-column mode; in 2-column mode child page breaks cause multi-page grid fragmentation
+  if (!is2Col && snapshot?.brokenElements?.length > 0) {
     snapshotBreaksCSS = snapshot.brokenElements.map(b => {
       const selector = b.isTitle
         ? `[data-section-title="${b.sectionId}"]`
@@ -595,17 +596,30 @@ export const createSanitizedPrintClone = (areaCvElement) => {
   });
 
   // 5. Normalization of page breaks from live editor to print:
-  // Elements overflowing across page folds have [data-editor-break-forced="true"].
-  // Preserve them and ensure they break to the next page with the exact user-set page padding!
-  clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
-    node.style.setProperty('break-before', 'page', 'important');
-    node.style.setProperty('page-break-before', 'always', 'important');
-    node.style.setProperty('padding-top', 'var(--page-padding, 24px)', 'important');
-    node.style.setProperty('margin-top', '0', 'important');
-    node.classList.add('force-page-break-before', 'break-page-before');
-    node.setAttribute('data-page-break', 'before');
-    node.setAttribute('data-page-break-before', 'true');
-  });
+  // In 2-column mode, left and right columns run in parallel; forcing child breaks
+  // causes CSS paged media to create separate full-document pages for each child, resulting in fragmentation (e.g. 5 pages instead of 2).
+  // ATS single-column mode breaks linearly, so forced breaks are preserved strictly there.
+  const is2ColClone = clone.classList.contains('bd-grid') || Boolean(clone.querySelector('.resume__left') && clone.querySelector('.resume__right'));
+  if (is2ColClone) {
+    clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
+      node.style.setProperty('break-before', 'auto', 'important');
+      node.style.setProperty('page-break-before', 'auto', 'important');
+      node.style.setProperty('margin-top', '0', 'important');
+      node.classList.remove('force-page-break-before', 'break-page-before');
+      node.removeAttribute('data-page-break');
+      node.removeAttribute('data-page-break-before');
+    });
+  } else {
+    clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
+      node.style.setProperty('break-before', 'page', 'important');
+      node.style.setProperty('page-break-before', 'always', 'important');
+      node.style.setProperty('padding-top', 'var(--page-padding, 24px)', 'important');
+      node.style.setProperty('margin-top', '0', 'important');
+      node.classList.add('force-page-break-before', 'break-page-before');
+      node.setAttribute('data-page-break', 'before');
+      node.setAttribute('data-page-break-before', 'true');
+    });
+  }
 
   // Defensive scrub: ensure that the first child and first section of each column/container never inherit break-before or extra padding
   const firstNodes = [
@@ -635,6 +649,12 @@ export const createSanitizedPrintClone = (areaCvElement) => {
   // 6. Clean up container geometry:
   // Remove interactive box-shadow.
   clone.style.removeProperty('box-shadow');
+  if (is2ColClone) {
+    clone.style.setProperty('width', '100%', 'important');
+    clone.style.setProperty('max-width', '100%', 'important');
+    clone.style.setProperty('margin', '0', 'important');
+    clone.style.setProperty('padding', '0', 'important');
+  }
 
   return clone;
 };
@@ -886,8 +906,11 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
     activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
 
+    const is2Col = Boolean(liveAreaCv?.classList?.contains('bd-grid') || cvData?.layout?.type === '2-column' || (liveAreaCv?.querySelector?.('.resume__left') && liveAreaCv?.querySelector?.('.resume__right')));
+
     let snapshotBreaksCSS = '';
-    if (snapshot?.brokenElements?.length > 0) {
+    // Only inject forced page breaks for ATS single-column mode; in 2-column mode child page breaks cause multi-page grid fragmentation
+    if (!is2Col && snapshot?.brokenElements?.length > 0) {
       snapshotBreaksCSS = snapshot.brokenElements.map(b => {
         const selector = b.isTitle
           ? `[data-section-title="${b.sectionId}"]`
@@ -975,8 +998,10 @@ ${snapshotBreaksCSS}
             } catch (_) {}
           }
 
-          if (snapshot && snapshot.brokenElements) {
-            // Apply live editor breaks 1:1 into iframe
+          const is2Col = Boolean(areaCv?.classList?.contains('bd-grid') || (areaCv?.querySelector?.('.resume__left') && areaCv?.querySelector?.('.resume__right')));
+
+          if (snapshot && snapshot.brokenElements && !is2Col) {
+            // Apply live editor breaks 1:1 into iframe (ATS single-column mode)
             snapshot.brokenElements.forEach((b) => {
               let targetEl = null;
               if (b.isTitle) {
@@ -1030,6 +1055,51 @@ ${snapshotBreaksCSS}
             const effectiveTargetMm = scale < 1.0 ? +(targetHeightMm * scale).toFixed(2) : targetHeightMm;
 
             if (areaCv && areaCv.style) {
+              areaCv.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
+              areaCv.style.setProperty('--print-target-height-mm', `${effectiveTargetMm}mm`);
+              areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            }
+
+            const leftCol = areaCv?.querySelector?.('.resume__left');
+            const rightCol = areaCv?.querySelector?.('.resume__right');
+            if (leftCol && leftCol.style) {
+              leftCol.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
+            }
+            if (rightCol && rightCol.style) {
+              rightCol.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
+            }
+          } else if (is2Col && areaCv) {
+            // For 2-column mode: enforce strictly max 2 pages, bleed edge-to-edge, and prevent multi-page component fragmentation
+            const rawHeight = Math.max(
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              areaCv?.scrollHeight || 0
+            );
+            const totalPages = Math.min(2, Math.max(1, Math.ceil(rawHeight / pageHeightPx) || snapshot?.totalPages || 1));
+            const targetHeightMm = totalPages * 297;
+
+            if (iframe && iframe.style) {
+              iframe.style.height = `${totalPages * pageHeightPx}px`;
+            }
+
+            const maxAllowedHeight = totalPages * pageHeightPx;
+            let scale = 1.0;
+            if (rawHeight > maxAllowedHeight) {
+              scale = calculatePrintScale(rawHeight, totalPages);
+              if (doc.body?.style) {
+                doc.body.style.zoom = scale;
+              }
+            } else if (doc.body?.style) {
+              doc.body.style.zoom = 1.0;
+            }
+
+            const effectiveTargetMm = scale < 1.0 ? +(targetHeightMm * scale).toFixed(2) : targetHeightMm;
+
+            if (areaCv && areaCv.style) {
+              areaCv.style.setProperty('width', '100%', 'important');
+              areaCv.style.setProperty('max-width', '100%', 'important');
+              areaCv.style.setProperty('margin', '0', 'important');
+              areaCv.style.setProperty('padding', '0', 'important');
               areaCv.style.setProperty('min-height', `${effectiveTargetMm}mm`, 'important');
               areaCv.style.setProperty('--print-target-height-mm', `${effectiveTargetMm}mm`);
               areaCv.style.setProperty('--print-total-pages', String(totalPages));

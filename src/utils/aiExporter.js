@@ -42,14 +42,35 @@ const escapeYaml = (str) => {
 };
 
 /**
- * Formats URLs with https:// protocol if not already present
+ * Sanitizes URLs: removes internal whitespace (e.g. from broken preview copy-pastes)
+ * and formats with https:// protocol if not already present.
  */
-const formatContactUrl = (val) => {
+export const sanitizeContactUrl = (val) => {
   if (!val) return '';
-  const trimmed = val.trim();
-  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
-    ? trimmed
-    : `https://${trimmed.replace(/^https?:\/\//, '').replace(/^\/+/, '')}`;
+  const cleaned = String(val).replace(/\s+/g, '');
+  return cleaned.startsWith('http://') || cleaned.startsWith('https://')
+    ? cleaned
+    : `https://${cleaned.replace(/^https?:\/\//, '').replace(/^\/+/, '')}`;
+};
+
+const formatContactUrl = (val) => sanitizeContactUrl(val);
+
+/**
+ * Sanitizes text content against critical ATS parsing pitfalls:
+ * 1. Strips pseudo-math dollar syntax enclosing technical terms ($N+1$, $CI/CD$)
+ *    which causes ATS parsers to confuse them with salary expectations or broken regex.
+ * 2. Neutralizes non-standard Unicode checkboxes (☑, ☐, ✓, ✔, 🗹) into clean text.
+ */
+export const sanitizeATSText = (str) => {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    // Strip dollar signs wrapping technical terms: $N+1$ -> N+1, $CI/CD$ -> CI/CD
+    .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+    // Strip non-standard checkboxes and symbols that disrupt ATS OCR and text-layer extraction
+    .replace(/[☑☐✓✔🗹]/g, '')
+    // Clean up residual multiple spaces
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
 };
 
 /**
@@ -519,7 +540,7 @@ export const exportToATSPlainText = (cvData) => {
   if (aboutItem.description) {
     lines.push('PERFIL PROFESIONAL');
     lines.push('-'.repeat(30));
-    lines.push(aboutItem.description);
+    lines.push(sanitizeATSText(aboutItem.description));
     lines.push('\n');
   }
 
@@ -546,29 +567,29 @@ export const exportToATSPlainText = (cvData) => {
 
     if (sec.type === 'skills') {
       (sec.items || []).forEach(item => {
-        lines.push(`* ${item.title}: ${item.description}`);
+        lines.push(`* ${sanitizeATSText(item.title)}: ${sanitizeATSText(item.description)}`);
       });
       lines.push('');
     } else if (sec.type === 'simple_list') {
       (sec.items || []).forEach(item => {
-        lines.push(`* ${item.text}`);
+        lines.push(`* ${sanitizeATSText(item.text)}`);
       });
       lines.push('');
     } else if (sec.type === 'education') {
       (sec.items || []).forEach(item => {
-        lines.push(`* ${item.title} - ${item.subtitle} (${item.date || ''})`);
+        lines.push(`* ${sanitizeATSText(item.title)} - ${sanitizeATSText(item.subtitle)} (${sanitizeATSText(item.date || '')})`);
       });
       lines.push('');
     } else {
       (sec.items || []).forEach(item => {
-        lines.push(`${item.title || item.name || item.text || ''}`);
+        lines.push(`${sanitizeATSText(item.title || item.name || item.text || '')}`);
         if (item.subtitle || item.date) {
-          lines.push(`${item.subtitle || ''} | ${item.date || ''}`);
+          lines.push(`${sanitizeATSText(item.subtitle || '')} | ${sanitizeATSText(item.date || '')}`);
         }
-        if (item.link) lines.push(`  Enlace: ${item.link}`);
-        if (item.description) lines.push(item.description);
+        if (item.link) lines.push(`  Enlace: ${sanitizeContactUrl(item.link)}`);
+        if (item.description) lines.push(sanitizeATSText(item.description));
         if (item.bullets && item.bullets.length > 0) {
-          item.bullets.forEach(b => lines.push(`* ${b}`));
+          item.bullets.forEach(b => lines.push(`* ${sanitizeATSText(b)}`));
         }
         lines.push('');
       });

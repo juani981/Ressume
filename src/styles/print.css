@@ -6,8 +6,8 @@
 
 @media print {
   @page {
-    size: A4;
-    margin: 0;
+    size: A4 portrait;
+    margin: 0 !important;
   }
 
   * {
@@ -45,6 +45,16 @@
     box-decoration-break: slice !important;
   }
 
+  /* 2-Column Mode: Edge-to-Edge Bleed (zero exterior margin gap) */
+  #area-cv.bd-grid,
+  .resume.bd-grid {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .resume__left,
   .resume__right {
     min-height: var(--print-target-height-mm, 297mm) !important;
@@ -55,6 +65,18 @@
     print-color-adjust: exact !important;
     -webkit-box-decoration-break: slice !important;
     box-decoration-break: slice !important;
+  }
+
+  /* 2-Column Mode: Neutralize individual child page breaks to prevent 5-page fragmentation */
+  .resume.bd-grid .resume__left [data-editor-break-forced="true"],
+  .resume.bd-grid .resume__right [data-editor-break-forced="true"],
+  .resume.bd-grid .resume__left .break-page-before,
+  .resume.bd-grid .resume__right .break-page-before,
+  .resume.bd-grid .resume__left .force-page-break-before,
+  .resume.bd-grid .resume__right .force-page-break-before {
+    break-before: auto !important;
+    page-break-before: auto !important;
+    margin-top: 0 !important;
   }
 
   #area-cv.resume__single-column {

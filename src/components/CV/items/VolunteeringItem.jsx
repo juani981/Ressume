@@ -1,6 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import AddBulletPoint from '../../Editor/AddBulletPoint';
 import { Plus } from 'lucide-react';
 import { 
   DndContext, 
@@ -223,28 +224,10 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div 
-            className="bullet-add-row no-print" 
-            data-editor-ui="true"
-            style={{ 
-              paddingLeft: '1.15rem',
-              height: 0,
-              lineHeight: 0,
-              overflow: 'visible',
-              position: 'relative'
-            }}
-          >
-            <button
-              type="button"
-              className="add-bullet-btn no-print"
-              data-editor-ui="true"
-              onClick={handleAddBullet}
-              title="Agregar viñeta de impacto voluntario"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              <span>Agregar viñeta</span>
-            </button>
-          </div>
+          <AddBulletPoint 
+            helperText="Agregar viñeta de impacto voluntario" 
+            handleAddBullet={handleAddBullet} 
+          />
         </div>
       </div>
     </>
