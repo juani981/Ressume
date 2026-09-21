@@ -1,32 +1,19 @@
-## Task Assignment: Adversarial Stress Verification — CSS Single Source of Truth & Media Boundaries
+## 2026-09-20T13:57:17Z
 
-### Identity
-- Role: Adversarial Challenger 2
-- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
+You are Challenger 2 (teamwork_preview_challenger_2).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
 
-### Inputs & Authoritative References
-- User Request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see ## 2026-09-11T16:11:48Z)
-- Audit Report: C:\Users\usuariodgc\Documents\Ressume\docs\audit-report.md
-- Guidelines: C:\Users\usuariodgc\Documents\Ressume\AGENTS.md
-
-### Mission
-Empirically test CSS media encapsulation, selector leakage, and test suite rigor:
-1. Probe `src/styles/print.css` to verify zero selector leakage outside `@media print` queries.
-2. Probe `src/index.css` to verify 0 `@media print` declarations.
-3. Verify that the 24 modernized tests remain non-regressive and that T3.6 & T5.6 fail if their underlying implementation invariants are violated.
-4. Execute `npm run build` and `npm test -- --run`.
-5. Deliver an empirical verdict: `CONFIRMED_CORRECT` or `CHALLENGE_FAILED`.
-
-Write your full report to:
-`C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\handoff.md`
-
-## 2026-09-11T16:42:41Z
-You are Adversarial Challenger 2.
-Your working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
-Authoritative user request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see header ## 2026-09-11T16:11:48Z)
-Read your detailed task description in C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\DISPATCH.md.
-
-Empirically test CSS media encapsulation, absence of bare selectors, and test assertion rigor.
-Run build and tests.
-Provide an empirical verdict: CONFIRMED_CORRECT or CHALLENGE_FAILED.
-Write your report to C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2\handoff.md and message back when complete.
+Your Task:
+Adversarially stress-test layout and PDF print stability:
+1. Adversarial slider testing:
+   - Test extreme slider values (e.g. fontScale at 0.50 and 1.25, lineHeight at 1.25 and 1.85, pagePadding at 0 and 60px, leftColumnWidth at 20% and 55%).
+   - Verify whether the print iframe and PDF output retain these variables without crashing, overflowing, or reverting to defaults.
+2. Inspect physical PDF output binaries using poppler utilities (`pdfinfo`, `pdftotext`):
+   - Check page count and ensure zero phantom blank pages.
+   - Check bullet points at page boundaries to verify that words or lines of text are not sliced in half.
+3. State an unambiguous verdict: APPROVE or REJECT.
+Write your full report to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2/handoff.md`.
+Send a message when done.

@@ -226,17 +226,22 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   }
 
   // Candidate Profile
+  const contactSection = cvData.sections?.find(s => s.type === 'contact' || s.id === 'contact');
+  const contactItem = contactSection?.items?.[0] || {};
   const candidateName = stripHtml(profileItem.name || cvData.profile?.name || '');
   const candidateHeadline = stripHtml(profileItem.subtitle || '');
-  const candidateLocation = stripHtml(profileItem.location || '');
+  const candidateLocation = stripHtml(profileItem.location || contactItem.location || '');
 
   const contactsMap = {};
-  if (profileItem.email) contactsMap.email = profileItem.email;
-  if (profileItem.phone) contactsMap.phone = profileItem.phone;
-  if (profileItem.linkedin) contactsMap.linkedin = formatContactUrl(profileItem.linkedin);
-  if (profileItem.github) contactsMap.github = formatContactUrl(profileItem.github);
+  if (profileItem.email || contactItem.email) contactsMap.email = profileItem.email || contactItem.email;
+  if (profileItem.phone || contactItem.phone) contactsMap.phone = profileItem.phone || contactItem.phone;
+  if (profileItem.linkedin || contactItem.linkedin) contactsMap.linkedin = formatContactUrl(profileItem.linkedin || contactItem.linkedin);
+  if (profileItem.github || contactItem.github) contactsMap.github = formatContactUrl(profileItem.github || contactItem.github);
 
-  const dynamicContacts = normalizeItemContacts(profileItem);
+  const dynamicContacts = [
+    ...normalizeItemContacts(profileItem),
+    ...normalizeItemContacts(contactItem)
+  ];
   dynamicContacts.forEach(c => {
     if (!c || !c.type || !c.value) return;
     if (c.type === 'location') return;
@@ -330,7 +335,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   // Helper to render individual section
   // ==========================================
   const renderSection = (sec) => {
-    if (!sec || sec.type === 'profile_header') return;
+    if (!sec || sec.type === 'profile_header' || sec.type === 'title_subtitle') return;
 
     if (sec.type === 'spacer') {
       lines.push('<!-- spacer -->');
@@ -344,6 +349,20 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
       lines.push(`## ${headerTitle}${colTag}`);
       const aboutDesc = aboutMarkdown(sec.items?.[0]) || aboutMarkdown(aboutItem) || '';
       if (aboutDesc) lines.push(aboutDesc);
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+      return;
+    }
+
+    if (sec.type === 'contact') {
+      const headerTitle = sec.title || 'Información de Contacto';
+      const colTag = is1Col ? '' : (sec.column === 'right' ? ' [Visual Layout: Main Column]' : ' [Visual Layout: Sidebar / Left Column]');
+      lines.push(`## ${headerTitle}${colTag}`);
+      const dynamicContacts = normalizeItemContacts(sec.items?.[0] || {});
+      dynamicContacts.forEach(c => {
+        if (c?.value) lines.push(`- **${c.type}**: ${c.value}`);
+      });
       lines.push('');
       lines.push('---');
       lines.push('');

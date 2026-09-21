@@ -1,40 +1,25 @@
-## Task Assignment: Independent Code Review — Print Engine & CSS Architecture
+## 2026-09-20T13:57:17Z
+You are Reviewer 2 (teamwork_preview_reviewer_2).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
+AGENTS.md guidelines are at: /home/juani/Documentos/Ressume/AGENTS.md
 
-### Identity
-- Role: Independent Reviewer 2
-- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_reviewer_2
+Worker Handoff Reports to inspect:
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1_engine_css/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m4_cypress/handoff.md
 
-### Inputs & Authoritative References
-- User Request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see ## 2026-09-11T16:11:48Z)
-- Audit Report: C:\Users\usuariodgc\Documents\Ressume\docs\audit-report.md
-- Guidelines: C:\Users\usuariodgc\Documents\Ressume\AGENTS.md
-- Modified files:
-  - `src/utils/staticHtmlPdfEngine.js`
-  - `src/App.jsx`
-  - `src/styles/print.css`
-  - `src/tests/cleanPrintEngineVerification.test.jsx`
-  - `src/tests/pixelParityEditorPrint.test.jsx`
-  - `src/tests/adversarial-spacing-layout-extremes.test.jsx`
-  - `src/tests/challenger-o10-dom-coordinates-stress.test.jsx`
-  - `src/tests/test_inspect_juan_cv.test.jsx`
-
-### Mission
-Conduct an objective, independent review of the codebase changes:
-1. Examine code correctness, interface conformance, and edge case resilience.
-2. Check that no regressions were introduced into existing components or styles.
-3. Verify CSS Single Source of Truth architecture and strict `@media print` boundaries.
-4. Verify build & test execution:
-   - `npm run build` (0 errors, 0 warnings)
-   - `npm test -- --run` (0 failures, >=634 tests)
-5. Provide a definitive verdict: `APPROVE` or `REQUEST_CHANGES`.
-
-Write your full review report to:
-`C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_reviewer_2\handoff.md`
-and message back when complete.
-
-## 2026-09-11T16:43:00Z
-Review all modified files across src/ and src/tests/ for correctness, completeness, and lack of regression.
-Run build (npm run build) and tests (npm test -- --run).
-Provide a definitive verdict: APPROVE or REQUEST_CHANGES.
-Write your full report to C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_reviewer_2\handoff.md and message back when complete.
-
+Your Task:
+Conduct an architectural and invariant review focusing on AGENTS.md rules:
+1. Rule 5 (Prohibición de Doble Motor en Conflicto): Verify that all screen `getBoundingClientRect()` margin/padding injections were purged from `src/utils/staticHtmlPdfEngine.js` and that pagination relies strictly on declarative CSS Paged Media.
+2. Rule 6 (Verificación Real vs. Sesgo de JSDOM): Verify that the solution is validated in a real browser (Cypress on Chrome for Testing) and not merely in JSDOM/Vitest.
+3. Verify that all 10 `cvData.layout` sliders propagate cleanly to print without `@media print` fixed overrides.
+4. Run:
+   - `npm run build`
+   - `npx cypress run --browser chrome-for-testing --spec "cypress/e2e/08-two-column-print-synchronization.cy.js,cypress/e2e/09-bullet-flow-and-slider-parity.cy.js"`
+5. State an unambiguous verdict: APPROVE or REQUEST_CHANGES.
+Write your full review report to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2/handoff.md`.
+Send a message when done.

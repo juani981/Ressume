@@ -1,0 +1,260 @@
+[
+  {
+    "file": "01-min-extremes.pdf",
+    "totalPages": 1,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 95588,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 3095,
+        "words": 552,
+        "lineCount": 109,
+        "isBlank": false,
+        "firstLine": "JUAN IGNACIO CARRIZO",
+        "lastLine": "2023 – Presente"
+      }
+    ]
+  },
+  {
+    "file": "02-max-extremes.pdf",
+    "totalPages": 7,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 105201,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 796,
+        "words": 99,
+        "lineCount": 44,
+        "isBlank": false,
+        "firstLine": "JUAN IGNACIO",
+        "lastLine": "con Docker."
+      },
+      {
+        "page": 2,
+        "chars": 660,
+        "words": 89,
+        "lineCount": 40,
+        "isBlank": false,
+        "firstLine": "EDUCACIÓN",
+        "lastLine": "Engine"
+      },
+      {
+        "page": 3,
+        "chars": 445,
+        "words": 65,
+        "lineCount": 32,
+        "isBlank": false,
+        "firstLine": "2025",
+        "lastLine": "(Ex-Líder Técnico Directo)"
+      },
+      {
+        "page": 4,
+        "chars": 360,
+        "words": 43,
+        "lineCount": 23,
+        "isBlank": false,
+        "firstLine": "Orquestador Moodle",
+        "lastLine": "Verificar Credencial"
+      },
+      {
+        "page": 5,
+        "chars": 237,
+        "words": 36,
+        "lineCount": 18,
+        "isBlank": false,
+        "firstLine": "Diplomatura en",
+        "lastLine": "predictivo."
+      },
+      {
+        "page": 6,
+        "chars": 177,
+        "words": 23,
+        "lineCount": 14,
+        "isBlank": false,
+        "firstLine": "PUBLICACION",
+        "lastLine": "concurrencia."
+      },
+      {
+        "page": 7,
+        "chars": 260,
+        "words": 37,
+        "lineCount": 17,
+        "isBlank": false,
+        "firstLine": "VOLUNTARIA",
+        "lastLine": "Desafío LATAM (2025)"
+      }
+    ]
+  },
+  {
+    "file": "03-cross-extremes-1.pdf",
+    "totalPages": 3,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 95970,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 1620,
+        "words": 219,
+        "lineCount": 67,
+        "isBlank": false,
+        "firstLine": "JUAN IGNACIO CARRIZO",
+        "lastLine": "100% de texto seleccionable y cero"
+      },
+      {
+        "page": 2,
+        "chars": 700,
+        "words": 85,
+        "lineCount": 35,
+        "isBlank": false,
+        "firstLine": "Español",
+        "lastLine": "Verificar"
+      },
+      {
+        "page": 3,
+        "chars": 571,
+        "words": 79,
+        "lineCount": 28,
+        "isBlank": false,
+        "firstLine": "PREMIOS Y",
+        "lastLine": "con Python — Desafío LATAM (2025)"
+      }
+    ]
+  },
+  {
+    "file": "04-cross-extremes-2.pdf",
+    "totalPages": 4,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 95230,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 2189,
+        "words": 381,
+        "lineCount": 88,
+        "isBlank": false,
+        "firstLine": "JUAN",
+        "lastLine": "2023 – Presente"
+      },
+      {
+        "page": 2,
+        "chars": 319,
+        "words": 73,
+        "lineCount": 31,
+        "isBlank": false,
+        "firstLine": "C U R S O S",
+        "lastLine": "L, MySQL)."
+      },
+      {
+        "page": 3,
+        "chars": 290,
+        "words": 79,
+        "lineCount": 58,
+        "isBlank": false,
+        "firstLine": "E D U",
+        "lastLine": "C#"
+      },
+      {
+        "page": 4,
+        "chars": 343,
+        "words": 77,
+        "lineCount": 60,
+        "isBlank": false,
+        "firstLine": "Bases",
+        "lastLine": ")"
+      }
+    ]
+  },
+  {
+    "file": "05-ats-extremes.pdf",
+    "totalPages": 6,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 99579,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 780,
+        "words": 98,
+        "lineCount": 20,
+        "isBlank": false,
+        "firstLine": "JUAN IGNACIO CARRIZO",
+        "lastLine": "Diseño de pipelines de CI/CD contenerizados con Docker."
+      },
+      {
+        "page": 2,
+        "chars": 762,
+        "words": 107,
+        "lineCount": 22,
+        "isBlank": false,
+        "firstLine": "Pasante de Soporte Técnico (IT)",
+        "lastLine": "2024"
+      },
+      {
+        "page": 3,
+        "chars": 526,
+        "words": 68,
+        "lineCount": 19,
+        "isBlank": false,
+        "firstLine": "EDUCACIÓN",
+        "lastLine": "2024"
+      },
+      {
+        "page": 4,
+        "chars": 69,
+        "words": 10,
+        "lineCount": 4,
+        "isBlank": false,
+        "firstLine": "IDIOMAS",
+        "lastLine": "C2 Avanzado / Profesional"
+      },
+      {
+        "page": 5,
+        "chars": 518,
+        "words": 70,
+        "lineCount": 20,
+        "isBlank": false,
+        "firstLine": "Español",
+        "lastLine": "2023 – Presente"
+      },
+      {
+        "page": 6,
+        "chars": 229,
+        "words": 30,
+        "lineCount": 8,
+        "isBlank": false,
+        "firstLine": "REFERENCIAS",
+        "lastLine": "Introducción al Análisis de Datos con Python — Desafío LATAM (2025)"
+      }
+    ]
+  },
+  {
+    "file": "06-bullet-boundary.pdf",
+    "totalPages": 1,
+    "pageSize": "594.96 x 841.92 pts (A4)",
+    "fileSize": 55816,
+    "hasPhantomBlankPage": false,
+    "slicingAnomaliesCount": 0,
+    "pageStats": [
+      {
+        "page": 1,
+        "chars": 2195,
+        "words": 288,
+        "lineCount": 69,
+        "isBlank": false,
+        "firstLine": "JUAN IGNACIO",
+        "lastLine": "27001 multi-región."
+      }
+    ]
+  }
+]

@@ -14,9 +14,11 @@ import VolunteeringItem from '../components/CV/items/VolunteeringItem';
 import ReferencesItem from '../components/CV/items/ReferencesItem';
 import SpacerItem from '../components/CV/items/SpacerItem';
 import SpacerBlock from '../components/CV/SpacerBlock';
-// M5 extensibility smoke-test: new section type added with ONLY this import + registerSectionType below
 import MentoringItem from '../components/CV/items/MentoringItem';
 import PhotoItem from '../components/CV/items/PhotoItem';
+import ProfileTitleItem from '../components/CV/items/ProfileTitleItem';
+import ContactItem from '../components/CV/items/ContactItem';
+import { normalizeItemContacts, syncFlatContactFields } from '../utils/contactTypes';
 
 import {
   baseItemMarkdown,
@@ -207,7 +209,7 @@ const standardDescriptors = [
   // 1. Cabecera de Contacto
   {
     type: 'profile_header',
-    label: 'Cabecera de Perfil',
+    label: 'Título y Subtítulo',
     defaultTitle: '',
     defaultColumn: 'left',
     icon: 'UserSquare2',
@@ -939,7 +941,7 @@ registerSectionType({
   description: 'Fotografía profesional de perfil con carga de archivo local o enlace URL y formas personalizables.',
   allowDelete: true,
   allowAddItem: false,
-  allowDeleteItem: false,
+  allowDeleteItem: true,
   hasTitle: false,
   hasItemDrag: false,
   supportsBulletCustomization: false,
@@ -972,6 +974,99 @@ registerSectionType({
     };
   },
   schema: { url: 'string', shape: 'string', size: 'number', alt: 'string' }
+});
+
+/**
+ * Modular Contact Section Component Registration
+ * Enables candidate contact details, links, and networks to be detached
+ * from title/subtitle and placed freely across any column or layout position.
+ */
+registerSectionType({
+  type: 'contact',
+  label: 'Información de Contacto',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'Contact',
+  description: 'Datos de contacto, redes sociales, enlaces profesionales y canales de comunicación.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: true,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  sectionClass: 'social',
+  wrapperClass: '',
+  containerTag: 'div',
+  containerClass: '',
+  itemTag: 'div',
+  itemClass: '',
+  itemStyle: { position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return ContactItem; },
+  createDefaultItem: () => ({
+    id: generateUniqueId('contact'),
+    contacts: [
+      { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+      { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+      { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+      { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+      { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+    ]
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    const contacts = normalizeItemContacts(src);
+    return {
+      id: src.id || generateUniqueId('contact'),
+      contacts,
+      ...syncFlatContactFields(contacts)
+    };
+  },
+  schema: { contacts: 'array', email: 'string', phone: 'string', location: 'string', linkedin: 'string', github: 'string' }
+});
+
+/**
+ * Modular Title & Subtitle Section Component Registration
+ * Enables candidate name and professional title to be detached
+ * and placed freely across any column or layout position.
+ */
+registerSectionType({
+  type: 'title_subtitle',
+  label: 'Título y Subtítulo',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'UserSquare2',
+  description: 'Nombre y título profesional del candidato, desacoplado e independiente de los datos de contacto.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: false,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  isHeader: true,
+  sectionClass: 'home',
+  wrapperClass: '',
+  containerTag: 'div',
+  containerClass: 'home__container bd-grid',
+  itemTag: 'div',
+  itemClass: 'home__data bd-grid',
+  itemStyle: { position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return ProfileTitleItem; },
+  createDefaultItem: () => ({
+    id: generateUniqueId('prof'),
+    name: 'TU NOMBRE Y APELLIDO',
+    subtitle: 'Título Profesional / Especialidad'
+  }),
+  adaptItem: (item) => {
+    const src = item || {};
+    return {
+      id: src.id || generateUniqueId('prof'),
+      name: src.name || src.title || '',
+      subtitle: src.subtitle || ''
+    };
+  },
+  schema: { name: 'string', subtitle: 'string' }
 });
 
 

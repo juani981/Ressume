@@ -472,15 +472,14 @@ describe('Milestone M3: Paridad Visual 1:1, Paginación y Zonas Prohibidas (R4)'
       if (areaCv.parentNode) areaCv.parentNode.removeChild(areaCv);
     });
 
-    it('ZONE-2.5: box-decoration-break: slice is strictly enforced across column and document containers in print.css', () => {
-      // 1. Column containers (.resume__left, .resume__right) must have box-decoration-break: slice
+    it('ZONE-2.5: box-decoration-break: clone is strictly enforced on columns in print.css for declarative multi-page margins', () => {
+      // 1. Root container #area-cv maintains box-decoration-break: slice
       expect(printStyles).toContain('box-decoration-break: slice !important;');
       expect(printStyles).toContain('-webkit-box-decoration-break: slice !important;');
 
-      // 2. Prohibit box-decoration-break: clone anywhere in print.css rules (which caused the 48px double-padding bug)
-      const rulesOnly = printStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-      const hasClone = /box-decoration-break\s*:\s*clone/i.test(rulesOnly);
-      expect(hasClone, 'print.css must NOT contain box-decoration-break: clone').toBe(false);
+      // 2. Column containers (.resume__left, .resume__right, .resume__single-column) enforce box-decoration-break: clone
+      expect(printStyles).toContain('box-decoration-break: clone !important;');
+      expect(printStyles).toContain('-webkit-box-decoration-break: clone !important;');
     });
   });
 

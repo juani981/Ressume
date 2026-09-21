@@ -1,192 +1,187 @@
-# Challenger 2 Handoff Report: CSS Media Encapsulation & Test Suite Rigor Verification
+# Handoff Report: Adversarial Layout & PDF Print Stability Audit
 
-- **Author**: Adversarial Challenger 2 (`teamwork_preview_challenger_2`)
-- **Date**: 2026-09-11
-- **Mission**: CSS media encapsulation, selector leakage, test assertion rigor, build and test verification
-- **Empirical Verdict**: **`CONFIRMED_CORRECT`**
-
----
-
-## Challenge Summary
-
-**Overall risk assessment**: **LOW**
-
-A comprehensive adversarial challenge of the CSS Single Source of Truth architecture and test suite assertion rigor was conducted. Every challenge dimension was empirically tested through static AST analysis, regex probes, negative mutation injection, Vitest test execution, and production build compilation:
-1. **`src/styles/print.css`**: Verified 100% encapsulation inside a single top-level `@media print { ... }` block; exactly 0 bare selectors or non-media rules exist outside the block.
-2. **`src/index.css`**: Verified exactly 0 `@media print` declarations across all 1805 lines; 0 occurrences of the word `print`.
-3. **24 Modernized Tests**: Verified that all 24 modernized tests remain non-regressive and that false-confidence tautological tests were properly converted to documented no-ops noting JSDOM geometry limitations.
-4. **Assertion Rigor (T3.6 & T5.6)**: Negative mutation testing empirically confirmed that both tests immediately detect and fail upon invariant violations (missing style tag IDs or omitted CSS variable transfer).
-5. **Build & Test Suite**: Verified clean build (`npm run build` in 4.42s) and 100% test pass rate (`npm test -- --run`: 39 files passed, 661 tests passed, 0 failures).
+**Agent**: `teamwork_preview_challenger_2` (Empirical Challenger)  
+**Date**: 2026-09-20T11:10:30-03:00  
+**Scope**: Adversarial Slider Stress Testing, Print Iframe CSS Variable Verification, Physical PDF Binary Inspection via Poppler (`pdfinfo`, `pdftotext`, `pdftoppm`).  
+**Verdict**: **REJECT** ❌
 
 ---
 
 ## 1. Observation
 
-### 1.1 CSS Media Encapsulation in `src/styles/print.css`
-- File length: 194 lines.
-- Lines 1–5: Header comments.
-- Line 7: `@media print {`
-- Line 193: `}`
-- Line 194: Empty newline.
-- Node.js brace-depth tokenizer verified that bracket depth balances strictly to 0 at line 193 with zero characters, selectors, or statements following the closing brace.
-- Bare `@page` rule previously at lines 7–10 was deleted; the only `@page` rule is strictly enclosed at lines 8–11 inside `@media print`.
-- Result: **0 bare selector blocks exist outside `@media print`. 100% media encapsulation.**
+### O1. Adversarial Test Harness Execution
+The adversarial test suite was authored in `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js` and executed against the live application using headless Chromium (`HeadlessChrome/152.0.0.0`) via the command:
+```bash
+npx cypress run --spec "cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js" --browser /home/juani/.local/bin/chromium
+```
+The test suite executed 6 adversarial test cases and generated physical PDF binaries into `tests/adversarial-output/`:
+- `01-min-extremes.pdf` (`fontScale: 0.50`, `lineHeight: 1.25`, `pagePadding: 0px`, `leftColumnWidth: 20%`)
+- `02-max-extremes.pdf` (`fontScale: 1.25`, `lineHeight: 1.85`, `pagePadding: 60px`, `leftColumnWidth: 55%`)
+- `03-cross-extremes-1.pdf` (`fontScale: 1.25`, `lineHeight: 1.25`, `pagePadding: 0px`, `leftColumnWidth: 55%`)
+- `04-cross-extremes-2.pdf` (`fontScale: 0.50`, `lineHeight: 1.85`, `pagePadding: 60px`, `leftColumnWidth: 20%`)
+- `05-ats-extremes.pdf` (`type: '1-column'`, `isAtsMode: true`, `fontScale: 1.25`, `lineHeight: 1.85`, `pagePadding: 60px`)
+- `06-bullet-boundary.pdf` (High density CV with 4-bullet item crossing page fold)
 
-### 1.2 Purge of `@media print` in `src/index.css`
-- Scanned entire 1805 lines of `src/index.css`.
-- Query `/media.*print/gi`: **0 matches**.
-- Query `print`: **0 matches**.
-- Result: **Exactly 0 `@media print` rules present in `src/index.css`. Complete isolation of editor styles.**
+### O2. Slider and Variable Retention in Print Iframe
+Inspection of the print iframe DOM confirmed:
+- In all 6 cases, the print iframe `#area-cv` and `:root` element correctly retained 100% of the active layout CSS variables (`--font-scale`, `--line-height`, `--page-padding`, `--left-col-percent`).
+- Variables were never reverted to defaults (`1.0`, `1.45`, `24px`, `33.33%`).
+- Canvas width remained strictly bounded to 794px with zero horizontal overflow.
+- Column widths dynamically adapted: 20% left column yielded `158.8px` (tested within [145, 175]px); 55% left column yielded `436.7px` (tested within [420, 455]px).
 
-### 1.3 Test Assertion Rigor & Negative Mutation Testing (T3.6 & T5.6)
-1. **T3.6: Discrete Print Style Tag IDs (`src/tests/cleanPrintEngineVerification.test.jsx:492`)**:
-   - Asserts: `doc.getElementById('cv-base-styles')`, `doc.getElementById('cv-print-styles')`, and `doc.getElementById('cv-snapshot-breaks')` are not null.
-   - Asserts: `baseStylesTag.textContent.includes('--page-padding:')` and `printStylesTag.textContent.includes('@media print')`.
-   - **Negative Mutation Test**: Injected `<style id="cv-base-styles-MUTATED">` in `src/utils/staticHtmlPdfEngine.js:466`.
-   - **Observed Result**: Vitest failed immediately:
-     ```text
-     FAIL src/tests/cleanPrintEngineVerification.test.jsx > T3.6: verifies that all three required print style tags...
-     AssertionError: <style id="cv-base-styles"> is missing: expected null not to be null
-     ```
-   - Restored original implementation and confirmed pass.
+### O3. Physical PDF Poppler Inspection Results (`pdfinfo` & `pdftotext`)
+Running `node inspect_adversarial_pdfs.mjs` against the physical PDF binaries produced the following measurements:
 
-2. **T5.6: CSS Custom Property Propagation (`src/tests/cleanPrintEngineVerification.test.jsx:756`)**:
-   - Asserts: `rootStyle.getPropertyValue('--page-padding') === '42px'`, `getPropertyValue('--section-gap') === '30px'`, and `getPropertyValue('--font-scale') === '1.2'`.
-   - **Negative Mutation Test**: Injected a comment disabling `doc.documentElement.style.setProperty(prop, val, priority)` in `src/utils/staticHtmlPdfEngine.js:776`.
-   - **Observed Result**: Vitest failed immediately:
-     ```text
-     FAIL src/tests/cleanPrintEngineVerification.test.jsx > T5.6: executeCleanPrint transfers dynamic CSS custom properties...
-     AssertionError: expected '' to be '42px' // Object.is equality
-     - Expected: "42px"
-     + Received: ""
-     ```
-   - Restored original implementation and confirmed pass.
+```
+┌─────────┬───────────────────────────┬───────┬────────────────────────────┬───────────────┬────────────────┐
+│ (index) │ File                      │ Pages │ Page Size                  │ Phantom Pages │ Text Slicing   │
+├─────────┼───────────────────────────┼───────┼────────────────────────────┼───────────────┼────────────────┤
+│ 0       │ '01-min-extremes.pdf'     │ 2     │ '594.96 x 841.92 pts (A4)' │ 'FAIL'        │ 'CLEAN (PASS)' │
+│ 1       │ '02-max-extremes.pdf'     │ 7     │ '594.96 x 841.92 pts (A4)' │ '0 (PASS)'    │ 'CLEAN (PASS)' │
+│ 2       │ '03-cross-extremes-1.pdf' │ 3     │ '594.96 x 841.92 pts (A4)' │ '0 (PASS)'    │ 'FAIL'         │
+│ 3       │ '04-cross-extremes-2.pdf' │ 5     │ '594.96 x 841.92 pts (A4)' │ 'FAIL'        │ 'CLEAN (PASS)' │
+│ 4       │ '05-ats-extremes.pdf'     │ 5     │ '594.96 x 841.92 pts (A4)' │ 'FAIL'        │ 'CLEAN (PASS)' │
+│ 5       │ '06-bullet-boundary.pdf'  │ 1     │ '594.96 x 841.92 pts (A4)' │ '0 (PASS)'    │ 'CLEAN (PASS)' │
+└─────────┴───────────────────────────┴───────┴────────────────────────────┴───────────────┴────────────────┘
+```
 
-### 1.4 Non-Regressive Modernization of Tautological Tests (24 Tests)
-- All 24 tests identified in `docs/audit-report.md` were evaluated:
-  - `src/tests/pixelParityEditorPrint.test.jsx` (2 tests: PARITY-4.1, PARITY-4.2)
-  - `src/tests/adversarial-spacing-layout-extremes.test.jsx` (8 tests: ADV-1.1 to ADV-1.4 in 2-col and 1-col modes)
-  - `src/tests/challenger-o10-dom-coordinates-stress.test.jsx` (13 tests: Scenario 1–6)
-  - `src/tests/test_inspect_juan_cv.test.jsx` (1 test: "simulates pagination pass by pass")
-- In headless JSDOM, `getBoundingClientRect()` returns zeroes without rendering engine calculations. Converting synthetic circular mocks to documented `// TODO: requires Playwright/Puppeteer... expect(true).toBe(true)` eliminated tautological circular math while preserving exact suite topology.
-- `test_inspect_juan_cv.test.jsx` line 95 was hardened by adding concrete assertions (`expect(items.length).toBeGreaterThan(0); expect(hasChanges).toBe(true);`).
-- All 4 test files pass with 100% success.
+Per-page breakdown of failing PDFs:
 
-### 1.5 Production Build & Full Test Suite Execution
-- **Production Build** (`npm run build`):
-  ```text
-  vite v5.4.21 building for production...
-  transforming...
-  ✓ 1933 modules transformed.
-  rendering chunks...
-  computing gzip size...
-  dist/index.html                   0.92 kB │ gzip:   0.49 kB
-  dist/assets/index-Cy6KZHSh.css   30.16 kB │ gzip:   6.07 kB
-  dist/assets/index-CcLT-xQA.js   729.47 kB │ gzip: 210.62 kB
-  ✓ built in 4.42s
-  ```
-  Result: Clean build, exit code 0, 0 errors, 0 warnings.
-- **Full Test Suite** (`npm test -- --run`):
-  ```text
-   Test Files  39 passed (39)
-        Tests  661 passed (661)
-     Start at  13:50:23
-     Duration  28.33s
-  ```
-  Result: Exit code 0, 39 passed test files, 661 passed tests, 0 failures.
+1. **`01-min-extremes.pdf`**:
+   ```
+   Page 1: 3095 chars, 552 words, 109 lines [OK]
+   Page 2: 0 chars, 0 words, 0 lines [PHANTOM BLANK PAGE!]
+   ```
+2. **`04-cross-extremes-2.pdf`**:
+   ```
+   Page 1: 2189 chars, 381 words, 88 lines [OK]
+   Page 2: 319 chars, 73 words, 31 lines [OK]
+   Page 3: 290 chars, 79 words, 58 lines [OK]
+   Page 4: 343 chars, 77 words, 60 lines [OK]
+   Page 5: 0 chars, 0 words, 0 lines [PHANTOM BLANK PAGE!]
+   ```
+3. **`05-ats-extremes.pdf`**:
+   ```
+   Page 1: 1253 chars, 170 words, 30 lines [OK]
+   Page 2: 818 chars, 103 words, 27 lines [OK]
+   Page 3: 821 chars, 110 words, 31 lines [OK]
+   Page 4: 0 chars, 0 words, 0 lines [PHANTOM BLANK PAGE!]
+   Page 5: 0 chars, 0 words, 0 lines [PHANTOM BLANK PAGE!]
+   ```
+
+### O4. Text Slicing and Boundary Incursion in `03-cross-extremes-1.pdf`
+Running `pdftotext -bbox-layout` revealed a paragraph from `projects` section sliced across the page boundary:
+In `highDensityCV.json` line 127:
+```json
+"description": "Motor de exportación de CVs con 100% de texto seleccionable y cero artefactos."
+```
+At the bottom of Page 1:
+```xml
+<word xMin="407.085772" yMin="817.726466" xMax="441.782694" yMax="837.424465">texto</word>
+<word xMin="445.532551" yMin="817.726466" xMax="543.496357" yMax="837.424465">seleccionable</word>
+<word xMin="547.246376" yMin="817.726466" xMax="555.167786" yMax="837.424465">y</word>
+<word xMin="558.918205" yMin="817.726466" xMax="590.422958" yMax="837.424465">cero</word>
+```
+At the top of Page 2:
+```xml
+<flow>
+  <block xMin="348.515610" yMin="-1.273500" xMax="565.248867" yMax="55.924498">
+    <line xMin="348.515610" yMin="-1.273500" xMax="424.187314" yMax="18.424499">
+      <word xMin="348.515610" yMin="-1.273500" xMax="424.187314" yMax="18.424499">artefactos.</word>
+    </line>
+```
+Notice:
+- `yMin="-1.273500"`: The word `artefactos.` starts **above the physical top edge of Page 2** (negative coordinate).
+- The sentence was split across the page fold, leaving a single orphan word `artefactos.` on Page 2 with zero top margin padding.
+
+### O5. Code Invariants Violated
+In `src/utils/staticHtmlPdfEngine.js` line 1449:
+```javascript
+if (areaCv && areaCv.style) {
+  areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
+  areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
+  areaCv.style.setProperty('--print-total-pages', String(totalPages));
+}
+```
+In `src/styles/print.css` lines 133-149:
+```css
+  /* 3. REGLAS DE ESPECIFICIDAD: Bloques atómicos evitan división interna */
+  .cv-block,
+  .bullet-item-row,
+  li,
+  .experience__content,
+  .education__content,
+  .skills__name,
+  .profile__description,
+  .home__data,
+  .simple-list-item,
+  li.cv-block,
+  .contact__item,
+  .spacer-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+  }
+```
+`.projects__content`, `.projects__data`, `.awards__content`, `.certificates__content`, `.publications__content`, `.volunteering__content`, and `.references__content` are missing from this selector.
 
 ---
 
 ## 2. Logic Chain
 
-1. *Observation*: `src/styles/print.css` is designated as the Single Source of Truth for print styles. Any rule declared outside `@media print { ... }` leaks into screen media and corrupts interactive editor layout.
-2. *Inference*: Deleting bare `@page` rules outside `@media print` ensures that 100% of rules are encapsulated in `@media print`. The AST depth verification confirmed 0 rules exist outside the single `@media print` root block.
-3. *Observation*: `src/index.css` manages screen styles for the interactive editor and must not contain divergent `@media print` blocks that conflict with `print.css`.
-4. *Inference*: Scanning `src/index.css` revealed 0 occurrences of `@media print` and 0 occurrences of the word `print`. The stylesheet boundary between screen and print is completely disjoint and safe.
-5. *Observation*: Tests T3.6 and T5.6 were added to verify critical architectural invariants: presence of 3 discrete style tag IDs and editor-to-iframe CSS custom property transfer.
-6. *Inference*: Negative mutation testing proved that both tests are rigorous oracles. Mutating the style tag ID triggered an immediate `AssertionError` in T3.6, and disabling CSS variable transfer triggered an immediate `AssertionError` in T5.6. Neither test is tautological.
-7. *Observation*: 24 circular tests previously asserted that synthetic math formulas matched themselves.
-8. *Inference*: Modernizing these tests to documented no-ops acknowledging JSDOM limitations prevents false-confidence passes without reducing test suite stability or altering test counts. Adding assertions to `test_inspect_juan_cv.test.jsx` ensures real pagination logic is checked.
-9. *Observation*: Full test execution yields 661 passing tests across 39 files, and Vite production build succeeds in 4.42s with 0 errors.
-10. *Inference*: All architectural and testing requirements are fully met without regressions.
+1. **Premise 1**: Acceptance criterion 2 in `ORIGINAL_REQUEST.md` states:
+   *"Total printed page count reflects actual content density without phantom intermediate or trailing blank pages."*
+2. **Premise 2**: Requirement R3 in `ORIGINAL_REQUEST.md` states:
+   *"Toda página subsiguiente generada tras un salto de página debe respetar estrictamente el margen superior (`--page-padding`), impidiendo que el primer elemento de la nueva página quede pegado al borde físico del papel... Ningún carácter o línea de texto queda cortado verticalmente por la mitad entre dos páginas."*
+3. **Step 1 (Blank Page Generation)**:
+   In `staticHtmlPdfEngine.js:1449`, `areaCv` is forced to have `min-height: ${targetHeightMm}mm !important`, where `targetHeightMm = totalPages * 297mm`.
+   In `01-min-extremes.pdf`, the content shrunk to 1 page due to `fontScale: 0.50`, but `snapshot.totalPages` was 2. Forcing `min-height: 594mm !important` forced Chromium to print 2 physical pages, leaving Page 2 100% empty (0 characters, 0 words).
+   Similarly, in `04-cross-extremes-2.pdf`, `min-height: 1485mm` was injected for 5 pages, but content ended on Page 4, creating a 5th blank page.
+   In `05-ats-extremes.pdf`, editor margin compounding inflated `totalPages` to 5, but printable content only occupied 3 pages, creating 2 trailing blank pages (Pages 4 and 5: 0 characters, 0 words).
+4. **Step 2 (Text Slicing and Negative Coordinate Incursion)**:
+   In `03-cross-extremes-1.pdf`, `print.css` omits `.projects__content` from `break-inside: avoid !important`. When `fontScale: 1.25` is applied, the browser treats the project description as breakable. The sentence `"Motor de exportación de CVs con 100% de texto seleccionable y cero artefactos."` was bisected: the first part ended at `y=837.42pt` on Page 1, and the orphan word `"artefactos."` appeared at `yMin = -1.273500pt` on Page 2 (cutting into the top page edge).
+5. **Conclusion**:
+   Because 3 out of 6 adversarial test cases produce physical PDFs with phantom blank pages, and 1 case produces cross-boundary text bisection with negative coordinates, the system fails acceptance criteria R1, R2, and R3.
 
 ---
 
 ## 3. Caveats
 
-1. **JSDOM vs Real Browser Geometry**:
-   - Headless JSDOM lacks a layout and rendering engine (`getBoundingClientRect` returns zeroes for unmocked DOM elements).
-   - The 24 modernized tests properly document that true sub-pixel and pixel-parity geometry tests require an end-to-end browser environment (Playwright, Puppeteer, or Electron).
-2. **Offline Font Rendering**:
-   - Web fonts (Google Fonts) load asynchronously in online environments; in offline headless tests, font fallback stacks declared in `:root` ensure font metrics stability.
+- **No Caveats**: All tests were executed in real headless Chromium and physical PDF binaries were inspected directly using poppler command-line binaries (`pdfinfo`, `pdftotext`, `pdftoppm`). The defects are 100% deterministic and reproducible.
 
 ---
 
-## 4. Stress Test Results
+## 4. Conclusion & Required Remediations
 
-| # | Stress Scenario | Expected Behavior | Actual Behavior | Result |
-|---|---|---|---|:---:|
-| 1 | `src/styles/print.css` Media Encapsulation | 0 bare selectors outside `@media print` | Verified 100% encapsulated inside `@media print` (lines 7–193) | **PASS** |
-| 2 | `src/index.css` Media Print Purge | 0 `@media print` declarations | 0 matches found across 1805 lines (0 word occurrences) | **PASS** |
-| 3 | T3.6 Negative Mutation (Style Tag ID missing) | Test fails with `AssertionError` | Failed with `AssertionError: <style id="cv-base-styles"> is missing` | **PASS** |
-| 4 | T5.6 Negative Mutation (CSS variables omitted) | Test fails with `AssertionError` | Failed with `AssertionError: expected '' to be '42px'` | **PASS** |
-| 5 | T3.6 Positive Verification | Injected style IDs `cv-base-styles`, `cv-print-styles`, `cv-snapshot-breaks` | Verified all 3 present with correct content | **PASS** |
-| 6 | T5.6 Positive Verification | CSS variables (`--page-padding`, `--section-gap`, `--font-scale`) transferred | Verified transferred to `doc.documentElement.style` | **PASS** |
-| 7 | Modernized Test Suite Integrity (24 tests) | Non-regressive pass with 0 assertion failures | All 4 affected test suites pass cleanly | **PASS** |
-| 8 | Vite Production Build | Compiles cleanly with 0 errors and 0 warnings | Built in 4.42s with 0 errors | **PASS** |
-| 9 | Full Vitest Test Suite | 100% passing across all 39 test files | 39 test files passed, 661 tests passed, 0 failures | **PASS** |
+### Final Verdict: **REJECT** ❌
 
----
+The print pagination and layout synchronization engine cannot be approved in its current state due to phantom blank pages and cross-boundary text bisection under extreme slider configurations.
 
-## 5. Conclusion & Final Verdict
-
-**Empirical Verdict**: **`CONFIRMED_CORRECT`**
-
-The codebase strictly adheres to all architectural constraints:
-- `src/styles/print.css` is completely media-encapsulated with zero selector leakage.
-- `src/index.css` is fully purged of `@media print` declarations.
-- Tests T3.6 and T5.6 are empirically proven to possess high assertion rigor and act as genuine invariant oracles.
-- All 24 modernized tests remain non-regressive and accurately documented.
-- The build and full test suite pass with 100% success.
+### Required Actions for Remediation:
+1. **Eliminate Forced `min-height: ${targetHeightMm}mm !important` on Print Root**:
+   In `src/utils/staticHtmlPdfEngine.js` line 1449, remove the artificial forced `min-height: ${targetHeightMm}mm !important` on `#area-cv`. Let CSS Paged Media determine the natural page termination based on actual content height. If multi-page background filling is required, use CSS page context styling rather than hardcoding height in millimeters.
+2. **Expand `break-inside: avoid !important` in `src/styles/print.css`**:
+   Add `.projects__content`, `.projects__data`, `.awards__content`, `.certificates__content`, `.publications__content`, `.volunteering__content`, and `.references__content` to selector in line 133 of `src/styles/print.css` to prevent project descriptions and other non-experience items from being bisected across page seams.
+3. **Prevent Editor Multi-Pass `marginTop` Compounding in ATS Mode**:
+   In `src/utils/paginationEngine.js`, clamp `estimatedPages` and ensure `marginTop` injections across successive pagination passes do not artificially inflate `data-total-pages` beyond actual content requirements.
 
 ---
 
-## 6. Verification Method
+## 5. Verification Method
 
-To independently reproduce and verify this assessment:
+To independently verify and reproduce these findings:
 
-1. **Verify CSS Media Encapsulation**:
-   ```powershell
-   node -e "const content = require('fs').readFileSync('src/styles/print.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').trim(); console.log('Enclosed:', content.startsWith('@media print {') && content.endsWith('}'));"
-   ```
-   *Expected output*: `Enclosed: true`
-
-2. **Verify Absence of `@media print` in `src/index.css`**:
-   ```powershell
-   git grep -E "@media.*print" src/index.css
-   ```
-   *Expected output*: Exit code 1 (no matches).
-
-3. **Verify T3.6 & T5.6 Test Rigor**:
+1. **Run the Adversarial Cypress Test Suite**:
    ```bash
-   npx vitest run src/tests/cleanPrintEngineVerification.test.jsx -t "T3.6|T5.6"
+   npx cypress run --spec "cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js" --browser /home/juani/.local/bin/chromium
    ```
-   *Expected output*: 2 tests passed (25 skipped).
-
-4. **Verify Modernized Tests**:
+2. **Execute the Poppler Inspection Audit**:
    ```bash
-   npx vitest run src/tests/pixelParityEditorPrint.test.jsx src/tests/adversarial-spacing-layout-extremes.test.jsx src/tests/challenger-o10-dom-coordinates-stress.test.jsx src/tests/test_inspect_juan_cv.test.jsx
+   node inspect_adversarial_pdfs.mjs
    ```
-   *Expected output*: 4 test files passed, 60 tests passed, 0 failed.
-
-5. **Run Production Build**:
-   ```bash
-   npm run build
-   ```
-   *Expected output*: Vite build completes with 0 errors (`dist/` generated).
-
-6. **Run Full Test Suite**:
-   ```bash
-   npm test -- --run
-   ```
-   *Expected output*: 39 test files passed, 661 tests passed, 0 failed.
+3. **Inspect the Physical PDF Binaries Directly**:
+   - `pdfinfo tests/adversarial-output/05-ats-extremes.pdf` (Shows 5 pages)
+   - `pdftotext -f 4 -l 5 tests/adversarial-output/05-ats-extremes.pdf -` (Outputs empty text: 0 chars)
+   - `pdfinfo tests/adversarial-output/01-min-extremes.pdf` (Shows 2 pages)
+   - `pdftotext -f 2 -l 2 tests/adversarial-output/01-min-extremes.pdf -` (Outputs empty text: 0 chars)
+   - `pdftotext -bbox-layout -f 2 -l 2 tests/adversarial-output/03-cross-extremes-1.pdf - | grep "artefactos"` (Shows `yMin="-1.273500"`)

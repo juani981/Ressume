@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import React from 'react';
+import { render } from '@testing-library/react';
 import { 
   generateCleanPrintHTML, 
   executeCleanPrint,
@@ -6,6 +8,16 @@ import {
 } from '../utils/staticHtmlPdfEngine';
 import baseStyles from '../index.css?raw';
 import printStyles from '../styles/print.css?raw';
+import ProjectsItem from '../components/CV/items/ProjectsItem';
+import VolunteeringItem from '../components/CV/items/VolunteeringItem';
+import ReferencesItem from '../components/CV/items/ReferencesItem';
+import PublicationsItem from '../components/CV/items/PublicationsItem';
+import LanguagesItem from '../components/CV/items/LanguagesItem';
+import CertificatesItem from '../components/CV/items/CertificatesItem';
+import AwardsItem from '../components/CV/items/AwardsItem';
+import MentoringItem from '../components/CV/items/MentoringItem';
+import SortableBulletItem from '../components/CV/SortableBulletItem';
+import ExperienceItem from '../components/CV/items/ExperienceItem';
 
 describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verification', () => {
   let createdIframes = [];
@@ -571,7 +583,7 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
       }
     });
 
-    it('S3.6: anti-orphan safeguard detects section title separated from first child and applies page break', async () => {
+    it('S3.6: anti-orphan protection is purely declarative via CSS Paged Media without getBoundingClientRect heuristic injections', async () => {
       const { getCapturedDoc, restore } = setupMockIframe();
 
       const cvData = {
@@ -599,8 +611,7 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
         const areaCv = doc.getElementById('area-cv');
 
         if (title && firstItem && areaCv) {
-          // Mock title on page 1 (Y = 1000px, pageHeight = 1123px)
-          // Mock firstItem on page 2 (Y = 1200px)
+          // Mock title and firstItem positions
           title.getBoundingClientRect = () => ({ top: 1000, bottom: 1050 });
           firstItem.getBoundingClientRect = () => ({ top: 1200, bottom: 1300 });
           areaCv.getBoundingClientRect = () => ({ top: 0, bottom: 2246 });
@@ -608,10 +619,14 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
 
         await promise;
 
+        // In compliance with Rule 5 (Prohibición de Doble Motor en Conflicto),
+        // print engine leaves DOM clean and relies on CSS Paged Media declarative rules
         if (title) {
-          expect(title.style.getPropertyValue('break-before')).toBe('page');
-          expect(title.classList.contains('force-page-break-before')).toBe(true);
+          expect(title.style.getPropertyValue('break-before')).not.toBe('page');
+          expect(title.classList.contains('force-page-break-before')).toBe(false);
         }
+        expect(printStyles).toMatch(/\.section-title[^{]*\{[^}]*break-inside:\s*avoid\s*!important/s);
+        expect(printStyles).toMatch(/\.section-title[^{]*\{[^}]*break-after:\s*avoid\s*!important/s);
       } finally {
         restore();
       }
@@ -630,11 +645,12 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
       expect(mediaPrintMatch, 'src/styles/print.css must be entirely wrapped in @media print { ... }').not.toBeNull();
     });
 
-    it('S4.2: asserts box-decoration-break: slice !important is present on columns', () => {
+    it('S4.2: asserts box-decoration-break: clone !important is present on columns and slice on root container', () => {
       const cssWithoutComments = printStyles.replace(/\/\*[\s\S]*?\*\//g, '');
       expect(cssWithoutComments).toContain('box-decoration-break: slice !important;');
       expect(cssWithoutComments).toContain('-webkit-box-decoration-break: slice !important;');
-      expect(cssWithoutComments).not.toContain('box-decoration-break: clone');
+      expect(cssWithoutComments).toContain('box-decoration-break: clone !important;');
+      expect(cssWithoutComments).toContain('-webkit-box-decoration-break: clone !important;');
     });
 
     it('S4.3: asserts bullet marker color uses fallback #334155 in print.css', () => {
@@ -655,6 +671,85 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
       expect(styleTags[0].id).toBe('cv-base-styles');
       expect(styleTags[1].id).toBe('cv-print-styles');
       expect(styleTags[2].id).toBe('cv-snapshot-breaks');
+    });
+  });
+
+  // =========================================================================
+  // SUITE 5: Milestone 2 Typography Scales, Item Gap & Section Title Spacing
+  // =========================================================================
+  describe('Suite 5: Milestone 2 Typography Scales, Item Gap & Section Title Spacing', () => {
+    it('S5.1: 8 item components correctly utilize categorical scale CSS variables for bodyScale and listScale', () => {
+      // 1. ProjectsItem
+      const { container: projCont } = render(<ProjectsItem item={{ id: 'p1', title: 'Proj', date: '2025' }} isPrint={true} />);
+      const projDate = projCont.querySelector('.experience__company');
+      expect(projDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+
+      // 2. VolunteeringItem
+      const { container: volCont } = render(<VolunteeringItem item={{ id: 'v1', title: 'Vol', date: '2024' }} isPrint={true} />);
+      const volDate = volCont.querySelector('.experience__company');
+      expect(volDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+
+      // 3. ReferencesItem
+      const { container: refCont } = render(<ReferencesItem item={{ id: 'r1', title: 'Ref', subtitle: 'VP', email: 'a@b.com' }} isPrint={true} />);
+      const refSubtitle = refCont.querySelector('div[style*="font-size"]');
+      expect(refSubtitle.getAttribute('style')).toContain('var(--body-small-font-size, var(--small-font-size))');
+
+      // 4. PublicationsItem
+      const { container: pubCont } = render(<PublicationsItem item={{ id: 'pb1', title: 'Paper', subtitle: 'IEEE', date: '2025' }} isPrint={true} />);
+      const pubSubtitle = pubCont.querySelector('div[style*="font-size"]');
+      expect(pubSubtitle.getAttribute('style')).toContain('var(--body-small-font-size, var(--small-font-size))');
+      const pubDate = pubCont.querySelector('span[style*="font-size"]');
+      expect(pubDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+
+      // 5. LanguagesItem
+      const { container: langCont } = render(<LanguagesItem item={{ id: 'l1', title: 'English', subtitle: 'C2', description: 'Fluent' }} isPrint={true} />);
+      const langTitle = langCont.querySelector('span[style*="font-weight: 600"]');
+      expect(langTitle.getAttribute('style')).toContain('var(--list-font-size, var(--normal-font-size))');
+      const langLevel = langCont.querySelector('span[style*="border-radius: 12px"]');
+      expect(langLevel.getAttribute('style')).toContain('var(--body-small-font-size, var(--small-font-size))');
+
+      // 6. CertificatesItem
+      const { container: certCont } = render(<CertificatesItem item={{ id: 'c1', title: 'AWS', subtitle: 'Amazon', date: '2025', credentialId: '123' }} isPrint={true} />);
+      const certSubtitle = certCont.querySelector('div[style*="font-size"]');
+      expect(certSubtitle.getAttribute('style')).toContain('var(--body-small-font-size, var(--small-font-size))');
+      const certDate = certCont.querySelector('span[style*="font-size"]');
+      expect(certDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+
+      // 7. AwardsItem
+      const { container: awCont } = render(<AwardsItem item={{ id: 'a1', title: 'Hackathon', subtitle: '1st Place', date: '2025' }} isPrint={true} />);
+      const awSubtitle = awCont.querySelector('div[style*="font-size"]');
+      expect(awSubtitle.getAttribute('style')).toContain('var(--body-small-font-size, var(--small-font-size))');
+      const awDate = awCont.querySelector('span[style*="font-size"]');
+      expect(awDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+
+      // 8. MentoringItem
+      const { container: mentCont } = render(<MentoringItem item={{ id: 'm1', title: 'Mentor', date: '2025' }} isPrint={true} />);
+      const mentDate = mentCont.querySelector('.experience__company');
+      expect(mentDate.getAttribute('style')).toContain('var(--body-smaller-font-size, var(--smaller-font-size))');
+    });
+
+    it('S5.2: itemGap fallbacks are standardized to var(--item-gap, 8px)', () => {
+      // 1. In index.css
+      expect(baseStyles).toContain('.experience__bullets li {\n  margin-bottom: var(--item-gap, 8px);');
+      expect(baseStyles).not.toContain('var(--item-gap, 6px)');
+
+      // 2. In print.css
+      expect(printStyles).toContain('margin-bottom: var(--item-gap, 8px) !important;');
+      expect(printStyles).not.toContain('var(--item-gap, 6px)');
+
+      // 3. ExperienceItem print view
+      const { container: expCont } = render(<ExperienceItem item={{ id: 'e1', title: 'Dev', bullets: ['Built system'] }} isPrint={true} />);
+      const expBullet = expCont.querySelector('li.cv-block');
+      expect(expBullet.getAttribute('style')).toContain('var(--item-gap, 8px)');
+    });
+
+    it('S5.3: section-title margin-bottom is connected to calc(var(--item-gap, 8px) * 1.5) !important', () => {
+      // 1. In index.css
+      expect(baseStyles).toContain('margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;');
+
+      // 2. In print.css
+      expect(printStyles).toContain('margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;');
+      expect(printStyles).not.toContain('margin-bottom: var(--mb-3, 1.5rem) !important;');
     });
   });
 });

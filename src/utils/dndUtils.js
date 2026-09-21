@@ -27,12 +27,18 @@ export const isNonDraggableTarget = (target) => {
     'button',
     'a',
     '[contenteditable="true"]',
+    '[data-editor-ui="true"]',
+    '[data-editor-add="true"]',
     '.inline-input',
     '.inline-edit-active',
     '.inline-edit-display',
+    '.contact-item-pill',
+    '.social__link',
+    '.social__icon',
     '.rich-text-toolbar',
     '.section-action-buttons',
     '.section-tips-toggle-btn',
+    '.section-bullet-style-btn',
     '.round-btn-del',
     '.round-btn-add',
     '.add-bullet-btn',
@@ -50,7 +56,8 @@ export const isNonDraggableTarget = (target) => {
     '.spacer-del-btn',
     '.popover',
     '.suggestion-tooltip',
-    '.obsidian-callout'
+    '.obsidian-callout',
+    '.contact-type-picker'
   ].join(', '));
 
   if (isInteractive) {

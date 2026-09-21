@@ -69,7 +69,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
  * @returns {React.ReactElement}
  */
 const EditableBaseItem = ({ item, sectionId, sectionType }) => {
-  const { updateSectionItem, deleteSectionItem } = useCV();
+  const { updateSectionItem, deleteSectionItem, deleteSection } = useCV();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
   const ItemTag = descriptor.itemTag || 'div';
@@ -97,6 +97,17 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
   const allowDelete = descriptor.allowDeleteItem !== false && descriptor.allowDelete !== false;
   const containerDragListeners = hasItemDrag ? createContainerDragListeners(listeners, true) : {};
 
+  // Para secciones de ítem único (p.ej. foto), eliminar el ítem elimina la sección entera.
+  const isSingleItemSection = descriptor.allowAddItem === false;
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (isSingleItemSection && typeof deleteSection === 'function') {
+      deleteSection(sectionId);
+    } else {
+      deleteSectionItem(sectionId, item?.id);
+    }
+  };
+
   return (
     <ItemTag
       ref={setNodeRef}
@@ -114,10 +125,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
           className="round-btn-del item-del-btn no-print"
           data-editor-ui="true"
           title="Eliminar este elemento"
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteSectionItem(sectionId, item?.id);
-          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={handleDelete}
         >
           <Minus size={14} strokeWidth={2.5} />
         </button>

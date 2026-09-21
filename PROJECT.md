@@ -1,120 +1,60 @@
-# Project: Ressume CV Editor - Comprehensive Architectural Audit, Refactoring & Production Readiness
+# Project: Ressume - 1:1 Editor vs. Print PDF Parity, Slider Synchronization & Real-Browser Verification
 
 ## Architecture
 Ressume is an interactive Vite + React CV editor rendering a live document inside `#area-cv`.
-The architecture follows a unidirectional data flow centered on `CVContext.jsx`:
-- **State Management**: CV content (`cvData`), layout settings (columns, typography, spacing), version history, and localStorage persistence.
-- **Component Decomposition**:
-  - `App.jsx`: Root editor shell orchestrating toolbar, action menu, document canvas (`#area-cv`), and layout panels.
-  - Modular hooks: `usePaginationEngine.js` (page breaks, height calculation), `useCVDndCoordinator.js` (@dnd-kit sensor and drag coordinator), `useColumnResizer.js` (column resizing).
-  - Modular utilities: `src/utils/pageGeometry.js` (297mm ruler, forbidden zone bounds), `src/utils/colorUtils.js` (YIQ contrast), `src/utils/typographyUtils.js` (typography tokens), `src/utils/paginationEngine.js` (break points).
-  - Section Registry (`src/registry/sectionRegistry.js`): Open/Closed registry of section descriptors, item types, and semantic metadata.
-  - Modular Sections & Items (`src/components/CV/`): `BaseSection.jsx`, `BaseItem.jsx`, and item components rendering dynamic fields.
-- **Iconography**: 100% unified on `lucide-react` SVG components, eliminating legacy BoxIcons CSS and external CDN stylesheets.
-- **Print & Parity Engine**: `src/utils/staticHtmlPdfEngine.js` and `src/styles/print.css` creating a 1:1 pixel-perfect A4 snapshot of `#area-cv`, preserving 794px width, CSS variables, margins, and strictly avoiding forbidden boundary zones.
-- **Invariants (AGENTS.md)**:
-  - Drag-and-drop exclusively via `@dnd-kit` (never `swapy`).
-  - Dynamic tooltips and popovers dynamically track `getBoundingClientRect()`.
-  - Suggestions and callouts strictly follow Obsidian Callout standard (Danger, Caution, Info).
+- **Canvas Model**: A4 standard canvas (210mm x 297mm / 794px at 96 DPI).
+- **Layout Modes**: 2-Column Visual Recruiter (`.resume.bd-grid`) and 1-Column ATS Optimized (`.resume__single-column`).
+- **Data Flow**: `CVContext.jsx` holds `cvData.layout` containing all design variables (typography scales, line-height, page-padding, section-gap, item-gap, column-width, background colors, font-family).
+- **Print Pipeline**: `src/utils/staticHtmlPdfEngine.js` clones `#area-cv`, sanitizes interactive controls, injects `index.css` and `print.css`, and triggers browser-native print / PDF export via an iframe.
+- **Architectural Invariants (AGENTS.md)**:
+  - **Rule 5 (Prohibición de Doble Motor en Conflicto)**: Zero heuristic screen-based calculations (`getBoundingClientRect()`) before printing. Paged media must be purely declarative via CSS Paged Media (`@page`, `break-inside: avoid`, `box-decoration-break: clone`).
+  - **Rule 6 (Verificación Real vs. Sesgo de JSDOM)**: JSDOM does not render fonts or execute A4 media boxes. Parity must be verified in a real browser via Cypress (`npx cypress run`).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Delete Orphan Components | Delete `CVBlock.jsx`, `CVHeader.jsx`, simplify `CVSection.jsx` into `BaseSection.jsx` | M1 | Survey 1 §R1 |
-| 2 | Clean Experimental/Noisy Tests | Remove `test_inspect_juan_cv.test.jsx` and timeout-prone `forbidden-page-boundary-zone.test.jsx` | M1 | Survey 1 §R1 |
-| 3 | Remove BoxIcons CDN Links | Remove external CDN `<link>` tags in `index.html` and `staticHtmlPdfEngine.js` | M1 | Survey 1 §R3 |
-| 4 | Complete BoxIcons -> Lucide Migration | Replace all 42 BoxIcons instances across `src/` with native `lucide-react` components | M1 | Survey 1 §R3 |
-| 5 | Update Icon Test Assertions | Update tests asserting `.bx` classes to check for Lucide SVGs | M1 | Survey 1 & 3 §R3 |
-| 6 | JSDOM Test Environment Hardening | Add `window.focus = vi.fn()` in `src/tests/setup.js` | M1 | Survey 3 §Build |
-| 7 | Utility Extraction: Color & Typography | Extract `src/utils/colorUtils.js` and `src/utils/typographyUtils.js` | M2 | Survey 2 §R2 |
-| 8 | Utility Extraction: Page Geometry | Extract `src/utils/pageGeometry.js` (ruler, bounds, forbidden zones) | M2 | Survey 2 §R2 |
-| 9 | Utility Extraction: Pagination Engine | Extract pure algorithms into `src/utils/paginationEngine.js` | M2 | Survey 2 §R2 |
-| 10 | Custom Hooks: Pagination & Resizer | Extract `usePaginationEngine.js` and `useColumnResizer.js` from `App.jsx` | M2 | Survey 2 §R2 |
-| 11 | Custom Hook: DND Coordinator | Extract `useCVDndCoordinator.js` managing `@dnd-kit` interactions | M2 | Survey 2 §R2 |
-| 12 | App.jsx & BaseSection.jsx Simplification | Refactor `App.jsx` and `BaseSection.jsx` to consume extracted hooks and utilities | M2 | Survey 2 §R2 |
-| 13 | 1:1 Visual Parity & 794px Canvas Strictness | Verify 0px drift between `#area-cv` and PDF clean print snapshot | M3 | Survey 2 §R4 |
-| 14 | Forbidden Boundary Zone Enforcement | Guarantee no content invades forbidden page boundary zones in 1-col ATS and 2-col modes | M3 | Survey 2 §R4 |
-| 15 | Page Break & Margin Stability Verification | Verify `box-decoration-break: slice`, CSS variable propagation, and print margin stability | M3 | Survey 2 §R4 |
-| 16 | Technical Guide: arquitectura.md | Complete guide covering unidirectional flow, editor architecture, and pagination engine | M4 | Survey 3 §R5 |
-| 17 | Technical Guide: guia-extensibilidad-secciones.md | Step-by-step guide for adding sections/items via `sectionRegistry.js` | M4 | Survey 3 §R5 |
-| 18 | Technical Guide: diseno-invariantes.md | Style guide, accessibility, Obsidian callout standards, dynamic tooltip bounding rect | M4 | Survey 3 §R5 |
-| 19 | Technical Guide: motor-impresion-pdf.md | Documentation of static HTML print pipeline, 794px canvas, and print parity | M4 | Survey 3 §R5 |
-| 20 | Update Legacy Docs & Cross-linking | Cross-link guides and update outdated references in `/docs` | M4 | Survey 3 §R5 |
-| 21 | Full Regression Battery & Build Zero-Warnings | Run all Vitest suites and verify `npm run build` exits 0 with zero warnings | M5 | Acceptance Criteria |
-| 22 | Multi-Agent Independent Review (2 Reviewers) | Rigorous code review of architecture, quality, and maintainability | M5 | Orchestration Pattern |
-| 23 | Empirical Adversarial Stress Testing (2 Challengers) | Empirical verification of pagination, tooltips, and iconography | M5 | Orchestration Pattern |
-| 24 | Forensic Integrity Audit (1 Auditor) | Anti-cheating and code integrity audit (binary veto) | M5 | Orchestration Pattern |
-| 25 | Git Final Consolidation Commit | Final git commit consolidating all changes | M5 | Acceptance Criteria |
+| 1 | Purge Screen Heuristic Injections | Delete `getBoundingClientRect()` padding and break injections in `staticHtmlPdfEngine.js` (lines 1615–1638, 1590–1613, 1394–1402, and `enforceTwoColumnComponentPagination`) | M1 | Survey 1 §O2 |
+| 2 | Purge Print Scaling & Zoom Overrides | Remove `calculatePrintScale`, `doc.body.style.zoom`, and runtime CSS variable overrides in `staticHtmlPdfEngine.js` (lines 1453–1471, 1509–1525, 1640–1661) | M1 | Survey 1 §O1, Survey 2 §1.4.A |
+| 3 | Remove Asymmetric Column Inlining | Prevent `createSanitizedPrintClone` from inlining `break-before: page !important` on single column children in 2-col mode | M1 | Survey 1 §O3 |
+| 4 | Enforce Declarative Multi-Page Margins | Implement CSS Paged Media declarative margins (`box-decoration-break: clone !important;` with `--page-padding`) in `print.css` | M1 | Survey 1 §4.3, Survey 3 §1.3 |
+| 5 | Harmonize Item Components Typography | Update 8 item components to use `var(--body-smaller-font-size)` and `var(--body-small-font-size)` so `bodyScale` slider takes effect | M2 | Survey 2 §1.4.E |
+| 6 | Standardize `itemGap` & Spacing Fallbacks | Unify `itemGap` fallbacks across `index.css`, `print.css`, and item components to `var(--item-gap, 8px)` | M2 | Survey 2 §1.4.D |
+| 7 | Connect Section Title Spacing to Sliders | Replace hardcoded `margin-bottom: 1.5rem !important` on `.section-title` with dynamic `--item-gap` / slider-responsive token | M2 | Survey 2 §1.4.F |
+| 8 | Strict Slider & Layout Variable Sync | Verify 100% of `cvData.layout` tokens are transferred unscaled and unmutated to the print document | M2 | Survey 2 §1.1 |
+| 9 | Organic Bullet Flow & Non-Fracturing | Ensure bullet items break cleanly between `<li>` elements without word-slicing and without triggering double page breaks | M3 | Survey 3 §1.1, §1.2 |
+| 10 | Bounded Page Flow (Zero Solitary Bullets) | Prevent solitary items on Page 2 and trailing blank pages; maintain 2-page ceiling for sample high-density CVs in 1-col and 2-col | M3 | Survey 1 §O4, Survey 3 §1.4 |
+| 11 | Fix Cypress Spec 05 Media Emulation | Update `cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js` to emulate print media during DOM measurement | M4 | Survey 3 §1.5 |
+| 12 | Author Real-Browser Parity Spec | Create/update Cypress spec verifying 1:1 bullet distribution, Page 2 top padding, slider changes, and PDF page count | M4 | Survey 3 §4.4 |
+| 13 | Full Cypress & Vitest Suite Execution | Run `npx cypress run --browser chrome-for-testing` and `npm test` verifying 100% green | M4 | Survey 3 §5.1, §5.2 |
+| 14 | Multi-Agent Review & Adversarial Testing | 2 Reviewers, 2 Challengers testing empirical print outputs in Chromium/Gecko | M5 | Acceptance Criteria |
+| 15 | Forensic Integrity Audit | Anti-cheating and code integrity audit by `teamwork_preview_auditor` | M5 | Acceptance Criteria |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Saneamiento de Código Muerto & Unificación Lucide-React | Features 1, 2, 3, 4, 5, 6: Delete orphans, migrate 100% BoxIcons to lucide-react, remove CDN links, update icon tests, harden setup.js | none | DONE |
-| M2 | Refactorización y Modularización de Lógica Repetida | Features 7, 8, 9, 10, 11, 12: Extract colorUtils, typographyUtils, pageGeometry, paginationEngine, usePaginationEngine, useCVDndCoordinator, useColumnResizer; simplify App.jsx | M1 | DONE |
-| M3 | Paridad Visual 1:1, Paginación y Zonas Prohibidas | Features 13, 14, 15: Enforce 794px canvas, forbidden boundary zones in 1-col and 2-col, margin stability, automated parity verification | M2 | DONE |
-| M4 | Documentación Exhaustiva y Guías de Desarrollo en /docs | Features 16, 17, 18, 19, 20: Author arquitectura.md, guia-extensibilidad-secciones.md, diseno-invariantes.md, motor-impresion-pdf.md | M2 | DONE |
-| M5 | Verificación Integral, Stress Testing, Forensic Audit & Git Commit | Features 21, 22, 23, 24, 25: Full Vitest pass, clean build, 2 Reviewers, 2 Challengers, 1 Auditor, final git commit | M1, M2, M3, M4 | IN_PROGRESS |
+| M1 | Eliminación de Doble Motor y Restauración de CSS Paged Media | Features 1, 2, 3, 4: Purge JS screen heuristics, remove print zoom & auto-scale, remove asymmetric column break inlining, configure declarative box-decoration-break | none | DONE |
+| M2 | Sincronización Estricta de Sliders y Variables de Diseño | Features 5, 6, 7, 8: Harmonize item component typography tokens, standardize itemGap, connect section title spacing, strict slider sync | M1 | DONE |
+| M3 | Flujo Orgánico de Viñetas y Estabilidad de Paginación | Features 9, 10: Organic bullet flow, eliminate solitary items and phantom pages in 1-col ATS and 2-col modes | M1, M2 | DONE |
+| M4 | Verificación E2E en Navegador Real con Cypress | Features 11, 12, 13: Fix media emulation in tests, author parity & slider spec, pass 100% Cypress and Vitest | M1, M2, M3 | DONE |
+| M5 | Verificación Integral, Stress Testing y Forensic Audit | Features 14, 15: 2 Reviewers, 2 Challengers, 1 Forensic Auditor | M1, M2, M3, M4 | IN_PROGRESS |
 
 ## Interface Contracts
-### `src/utils/pageGeometry.js`
+### `src/utils/staticHtmlPdfEngine.js`
 ```javascript
-export function getRulerHeightPx(containerEl): number;
-export function getRelativeBounds(el, parentEl): { top: number, left: number, width: number, height: number, bottom: number };
-export function isInForbiddenBoundaryZone(top: number, bottom: number, pageHeight: number, pagePadding: number): boolean;
-```
-
-### `src/utils/colorUtils.js`
-```javascript
-export function getContrastYIQ(hexColor: string): 'dark' | 'light';
+export function generateLayoutVariablesCSS(layout: LayoutConfig): string;
+export function createSanitizedPrintClone(liveAreaCv: HTMLElement): HTMLElement;
+export function executeCleanPrint(cvData: CVData, lang?: string): Promise<{ success: boolean, totalPages: number }>;
 ```
 
 ### `src/utils/typographyUtils.js`
 ```javascript
-export function getFontFamilyStack(fontName: string): string;
-export function applyTypographyTokens(targetEl: HTMLElement, fontScale: string, lineHeight: string): void;
-```
-
-### `src/utils/paginationEngine.js`
-```javascript
-export function calculatePageBreaks(areaCvEl: HTMLElement, pageHeightPx: number, pagePaddingPx: number): number[];
-```
-
-### `src/hooks/usePaginationEngine.js`
-```javascript
-export function usePaginationEngine({ areaCvRef, cvData, layoutSettings }): {
-  pageBreaks: number[];
-  pageCount: number;
-  recalculatePages: () => void;
-  isRecalculating: boolean;
-};
-```
-
-### `src/hooks/useCVDndCoordinator.js`
-```javascript
-export function useCVDndCoordinator({ cvData, updateCVData }): {
-  sensors: SensorDescriptor<any>[];
-  handleDragStart: (event: DragStartEvent) => void;
-  handleDragOver: (event: DragOverEvent) => void;
-  handleDragEnd: (event: DragEndEvent) => void;
-  activeDragItem: any;
-};
-```
-
-### `src/hooks/useColumnResizer.js`
-```javascript
-export function useColumnResizer({ initialLeftWidth, onResize }): {
-  leftWidth: number;
-  isResizing: boolean;
-  startResizing: (e: React.MouseEvent) => void;
-};
+export function computeTypographyTokens(layout: LayoutConfig): Record<string, string>;
 ```
 
 ## Code Layout
-- `src/utils/`: Pure utility functions (`pageGeometry.js`, `colorUtils.js`, `typographyUtils.js`, `paginationEngine.js`, `staticHtmlPdfEngine.js`, `contactTypes.js`).
-- `src/hooks/`: Custom React hooks (`usePaginationEngine.js`, `useCVDndCoordinator.js`, `useColumnResizer.js`).
-- `src/components/CV/`: Section and item components (`BaseSection.jsx`, `BaseItem.jsx`, `items/`).
-- `src/components/Editor/`: ActionMenu, DragHandle, ContactTypePicker, HyperlinkEdit, SuggestionTooltip.
-- `src/registry/`: `sectionRegistry.js`.
-- `src/styles/`: `print.css`, `index.css`.
-- `docs/`: `arquitectura.md`, `guia-extensibilidad-secciones.md`, `diseno-invariantes.md`, `motor-impresion-pdf.md`.
-- `src/tests/`: Vitest test suites.
+- `src/utils/staticHtmlPdfEngine.js`: Print cloning, CSS variable injection, and print iframe orchestration.
+- `src/styles/print.css`: Declarative CSS Paged Media rules (`@page`, `break-inside`, `box-decoration-break`, `@media print`).
+- `src/styles/index.css`: Editor base styles and typography token definitions.
+- `src/components/CV/items/`: Item components rendering dates, bullet points, and section entries.
+- `src/components/Editor/ActionMenu.jsx`: Slider controls and layout inputs.
+- `cypress/e2e/`: Real-browser Cypress E2E specs (`01-print-lifecycle.cy.js`, `02-print-geometry-and-pagination.cy.js`, `05-pixel-fidelity-and-css-parity.cy.js`, `08-two-column-print-synchronization.cy.js`, `09-bullet-flow-and-slider-parity.cy.js`).

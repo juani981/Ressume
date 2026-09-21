@@ -28,7 +28,7 @@ describe('Fase 1: Ciclo de Vida de Impresión y Sanitización de Artefactos', ()
     });
 
     // 2. Debe mostrarse el toast de confirmación
-    cy.contains('¡Documento PDF procesado correctamente!').should('be.visible');
+    cy.get('[data-testid="toast-notification"]').should('contain.text', 'Documento PDF procesado');
   });
 
   it('3. Genera un iframe de impresión con las dos hojas de estilo maestras (base y print)', () => {

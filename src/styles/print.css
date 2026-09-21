@@ -6,8 +6,8 @@
 
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 0 !important;
+    size: A4;
+    margin: 0;
   }
 
   * {
@@ -43,40 +43,25 @@
     box-sizing: border-box !important;
     -webkit-box-decoration-break: slice !important;
     box-decoration-break: slice !important;
-  }
-
-  /* 2-Column Mode: Edge-to-Edge Bleed (zero exterior margin gap) */
-  #area-cv.bd-grid,
-  .resume.bd-grid {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
   }
 
   .resume__left,
   .resume__right {
+    /* CRITICAL: Force block display in print so browser treats each column as a normal
+       fragmentation context. CSS grid tracks do NOT reliably respect break-inside:avoid
+       across all browsers during printing, causing text lines to be cut in half.
+       With display:block, the browser applies break-inside:avoid correctly on all items. */
+    display: block !important;
     min-height: var(--print-target-height-mm, 297mm) !important;
     height: 100% !important;
     align-self: stretch !important;
     box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    -webkit-box-decoration-break: slice !important;
-    box-decoration-break: slice !important;
-  }
-
-  /* 2-Column Mode: Neutralize individual child page breaks to prevent 5-page fragmentation */
-  .resume.bd-grid .resume__left [data-editor-break-forced="true"],
-  .resume.bd-grid .resume__right [data-editor-break-forced="true"],
-  .resume.bd-grid .resume__left .break-page-before,
-  .resume.bd-grid .resume__right .break-page-before,
-  .resume.bd-grid .resume__left .force-page-break-before,
-  .resume.bd-grid .resume__right .force-page-break-before {
-    break-before: auto !important;
-    page-break-before: auto !important;
-    margin-top: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
   }
 
   #area-cv.resume__single-column {
@@ -85,12 +70,17 @@
     box-sizing: border-box !important;
     padding: var(--page-padding, 24px) !important;
     background: #ffffff !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
   }
 
+  .resume__single-column,
   #area-cv .resume__single-column {
     padding: 0 !important;
     height: auto !important;
     min-height: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
   }
 
   /* 2. REGLA BASE: Por defecto NUNCA forzar salto de página */
@@ -127,15 +117,34 @@
   /* Las secciones como contenedor permiten quebrar su contenido internamente */
   .cv-section,
   .section,
-  .editable-section-container {
-    break-inside: auto;
-    page-break-inside: auto;
+  .editable-section-container,
+  .education__container,
+  .experience__container,
+  .projects__container,
+  .certificates__container,
+  .awards__container,
+  .publications__container,
+  .volunteering__container,
+  .references__container,
+  .skills__container {
+    display: block !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
 
   /* 3. REGLAS DE ESPECIFICIDAD: Bloques atómicos evitan división interna */
   .cv-block,
+  .bullet-item-row,
+  li,
   .experience__content,
   .education__content,
+  .projects__content,
+  .projects__data,
+  .awards__content,
+  .certificates__content,
+  .publications__content,
+  .volunteering__content,
+  .references__content,
   .skills__name,
   .profile__description,
   .home__data,
@@ -167,6 +176,10 @@
     break-inside: avoid !important;
   }
 
+  .section-title {
+    margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;
+  }
+
   /* 5. REGLAS DE ESPECIFICIDAD SELECTIVAS: Asignación explícita de saltos */
   /* Quiebre de página completa antes del elemento (nunca en el primer hijo) */
   .force-page-break-before {
@@ -176,6 +189,12 @@
     margin-top: 0 !important;
   }
 
+  /* Quiebre de página completa antes del elemento en 1 columna / modo ATS */
+  .resume__single-column .break-page-before:not(:first-child),
+  .resume__single-column .force-page-break-before:not(:first-child),
+  .resume__single-column [data-page-break="before"]:not(:first-child),
+  .resume__single-column [data-page-break-before="true"]:not(:first-child),
+  .resume__single-column [data-editor-break-forced="true"]:not(:first-child),
   .break-page-before:not(:first-child),
   .force-page-break-before:not(:first-child),
   [data-page-break="before"]:not(:first-child),
@@ -222,6 +241,8 @@
   }
 
   /* ATS Mode Section Title in Print */
+  html body #area-cv.resume--ats-mode .section-title,
+  html body #area-cv.resume__single-column .section-title,
   .resume--ats-mode .section-title,
   .resume__single-column .section-title {
     color: #0f172a !important;
@@ -230,7 +251,44 @@
     letter-spacing: 0.12rem !important;
     text-align: left !important;
     font-weight: 700 !important;
-    margin-bottom: var(--mb-3, 1.5rem) !important;
+    margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;
+    break-before: auto !important;
+    page-break-before: auto !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* ATS Mode / Single Column in Print: container normalization */
+  html body #area-cv.resume--ats-mode,
+  html body #area-cv.resume__single-column,
+  .resume--ats-mode,
+  .resume__single-column {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+  }
+
+  .resume--ats-mode .cv-section,
+  .resume__single-column .cv-section {
+    margin-bottom: var(--section-gap, 5px) !important;
+  }
+
+  .resume--ats-mode .cv-section:last-child,
+  .resume--ats-mode .cv-section:last-of-type,
+  .resume__single-column .cv-section:last-child,
+  .resume__single-column .cv-section:last-of-type,
+  .resume--ats-mode section:last-of-type,
+  .resume__single-column section:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .resume--ats-mode .experience__description,
+  .resume__single-column .experience__description {
+    margin-top: 1px !important;
+    margin-bottom: 2px !important;
   }
 
   /* ATS Paper Container in Print: suppress card shadow & border on physical paper */
@@ -278,26 +336,21 @@
   [data-print-transparent-spacer="true"],
   [data-editor-add="true"],
   [data-editor-add="true"].no-print,
-  [data-editor-add="true"][data-editor-ui="true"] {
-    display: inherit !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    border-color: transparent !important;
-    background: transparent !important;
-    color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-    user-select: none !important;
-  }
-
+  [data-editor-add="true"][data-editor-ui="true"],
   .column-add-section,
-  .column-add-section.no-print {
-    display: block !important;
-  }
+  .column-add-section.no-print,
   .add-section-btn,
-  .add-section-btn.no-print {
-    display: inline-flex !important;
+  .add-section-btn.no-print,
+  .section-add-container,
+  .section-add-container.no-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
   }
   .bullet-add-row,
   .bullet-add-row.no-print {
@@ -348,17 +401,93 @@
     display: none !important;
     content: "" !important;
     font-size: 0 !important;
+    color: var(--circle-color, var(--text-color, #334155)) !important;
+  }
+
+  /* Atomic blocks, single-item entries, titles, and headers NEVER split across pages or slice characters */
+  .experience__content,
+  .experience__content.cv-block,
+  .education__content,
+  .projects__content,
+  .projects__data,
+  .awards__content,
+  .certificates__content,
+  .publications__content,
+  .volunteering__content,
+  .references__content,
+  .cv-block,
+  .section-title,
+  .experience__title,
+  .education__title,
+  .experience__data,
+  h1, h2, h3, h4, h5, h6 {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Multi-bullet list containers and parent blocks allow organic splitting ONLY when containing at least 2 bullets */
+  .experience__bullets-container:has(li:nth-child(2)),
+  ul.experience__bullets:has(li:nth-child(2)),
+  ul.simple-list-ul:has(li:nth-child(2)),
+  .simple-list-container:has(li:nth-child(2)),
+  .experience__content:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__content:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__content:has(.experience__bullets-container li:nth-child(2)),
+  .experience__content:has(.bullet-item-row:nth-of-type(2)),
+  .experience__content:has([data-editor-break-forced="true"]),
+  .cv-block:has(ul.experience__bullets > li:nth-child(2)),
+  .cv-block:has(ul.simple-list-ul > li:nth-child(2)),
+  .cv-block:has(.experience__bullets-container li:nth-child(2)),
+  .cv-block:has(.bullet-item-row:nth-of-type(2)),
+  .cv-block:has([data-editor-break-forced="true"]),
+  .experience__content.cv-block:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__content.cv-block:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__content.cv-block:has(.experience__bullets-container li:nth-child(2)),
+  .experience__content.cv-block:has(.bullet-item-row:nth-of-type(2)),
+  .experience__content.cv-block:has([data-editor-break-forced="true"]),
+  .editable-item-container:has(ul.experience__bullets > li:nth-child(2)),
+  .editable-item-container:has(ul.simple-list-ul > li:nth-child(2)),
+  .editable-item-container:has(.experience__bullets-container li:nth-child(2)),
+  .editable-item-container:has(.bullet-item-row:nth-of-type(2)),
+  .editable-item-container:has([data-editor-break-forced="true"]),
+  .experience__data:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__data:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__data:has(.experience__bullets-container li:nth-child(2)),
+  .experience__data:has([data-editor-break-forced="true"]) {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Individual bullets must strictly avoid mid-character splitting */
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li,
+  li.cv-block,
+  .bullet-item-row {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  ul.experience__bullets,
+  .experience__bullets,
+  ul.simple-list-ul {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .experience__description {
+    margin-bottom: 2px !important;
   }
 
   ul.experience__bullets li,
   .experience__bullets li,
-  ul.simple-list-ul li {
-    display: block !important;
+  ul.simple-list-ul li,
+  .bullet-item-row {
     margin-top: 0 !important;
-    line-height: 1.45 !important;
+    margin-bottom: var(--item-gap, 8px) !important;
+    line-height: var(--line-height, 1.45) !important;
+    font-size: var(--list-font-size, var(--normal-font-size)) !important;
     color: inherit !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
     text-align: left !important;
   }
 

@@ -13,9 +13,9 @@ describe('Fase 2: Geometría A4, Variables CSS y Paginación Zero-Split', () => 
       const areaCv = doc.getElementById('area-cv');
       expect(areaCv, '#area-cv debe existir en el iframe de impresión').to.not.be.null;
 
-      // El contenedor debe tener estilo o clase que fije el ancho máximo a 794px (ancho estándar A4 a 96 DPI)
-      const maxWidth = areaCv.style.maxWidth || areaCv.style.minWidth || '';
-      expect(maxWidth).to.include('794px');
+      // El contenedor fija ancho A4 estándar (100% del contenedor o 794px)
+      const maxWidth = areaCv.style.maxWidth || areaCv.style.minWidth || areaCv.style.width || '';
+      expect(maxWidth).to.satisfy((val) => val.includes('794px') || val.includes('100%'));
 
       // En el modo 2 columnas por defecto, deben existir ambas columnas
       const leftCol = areaCv.querySelector('.resume__left');

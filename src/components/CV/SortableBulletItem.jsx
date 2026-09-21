@@ -29,7 +29,7 @@ import { createContainerDragListeners } from '../../utils/dndUtils';
  * @param {Array<string>} props.bullets - Array of all bullet strings belonging to the item.
  * @param {Function} props.onUpdateItem - Callback to update item fields: (sectionId, itemId, field, value) => void.
  * @param {Function} props.onDeleteBullet - Callback to remove a bullet: (bulletIndex) => void.
- * @param {string} [props.marginBottom='var(--item-gap, 6px)'] - CSS margin-bottom override for bullet row spacing.
+ * @param {string} [props.marginBottom='var(--item-gap, 8px)'] - CSS margin-bottom override for bullet row spacing.
  * @returns {JSX.Element} Draggable <li> bullet row.
  */
 export const SortableBulletItem = ({ 
@@ -41,7 +41,7 @@ export const SortableBulletItem = ({
   bullets, 
   onUpdateItem, 
   onDeleteBullet,
-  marginBottom = 'var(--item-gap, 6px)'
+  marginBottom = 'var(--item-gap, 8px)'
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: bulletId,
@@ -63,7 +63,8 @@ export const SortableBulletItem = ({
     paddingRight: 0,
     paddingLeft: '1.15rem',
     color: 'inherit',
-    lineHeight: 1.45
+    lineHeight: 'var(--line-height, 1.45)',
+    fontSize: 'var(--list-font-size, var(--normal-font-size))'
   };
 
   const containerDragListeners = createContainerDragListeners(listeners, true);
@@ -73,6 +74,7 @@ export const SortableBulletItem = ({
       ref={setNodeRef}
       style={style}
       className="bullet-item-row editable-item-container cv-block"
+      data-item-id={(itemId && bulletIndex !== undefined) ? `${itemId}_bullet_${bulletIndex}` : (bulletId || `${itemId}_bullet_${bulletIndex}`)}
       {...attributes}
       {...containerDragListeners}
     >

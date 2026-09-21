@@ -1,63 +1,59 @@
-# BRIEFING — 2026-09-11T16:42:41Z
+# BRIEFING — 2026-09-20T11:10:00-03:00
 
 ## Mission
-Adversarial Stress Verification of CSS Media Encapsulation, Selector Leakage, Test Suite Rigor, Build, and Tests.
+Adversarially stress-test layout and PDF print stability under extreme slider values and inspect physical PDF binaries using poppler utilities to provide an empirical verdict (APPROVE or REJECT).
 
 ## 🔒 My Identity
-- Archetype: empirical-challenger
+- Archetype: empirical_challenger
 - Roles: critic, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2
-- Original parent: 95a50137-de25-4c72-8e27-3f08a68caa88
-- Milestone: Adversarial Stress & Edge Case Verification
+- Original parent: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Milestone: layout_print_stability_stress_test
 - Instance: 1 of 1
-- Current Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_2
-- Current Parent: d5d867ec-a7e5-4f91-99b6-425c7610f9f5
-- Milestone: CSS Media Boundaries & Test Rigor Verification
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code (report findings/failures)
-- Must empirically verify edge cases with executable test scripts/harnesses
-- Invariants & Rules: Obsidian callouts, @dnd-kit (no swapy), dynamic tooltips (getBoundingClientRect & viewport bounds), Tech domain focus, 0.75 floor auto-scaling, zero-split page breaks.
-- Invariants: print.css is single source of truth for print; 100% inside @media print with 0 bare selectors; index.css has 0 @media print declarations.
-- Rigor: modernized tests must remain non-regressive; T3.6 & T5.6 must be genuine assertion tests.
+- Review-only — do NOT modify implementation code (adversarial challenge & empirical stress-test)
+- Rule 5: Zero heuristic screen patches for print pagination (CSS Paged media only)
+- Rule 6: Real empirical browser/PDF verification required (no JSDOM-only claims)
+- .agents/ holds only metadata (plans, progress, handoffs) — tests/code must reside in workspace root or tests/
 
 ## Current Parent
-- Conversation ID: d5d867ec-a7e5-4f91-99b6-425c7610f9f5
-- Updated: 2026-09-11T16:42:41Z
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: 2026-09-20T11:10:00-03:00
 
 ## Review Scope
-- **Files to review**:
-  - `src/styles/print.css` (probe selector leakage outside `@media print`)
-  - `src/index.css` (probe `@media print` declarations)
-  - `src/tests/cleanPrintEngineVerification.test.jsx` (T3.6 and T5.6 rigor)
-  - `src/tests/pixelParityEditorPrint.test.jsx`
-  - `src/tests/adversarial-spacing-layout-extremes.test.jsx`
-  - `src/tests/challenger-o10-dom-coordinates-stress.test.jsx`
-  - `src/tests/test_inspect_juan_cv.test.jsx`
-  - `src/utils/staticHtmlPdfEngine.js`
-  - `src/App.jsx`
-- **Interface contracts**: `AGENTS.md`, `docs/audit-report.md`, `ORIGINAL_REQUEST.md`
-- **Review criteria**: CSS media encapsulation, 0 selector leakage, test assertion rigor, build and test pass.
+- **Files to review**: `src/utils/staticHtmlPdfEngine.js`, `src/styles/print.css`, `src/utils/paginationEngine.js`, `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js`
+- **Interface contracts**: PROJECT.md, AGENTS.md, ORIGINAL_REQUEST.md
+- **Review criteria**: Extreme slider resilience, print iframe variable propagation, physical PDF poppler inspection (page count, zero phantom pages, bullet/item slicing at page boundaries)
+
+## Key Decisions Made
+- Executed full Vitest suite (903 passing tests across 58 test files).
+- Created Cypress adversarial spec `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js` covering 6 extreme slider scenarios (min extremes, max extremes, cross-extremes 1, cross-extremes 2, ATS 1-column extremes, page boundary bullet split).
+- Generated 6 physical PDF binaries via Chrome DevTools Protocol to `tests/adversarial-output/`.
+- Created poppler inspection suite `inspect_adversarial_pdfs.mjs` executing `pdfinfo`, `pdftotext`, `pdftotext -bbox-layout`, and `pdftoppm`.
+- EMPIRICALLY CONFIRMED CRITICAL BUGS: Phantom blank pages in 3 out of 6 PDFs (Pages 4-5 in ATS mode, Page 5 in cross-extremes 2, Page 2 in min-extremes) and text slicing across page boundary in `03-cross-extremes-1.pdf` (word "artefactos." with negative yMin `-1.27pt`).
+- Verdict: **REJECT**.
+
+## Artifact Index
+- `DISPATCH.md` — Initial dispatch message
+- `BRIEFING.md` — Situational awareness & decision log
+- `progress.md` — Liveness heartbeat & task checklist
+- `handoff.md` — Final 5-component handoff report with empirical proof
+- `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js` — Adversarial Cypress E2E test spec
+- `inspect_adversarial_pdfs.mjs` — Poppler inspection audit harness
+- `tests/adversarial-output/` — Generated physical PDF binaries and `audit-summary.json`
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - H1: `src/styles/print.css` contains zero selector leakage outside `@media print` queries.
-  - H2: `src/index.css` contains zero `@media print` declarations.
-  - H3: Modernized tests (24 tautological converted to documented no-ops) are non-regressive.
-  - H4: Tests T3.6 and T5.6 have real assertion rigor and fail if their underlying implementation invariants are violated (negative testing / oracle check).
-  - H5: Full build (`npm run build`) and test suite (`npm test -- --run`) pass cleanly.
-- **Vulnerabilities found**: [TBD]
-- **Untested angles**: [TBD]
+  1. Print iframe retains extreme CSS variables without reverting -> PASSED.
+  2. Extreme sliders cause zero phantom blank pages -> FAILED (3 of 6 PDFs contain trailing blank pages with 0 characters).
+  3. No words/text sliced across page boundaries -> FAILED (`.projects__content` not in `break-inside: avoid`, paragraph cut across boundary with negative yMin `-1.27pt`).
+  4. ATS 1-column mode page count does not compound -> FAILED (Editor compounds to 5 pages, print only needs 3, leaving 2 blank pages).
+- **Vulnerabilities found**:
+  - `staticHtmlPdfEngine.js:1449`: Injected `min-height: ${totalPages * 297}mm !important` forces blank pages when content is shorter than estimated.
+  - `print.css:137`: `.projects__content` (and other section types) missing from `break-inside: avoid !important`, permitting paragraph slicing.
+  - `paginationEngine.js:325`: Screen `marginTop` cascading inflates editor page count beyond actual print requirements.
+- **Untested angles**: None within specified review scope.
 
 ## Loaded Skills
-- None
-
-## Key Decisions Made
-- Plan 5-step empirical verification suite.
-
-## Artifact Index
-- `.agents/teamwork_preview_challenger_2/DISPATCH.md` — Incoming dispatch record
-- `.agents/teamwork_preview_challenger_2/BRIEFING.md` — Agent state & index
-- `.agents/teamwork_preview_challenger_2/progress.md` — Heartbeat & execution log
-- `.agents/teamwork_preview_challenger_2/handoff.md` — Final handoff report & verdict
-
+- None specified in dispatch

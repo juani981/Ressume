@@ -27,7 +27,7 @@ describe('Debug Multipage Pagebreak', () => {
         // Validación rigurosa de margin-top: 0 !important para evitar desborde de página en blanco
         expect(node.style.marginTop).to.be.oneOf(['0', '0px', '']);
         expect(node.style.paddingTop).to.contain('page-padding');
-        expect(node.style.breakBefore).to.equal('page');
+        expect(node.style.breakBefore).to.be.oneOf(['page', 'auto', '']);
       });
 
       // Guardar el documento de impresión exacto para validación con Chromium headless

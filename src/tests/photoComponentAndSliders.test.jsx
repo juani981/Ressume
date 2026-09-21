@@ -100,6 +100,40 @@ describe('Photo Component & Registry Integration', () => {
     expect(screen.getByTestId('shape-square-btn')).toBeTruthy();
     expect(screen.getByTestId('photo-size-select')).toBeTruthy();
   });
+
+  it('keeps controls floating on hover without expanding document flow when mouse is away', () => {
+    const item = {
+      id: 'photo_test_4',
+      url: 'https://example.com/avatar.jpg',
+      shape: 'circle',
+      size: 130
+    };
+
+    const { container } = render(
+      <CVProvider>
+        <PhotoItem item={item} sectionId="sec_photo" isPrint={false} />
+      </CVProvider>
+    );
+
+    const editContainer = container.querySelector('.cv-photo-item-edit');
+    expect(editContainer).toBeTruthy();
+    expect(editContainer.style.position).toBe('relative');
+
+    const floatingControls = container.querySelector('.cv-photo-controls-floating');
+    expect(floatingControls).toBeTruthy();
+    expect(floatingControls.style.position).toBe('absolute');
+
+    // Initially not hovered
+    expect(floatingControls.classList.contains('is-visible')).toBe(false);
+
+    // Hover container: triggers visible floating controls
+    fireEvent.mouseEnter(editContainer);
+    expect(floatingControls.classList.contains('is-visible')).toBe(true);
+
+    // Mouse leave container: floating controls hide
+    fireEvent.mouseLeave(editContainer);
+    expect(floatingControls.classList.contains('is-visible')).toBe(false);
+  });
 });
 
 describe('Typography Sliders: Min 0.50 and Pixel Display', () => {

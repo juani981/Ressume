@@ -17,11 +17,14 @@ import {
   UserSquare2,
   Plus,
   MoveVertical,
-  Camera
+  Camera,
+  Contact
 } from 'lucide-react';
 
 const iconMap = {
   'profile_header': UserSquare2,
+  'title_subtitle': UserSquare2,
+  'contact': Contact,
   'about': UserSquare2,
   'photo': Camera,
   'list': Briefcase,

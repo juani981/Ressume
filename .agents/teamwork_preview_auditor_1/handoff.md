@@ -1,194 +1,216 @@
-# Forensic Audit Report & Handoff
+# Handoff Report: Forensic Integrity Audit (M1–M4)
 
-**Work Product**: Print Engine Hardening, CSS Single Source of Truth, and Test Rigor (Milestones M1 – M4)  
-**Profile**: General Project  
-**Author**: Forensic Auditor (`teamwork_preview_auditor_1`)  
-**Date**: 2026-09-11  
-**Verdict**: **CLEAN**
-
----
-
-## Forensic Verdict Summary
-
-```markdown
 ## Forensic Audit Report
 
-**Work Product**: Ressume Print Engine, CSS Architecture & Test Suite Hardening
-**Profile**: General Project
-**Integrity Mode**: development (ORIGINAL_REQUEST.md ## 2026-09-11T16:11:48Z)
-**Verdict**: CLEAN
+**Work Product**: Ressume 1:1 Editor vs. Print PDF Parity, Slider Synchronization & Real-Browser Verification (`src/` and `cypress/`)  
+**Profile**: General Project  
+**Integrity Mode**: `development` (per `ORIGINAL_REQUEST.md` lines 8, 36, 76)  
+**Verdict**: **CLEAN**
 
 ### Phase Results
-- [Phase 1: Source Code & Anti-Cheat Analysis]: PASS — 0 hardcoded test bypasses, 0 facade implementations, 0 pre-populated artifacts.
-- [Phase 2: CSS Variable Propagation & Single Source of Truth]: PASS — Live CSS custom properties transferred from #area-cv to doc.documentElement.style; zero @media print blocks in src/index.css; 100% of rules in src/styles/print.css wrapped in @media print.
-- [Phase 3: Style Tag Injection & Assertion Rigor]: PASS — All 3 style tags (<style id="cv-base-styles">, <style id="cv-print-styles">, <style id="cv-snapshot-breaks">) generated with discrete IDs and asserted in test T3.6.
-- [Phase 4: Tautological Test Resolution]: PASS — 24 circular tests converted to documented no-ops noting JSDOM layout limitations per explicit specification; test_inspect_juan_cv.test.jsx augmented with real assertions; structure and counts preserved.
-- [Phase 5: Production Build Execution]: PASS — `npm run build` completed with 0 errors and 0 warnings (16.34s).
-- [Phase 6: Full Test Suite Execution]: PASS — `npm test -- --run` executed with 39 test files passed, 661 tests passed, 0 failures.
-```
+- **Hardcoded test results**: **PASS** — No hardcoded test responses, fake passes, or bypassed evaluations detected in source or test files.
+- **Facade implementations**: **PASS** — `src/utils/staticHtmlPdfEngine.js`, `src/styles/print.css`, `src/components/CV/items/`, and `src/utils/paginationEngine.js` contain genuine, general-purpose implementations.
+- **Fabricated verification outputs**: **PASS** — No pre-populated logs, cached results, or fake attestations exist in the workspace.
+- **Self-certifying / Tautological tests**: **PASS** — Cypress E2E tests query live editor DOM nodes, computed styles under Chrome DevTools Protocol print emulation, and inspect real binary `.pdf` files written to disk.
+- **Architectural Invariant Compliance (AGENTS.md Rules 5 & 6)**: **PASS** — Pre-print screen `getBoundingClientRect()` inline style mutations have been purged; CSS Paged Media declarative rules are enforced; real Chromium execution is validated via Cypress.
+- **Empirical Build and Test Suite**: **PASS** — `npm run build` exits 0; `npx vitest run` exits 0 (58 files, 903 tests passed); Cypress real-browser print suite exits 0 (24 tests passed across 01, 02, 05, 06, 08, 09).
 
 ---
 
 ## 1. Observation
 
-Direct observations and raw forensic verification outputs across all modified files and execution environments:
-
-### A. Git Status & Uncommitted Work Products
-Inspection of `git status` confirmed the active modifications in scope:
-- `src/utils/staticHtmlPdfEngine.js`: Dead code removal (`renderItemHTML`, 4 unused imports), JSDOM-fallback annotations, dynamic CSS variable transfer loop (`lines 767–780`), redundant static inline style removal on column containers (`lines 844–853`).
-- `src/styles/print.css`: Removed bare `@page` outside `@media print`; 100% of stylesheet encapsulated within `@media print { ... }`; migrated `.resume__left, .resume__right` to `box-decoration-break: slice !important;` preventing 48px double-padding; added fallback to bullet marker color `var(--circle-color, var(--text-color, #334155)) !important;`.
-- `src/App.jsx` (`lines 108–112`): Documented architectural invariant for `gapPx = 20` (editor-only visual fold guide, prohibited in print path).
-- `src/tests/cleanPrintEngineVerification.test.jsx`: Added test `T3.6` asserting discrete IDs for all 3 injected style tags; added test `T5.6` verifying dynamic CSS custom property transfer from `#area-cv` to print iframe document root.
-- `src/tests/pixelParityEditorPrint.test.jsx`: Tautological tests PARITY-4.1 and PARITY-4.2 converted to documented no-ops with `// TODO: requires Playwright/Puppeteer for real browser layout and geometry verification`.
-- `src/tests/adversarial-spacing-layout-extremes.test.jsx`: 8 circular tests in Suite 1 converted to documented no-ops.
-- `src/tests/challenger-o10-dom-coordinates-stress.test.jsx`: 13 circular tests converted to documented no-ops.
-- `src/tests/test_inspect_juan_cv.test.jsx`: Added concrete assertions `expect(items.length).toBeGreaterThan(0); expect(hasChanges).toBe(true);` at lines 191–192.
-- `docs/audit-report.md`: Complete written audit report covering all findings and proposed remediations.
-
-### B. Anti-Cheat & Source Code Forensics
-1. **Dynamic CSS Variable Transfer** (`src/utils/staticHtmlPdfEngine.js:767–780`):
-   ```javascript
-   // Transfer CSS custom properties from editor #area-cv to print document root
-   if (typeof document !== 'undefined') {
-     const editorAreaCv = document.getElementById('area-cv');
-     if (editorAreaCv && editorAreaCv.style && doc.documentElement) {
-       for (let i = 0; i < editorAreaCv.style.length; i++) {
-         const prop = editorAreaCv.style[i];
-         if (prop && prop.startsWith('--')) {
-           const val = editorAreaCv.style.getPropertyValue(prop);
-           const priority = editorAreaCv.style.getPropertyPriority(prop);
-           doc.documentElement.style.setProperty(prop, val, priority);
-         }
-       }
+### 1.1 Anti-Cheating & Source Inspection
+1. **`src/utils/staticHtmlPdfEngine.js`**:
+   - `generateLayoutVariablesCSS` (lines 31–88): Fully evaluates and formats 100% of layout settings (`fontScale`, `titleScale`, `bodyScale`, `listScale`, `lineHeight`, `pagePadding`, `sectionGap`, `itemGap`, `leftColumnWidth`, `leftBg`, `rightBg`, `fontFamily`) into CSS custom properties. No hardcoded constants or mocked branches.
+   - Screen-based heuristics: Lines previously injecting screen `getBoundingClientRect()` inline `padding-top` and inline `break-before: page !important` (specifically lines 1072–1077 and 1387–1394 of prior commits) have been completely removed.
+   - Iframe cleanup guards (lines 1166 & 1563):
+     ```javascript
+     if (!window.__CYPRESS_PRINT_TEST__ && !window.Cypress && iframe.parentNode) {
+       iframe.parentNode.removeChild(iframe);
      }
-   }
+     ```
+     Preserves the print iframe in the DOM exclusively when running under Cypress to allow the test runner to inspect `getLastPrintDoc()`. In production, the iframe is removed after printing.
+   - Legacy JSDOM-only fallbacks (lines 1438 & 1532):
+     ```javascript
+     const isJSDOM = typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent);
+     ```
+     Isolated strictly to JSDOM unit test runners where no physical `@media print` layout engine exists, leaving real browsers (`window.Cypress` / Chromium) governed purely by declarative CSS.
+
+2. **`src/styles/print.css`**:
+   - Lines 61–62 & 71–72:
+     ```css
+     -webkit-box-decoration-break: clone !important;
+     box-decoration-break: clone !important;
+     ```
+     Declaratively enforced across `.resume__left`, `.resume__right`, and `#area-cv.resume__single-column`, cloning `--page-padding` onto multi-page fragments and resolving the Page 2 zero-margin defect.
+   - Lines 384–398: Add section buttons and interactive controls (`.column-add-section`, `.add-section-btn`, `[data-editor-add="true"]`) declare `display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important;`, eliminating residual blank space.
+   - Lines 448–492: Atomic components (`.cv-block`, `.section-title`, headings) enforce `break-inside: avoid !important`. Multi-bullet containers (`:has(li:nth-child(2))`) set `break-inside: auto !important`, allowing lists to paginate across folds without fragmenting individual bullet items.
+   - Line 487: Individual bullet items enforce:
+     ```css
+     margin-bottom: var(--item-gap, 8px) !important;
+     line-height: var(--line-height, 1.45) !important;
+     font-size: var(--list-font-size, var(--normal-font-size)) !important;
+     ```
+   - No hardcoded IDs or candidate-specific rules exist.
+
+3. **`src/components/CV/items/` (8 Categorical Item Components)**:
+   - `ProjectsItem.jsx`, `VolunteeringItem.jsx`, `ReferencesItem.jsx`, `PublicationsItem.jsx`, `LanguagesItem.jsx`, `CertificatesItem.jsx`, `AwardsItem.jsx`, `MentoringItem.jsx`:
+     Replaced rigid font variables with categorical tokens (`var(--body-smaller-font-size, var(--smaller-font-size))`, `var(--body-small-font-size, var(--small-font-size))`, `var(--list-font-size, var(--normal-font-size))`).
+     Standardized item gap fallbacks to `var(--item-gap, 8px)`.
+     Labeled bullet items with `data-item-id={`${item.id}_bullet_${idx}`}` for granular pagination targeting.
+
+4. **`src/utils/paginationEngine.js`**:
+   - Lines 418–454: Implements organic multi-bullet flow. When an item has multiple bullets and the first bullet fits on the current page (`firstBulletBounds.bottom <= contentAreaBottom - 4`), the algorithm identifies the specific `overflowingBullet` and assigns page-break attributes to that bullet rather than displacing the entire section.
+   - Lines 231–245 & 517–533: Realistic ATS density model (`isRealisticAtsDoc`) evaluates physical compact print spacing (`estimatedPrintHeight = maxContentBottom * 0.84`) dynamically using actual section bounds (`getRelativeBounds`), preventing premature 3-page inflation.
+
+### 1.2 Cypress E2E Spec Analysis (`cypress/e2e/`)
+1. **Spec 01 (`01-print-lifecycle.cy.js`)**: Tests real iframe creation, stylesheets injection (`index.css` and `print.css`), print lifecycle events, and toast notification.
+2. **Spec 02 (`02-print-geometry-and-pagination.cy.js`)**: Asserts computed width of 794px in print DOM, existence of both left and right columns, and adherence to CSS tokens.
+3. **Spec 05 (`05-pixel-fidelity-and-css-parity.cy.js`)**: Uses Chrome DevTools Protocol `Emulation.setEmulatedMedia` to emulate `print`, compares subpixel typography and computed line heights between screen and print iframe, verifies complete purging of `.column-add-section`, and inspects Poppins font embedding in physical PDF binary.
+4. **Spec 06 (`06-multipage-pagebreak.cy.js`)**: Clicks "+ Elemento" 8 times to trigger multi-page flow, dumps print HTML, renders binary PDF via headless Chrome (`printWithChrome`), and inspects the binary with `pdfinfo` verifying exact 2 pages.
+5. **Spec 08 (`08-two-column-print-synchronization.cy.js`)**: Loads high-density CV data, measures vertical coordinates of blocks in `.resume__left` and `.resume__right` across Page 1 and Page 2, confirms 0 items overflow to Page 3, and generates physical PDF via CDP verifying `pagesCount === 2`.
+6. **Spec 09 (`09-bullet-flow-and-slider-parity.cy.js`)**: Calibrates 4-bullet item across fold, verifies live editor distributes 2 bullets on P1 and 2 on P2, confirms print snapshot assigns `break-before: page` to bullet 3, modifies slider inputs (`fontScale: 1.15`, `pagePadding: 34`, `itemGap: 14`, `leftColumnWidth: 40`), asserts computed properties on `#area-cv` under print emulation, and verifies binary PDF via CDP.
+
+### 1.3 Empirical Execution Results
+1. **Production Build**:
+   ```bash
+   npm run build
    ```
-   - **Verification**: Genuine DOM iteration over `editorAreaCv.style`. Reads property names via index `editorAreaCv.style[i]`, filters by `prop.startsWith('--')`, retrieves values and priorities, and sets them on `doc.documentElement.style`. Zero hardcoding, zero facade.
-
-2. **Style Tag Discrete IDs** (`src/utils/staticHtmlPdfEngine.js:466, 518, 521`):
-   ```html
-   <style id="cv-base-styles">
-     :root, #area-cv { ... }
-     ${activeBaseStyles}
-   </style>
-   <style id="cv-print-styles">
-     ${activePrintStyles}
-   </style>
-   <style id="cv-snapshot-breaks">
-     ${snapshotBreaksCSS}
-   </style>
-   ```
-   - **Verification**: Injected in deterministic order into the `<head>` of clean HTML. Verified in `T3.6` via `DOMParser().parseFromString()` asserting `doc.getElementById('cv-base-styles')`, `doc.getElementById('cv-print-styles')`, and `doc.getElementById('cv-snapshot-breaks')` are non-null and contain respective stylesheet text.
-
-3. **CSS Single Source of Truth**:
-   - `src/index.css`: Grep search for `@media print` returned 0 matches.
-   - `src/styles/print.css`: Entire body from line 7 to line 193 is enclosed in `@media print { ... }`. Zero bare rules outside the media block.
-   - `box-decoration-break: slice !important;` on `.resume__left, .resume__right` eliminates double-padding displacement on multi-page printouts.
-
-4. **App.jsx Architectural Comment** (`src/App.jsx:108–112`):
-   ```javascript
-   // ARCHITECTURAL INVARIANT: gapPx = 20 represents the visual fold separator (.a4-page-fold-guide)
-   // rendered between simulated A4 sheets in the live editor's continuous canvas.
-   // This gap exists EXCLUSIVELY in the editor view and MUST NEVER be introduced into the print
-   // path (print.css or staticHtmlPdfEngine.js), where physical paper is segmented by @page rules.
-   const gapPx = 20;
-   ```
-
-### C. Build & Test Execution Outputs
-1. **Production Build (`npm run build`)**:
-   ```
-   > ressume-react@0.0.0 build
-   > vite build
-
+   *Verbatim Output*:
+   ```text
    vite v5.4.21 building for production...
-   transforming...
-   ✓ 1933 modules transformed.
-   rendering chunks...
-   computing gzip size...
-   dist/index.html                   0.92 kB │ gzip:   0.49 kB
-   dist/assets/index-Cy6KZHSh.css   30.16 kB │ gzip:   6.07 kB
-   dist/assets/index-CcLT-xQA.js   729.47 kB │ gzip: 210.62 kB
-   ✓ built in 16.34s
+   ✓ 1949 modules transformed.
+   dist/index.html                   0.80 kB │ gzip:   0.44 kB
+   dist/assets/index-DjtQSv55.css   33.29 kB │ gzip:   6.51 kB
+   dist/assets/index-2ZFVsI_F.js   859.01 kB │ gzip: 249.80 kB
+   ✓ built in 2.27s
    ```
-   - **Result**: Exit code 0. Zero errors, zero warnings.
+   *Result*: Code 0.
 
-2. **Full Test Suite (`npm test -- --run`)**:
+2. **Vitest Full Suite**:
+   ```bash
+   npx vitest run
    ```
-   Test Files  39 passed (39)
-        Tests  661 passed (661)
-     Start at  13:50:56
-     Duration  24.89s (transform 5.97s, setup 32.67s, collect 43.11s, tests 80.95s, environment 60.30s, prepare 14.09s)
+   *Verbatim Output*:
+   ```text
+   Test Files  58 passed (58)
+        Tests  903 passed (903)
+     Duration  24.38s
    ```
-   - **Result**: Exit code 0. 39 test files passed, 661 tests passing (exceeding baseline requirement $\ge 634$), 0 failures.
+   *Result*: Code 0.
+
+3. **Cypress E2E Print Test Suite (Chrome for Testing)**:
+   ```bash
+   npx cypress run --browser chrome-for-testing --spec "cypress/e2e/01-print-lifecycle.cy.js,cypress/e2e/02-print-geometry-and-pagination.cy.js,cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js,cypress/e2e/08-two-column-print-synchronization.cy.js,cypress/e2e/09-bullet-flow-and-slider-parity.cy.js"
+   ```
+   *Verbatim Output*:
+   ```text
+   ✔  01-print-lifecycle.cy.js                 00:04        4        4        -        -        -
+   ✔  02-print-geometry-and-pagination.cy.js  00:02        4        4        -        -        -
+   ✔  05-pixel-fidelity-and-css-parity.cy.js  00:14        7        7        -        -        -
+   ✔  08-two-column-print-synchronization.cy  00:06        4        4        -        -        -
+   ✔  09-bullet-flow-and-slider-parity.cy.js  00:04        4        4        -        -        -
+   ✔  All specs passed!                       00:32       23       23        -        -        -
+   ```
+   *Result*: Code 0.
+
+   Supplementary execution of `cypress/e2e/06-multipage-pagebreak.cy.js`:
+   *Verbatim Output*:
+   ```text
+   ✔  06-multipage-pagebreak.cy.js             00:03        1        1        -        -        -
+   ```
+   *Result*: Code 0.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Step 1 (Ground Truth Alignment)**: Inspected `ORIGINAL_REQUEST.md ## 2026-09-11T16:11:48Z`. The user explicitly required:
-   - Print engine audit & pixel-parity hardening (dead code cleanup, CSS variable transfer, `gapPx` documentation, `margin-top: var(--page-padding, 24px)`, `box-decoration-break: slice`).
-   - CSS single source of truth (0 `@media print` in `index.css`, 100% `@media print` in `print.css`, redundant inline styles removed from `executeCleanPrint`).
-   - Test suite modernization: identification and conversion of tautological JSDOM tests to documented no-ops (`// TODO: requires Playwright/Puppeteer...`), addition of tests `T3.6` and `T5.6`, and verification that test count $\ge 634$ with 0 failures.
-2. **Step 2 (Source Code Forensics)**:
-   - Verified that `staticHtmlPdfEngine.js` line 767 implements authentic DOM iteration over CSS custom properties without hardcoding or short-circuiting.
-   - Verified that all 3 style tags have discrete IDs (`cv-base-styles`, `cv-print-styles`, `cv-snapshot-breaks`).
-   - Verified that `print.css` has zero bare rules outside `@media print`.
-   - Verified that `index.css` has zero `@media print` blocks.
-   - Verified that `App.jsx` line 108 includes the architectural invariant comment for `gapPx = 20`.
-3. **Step 3 (Test Authenticity Verification)**:
-   - Verified that `T3.6` parses generated HTML and asserts existence of all 3 style tag IDs and their contents.
-   - Verified that `T5.6` mounts `#area-cv` with custom properties, calls `executeCleanPrint`, and verifies property transfer to the captured document root.
-   - Verified that tautological tests were replaced with documented no-ops without deleting test files, maintaining total test count at 661.
-4. **Step 4 (Empirical Execution)**:
-   - Executed `npm run build`: verified production bundle built cleanly in 16.34s.
-   - Executed `npm test -- --run`: verified 39 test files and 661 tests passed with 0 failures.
-5. **Conclusion Formulation**: Every requirement from `ORIGINAL_REQUEST.md ## 2026-09-11T16:11:48Z` and `DISPATCH.md` has been verified empirically. No prohibited patterns or integrity violations exist. The verdict is CLEAN.
+1. **Absence of Hardcoded Results & Facades**:
+   - Investigation across all modified files confirmed that functions like `generateLayoutVariablesCSS`, `computeTypographyTokens`, and `executePaginationAlgorithm` calculate values dynamically from their arguments and DOM geometries.
+   - No hardcoded strings (e.g. matching specific test candidate names, mock return values, or synthetic bypass flags) exist in production utilities.
+
+2. **Compliance with Architectural Invariants (AGENTS.md Rules 5 & 6)**:
+   - Rule 5 prohibits double engines and pre-print inline style mutations based on screen `getBoundingClientRect()`. Inspection of `staticHtmlPdfEngine.js` confirms that all such dynamic inline injections were excised in M1. Printing relies entirely on CSS Paged Media declarations (`@page`, `break-inside: avoid !important`, `break-inside: auto !important`, and `box-decoration-break: clone !important`).
+   - Rule 6 prohibits declaring parity based solely on JSDOM. Verification was conducted using Cypress under a real Chromium browser (`chrome-for-testing`) communicating via Chrome DevTools Protocol (`Emulation.setEmulatedMedia` and `Page.printToPDF`).
+
+3. **Authenticity of Cypress E2E Assertions**:
+   - The specs in `cypress/e2e/` perform end-to-end verification:
+     * Spec 05 compares computed CSS values between screen and print iframe under print media emulation.
+     * Spec 08 checks vertical offsets of left and right column blocks to ensure balanced distribution.
+     * Spec 09 changes range sliders in the React UI, asserts CSS custom properties, checks bullet splitting across folds, and inspects binary PDF output.
+     * Spec 06 and Spec 09 inspect the physical PDF binary via node tasks (`inspectPdf`), checking the magic header `%PDF-1.x` and page counts via `pdfinfo`.
+   - None of the tests rely on mocked assertions or tautologies.
+
+4. **Integrity Mode Evaluation**:
+   - Per `ORIGINAL_REQUEST.md`, integrity mode is `development`.
+   - Under Development Mode, the primary requirement is verifying that implementations are genuine, free of fabricated outputs, and devoid of facade implementations.
+   - All criteria are met.
 
 ---
 
 ## 3. Caveats
 
-- **JSDOM Geometry Limitations**: JSDOM does not compute CSS layout or geometry (`getBoundingClientRect()` returns all zeros). In accordance with `ORIGINAL_REQUEST.md` R3.2, 24 circular tests that compared synthetic arithmetic helpers against themselves were replaced with documented no-ops noting that real browser geometry verification requires Playwright or Puppeteer.
+1. **Unhandled Error Race Condition in Asynchronous JSDOM Teardown**:
+   - In `src/utils/staticHtmlPdfEngine.js:1166`:
+     ```javascript
+     setTimeout(() => {
+       if (!window.__CYPRESS_PRINT_TEST__ && !window.Cypress && iframe.parentNode) {
+         iframe.parentNode.removeChild(iframe);
+       }
+     }, 600);
+     ```
+     When running `npm test` under certain watch/parallel configurations, if JSDOM is torn down before this 600ms timer fires, Node throws an unhandled `ReferenceError: window is not defined` because the `typeof window !== 'undefined'` guard is omitted (compare line 1563 where the guard is present). While `npx vitest run` exited cleanly with code 0 (903/903 passed), adding `typeof window !== 'undefined'` to line 1166 is recommended during future maintenance.
+2. **Scratch Spec 07 Status**:
+   - `cypress/e2e/07-component-dnd-interactivity.cy.js` contains 2 failing tests due to string label differences in the add-section modal ("Habilidades y Competencias" vs "Habilidades Técnicas"). Spec 07 is an untracked scratch test outside the print parity milestone scope (PROJECT.md line 60 specifies specs 01, 02, 05, 08, 09).
+3. **Cross-Browser Verification**:
+   - Cypress verification was conducted in Chrome for Testing (Chromium). In accordance with AGENTS.md Rule 6, final visual confirmation in Zen Browser / Gecko should be verified by the user.
 
 ---
 
 ## 4. Conclusion
 
-The work products for Print Engine Hardening, CSS Architecture, and Test Suite Rigor (Milestones M1 – M4) are authentic, rigorous, and fully compliant with all architectural invariants and user constraints. Zero cheating, dummy facades, or prohibited patterns were found.
-
 **Verdict: CLEAN**
+
+The implementation across Milestones M1, M2, M3, and M4 is genuine, architecturally sound, and completely free of integrity violations:
+- No hardcoded test outputs or facade implementations exist.
+- Pre-print screen heuristic DOM mutations were eliminated in full accordance with AGENTS.md Rule 5.
+- Declarative CSS Paged Media margins (`box-decoration-break: clone !important`) and multi-bullet organic pagination are fully implemented.
+- 100% of typography and layout sliders propagate cleanly to the print document.
+- Production build passes with 0 errors.
+- Vitest suite (58 files, 903 tests) passes 100%.
+- Real-browser Cypress E2E print suite (24 tests across specs 01, 02, 05, 06, 08, 09) passes 100% under Chrome for Testing.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this audit:
+To independently reproduce and verify this audit:
 
-1. **Verify Production Build**:
+1. **Production Build**:
    ```bash
    npm run build
    ```
-   *Expected result*: Exit code 0, bundle output in `dist/`, 0 errors, 0 warnings.
+   *Expected*: Code 0, bundle created in `dist/`.
 
-2. **Verify Full Test Suite**:
+2. **Vitest Unit & Integration Suite**:
    ```bash
-   npm test -- --run
+   npx vitest run
    ```
-   *Expected result*: Exit code 0, 39 test files passed, 661 tests passed, 0 failures.
+   *Expected*: Code 0, 58 test files passed, 903 tests passed.
 
-3. **Verify Style Tag IDs & Variable Transfer Tests**:
+3. **Cypress Real-Browser Print Battery**:
    ```bash
-   npx vitest run src/tests/cleanPrintEngineVerification.test.jsx
+   npx cypress run --browser chrome-for-testing --spec "cypress/e2e/01-print-lifecycle.cy.js,cypress/e2e/02-print-geometry-and-pagination.cy.js,cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js,cypress/e2e/08-two-column-print-synchronization.cy.js,cypress/e2e/09-bullet-flow-and-slider-parity.cy.js"
    ```
-   *Expected result*: All 27 tests pass, including T3.6 and T5.6.
+   *Expected*: Code 0, 23/23 tests passing.
 
-4. **Verify CSS Single Source of Truth**:
+4. **Multi-Page Pagebreak Spec**:
    ```bash
-   # Check no @media print in index.css
-   grep -i "@media print" src/index.css
-   # (Expected: 0 matches)
-
-   # Check print.css is wrapped in @media print
-   head -n 12 src/styles/print.css
-   # (Expected: starts with @media print { @page { size: A4; margin: 0; } ... })
+   npx cypress run --browser chrome-for-testing --spec "cypress/e2e/06-multipage-pagebreak.cy.js"
    ```
+   *Expected*: Code 0, 1/1 test passing.
+
+5. **Code Inspection**:
+   - Inspect `src/utils/staticHtmlPdfEngine.js` for absence of `getBoundingClientRect()` inline padding/break mutations.
+   - Inspect `src/styles/print.css` for `box-decoration-break: clone !important` on `.resume__left, .resume__right` and `.resume__single-column`.
+   - Inspect `cypress/e2e/09-bullet-flow-and-slider-parity.cy.js` for authentic slider manipulation, DOM fold inspection, and binary CDP PDF verification.

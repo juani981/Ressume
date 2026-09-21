@@ -1,45 +1,45 @@
-# BRIEFING — 2026-09-11T03:57:00Z
+# BRIEFING — 2026-09-20T05:49:04Z
 
 ## Mission
-Decompose `src/context/CVContext.jsx` into 4 focused domain hooks (`useCVHistory.js`, `useCVData.js`, `useCVLayout.js`, `useCVExport.js`), create barrel export files, and refactor `CVContext.jsx` into a thin backward-compatible facade <= 200 lines.
+Milestone 4: Verificación E2E en Navegador Real con Cypress. Fix media emulation in Spec 05, author real-browser parity spec 09 (`09-bullet-flow-and-slider-parity.cy.js`), update Cypress support commands if needed, and execute full test battery (Cypress + Vitest 903 tests + Build).
 
 ## 🔒 My Identity
 - Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m4
 - Original parent: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Milestone: M4 - CVContext Decomposition
+- Milestone: M4 - Verificación E2E en Navegador Real con Cypress
 
 ## 🔒 Key Constraints
-- CVContext.jsx must be <= 200 lines (target ~105 lines).
-- Each decomposed hook must be <= 250 lines and <= 300 lines maximum.
-- Each file must have a file-level comment and JSDoc blocks for all exported hooks/functions.
-- Barrels:
-  - `src/context/hooks/index.js` exports the 4 hooks.
-  - `src/context/index.js` exports `CVContext`, `CVProvider`, `useCV`, and the 4 hooks.
-- All 48 public API members returned by `useCV()` MUST be preserved:
-  `cvData`, `updateProfile`, `updateSectionProperty`, `updateSectionTitle`, `updateSectionBulletStyle`, `updateSectionItem`, `addSectionItem`, `deleteSectionItem`, `reorderSectionItems`, `moveItemBetweenSections`, `addSection`, `deleteSection`, `reorderSections`, `loadVersionSnapshot`, `resetToDefault`, `restoreContactSection`, `languagePacks`, `activeLanguage`, `switchLanguage`, `importLanguagePack`, `getActiveDictionary`, `undo`, `redo`, `canUndo`, `canRedo`, `updateLayout`, `updateSectionColumn`, `moveSectionToColumnAndIndex`, `pageHeightPx`, `setPageHeightPx`, `pageGapPx`, `totalPages`, `setTotalPages`, `getPageBounds`, `getElementPageInfo`, `paginationTrigger`, `triggerPaginationRecalc`, `activeTooltip`, `setActiveTooltip`, `clearActiveTooltip`, `closeTooltip`, `toggleTooltipForSection`, `activeToolbar`, `setActiveToolbar`, `clearActiveToolbar`, `showAITips`, `toast`, `showToast`, `hideToast`, `isExporting`, `exportCleanPDF`, `exportJSON`.
-- Integrity: no hardcoded test values, no fake facades.
-- Vitest suite (628 tests) must pass with 0 errors.
-- Build must succeed with 0 errors.
+- Files owned:
+  - `cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js`
+  - `cypress/e2e/09-bullet-flow-and-slider-parity.cy.js`
+  - `cypress/support/commands.js`
+- Prohibición de Doble Motor en Conflicto (AGENTS.md rule 5): CSS Paged Media declarativo, no parches de pantalla.
+- Verificación Real vs. Sesgo de JSDOM: E2E en navegador real (Chrome for Testing via Cypress).
+- Zero cheats: Genuine tests, real layout assertions, real CDP media emulation and PDF verification.
 
 ## Current Parent
-- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Updated: 2026-09-11T03:57:00Z
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: 2026-09-20T05:49:04Z
 
 ## Task Summary
-- **What to build**: 4 domain hooks in `src/context/hooks/`, 2 barrel files, and a refactored `src/context/CVContext.jsx`.
-- **Success criteria**: All 628 tests pass, line count constraints satisfied, build succeeds, 0 regressions.
-- **Interface contracts**: `/home/juani/Documentos/Ressume/docs/code-review.md` (Section 5.4 Blueprint 4) and `.agents/teamwork_preview_explorer_survey_2/analysis.md` (Section 5).
-- **Code layout**: `src/context/`
+- **What to build**:
+  1. Fix media emulation in `cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js` (CDP `Emulation.setEmulatedMedia`, purge `.column-add-section` acknowledgement).
+  2. Author `cypress/e2e/09-bullet-flow-and-slider-parity.cy.js` (bullet flow page boundaries, page 2+ top margin, slider synchronization, physical PDF generation with CDP).
+  3. Ensure `cypress/support/commands.js` has required CDP commands (`cy.generatePdfWithCDP` or similar).
+  4. Full battery execution: Cypress chrome-for-testing, npm test (58 files, 903 tests), npm run build.
+- **Success criteria**:
+  - Spec 05 passes 7/7 tests (100%).
+  - Spec 09 passes all tests.
+  - Full Cypress run passes.
+  - npm test passes all 58 files and 903 tests.
+  - npm run build succeeds with 0 errors.
+- **Interface contracts**: Cypress E2E specs, CDP Emulation protocol, CDP Page.printToPDF protocol.
+- **Code layout**: `cypress/e2e/`, `cypress/support/`
 
 ## Key Decisions Made
-- Decomposed `CVContext.jsx` into 4 focused hooks: `useCVHistory.js` (126 lines), `useCVData.js` (249 lines), `useCVLayout.js` (165 lines), and `useCVExport.js` (93 lines).
-- Created barrels `src/context/hooks/index.js` (8 lines) and `src/context/index.js` (7 lines).
-- Refactored `CVContext.jsx` into a thin facade (125 lines) composing the 4 domain hooks and preserving all 48+ public API members.
-- Added comprehensive unit test file `src/tests/cvContextDecomposition.test.jsx` (6 tests).
-- Verified full test suite: 38 files, 634 passed, 0 failed.
-- Verified production build: 0 errors.
+- [TBD]
 
 ## Artifact Index
 - `.agents/teamwork_preview_worker_m4/BRIEFING.md` — Working memory and status
@@ -47,22 +47,14 @@ Decompose `src/context/CVContext.jsx` into 4 focused domain hooks (`useCVHistory
 - `.agents/teamwork_preview_worker_m4/handoff.md` — Final handoff report
 
 ## Change Tracker
-- **Files modified**:
-  - `src/context/CVContext.jsx`: Decomposed into thin facade (125 lines)
-  - `src/context/hooks/useCVHistory.js`: New history management hook (126 lines)
-  - `src/context/hooks/useCVData.js`: New data and CRUD management hook (249 lines)
-  - `src/context/hooks/useCVLayout.js`: New layout and pagination metrics hook (165 lines)
-  - `src/context/hooks/useCVExport.js`: New toast and export pipeline hook (93 lines)
-  - `src/context/hooks/index.js`: New hooks barrel export (8 lines)
-  - `src/context/index.js`: New root context barrel export (7 lines)
-  - `src/tests/cvContextDecomposition.test.jsx`: New test suite for decomposition and contracts (114 lines)
-- **Build status**: PASS (npm run build exit 0)
-- **Pending issues**: None
+- **Files modified**: TBD
+- **Build status**: TBD
+- **Pending issues**: TBD
 
 ## Quality Status
-- **Build/test result**: 634/634 tests passing across 38 test files.
-- **Lint status**: Clean
-- **Tests added/modified**: `src/tests/cvContextDecomposition.test.jsx` added (6 tests)
+- **Build/test result**: TBD
+- **Lint status**: TBD
+- **Tests added/modified**: TBD
 
 ## Loaded Skills
 (None)

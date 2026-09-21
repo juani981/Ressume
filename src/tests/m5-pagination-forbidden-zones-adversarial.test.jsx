@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 import App from '../App';
@@ -512,16 +512,15 @@ describe('Milestone M5: Empirical Adversarial Stress Verification of Pagination,
   });
 
   // =========================================================================
-  // STRESS 6: box-decoration-break: slice Enforcement & Zero Double Padding
+  // STRESS 6: box-decoration-break: clone Architecture & Multi-Page Margins
   // =========================================================================
-  describe('STRESS 6: box-decoration-break: slice Enforcement in print.css', () => {
-    it('M5-BOX-6.1: print.css strictly enforces box-decoration-break: slice and contains 0 instances of clone', () => {
+  describe('STRESS 6: box-decoration-break: clone Architecture in print.css', () => {
+    it('M5-BOX-6.1: print.css strictly enforces box-decoration-break: clone on column containers and slice on area-cv', () => {
       expect(printStyles).toMatch(/-webkit-box-decoration-break:\s*slice\s*!important/);
       expect(printStyles).toMatch(/box-decoration-break:\s*slice\s*!important/);
 
-      const strippedStyles = printStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-      expect(strippedStyles).not.toContain('box-decoration-break: clone');
-      expect(strippedStyles).not.toContain('-webkit-box-decoration-break: clone');
+      expect(printStyles).toMatch(/-webkit-box-decoration-break:\s*clone\s*!important/);
+      expect(printStyles).toMatch(/box-decoration-break:\s*clone\s*!important/);
     });
   });
 

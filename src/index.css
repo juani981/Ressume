@@ -185,11 +185,19 @@ img {
   position: relative;
 }
 
+/* Secciones de cabecera (título, contacto, foto) agrupan más apretado */
+.editable-section-container.home,
+.editable-section-container.social,
+.editable-section-container.cv-section-photo {
+  margin-bottom: calc(var(--section-gap, 20px) * 0.4) !important;
+}
+
 .cv-section:last-of-type,
 .editable-section-container:last-of-type,
 .section:last-of-type {
   margin-bottom: 0 !important;
 }
+
 
 .cv-block,
 .editable-item-container,
@@ -217,7 +225,7 @@ img {
   font-weight: var(--font-semi-bold);
   text-transform: uppercase;
   letter-spacing: .35rem;
-  margin-bottom: var(--mb-3);
+  margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;
   text-align: center;
 }
 
@@ -715,6 +723,70 @@ img {
   opacity: 0.9;
 }
 
+/*========== PHOTO ITEM FLOATING CONTROLS ==========*/
+.cv-photo-item-edit {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.cv-photo-controls-floating {
+  position: absolute;
+  /* Appear ABOVE the image so the popover stays inside editable-section-container
+     bounding box. Placing it below (top: calc(100% + 6px)) caused the container
+     hover to break, hiding the section tips and delete buttons when mouse entered the popover. */
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  z-index: 120;
+}
+
+.cv-photo-item-edit:hover .cv-photo-controls-floating,
+.cv-photo-item-edit:focus-within .cv-photo-controls-floating,
+.cv-photo-controls-floating.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.cv-photo-preview-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cv-photo-preview-wrapper:hover .cv-photo-hover-hint {
+  opacity: 1;
+}
+
+.cv-photo-hover-hint {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  gap: 3px;
+}
+
 /*========== COLUMN RESIZER (DRAGGABLE DIVIDER) ==========*/
 .column-resizer {
   touch-action: none;
@@ -793,6 +865,77 @@ img {
   cursor: grab;
 }
 
+/* ==========================================================
+   SPLIT COMPONENT HOVER DECORATIONS (Two separate hover borders)
+   When a section or item breaks across page boundaries, the parent
+   container does not render a continuous box cutting through the fold.
+   Instead, ::before and ::after render distinct hover boxes per page.
+   ========================================================== */
+.editable-section-container.has-split-break,
+.editable-item-container.has-split-break {
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+.editable-section-container.has-split-break:hover,
+.editable-item-container.has-split-break:hover {
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+/* Part 1: Top segment before the page fold */
+.editable-section-container.has-split-break::before,
+.editable-item-container.has-split-break::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--split-part1-height, 0px);
+  border-radius: 4px;
+  outline: 1px dashed transparent;
+  background-color: transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Part 2: Bottom segment after the page fold */
+.editable-section-container.has-split-break::after,
+.editable-item-container.has-split-break::after {
+  content: '';
+  position: absolute;
+  top: var(--split-part2-top, 0px);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+  outline: 1px dashed transparent;
+  background-color: transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hover highlights on split segments */
+.editable-section-container.has-split-break:hover::before,
+.editable-section-container.has-split-break:hover::after {
+  outline-color: rgba(56, 116, 255, 0.25);
+  background-color: rgba(56, 116, 255, 0.02);
+}
+
+.editable-item-container.has-split-break:hover::before,
+.editable-item-container.has-split-break:hover::after {
+  outline-color: rgba(56, 116, 255, 0.35);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Page 2 only split (when orphan title was moved to next page) */
+.editable-section-container.has-split-break--page2-only::before,
+.editable-item-container.has-split-break--page2-only::before {
+  display: none !important;
+}
+
 .bullet-item-row:hover {
   cursor: grab;
 }
@@ -841,8 +984,8 @@ a,
 }
 
 .experience__bullets li {
-  margin-bottom: 0.2rem;
-  line-height: 1.45;
+  margin-bottom: var(--item-gap, 8px);
+  line-height: var(--line-height, 1.45);
   font-size: var(--list-font-size, var(--normal-font-size));
   list-style: none !important;
   list-style-type: none !important;
@@ -1745,8 +1888,8 @@ body.ats-mode-active {
   left: 0;
   right: 0;
   height: 20px;
-  z-index: 35;
-  pointer-events: none;
+  z-index: 60;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1765,11 +1908,12 @@ body.ats-mode-active .a4-page-fold-guide {
   right: 0;
   top: 50%;
   border-top: 1px dashed rgba(100, 116, 139, 0.35);
+  pointer-events: none;
 }
 
 .a4-page-fold-badge {
   position: relative;
-  z-index: 2;
+  z-index: 65;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1779,11 +1923,18 @@ body.ats-mode-active .a4-page-fold-guide {
   background: rgba(100, 116, 139, 0.12);
   color: #64748b;
   backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 body.ats-mode-active .a4-page-fold-badge {
   background: rgba(255, 255, 255, 0.1);
   color: #94a3b8;
+}
+
+.a4-page-delete-btn {
+  position: relative;
+  z-index: 70 !important;
+  pointer-events: auto !important;
 }
 
 /* ==========================================================

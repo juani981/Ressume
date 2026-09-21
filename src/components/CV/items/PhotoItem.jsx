@@ -10,9 +10,9 @@
  * - Clean, zero-artifact 100% semantic render in print mode
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useCV } from '../../../context/CVContext';
-import { Upload, Link2, Trash2, Circle, Square, Image as ImageIcon } from 'lucide-react';
+import { Upload, Link2, Trash2, Circle, Square, Image as ImageIcon, Camera } from 'lucide-react';
 
 /**
  * Print View: Pure semantic image container for PDF & Print.
@@ -58,10 +58,14 @@ const PhotoItemPrintView = ({ item }) => {
 
 /**
  * Edit View: Interactive editor container with file upload, URL input, and shape toggle.
+ * When not hovering, controls are hidden and take 0 space in the layout flow.
+ * On hover, controls float in an elegant 2-column popover without increasing component size.
  */
 const PhotoItemEditView = ({ item, sectionId }) => {
   const { updateSectionItem } = useCV();
   const fileInputRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const url = item?.url || '';
   const shape = item?.shape || 'circle';
@@ -106,13 +110,16 @@ const PhotoItemEditView = ({ item, sectionId }) => {
   return (
     <div 
       className="cv-photo-item-edit"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
+        position: 'relative',
         display: 'flex',
-        flexDirection: 'column',
+        justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
-        padding: '0.5rem 0',
-        gap: '0.65rem'
+        margin: '0 auto 0.75rem auto',
+        padding: '4px 0'
       }}
     >
       {/* Hidden File Input */}
@@ -127,42 +134,45 @@ const PhotoItemEditView = ({ item, sectionId }) => {
 
       {/* Image Preview or Placeholder */}
       <div 
+        className="cv-photo-preview-wrapper"
+        onClick={() => fileInputRef.current?.click()}
         style={{
-          position: 'relative',
           width: `${size}px`,
           height: `${size}px`,
           borderRadius,
-          border: '2px dashed #cbd5e1',
+          border: url ? '2px solid rgba(0, 0, 0, 0.08)' : '2px dashed #cbd5e1',
           background: 'rgba(241, 245, 249, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          transition: 'all 0.2s ease',
           boxShadow: url ? '0 4px 12px rgba(0, 0, 0, 0.08)' : 'none'
         }}
+        title="Haz clic para cambiar o subir imagen"
       >
         {url ? (
-          <img
-            src={url}
-            alt={item?.alt || 'Foto de Perfil'}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius
-            }}
-          />
+          <>
+            <img
+              src={url}
+              alt={item?.alt || 'Foto de Perfil'}
+              className="cv-photo-img"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius,
+                display: 'block'
+              }}
+            />
+            <div className="cv-photo-hover-hint no-print" data-editor-ui="true">
+              <Camera size={20} />
+              <span>Cambiar</span>
+            </div>
+          </>
         ) : (
           <div 
-            onClick={() => fileInputRef.current?.click()}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              cursor: 'pointer',
               color: '#64748b',
               padding: '1rem',
               textAlign: 'center'
@@ -174,165 +184,183 @@ const PhotoItemEditView = ({ item, sectionId }) => {
         )}
       </div>
 
-      {/* Interactive Controls Bar (Stripped in Print) */}
+      {/* Floating Interactive Controls Popover (2 Columns, Stripped in Print) */}
       <div 
-        className="no-print"
+        className={`no-print cv-photo-controls-floating ${isHovered || isFocused ? 'is-visible' : ''}`}
         data-editor-ui="true"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.45rem',
-          width: '100%',
-          maxWidth: '280px',
+          position: 'absolute',
+          bottom: 'calc(100% + 6px)',
+          left: '50%',
+          zIndex: 120,
+          width: '320px',
           background: '#ffffff',
           border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '0.5rem 0.65rem',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+          borderRadius: '10px',
+          padding: '8px 10px',
+          boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          gap: '10px'
         }}
       >
-        {/* Buttons: Local Upload & Clear */}
-        <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              flex: 1,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-              padding: '0.35rem 0.5rem',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              background: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-            title="Subir archivo local"
-            data-testid="photo-upload-btn"
-          >
-            <Upload size={13} /> Subir Imagen
-          </button>
-
-          {url && (
+        {/* Column 1: Imagen (Upload / Clear & URL) */}
+        <div style={{ flex: '1.1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
             <button
               type="button"
-              onClick={handleClearImage}
+              onClick={() => fileInputRef.current?.click()}
               style={{
+                flex: 1,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.35rem 0.5rem',
-                fontSize: '0.75rem',
+                gap: '4px',
+                padding: '0.3rem 0.4rem',
+                fontSize: '0.72rem',
                 fontWeight: 600,
-                background: '#fef2f2',
-                color: '#dc2626',
-                border: '1px solid #fecaca',
-                borderRadius: '6px',
-                cursor: 'pointer'
+                background: '#eff6ff',
+                color: '#2563eb',
+                border: '1px solid #bfdbfe',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
               }}
-              title="Eliminar imagen"
-              data-testid="photo-clear-btn"
+              title="Subir archivo local"
+              data-testid="photo-upload-btn"
             >
-              <Trash2 size={13} />
+              <Upload size={12} /> Subir Imagen
             </button>
-          )}
+
+            {url && (
+              <button
+                type="button"
+                onClick={handleClearImage}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.3rem 0.4rem',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+                title="Eliminar imagen"
+                data-testid="photo-clear-btn"
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* URL Input */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}>
+            <Link2 size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="O ingresa URL..."
+              value={url.startsWith('data:') ? '' : url}
+              onChange={handleUrlChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              style={{
+                flex: 1,
+                width: '100%',
+                minWidth: 0,
+                padding: '0.25rem 0.35rem',
+                fontSize: '0.7rem',
+                borderRadius: '4px',
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                background: '#f8fafc'
+              }}
+              data-testid="photo-url-input"
+            />
+          </div>
         </div>
 
-        {/* URL Input */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}>
-          <Link2 size={13} color="#94a3b8" />
-          <input
-            type="text"
-            placeholder="O ingresa URL externa..."
-            value={url.startsWith('data:') ? '' : url}
-            onChange={handleUrlChange}
-            style={{
-              flex: 1,
-              padding: '0.25rem 0.4rem',
-              fontSize: '0.75rem',
-              borderRadius: '4px',
-              border: '1px solid #cbd5e1',
-              outline: 'none',
-              background: '#f8fafc'
-            }}
-            data-testid="photo-url-input"
-          />
-        </div>
-
-        {/* Shape and Size Selector */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingTop: '0.2rem' }}>
+        {/* Column 2: Formato & Tamaño (Shape & Size) */}
+        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '6px', borderLeft: '1px solid #f1f5f9', paddingLeft: '8px' }}>
           {/* Shapes */}
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center', width: '100%' }}>
             <button
               type="button"
               onClick={() => handleShapeChange('circle')}
               style={{
-                padding: '3px 6px',
+                flex: 1,
+                padding: '3px 4px',
                 borderRadius: '4px',
                 border: shape === 'circle' ? '1px solid #3b82f6' : '1px solid #e2e8f0',
                 background: shape === 'circle' ? '#eff6ff' : '#ffffff',
                 color: shape === 'circle' ? '#2563eb' : '#64748b',
                 cursor: 'pointer',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
               title="Forma Circular"
               data-testid="shape-circle-btn"
             >
-              <Circle size={12} />
+              <Circle size={11} />
             </button>
             <button
               type="button"
               onClick={() => handleShapeChange('rounded')}
               style={{
-                padding: '3px 6px',
+                flex: 1.4,
+                padding: '3px 4px',
                 borderRadius: '4px',
                 border: shape === 'rounded' ? '1px solid #3b82f6' : '1px solid #e2e8f0',
                 background: shape === 'rounded' ? '#eff6ff' : '#ffffff',
                 color: shape === 'rounded' ? '#2563eb' : '#64748b',
                 cursor: 'pointer',
-                fontSize: '0.7rem',
-                fontWeight: 600
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                textAlign: 'center'
               }}
               title="Bordes Redondeados"
               data-testid="shape-rounded-btn"
             >
-              Redondeada
+              Curva
             </button>
             <button
               type="button"
               onClick={() => handleShapeChange('square')}
               style={{
-                padding: '3px 6px',
+                flex: 1,
+                padding: '3px 4px',
                 borderRadius: '4px',
                 border: shape === 'square' ? '1px solid #3b82f6' : '1px solid #e2e8f0',
                 background: shape === 'square' ? '#eff6ff' : '#ffffff',
                 color: shape === 'square' ? '#2563eb' : '#64748b',
                 cursor: 'pointer',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
               title="Forma Cuadrada"
               data-testid="shape-square-btn"
             >
-              <Square size={12} />
+              <Square size={11} />
             </button>
           </div>
 
           {/* Size Preset */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Tamaño:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', width: '100%' }}>
+            <span style={{ fontSize: '0.68rem', color: '#64748b', whiteSpace: 'nowrap' }}>Tam:</span>
             <select
               value={size}
               onChange={(e) => handleSizeChange(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               style={{
-                fontSize: '0.7rem',
-                padding: '2px 4px',
+                flex: 1,
+                minWidth: 0,
+                fontSize: '0.68rem',
+                padding: '2px 2px',
                 borderRadius: '4px',
                 border: '1px solid #cbd5e1',
                 background: '#ffffff',

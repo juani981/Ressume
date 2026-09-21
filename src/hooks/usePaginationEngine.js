@@ -134,6 +134,21 @@ export function usePaginationEngine({
     };
   }, [areaCvRef, schedulePaginationRecalc]);
 
+  // 4. Re-calculate when web fonts finish loading
+  useEffect(() => {
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      let active = true;
+      document.fonts.ready.then(() => {
+        if (active) {
+          schedulePaginationRecalc();
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }
+  }, [schedulePaginationRecalc]);
+
   return {
     totalPages,
     pageCount: totalPages,

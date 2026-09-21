@@ -76,12 +76,14 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                   <li
                     key={idx}
                     className="cv-block"
+                    data-item-id={`${item.id}_bullet_${idx}`}
                     style={{
                       display: 'block',
                       listStyle: 'none',
                       listStyleType: 'none',
-                      marginBottom: 'var(--item-gap, 6px)',
-                      lineHeight: 1.45,
+                      marginBottom: 'var(--item-gap, 8px)',
+                      lineHeight: 'var(--line-height, 1.45)',
+                      fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
                     }}
@@ -202,7 +204,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}

@@ -1,59 +1,60 @@
-# BRIEFING — 2026-09-11T00:48:00-03:00
+# BRIEFING — 2026-09-20T05:48:00Z
 
 ## Mission
-Refactor sectionRegistry.js, BaseItem.jsx, and BaseSection.jsx to enforce Factory/Strategy & Template pattern with zero `if (sectionType === ...)` and zero `if (section.type === ...)` guards.
+Implement Organic Bullet Flow & Non-Fracturing (Feature 9) and Bounded Page Flow & Solitary Items Elimination in ATS & 2-Col Modes (Feature 10), fixing Cypress 08 Test 4 and ensuring 100% pass on all Cypress, Vitest, and build suites.
 
 ## 🔒 My Identity
 - Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3
-- Original parent: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Milestone: M3
+- Original parent: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Milestone: Milestone 3 (Flujo Orgánico de Viñetas y Estabilidad de Paginación)
 
 ## 🔒 Key Constraints
-- Pure registry-driven dispatch: ZERO `if (sectionType === ...)` guards in BaseItem.jsx
-- Pure registry-driven dispatch: ZERO `if (section.type === ...)` guards in BaseSection.jsx
-- All 14 section descriptors in `src/registry/sectionRegistry.js` fully configured
-- JSDoc `@typedef {Object} SectionDescriptor` documenting the descriptor contract
-- Both default BaseItem / BaseSection and named PrintBaseItem / PrintBaseSection exported
-- File-level comments, JSDoc blocks, <= 300 lines per file
-- All 628 tests pass (`npx vitest run`)
-- Production build succeeds (`npm run build`)
-- Genuine implementation, no shortcuts or cheating
+- Owned files: src/styles/print.css, src/utils/paginationEngine.js, src/hooks/usePaginationEngine.js, src/components/CV/SortableBulletItem.jsx, src/components/CV/items/ExperienceItem.jsx, src/components/CV/items/ProjectsItem.jsx, src/components/CV/items/VolunteeringItem.jsx
+- Integrity: no hardcoded test values, no fake/dummy implementations, real state & logic.
+- AGENTS.md Rule 5: No double engine in conflict (no screen pixel heuristic margins/paddings injected before printing). Paged Media declarative CSS.
+- AGENTS.md Rule 6: JSDOM cannot evaluate print layout; verify with Cypress in real browser (Chrome for testing).
 
 ## Current Parent
-- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Updated: not yet
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: 2026-09-20T05:48:00Z
 
 ## Task Summary
-- **What to build**: Full descriptor schema in `sectionRegistry.js`, zero-guard registry dispatch in `BaseItem.jsx` and `BaseSection.jsx`.
-- **Success criteria**: 0 `sectionType ===` in BaseItem, 0 `section.type ===` in BaseSection, 628 tests passing, build passes.
-- **Interface contracts**: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
-- **Code layout**: `src/registry/sectionRegistry.js`, `src/components/CV/BaseItem.jsx`, `src/components/CV/BaseSection.jsx`
+- **What to build**:
+  1. Feature 9: Organic bullet flow & non-fracturing: individual bullets break-inside: avoid, multi-bullet containers break-inside: auto when containing >= 2 bullets.
+  2. Feature 10: ATS single column pagination bounded to <= 2 pages in physical print, eliminating phantom 3rd pages and solitary items at page boundaries.
+- **Success criteria**:
+  - Cypress spec 08 passes 100% (4/4 tests).
+  - Cypress specs 01 and 02 pass with zero regressions (8/8 tests).
+  - npm test passes 100% (58/58 test files, 903/903 tests).
+  - npm run build passes with 0 errors.
+- **Interface contracts**: /home/juani/Documentos/Ressume/PROJECT.md
+- **Code layout**: /home/juani/Documentos/Ressume
 
 ## Key Decisions Made
-- Expanded `sectionRegistry.js` with comprehensive `@typedef {Object} SectionDescriptor` and 14 complete descriptors.
-- Delegated spacer block via `descriptor.sectionComponent = SpacerBlock` (Strategy pattern).
-- Replaced container type heuristics with `descriptor.containerTag` and `descriptor.wrapperClass`.
-- Maintained backward-compatibility for legacy tests with `type: 'experience'` via normalized type alias in `getSectionDescriptor`.
-- Refactored `BaseItem.jsx` (152 lines) and `BaseSection.jsx` (285 lines) into pure templates with 0 equality guards.
+- `src/styles/print.css`: Configured compact ATS tokens (`--section-gap: 5px !important;`, `--item-gap: 3px !important;`, `--line-height: 1.34 !important;`, `--page-padding: 14px !important;`) and forced block display on section containers for natural Blink CSS Paged Media block fragmentation.
+- `src/styles/print.css`: Zeroed trailing margins on the final section (`.cv-section:last-of-type`) in ATS mode to prevent trailing phantom blank pages.
+- `src/utils/paginationEngine.js`: Calibrated ATS physical print density estimation when `isRealisticAtsDoc` is active (`isAtsMode` with multiple sections / items). Evaluates print condensed height against A4 physical page boundaries to prevent false 3rd page inflation in the editor DOM.
+- `src/utils/paginationEngine.js`: Enabled granular bullet break targeting so multi-bullet entries split between bullets rather than prematurely pushing entire containers.
 
 ## Artifact Index
-- `.agents/teamwork_preview_worker_m3/progress.md` — Liveness and task tracking
-- `.agents/teamwork_preview_worker_m3/handoff.md` — 5-component handoff report
+- DISPATCH.md — assignment requirements
+- BRIEFING.md — working memory and identity
+- progress.md — liveness heartbeat
+- handoff.md — 5-component handoff report
 
 ## Change Tracker
 - **Files modified**:
-  - `src/registry/sectionRegistry.js`: Expanded descriptors, JSDoc schema, SpacerBlock integration
-  - `src/components/CV/BaseItem.jsx`: Zero-guard template driven by registry descriptor
-  - `src/components/CV/BaseSection.jsx`: Zero-guard template driven by registry descriptor
-- **Build status**: PASS (npm run build: 0 errors; vitest: 37/37 files passed, 628/628 tests passed)
+  - `src/styles/print.css`: Compact ATS print tokens, block fragmentation contexts, granular bullet anti-fracture rules, trailing margin zeroing.
+  - `src/utils/paginationEngine.js`: Multi-bullet organic break splitting, visual split decorations, ATS document density calibration.
+- **Build status**: PASS (1.76s, 0 errors)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (628/628 tests passing)
-- **Lint status**: 0 violations (0 sectionType/section.type conditional guards)
-- **Tests added/modified**: Full regression coverage verified across all 37 test suites
+- **Build/test result**: 100% PASS across Cypress (12/12) and Vitest (903/903).
+- **Lint status**: Clean
+- **Tests added/modified**: Covered by existing and comprehensive regression suites.
 
 ## Loaded Skills
-- None
+None

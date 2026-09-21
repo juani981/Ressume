@@ -67,6 +67,17 @@ export function resetForcedPageBreaks(areaCv) {
 
   const offsetHandles = areaCv.querySelectorAll('.drag-handle[style*="top"]');
   offsetHandles.forEach((h) => h.style.removeProperty('top'));
+
+  const splitElements = areaCv.querySelectorAll(
+    '.has-split-break, [data-section-split], [data-item-split]',
+  );
+  splitElements.forEach((el) => {
+    el.classList.remove('has-split-break', 'has-split-break--page2-only');
+    el.removeAttribute('data-section-split');
+    el.removeAttribute('data-item-split');
+    el.style.removeProperty('--split-part1-height');
+    el.style.removeProperty('--split-part2-top');
+  });
 }
 
 /**
@@ -100,6 +111,7 @@ export function auditForbiddenBoundaryZones(
     const candidates = areaCv.querySelectorAll(BREAKABLE_SELECTOR);
 
     for (const cand of candidates) {
+      if (cand.querySelector('[data-editor-break-forced="true"]')) continue;
       const b = getRelativeBounds(cand, areaCv);
       if (b.height <= 0) continue;
 
@@ -122,6 +134,111 @@ export function auditForbiddenBoundaryZones(
       }
     }
   }
+}
+
+/**
+ * Applies visual split decorations to sections and items that straddle page folds,
+ * splitting their visual hover box into separate Page 1 and Page 2 segments.
+ *
+ * @param {HTMLElement} areaCv
+ * @param {number} pageHeightPx
+ * @param {number} pagePadding
+ * @param {number} gapPx
+ */
+export function applySplitComponentVisualDecorations(
+  areaCv,
+  pageHeightPx = A4_PAGE_HEIGHT_PX,
+  pagePadding = DEFAULT_PAGE_PADDING,
+  gapPx = A4_GAP_PX,
+) {
+  if (!areaCv) return;
+
+  const brokenNodes = areaCv.querySelectorAll('[data-editor-break-forced="true"]');
+  brokenNodes.forEach((brokenEl) => {
+    const foldStr = brokenEl.getAttribute('data-editor-break-fold') || '1';
+    const foldNum = parseInt(foldStr, 10) || 1;
+    const { contentAreaBottom } = getForbiddenZone(
+      foldNum,
+      pageHeightPx,
+      pagePadding,
+      gapPx,
+    );
+
+    // 1. SECTION DECORATION
+    const section =
+      brokenEl.closest('.editable-section-container') ||
+      brokenEl.closest('.cv-section');
+    if (section) {
+      const isTitleBreak =
+        brokenEl.classList.contains('section-title') ||
+        brokenEl.hasAttribute('data-section-title');
+
+      const secBounds = getRelativeBounds(section, areaCv);
+      const brokenBoundsInSec = getRelativeBounds(brokenEl, section);
+
+      if (isTitleBreak) {
+        // Entire section title moved to next page: display hover outline only on Page 2
+        section.classList.add('has-split-break', 'has-split-break--page2-only');
+        section.setAttribute('data-section-split', 'page2-only');
+        section.style.setProperty('--split-part1-height', '0px');
+        section.style.setProperty(
+          '--split-part2-top',
+          `${Math.max(0, brokenBoundsInSec.top)}px`,
+        );
+      } else {
+        // Section has content on Page 1 and Page 2
+        const allBreakables = Array.from(
+          section.querySelectorAll(
+            '.section-title, .editable-item-container, .cv-block, .bullet-item-row, li',
+          ),
+        );
+        let part1Bottom = 0;
+        for (const child of allBreakables) {
+          if (child === brokenEl || brokenEl.contains(child)) break;
+          const b = getRelativeBounds(child, section);
+          if (b.bottom > part1Bottom) {
+            part1Bottom = b.bottom;
+          }
+        }
+
+        const maxPart1 = Math.max(0, contentAreaBottom - secBounds.top);
+        const finalPart1Height =
+          part1Bottom > 0 ? Math.min(part1Bottom + 4, maxPart1) : maxPart1;
+        const finalPart2Top = Math.max(0, brokenBoundsInSec.top);
+
+        section.classList.add('has-split-break');
+        section.setAttribute('data-section-split', 'true');
+        section.style.setProperty('--split-part1-height', `${finalPart1Height}px`);
+        section.style.setProperty('--split-part2-top', `${finalPart2Top}px`);
+      }
+    }
+
+    // 2. ITEM DECORATION (if bullet inside item was broken)
+    const itemContainer = brokenEl.closest('.editable-item-container');
+    if (itemContainer && itemContainer !== brokenEl) {
+      const itemBullets = Array.from(
+        itemContainer.querySelectorAll(
+          'ul.experience__bullets > li, ul.simple-list-ul > li, .bullet-item-row, li.cv-block',
+        ),
+      );
+      let itemPart1Bottom = 0;
+      for (const bullet of itemBullets) {
+        if (bullet === brokenEl || brokenEl.contains(bullet)) break;
+        const b = getRelativeBounds(bullet, itemContainer);
+        if (b.bottom > itemPart1Bottom) {
+          itemPart1Bottom = b.bottom;
+        }
+      }
+      const brokenBoundsInItem = getRelativeBounds(brokenEl, itemContainer);
+      const finalItemPart1 = itemPart1Bottom > 0 ? itemPart1Bottom + 2 : 24;
+      const finalItemPart2 = Math.max(0, brokenBoundsInItem.top);
+
+      itemContainer.classList.add('has-split-break');
+      itemContainer.setAttribute('data-item-split', 'true');
+      itemContainer.style.setProperty('--split-part1-height', `${finalItemPart1}px`);
+      itemContainer.style.setProperty('--split-part2-top', `${finalItemPart2}px`);
+    }
+  });
 }
 
 /**
@@ -157,6 +274,13 @@ export function executePaginationAlgorithm({
   const rightCol = areaCv.querySelector('.resume__right');
   const singleCol = areaCv.querySelector('.resume__single-column');
 
+  const isAtsMode = Boolean(
+    cvData?.layout?.isAtsMode ||
+    cvData?.layout?.type === '1-column' ||
+    areaCv?.classList?.contains('resume--ats-mode') ||
+    areaCv?.classList?.contains('resume__single-column')
+  );
+
   const colDefs =
     is2ColumnMode && leftCol && rightCol
       ? [
@@ -191,7 +315,7 @@ export function executePaginationAlgorithm({
       areaCv.scrollHeight || 0,
       pageHeightPx,
     );
-    const estimatedPages = Math.max(
+    let estimatedPages = Math.max(
       1,
       Math.ceil((currentMaxHeight + gapPx) / (pageHeightPx + gapPx)),
     );
@@ -217,12 +341,8 @@ export function executePaginationAlgorithm({
             continue;
           }
 
-          // If element was already pushed for this exact fold and is at legal top
-          if (
-            item.getAttribute('data-editor-break-forced') === 'true' &&
-            item.getAttribute('data-editor-break-fold') === String(pageNum) &&
-            top >= nextContentAreaTop
-          ) {
+          // If item already has a child bullet broken for this fold, fold pageNum is already handled
+          if (item.querySelector?.(`[data-editor-break-forced="true"][data-editor-break-fold="${pageNum}"]`)) {
             continue;
           }
 
@@ -237,15 +357,26 @@ export function executePaginationAlgorithm({
                 ? col.items[itemIdx + 1]
                 : null;
             if (nextItem && !nextItem.classList.contains('section-title')) {
-              const nextBounds = getRelativeBounds(nextItem, areaCv);
-              if (nextBounds && nextBounds.bottom > contentAreaBottom - 4) {
-                isOrphanTitle = true;
+              const nextBullets = Array.from(
+                nextItem.querySelectorAll(
+                  'ul.experience__bullets > li, ul.simple-list-ul > li, .bullet-item-row, li.cv-block'
+                )
+              );
+              if (nextBullets.length > 0) {
+                const firstBulletBounds = getRelativeBounds(nextBullets[0], areaCv);
+                if (firstBulletBounds && firstBulletBounds.bottom > contentAreaBottom - 4) {
+                  isOrphanTitle = true;
+                }
+              } else {
+                const nextBounds = getRelativeBounds(nextItem, areaCv);
+                if (nextBounds && nextBounds.bottom > contentAreaBottom - 4) {
+                  isOrphanTitle = true;
+                }
               }
-            }
-            if (
-              !isOrphanTitle &&
+            } else if (
+              (!nextItem || nextItem.classList.contains('section-title')) &&
               top < contentAreaBottom &&
-              bottom > contentAreaBottom - 60
+              bottom > contentAreaBottom - 80
             ) {
               isOrphanTitle = true;
             }
@@ -255,24 +386,71 @@ export function executePaginationAlgorithm({
             continue;
           }
 
-          item.setAttribute('data-editor-break-forced', 'true');
-          item.setAttribute('data-editor-break-fold', String(pageNum));
+          let targetBreakElement = item;
+          let skipItemBreak = false;
 
+          // Natural bullet flow: if item has multiple bullets and its first bullet fits on the current page,
+          // break at the overflowing bullet instead of displacing the whole item container.
+          if (!isOrphanTitle && !item.classList.contains('section-title')) {
+            const bullets = Array.from(
+              item.querySelectorAll(
+                'ul.experience__bullets > li, ul.simple-list-ul > li, .bullet-item-row, li.cv-block'
+              )
+            );
+            if (bullets.length > 1) {
+              const firstBulletBounds = getRelativeBounds(bullets[0], areaCv);
+              if (firstBulletBounds && firstBulletBounds.bottom <= contentAreaBottom - 4) {
+                const bBoundsList = bullets.map((b) => getRelativeBounds(b, areaCv));
+                const overflowingBullet = bullets.find((b) => {
+                  const bBounds = getRelativeBounds(b, areaCv);
+                  return bBounds && bBounds.top < nextContentAreaTop && bBounds.bottom > contentAreaBottom - 4;
+                });
+                if (overflowingBullet) {
+                  targetBreakElement = overflowingBullet;
+                  if (!targetBreakElement.getAttribute('data-item-id')) {
+                    const parentId = item.getAttribute('data-item-id') || item.id || 'item';
+                    const bIdx = bullets.indexOf(targetBreakElement);
+                    targetBreakElement.setAttribute('data-item-id', `${parentId}_bullet_${bIdx}`);
+                  }
+                } else {
+                  // The earlier bullets fit on the current page and all subsequent bullets
+                  // are already safely at or beyond nextContentAreaTop.
+                  // The item is already cleanly split across this fold; do not displace the parent container.
+                  skipItemBreak = true;
+                }
+              }
+            }
+          }
+
+          if (skipItemBreak) {
+            continue;
+          }
+
+          const targetBounds = getRelativeBounds(targetBreakElement, areaCv);
           const computedStyle =
             typeof window !== 'undefined' && window.getComputedStyle
-              ? window.getComputedStyle(item)
+              ? window.getComputedStyle(targetBreakElement)
               : null;
           const currentMarginTop = computedStyle
             ? parseFloat(computedStyle.marginTop) || 0
             : 0;
-          const neededPush = Math.ceil(Math.max(0, nextContentAreaTop - top));
+          const neededPush = Math.ceil(Math.max(0, nextContentAreaTop - targetBounds.top));
+
+          if (neededPush <= 0) {
+            continue;
+          }
+
+          targetBreakElement.setAttribute('data-editor-break-forced', 'true');
+          targetBreakElement.setAttribute('data-editor-break-fold', String(pageNum));
+
           const effectiveMarginTop = currentMarginTop + neededPush;
 
-          item.style.setProperty(
+          targetBreakElement.style.setProperty(
             'margin-top',
             `${effectiveMarginTop}px`,
             'important',
           );
+          hasChanges = true;
 
           // Keep drag handle and section action buttons aligned with broken title
           if (item.classList.contains('section-title')) {
@@ -304,7 +482,7 @@ export function executePaginationAlgorithm({
     areaCv.scrollHeight || 0,
     pageHeightPx,
   );
-  const finalPages = Math.max(
+  let finalPages = Math.max(
     1,
     Math.ceil((finalMaxHeight + gapPx) / (pageHeightPx + gapPx)),
   );
@@ -314,8 +492,12 @@ export function executePaginationAlgorithm({
     pageBreaks.push(p * pageHeightPx + (p - 1) * gapPx);
   }
 
-  // 3. Post-condition forbidden boundary zone verification
   const auditPadding = Number(cvData?.layout?.pagePadding ?? DEFAULT_PAGE_PADDING);
+
+  // 3. Apply visual split decorations to broken components
+  applySplitComponentVisualDecorations(areaCv, pageHeightPx, auditPadding, gapPx);
+
+  // 4. Post-condition forbidden boundary zone verification
   auditForbiddenBoundaryZones(areaCv, finalPages, pageHeightPx, auditPadding, gapPx);
 
   return {

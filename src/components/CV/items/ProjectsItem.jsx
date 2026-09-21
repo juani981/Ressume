@@ -39,7 +39,7 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
             />
           </h3>
           {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 isPrint={true}
@@ -86,12 +86,14 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
                   <li
                     key={idx}
                     className="cv-block"
+                    data-item-id={`${item.id}_bullet_${idx}`}
                     style={{
                       display: 'block',
                       listStyle: 'none',
                       listStyleType: 'none',
-                      marginBottom: 'calc(var(--item-gap, 6px) / 2)',
-                      lineHeight: 1.45,
+                      marginBottom: 'calc(var(--item-gap, 8px) / 2)',
+                      lineHeight: 'var(--line-height, 1.45)',
+                      fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
                     }}
@@ -171,7 +173,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
             />
           </h3>
           {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 onSave={(val) => onUpdateItem(sectionId, item.id, 'date', val)} 
@@ -224,7 +226,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -236,7 +238,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
                       bullets={bullets}
                       onUpdateItem={onUpdateItem}
                       onDeleteBullet={handleDeleteBullet}
-                      marginBottom="calc(var(--item-gap, 6px) / 2)"
+                      marginBottom="calc(var(--item-gap, 8px) / 2)"
                     />
                   ))}
                 </ul>

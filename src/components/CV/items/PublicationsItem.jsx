@@ -34,7 +34,7 @@ const PublicationsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
             />
           </h3>
           {item.date && (
-            <span style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 isPrint={isPrint}
@@ -46,7 +46,7 @@ const PublicationsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
         </div>
 
         {item.subtitle && (
-          <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
+          <div style={{ fontSize: 'var(--body-small-font-size, var(--small-font-size))', color: 'inherit', marginTop: '1px' }}>
             <InlineEdit 
               value={item.subtitle || ''} 
               isPrint={isPrint}

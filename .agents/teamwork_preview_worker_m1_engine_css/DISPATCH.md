@@ -1,100 +1,48 @@
-## Task Assignment: Milestone M1 & M2 — Print Engine & CSS Architecture Hardening
+## 2026-09-20T04:05:12Z
 
-### Identity
-- Role: Core Engine & CSS Implementer
-- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_worker_m1_engine_css
-
-### Inputs & Authoritative References
-- User Request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see ## 2026-09-11T16:11:48Z)
-- Architectural Audit Report: C:\Users\usuariodgc\Documents\Ressume\docs\audit-report.md
-- Guidelines: C:\Users\usuariodgc\Documents\Ressume\AGENTS.md
-- Explorer Reports:
-  - C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_explorer_survey_print\handoff.md
-  - C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_explorer_survey_css\handoff.md
-
-### MANDATORY INTEGRITY WARNING
-DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
-
-### File Ownership
-You exclusively own and may modify:
-1. `src/utils/staticHtmlPdfEngine.js`
-2. `src/App.jsx`
-3. `src/styles/print.css`
-Do NOT modify test files or other source files in this milestone.
-
-### Implementation Tasks
-1. **`src/utils/staticHtmlPdfEngine.js`**:
-   - **Dead code removal**: Delete unused function `renderItemHTML` (lines ~227–237) and unused imports (`normalizeItemContacts`, `getContactConfig`, `getBulletClasses`, `PrintBaseItem` at lines ~16–20).
-   - **JSDOM-only annotation**: Annotate `enforceTwoColumnComponentPagination` (line ~564) and lines ~907–927 with `// JSDOM-ONLY FALLBACK: unreachable in browser where #area-cv snapshot is available`.
-   - **CSS variable propagation**: In `executeCleanPrint`, implement transfer of all CSS custom properties (`--*`) set on `#area-cv` in the live editor to `doc.documentElement.style` on the print iframe root element:
-     ```javascript
-     if (typeof document !== 'undefined') {
-       const editorAreaCv = document.getElementById('area-cv');
-       if (editorAreaCv && editorAreaCv.style && doc.documentElement) {
-         for (let i = 0; i < editorAreaCv.style.length; i++) {
-           const prop = editorAreaCv.style[i];
-           if (prop.startsWith('--')) {
-             const val = editorAreaCv.style.getPropertyValue(prop);
-             const priority = editorAreaCv.style.getPropertyPriority(prop);
-             doc.documentElement.style.setProperty(prop, val, priority);
-           }
-         }
-       }
-     }
-     ```
-   - **Page break margin in JSDOM fallback**: Update line ~669 in `enforceTwoColumnComponentPagination` from `${pushDistance + 10}px` to `var(--page-padding, 24px) !important`.
-   - **Redundant inline styles removal**: In `executeCleanPrint` (lines ~847–856), remove redundant static assignments on `leftCol` and `rightCol` (`height: 100%`, `align-self: stretch`, `box-sizing: border-box`), preserving `min-height` and `--print-target-height-mm`. (Retain inline styles in `enforceTwoColumnComponentPagination` with `// JSDOM-ONLY FALLBACK` for unit test compatibility).
-
-2. **`src/App.jsx`**:
-   - Above line ~108 (`const gapPx = 20;`), add a prominent architectural block comment:
-     ```javascript
-     // ARCHITECTURAL INVARIANT: gapPx = 20 represents the visual fold separator (.a4-page-fold-guide)
-     // rendered between simulated A4 sheets in the live editor's continuous canvas.
-     // This gap exists EXCLUSIVELY in the editor view and MUST NEVER be introduced into the print
-     // path (print.css or staticHtmlPdfEngine.js), where physical paper is segmented by @page rules.
-     ```
-
-3. **`src/styles/print.css`**:
-   - Remove bare `@page` at lines 7–10 (which duplicates lines 13–16), so that all rules are inside the single `@media print { ... }` block.
-   - At lines ~53–54, change `box-decoration-break: clone !important;` to `box-decoration-break: slice !important;` (and `-webkit-box-decoration-break: slice !important;`) on `.resume__left, .resume__right` to prevent double-padding (48px) on page 2.
-   - At line ~181, harden `color: var(--circle-color, var(--text-color)) !important;` to `color: var(--circle-color, var(--text-color, #334155)) !important;`.
-
-### Verification Steps (Worker must run and document)
-1. Run `npm run build` — must succeed with 0 errors and 0 warnings.
-2. Run `npm test -- --run` — must pass with 0 failures, >=634 passing tests.
-3. Verify `src/index.css` has 0 `@media print` blocks.
-4. Verify `src/styles/print.css` has 0 bare selector blocks.
-
-### Output
-Write a comprehensive handoff report to:
-`C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_worker_m1_engine_css\handoff.md`
-including Observation, Logic Chain, Caveats, Conclusion, and exact Build/Test Verification outputs.
-
-## 2026-09-11T16:24:04Z
-You are the Core Engine & CSS Implementer for Milestone M1 & M2.
-Your working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_worker_m1_engine_css
-Authoritative user request: C:\Users\usuariodgc\Documents\Ressume\.agents\ORIGINAL_REQUEST.md (see header ## 2026-09-11T16:11:48Z)
-Read your detailed task description in C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_worker_m1_engine_css\DISPATCH.md.
+<USER_REQUEST>
+You are a replacement Worker subagent (teamwork_preview_worker_m1_engine_css).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1_engine_css
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
+Explorer survey reports:
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o17_survey_1/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o17_survey_2/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o17_survey_3/handoff.md
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-You exclusively own:
-1. src/utils/staticHtmlPdfEngine.js
-2. src/App.jsx
-3. src/styles/print.css
+Scope and Exclusive File Ownership for Milestone 1:
+Files you own:
+- `src/utils/staticHtmlPdfEngine.js`
+- `src/styles/print.css`
 
-Apply the refactorings detailed in DISPATCH.md:
-- Remove dead code (renderItemHTML, unused imports) in staticHtmlPdfEngine.js.
-- Add JSDOM-only annotations to fallbacks.
-- Implement CSS variable propagation from editor #area-cv to iframe root doc.documentElement.style.
-- Update line ~669 to var(--page-padding, 24px) !important.
-- Remove redundant static inline styles on leftCol/rightCol in executeCleanPrint.
-- Add architectural comment on gapPx = 20 in App.jsx.
-- Remove bare @page rule in print.css, update box-decoration-break to slice, add fallback to circle-color at line ~181.
+Tasks for Milestone 1 (Eliminación de Doble Motor y Restauración de CSS Paged Media):
+1. In `src/utils/staticHtmlPdfEngine.js`:
+   - Purge screen-based `getBoundingClientRect()` heuristics in unpaginated screen iframes (AGENTS.md Rule 5 violation):
+     - Delete lines 1615–1638 ("Cross-page margin synchronization" via screen getBoundingClientRect).
+     - Delete lines 1590–1613 (JS anti-orphan check using screen coordinates); rely on declarative CSS `break-after: avoid` / `break-inside: avoid`.
+     - Delete lines 1394–1402 (screen coordinate break screening).
+     - Refactor or purge `enforceTwoColumnComponentPagination` so it does not inject conflicting inline `break-before: page !important` and `padding-top` based on screen getBoundingClientRect.
+   - Purge print scaling and zoom overrides:
+     - Delete lines 1453–1471, lines 1509–1525, and lines 1640–1661 (`calculatePrintScale`, `doc.body.style.zoom`, and runtime CSS variable overrides `--font-scale`, `--section-gap`, `--item-gap`, `--page-padding`).
+     - Remove fractional `effectiveTargetMm` scaling. Ensure min-height is set to strict integer A4 multiples: `calc(${totalPages} * 297mm) !important` (297mm, 594mm, 891mm).
+   - In `createSanitizedPrintClone`:
+     - Eliminate asymmetric inline `break-before: page !important` injection on single column tracks in 2-column mode (which overrides print.css and fractures Gecko columns).
+2. In `src/styles/print.css`:
+   - Implement declarative multi-page margins:
+     - Add `box-decoration-break: clone !important; -webkit-box-decoration-break: clone !important;` to `.resume__left, .resume__right, .resume__single-column` so that when columns fragment across pages, the browser natively applies top and bottom padding (`var(--page-padding)`) on every physical page fragment.
+     - Ensure `.section-title, h1, h2, h3` have `break-after: avoid !important; page-break-after: avoid !important;` to prevent orphaned headings declaratively.
+     - Ensure atomic items (`.cv-block`, `.bullet-item-row`, `li`) have `break-inside: avoid !important`.
+     - Remove the blanket `break-before: auto !important` on `.resume__left *` and `.resume__right *` in 2-column mode (lines 72–98) that neutralizes valid page breaks.
 
-Run verification:
-- npm run build (0 errors, 0 warnings)
-- npm test -- --run (0 failures, >=634 passed)
+3. Verification:
+   - Run `npm test` to ensure Vitest suite passes without regressions.
+   - Run `npm run build` to ensure the production build succeeds with 0 errors.
+   - Run Cypress print test: `npx cypress run --browser chrome-for-testing --spec "cypress/e2e/01-print-lifecycle.cy.js,cypress/e2e/02-print-geometry-and-pagination.cy.js"` to verify basic print lifecycle and geometry pass.
 
-Write your full handoff report to C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_worker_m1_engine_css\handoff.md and message back when complete.
+Report your implementation, exact line changes, build and test results in `/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1_engine_css/handoff.md`.
+Send a message when complete.
+</USER_REQUEST>

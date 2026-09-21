@@ -43,6 +43,10 @@ export function computeTypographyTokens(layout = {}) {
   const pagePadding = layout.pagePadding ?? 24;
   const sectionGap = layout.sectionGap ?? 20;
   const itemGap = layout.itemGap ?? 8;
+  const leftColPercent = layout.leftColumnWidth || 33.33;
+  const gridTemplateColumns = layout.leftColumnWidth
+    ? `${layout.leftColumnWidth}% ${100 - layout.leftColumnWidth}%`
+    : '1fr 2fr';
 
   return {
     '--body-font': currentFontFamily,
@@ -54,6 +58,10 @@ export function computeTypographyTokens(layout = {}) {
     '--page-padding': `${pagePadding}px`,
     '--section-gap': `${sectionGap}px`,
     '--item-gap': `${itemGap}px`,
+    '--grid-template-columns': gridTemplateColumns,
+    '--left-col-percent': `${leftColPercent}%`,
+    '--left-bg': layout.leftBg || 'var(--container-color-alt)',
+    '--right-bg': layout.rightBg || '#ffffff',
   };
 }
 

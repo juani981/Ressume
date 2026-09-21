@@ -1,80 +1,55 @@
-# Worker M2 Task: SortableBulletItem Extraction & Deduplication
+## 2026-09-20T04:19:25Z
 
-## Working Directory
-`/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2`
-
-## Inputs
-- Authoritative Request: `/home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md` (section `## 2026-09-11T03:13:35Z`)
-- Project Scope: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_11/PROJECT.md`
-- Audit Blueprints: `/home/juani/Documentos/Ressume/docs/code-review.md` (Section 5.1 Blueprint 1)
-- Explorer 1 Findings: `/home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_survey_1/handoff.md` (Section 4)
-
-## Write Ownership
-- `src/components/CV/SortableBulletItem.jsx` (New file: create this)
-- `src/components/CV/items/ExperienceItem.jsx` (Edit: remove internal SortableBulletItem, import from ../SortableBulletItem)
-- `src/components/CV/items/ProjectsItem.jsx` (Edit: remove internal SortableBulletItem, import from ../SortableBulletItem)
-- `src/components/CV/items/VolunteeringItem.jsx` (Edit: remove internal SortableBulletItem, import from ../SortableBulletItem)
-
-## Task Description
-1. Create `src/components/CV/SortableBulletItem.jsx`:
-   - File-level comment explaining responsibility and contract.
-   - Comprehensive JSDoc block for component and props.
-   - Must support all props: `bulletId`, `bulletText`, `bulletIndex`, `sectionId`, `itemId`, `bullets`, `onUpdateItem`, `onDeleteBullet`, and optional `marginBottom = 'var(--item-gap, 6px)'`.
-   - Ensure classes `bullet-item-row editable-item-container cv-block` and drag listeners / handle are preserved exactly.
-   - Total lines must be <= 300 lines (actual will be ~80 lines).
-2. Refactor `ExperienceItem.jsx`:
-   - Delete lines 24–90 (the local `SortableBulletItem`).
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Keeps default `marginBottom` or passes `'var(--item-gap, 6px)'`.
-3. Refactor `ProjectsItem.jsx`:
-   - Delete lines 24–90 (the local `SortableBulletItem`).
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Passes `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
-4. Refactor `VolunteeringItem.jsx`:
-   - Delete lines 23–89 (the local `SortableBulletItem`).
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Passes `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
-5. Run test verification:
-   - Run `npx vitest run` and confirm all 628 tests pass across 37 test files.
-6. Write completion details and test results to `handoff.md` and message the orchestrator.
-
-## 2026-09-11T03:30:01Z
-You are Worker M2 for the Ressume Architectural Review & Refactoring project.
-Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
-Project root: /home/juani/Documentos/Ressume
-Authoritative request: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (see section ## 2026-09-11T03:13:35Z).
-Read DISPATCH at: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/DISPATCH.md.
+You are a Worker subagent (teamwork_preview_worker_m2).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
+Survey reports:
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o17_survey_2/handoff.md
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-YOUR ASSIGNMENT:
-Extract `SortableBulletItem` into a single shared component (`src/components/CV/SortableBulletItem.jsx`) and update `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` to import from it.
+Scope and Exclusive File Ownership for Milestone 2:
+Files you own:
+- `src/components/CV/items/ProjectsItem.jsx`
+- `src/components/CV/items/VolunteeringItem.jsx`
+- `src/components/CV/items/ReferencesItem.jsx`
+- `src/components/CV/items/PublicationsItem.jsx`
+- `src/components/CV/items/LanguagesItem.jsx`
+- `src/components/CV/items/CertificatesItem.jsx`
+- `src/components/CV/items/AwardsItem.jsx`
+- `src/components/CV/items/MentoringItem.jsx`
+- `src/components/CV/SortableBulletItem.jsx`
+- `src/components/CV/items/ExperienceItem.jsx`
+- `src/styles/index.css`
+- `src/styles/print.css`
+- `src/tests/m3-parity-and-forbidden-zones.test.jsx`
+- `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`
+- `src/tests/challenger-print-engine-stress.test.jsx`
 
-Exact Steps:
-1. Create `src/components/CV/SortableBulletItem.jsx`:
-   - File-level comment explaining responsibility and contract.
-   - JSDoc block for `SortableBulletItem` and all props.
-   - Accept: `bulletId`, `bulletText`, `bulletIndex`, `sectionId`, `itemId`, `bullets`, `onUpdateItem`, `onDeleteBullet`, and optional `marginBottom = 'var(--item-gap, 6px)'`.
-   - Preserve exact DOM structure: `<li ref={setNodeRef} style={style} className="bullet-item-row editable-item-container cv-block" {...attributes} {...containerDragListeners}>` with DragHandle, SimpleListItem, and delete button.
-   - Ensure file has < 300 lines.
-2. In `src/components/CV/items/ExperienceItem.jsx`:
-   - Remove internal duplicate `SortableBulletItem`.
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Clean up unused imports if any (e.g. if `useSortable` was only used by internal `SortableBulletItem`).
-3. In `src/components/CV/items/ProjectsItem.jsx`:
-   - Remove internal duplicate `SortableBulletItem`.
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Pass `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
-   - Clean up unused imports.
-4. In `src/components/CV/items/VolunteeringItem.jsx`:
-   - Remove internal duplicate `SortableBulletItem`.
-   - Import `SortableBulletItem` from `../SortableBulletItem`.
-   - Pass `marginBottom="calc(var(--item-gap, 6px) / 2)"`.
-   - Clean up unused imports.
-5. Verification:
-   - Run `npx vitest run` in project root. All 628 tests must pass.
-   - Run `npm run build` in project root. 0 errors.
-   - Check `grep -rn "const SortableBulletItem" src/` — verify it appears in exactly ONE file!
-6. Document your work, commands, and test outputs in `/home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/handoff.md`.
-7. Send a message to caller agent when complete.
+Tasks for Milestone 2 (Sincronización Estricta de Sliders y Variables de Diseño):
+1. **Harmonize Item Components Typography (Feature 5)**:
+   Update the 8 item components to use categorical scale CSS variables so that user slider adjustments to `bodyScale` and `listScale` take effect uniformly on dates, subtitles, and lists:
+   - `var(--body-smaller-font-size, var(--smaller-font-size))` instead of hardcoded `var(--smaller-font-size)`:
+     - `src/components/CV/items/ProjectsItem.jsx`
+     - `src/components/CV/items/VolunteeringItem.jsx`
+     - `src/components/CV/items/ReferencesItem.jsx`
+     - `src/components/CV/items/PublicationsItem.jsx`
+     - `src/components/CV/items/LanguagesItem.jsx`
+     - `src/components/CV/items/CertificatesItem.jsx`
+     - `src/components/CV/items/AwardsItem.jsx`
+     - `src/components/CV/items/MentoringItem.jsx`
+   - `var(--body-small-font-size, var(--small-font-size))` instead of hardcoded `var(--small-font-size)`:
+     - `ReferencesItem.jsx`, `PublicationsItem.jsx`, `CertificatesItem.jsx`, `LanguagesItem.jsx`, `AwardsItem.jsx`.
+   - `var(--list-font-size, var(--normal-font-size))` in `LanguagesItem.jsx` (language title).
+2. **Standardize `itemGap` & Spacing Fallbacks (Feature 6)**:
+   Align `itemGap` fallbacks across `index.css`, `print.css`, `SortableBulletItem.jsx`, and `ExperienceItem.jsx` to `var(--item-gap, 8px)`.
+3. **Connect Section Title Spacing to Sliders (Feature 7)**:
+   In `src/styles/index.css` and `src/styles/print.css`, change `.section-title` margin-bottom from hardcoded `1.5rem !important` (24px) to `var(--item-gap, 12px) !important` or `calc(var(--item-gap, 8px) * 1.5) !important` so section title spacing responds proportionally to spacing sliders.
+4. **Update Legacy Test Assertions**:
+   In `src/tests/m3-parity-and-forbidden-zones.test.jsx`, `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`, and `src/tests/challenger-print-engine-stress.test.jsx`, update the outdated assertions that checked for `box-decoration-break: slice` or tested the purged screen getBoundingClientRect anti-orphan logic so that all tests reflect the new CSS Paged Media `box-decoration-break: clone` architecture.
+5. **Verification**:
+   - Run `npm test` — all 58 test files and 900 tests must pass (100% green).
+   - Run `npm run build` — 0 errors.

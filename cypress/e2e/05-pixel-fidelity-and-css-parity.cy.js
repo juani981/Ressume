@@ -18,7 +18,9 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
     cy.stubPrint();
     cy.get('[data-testid="btn-action-native-print"]').click();
 
-    // 3. Validar geometría en el documento de impresión capturado
+    // 3. Validar geometría en el documento de impresión capturado bajo emulación de medios de impresión
+    cy.wrap(Cypress.automation('remote:debugger:protocol', { command: 'Emulation.setEmulatedMedia', params: { media: 'print' } }));
+
     cy.getLastPrintDoc().should((doc) => {
       const printCv = doc.getElementById('area-cv');
       expect(printCv, 'El contenedor #area-cv debe existir en el documento de impresión').to.not.be.null;
@@ -37,6 +39,8 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
       expect(bodyStyle.marginRight, 'El body impreso debe tener 0px de margen lateral').to.equal('0px');
       expect(bodyStyle.padding, 'El body impreso debe tener 0px de padding').to.equal('0px');
     });
+
+    cy.wrap(Cypress.automation('remote:debugger:protocol', { command: 'Emulation.setEmulatedMedia', params: { media: '' } }));
   });
 
   it('2. Paridad Tipográfica Elemento por Elemento: Font-family, font-size y line-height en sincronía exacta', () => {
@@ -70,7 +74,8 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
     cy.stubPrint();
     cy.get('[data-testid="btn-action-native-print"]').click();
 
-    // Comparar contra los estilos computados en el documento de impresión
+    // Comparar contra los estilos computados en el documento de impresión bajo emulación de medios
+    cy.emulatePrintMedia();
     cy.getLastPrintDoc().should((doc) => {
       const printWin = doc.defaultView;
       expect(printWin, 'defaultView debe existir').to.not.be.null;
@@ -104,6 +109,7 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
         }
       });
     });
+    cy.restoreScreenMedia();
   });
 
   it('3. Paridad Reactiva de Espaciados y Márgenes Dinámicos (--page-padding y --section-gap)', () => {
@@ -120,7 +126,9 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
     cy.stubPrint();
     cy.get('[data-testid="btn-action-native-print"]').click();
 
-    // 4. Verificar en el documento de impresión que las variables CSS y el espaciado son exactos
+    // 4. Verificar en el documento de impresión que las variables CSS y el espaciado son exactos bajo emulación de medios de impresión
+    cy.wrap(Cypress.automation('remote:debugger:protocol', { command: 'Emulation.setEmulatedMedia', params: { media: 'print' } }));
+
     cy.getLastPrintDoc().should((doc) => {
       const printCv = doc.getElementById('area-cv');
       const inlineStyle = printCv.getAttribute('style') || '';
@@ -136,6 +144,8 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
       // El ancho continúa siendo exactamente 794px
       expect(Math.round(parseFloat(cvStyle.width)), 'El ancho debe redondear a 794px').to.equal(794);
     });
+
+    cy.wrap(Cypress.automation('remote:debugger:protocol', { command: 'Emulation.setEmulatedMedia', params: { media: '' } }));
   });
 
   it('4. Paridad Textual Íntegra: 100% del contenido se clona verbatim sin omisiones', () => {
@@ -190,6 +200,7 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
 
     // 3. En el documento de impresión:
     // a) Artefactos destructivos/flotantes deben ser estrictamente CERO
+    cy.emulatePrintMedia();
     cy.getLastPrintDoc().should((doc) => {
       const printCv = doc.getElementById('area-cv');
       const printWin = doc.defaultView;
@@ -213,20 +224,14 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
       const calloutTooltips = printCv.querySelectorAll('.obsidian-callout, .suggestion-tooltip, .rich-toolbar');
       expect(calloutTooltips.length, 'Cero tooltips o callouts flotantes en el print doc').to.equal(0);
 
-      // 5. Componentes ADD preservados como espaciadores dimensionales transparentes
-      const addSpacers = printCv.querySelectorAll('[data-editor-add="true"], [data-print-transparent-spacer="true"], .print-transparent-spacer');
-      expect(addSpacers.length, 'Deben existir componentes de adición preservados como espaciadores transparentes').to.be.greaterThan(0);
-
-      addSpacers.forEach((el) => {
-        const comp = printWin.getComputedStyle(el);
-        expect(comp.visibility, 'El espaciador debe tener visibility: hidden').to.equal('hidden');
-        expect(comp.opacity, 'El espaciador debe tener opacity: 0').to.equal('0');
-        expect(comp.pointerEvents, 'No debe responder a eventos').to.equal('none');
-      });
+      // 5. Los componentes de adición (.column-add-section, etc.) se purgan intencionalmente del clean print snapshot sin dejar espacio residual
+      const addSpacers = printCv.querySelectorAll('.column-add-section, .add-section-btn, [data-editor-add="true"], [data-print-transparent-spacer="true"], .print-transparent-spacer');
+      expect(addSpacers.length, 'Los componentes de adición (.column-add-section) deben ser purgados del print snapshot sin dejar espacio residual').to.equal(0);
     });
+    cy.restoreScreenMedia();
   });
 
-  it('7. Paridad Dimensional y Anti-Cumulative Layout Shift en Componentes Aditivos', () => {
+  it('7. Purga de Componentes Aditivos (.column-add-section) en el Snapshot de Impresión para Fidelidad de Producción', () => {
     // 1. Obtener la altura del botón o contenedor de adición de sección en el editor en vivo
     let screenAddHeight = 0;
     cy.get('.column-add-section').first().then(($addSec) => {
@@ -239,22 +244,19 @@ describe('Fase 5: Fidelidad a Nivel de Píxel y Paridad CSS entre Pantalla y PDF
     cy.stubPrint();
     cy.get('[data-testid="btn-action-native-print"]').click();
 
-    // 3. Verificar que en el documento de impresión, el espaciador conserva su altura (NO colapsa a 0px)
+    // 3. Verificar que en el documento de impresión, el contenedor .column-add-section es intencionalmente purgado sin espacio residual
+    cy.emulatePrintMedia();
     cy.getLastPrintDoc().should((doc) => {
       const printWin = doc.defaultView;
       expect(printWin, 'defaultView debe existir').to.not.be.null;
 
       const printAddSec = doc.querySelector('.column-add-section');
-      expect(printAddSec, 'El contenedor .column-add-section debe estar presente en el print doc').to.not.be.null;
+      expect(printAddSec, 'El contenedor .column-add-section debe ser purgado del print snapshot para fidelidad de producción').to.be.null;
 
-      const compStyle = printWin.getComputedStyle(printAddSec);
-      expect(compStyle.display, 'No debe ser display: none').to.not.equal('none');
-      expect(compStyle.visibility, 'Debe ser visibility: hidden').to.equal('hidden');
-
-      const printRect = printAddSec.getBoundingClientRect();
-      expect(printRect.height, 'El espaciador debe conservar su altura física en el print doc').to.be.greaterThan(20);
-      expect(Math.abs(printRect.height - screenAddHeight), 'La diferencia de altura entre pantalla y print debe ser menor a 3px').to.be.lessThan(3);
+      const allAddControls = doc.querySelectorAll('.column-add-section, .add-section-btn, [data-editor-add="true"]');
+      expect(allAddControls.length, 'Cero elementos o botones de adición en el snapshot de impresión sin espacio residual').to.equal(0);
     });
+    cy.restoreScreenMedia();
   });
 
   it('6. Embebido Vectorial de Fuentes en el Archivo Físico .pdf real', () => {

@@ -212,11 +212,13 @@ const EditableBaseSection = ({ section }) => {
         className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
         data-editor-ui="true"
         data-testid={`section-actions-${section.id}`}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <button 
           type="button"
           className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
           title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
@@ -235,6 +237,7 @@ const EditableBaseSection = ({ section }) => {
             title="Personalizar círculo del título"
             aria-label="Personalizar círculo del título"
             data-testid={`btn-bullet-style-${section.id}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
@@ -250,6 +253,7 @@ const EditableBaseSection = ({ section }) => {
             type="button"
             className="round-btn-del section-del-btn"
             title={`Eliminar sección ${section.title || section.id}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               deleteSection(section.id);
@@ -286,6 +290,7 @@ const EditableBaseSection = ({ section }) => {
             data-editor-ui="true"
             data-editor-add="true"
             title={`Agregar nuevo elemento a ${section.title || 'esta sección'}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               addSectionItem(section.id);

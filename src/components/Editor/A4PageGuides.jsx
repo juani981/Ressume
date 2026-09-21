@@ -35,11 +35,11 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage })
             left: 0,
             right: 0,
             height: '20px',
-            zIndex: 35,
-            pointerEvents: 'none',
+            zIndex: 60,
+            pointerEvents: 'auto',
           }}>
           <div className="a4-page-fold-line" />
-          <span className="a4-page-fold-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <span className="a4-page-fold-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', zIndex: 65, position: 'relative', pointerEvents: 'auto' }}>
             Página {i + 2}
             {typeof onDeletePage === 'function' && (
               <button
@@ -52,6 +52,8 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage })
                 }}
                 title={`Eliminar página ${i + 2}`}
                 style={{
+                  position: 'relative',
+                  zIndex: 70,
                   pointerEvents: 'auto',
                   background: '#ef4444',
                   color: '#ffffff',

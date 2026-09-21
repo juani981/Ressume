@@ -28,7 +28,18 @@ export const defaultSchema = {
         {
           id: "prof1",
           name: "TU NOMBRE Y APELLIDO",
-          subtitle: "Título Profesional / Especialidad",
+          subtitle: "Título Profesional / Especialidad"
+        }
+      ]
+    },
+    {
+      id: "contact",
+      column: "left",
+      type: "contact",
+      title: "",
+      items: [
+        {
+          id: "contact1",
           location: "Ciudad, País",
           email: "tuemail@ejemplo.com",
           phone: "+00 123 456 789",
