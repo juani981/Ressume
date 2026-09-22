@@ -5,7 +5,6 @@ import TranslationModal from './TranslationModal';
 import VersionManagerModal from './VersionManagerModal';
 import ColorPickerSwatch from './ColorPickerSwatch';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
-import { useTypstPdfEngine } from '../../hooks/useTypstPdfEngine';
 import { 
   Columns, 
   FileText,
@@ -22,8 +21,7 @@ import {
   BotMessageSquare,
   Languages,
   FolderDown,
-  FileX,
-  Sparkles
+  FileX
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -40,8 +38,6 @@ const ActionMenu = () => {
     totalPages,
     deletePage
   } = useCV();
-
-  const { exportTypstPDF, isExporting: isTypstExporting, isInitializing: isTypstInitializing } = useTypstPdfEngine();
 
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -78,53 +74,32 @@ const ActionMenu = () => {
     if (loading) return;
     setLoading(true);
 
-    // 1. Inicia toast de carga con spinner
     showToast('Generando PDF optimizado y preparando impresión...', 'loading', 0);
 
-    let isFinished = false;
-    let focusTimeout = null;
-    let fallbackTimeout = null;
-
     const onControlReturned = () => {
-      if (isFinished) return;
-      isFinished = true;
-      if (focusTimeout) clearTimeout(focusTimeout);
-      if (fallbackTimeout) clearTimeout(fallbackTimeout);
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('afterprint', onControlReturned);
-        window.removeEventListener('print-dialog-closed', onControlReturned);
-        window.removeEventListener('focus', onControlReturned);
-      }
       setLoading(false);
-      // 2. Notificación de confirmación tras cerrar el diálogo o retomar el control
-      showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
+      showToast('¡Documento procesado correctamente!', 'success', 3500);
     };
 
-    // Escuchar eventos de cierre de impresión y foco del usuario
     if (typeof window !== 'undefined') {
       window.addEventListener('afterprint', onControlReturned, { once: true });
       window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
     }
 
-    focusTimeout = setTimeout(() => {
-      if (typeof window !== 'undefined' && !isFinished) {
-        window.addEventListener('focus', onControlReturned, { once: true });
-      }
-    }, 1200);
-
-    // Fallback de seguridad en caso de entornos donde no se disparen eventos de ventana
-    fallbackTimeout = setTimeout(() => {
-      onControlReturned();
-    }, 8000);
-
     try {
       await executeCleanPrint(cvData, activeLanguage);
+      onControlReturned();
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
-      if (typeof window !== 'undefined') {
-        window.print();
-      }
+      try {
+        if (typeof window !== 'undefined' && typeof window.print === 'function') {
+          window.print();
+        }
+      } catch (_) {}
+      showToast('Error generando PDF: ' + (e?.message || e), 'error', 4000);
       onControlReturned();
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -382,57 +357,25 @@ const ActionMenu = () => {
           </button>
           <span className="action-menu-tooltip">Gestor de Versiones</span>
         </div>
-        {/* 8. Acciones de Exportación */}
-        <div className="action-menu-btn-wrap">
-          {/* Action 1: Native Print / Clean PDF Export */}
-        <button
-          type="button"
-          className="action-menu-btn"
-          onClick={handleGeneratePDF}
-          disabled={loading}
-          aria-label="Descargar / Imprimir PDF"
-          title="Descargar / Imprimir PDF"
-          data-testid="btn-action-native-print"
-        >
-            
-
-            {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={20} color='#DC143C'/>}
-          
-          </button>
-          <span className="action-menu-tooltip">
-            Descargar/Imprimir PDF
-          </span>
-        </div>
-
-        {/* Action 2: Typst PDF Export — motor determinista WASM */}
+        {/* 8. Acción Principal de Exportación / Impresión Nativa Limpia */}
         <div className="action-menu-btn-wrap">
           <button
             type="button"
             className="action-menu-btn"
-            onClick={() => {
-              exportTypstPDF(cvData).catch(() => {});
-            }}
-            disabled={isTypstExporting || isTypstInitializing}
-            aria-label="Descargar PDF con Typst (alta fidelidad)"
-            title="Descargar PDF vectorial con Typst WASM (paginación determinista)"
-            data-testid="btn-action-typst-pdf"
-            style={{
-              color: (isTypstExporting || isTypstInitializing) ? '#a78bfa' : '#7c3aed',
-              opacity: (isTypstExporting || isTypstInitializing) ? 0.7 : 1,
-            }}
+            onClick={handleGeneratePDF}
+            disabled={loading}
+            aria-label="Descargar / Imprimir PDF"
+            title="Descargar PDF limpio (Impresión nativa del navegador con fidelidad 1:1)"
+            data-testid="btn-action-native-print"
           >
-            {(isTypstExporting || isTypstInitializing)
-              ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-              : <Sparkles size={20} />
-            }
+            {loading ? (
+              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <FileDown size={20} color="#DC143C" />
+            )}
           </button>
           <span className="action-menu-tooltip">
-            {isTypstInitializing
-              ? 'Cargando motor Typst (~13MB)…'
-              : isTypstExporting
-                ? 'Compilando PDF con Typst…'
-                : 'PDF Typst (paginación exacta)'
-            }
+            {loading ? 'Preparando impresión…' : 'Descargar / Imprimir PDF'}
           </span>
         </div>
 

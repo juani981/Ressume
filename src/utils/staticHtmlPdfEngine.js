@@ -1118,6 +1118,269 @@ export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = 
 };
 
 /**
+ * partitionAreaCvIntoA4PageBoxes
+ * Restructures an #area-cv DOM element into discrete, closed A4 page boxes (.a4-page-box)
+ * for printing, fulfilling Rule 12 and Rule 13 of AGENTS.md.
+ * 
+ * @param {HTMLElement} areaCv - The root CV element
+ * @param {Object} options - Optional parameters (totalPages, cvData, snapshot)
+ */
+export function partitionAreaCvIntoA4PageBoxes(areaCv, options = {}) {
+  if (!areaCv) return;
+  if (areaCv.querySelector('.a4-page-box')) return;
+
+  const totalPages = Math.max(1, options.totalPages || parseInt(areaCv.getAttribute('data-total-pages'), 10) || 1);
+  const is2Col = options.is2Col ?? (
+    areaCv.classList.contains('bd-grid') ||
+    Boolean(areaCv.querySelector('.resume__left') && areaCv.querySelector('.resume__right'))
+  );
+
+  const doc = areaCv.ownerDocument || (typeof document !== 'undefined' ? document : null);
+  if (!doc) return;
+
+  const leftBg = options.cvData?.layout?.leftBg || areaCv.style.getPropertyValue('--left-bg') || '#fafafa';
+  const rightBg = options.cvData?.layout?.rightBg || areaCv.style.getPropertyValue('--right-bg') || '#ffffff';
+  const leftColWidth = options.cvData?.layout?.leftColumnWidth || areaCv.style.getPropertyValue('--left-col-width') || '33.33%';
+  const leftColPercent = parseFloat(leftColWidth) || 33.33;
+
+  // Single page case: wrap entire content into one A4PageBox
+  if (totalPages <= 1) {
+    const pageBox = doc.createElement('div');
+    pageBox.className = 'a4-page-box';
+    pageBox.setAttribute('data-page-number', '1');
+    pageBox.style.setProperty('width', '210mm', 'important');
+    pageBox.style.setProperty('min-width', '210mm', 'important');
+    pageBox.style.setProperty('max-width', '210mm', 'important');
+    pageBox.style.setProperty('height', '297mm', 'important');
+    pageBox.style.setProperty('min-height', '297mm', 'important');
+    pageBox.style.setProperty('max-height', '297mm', 'important');
+    pageBox.style.setProperty('overflow', 'hidden', 'important');
+    pageBox.style.setProperty('box-sizing', 'border-box', 'important');
+    pageBox.style.setProperty('break-after', 'auto', 'important');
+    pageBox.style.setProperty('page-break-after', 'auto', 'important');
+    pageBox.style.setProperty('position', 'relative', 'important');
+    pageBox.style.setProperty('margin', '0 auto', 'important');
+    pageBox.style.setProperty('padding', '0', 'important');
+
+    if (is2Col) {
+      pageBox.style.background = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%)`;
+    }
+
+    while (areaCv.firstChild) {
+      pageBox.appendChild(areaCv.firstChild);
+    }
+    areaCv.appendChild(pageBox);
+    return;
+  }
+
+  // Multi-page case (totalPages >= 2)
+  const splitColumnElements = (colEl) => {
+    if (!colEl) return Array.from({ length: totalPages }, () => []);
+    const pages = Array.from({ length: totalPages }, () => []);
+    let currentP = 1;
+
+    const children = Array.from(colEl.children);
+    children.forEach((child) => {
+      if (child.getAttribute('data-target-page')) {
+        const p = parseInt(child.getAttribute('data-target-page'), 10);
+        if (p > currentP) currentP = p;
+      } else if (
+        child.getAttribute('data-editor-break-forced') === 'true' ||
+        child.getAttribute('data-page-break-forced') === 'true'
+      ) {
+        const fold = parseInt(
+          child.getAttribute('data-editor-break-fold') ||
+          child.getAttribute('data-page-break-fold') ||
+          '1',
+          10
+        );
+        currentP = Math.max(currentP, fold + 1);
+      }
+
+      const internalBreaks = child.querySelectorAll(
+        '[data-editor-break-forced="true"], [data-page-break-forced="true"], [data-target-page]'
+      );
+
+      if (internalBreaks.length > 0 && (child.classList.contains('section') || child.classList.contains('cv-section') || child.classList.contains('editable-section-container'))) {
+        const titleEl = child.querySelector('.section-title');
+        const items = Array.from(child.children).filter(el => el !== titleEl && !el.classList.contains('section-add-container'));
+        
+        let itemPage = currentP;
+        const sectionPageItems = Array.from({ length: totalPages }, () => []);
+
+        items.forEach((item) => {
+          if (item.getAttribute('data-target-page')) {
+            const p = parseInt(item.getAttribute('data-target-page'), 10);
+            if (p > itemPage) itemPage = p;
+          } else if (
+            item.getAttribute('data-editor-break-forced') === 'true' ||
+            item.getAttribute('data-page-break-forced') === 'true'
+          ) {
+            const fold = parseInt(
+              item.getAttribute('data-editor-break-fold') ||
+              item.getAttribute('data-page-break-fold') ||
+              '1',
+              10
+            );
+            itemPage = Math.max(itemPage, fold + 1);
+          }
+          const pIdx = Math.min(itemPage - 1, totalPages - 1);
+          sectionPageItems[pIdx].push(item);
+        });
+
+        for (let pIdx = 0; pIdx < totalPages; pIdx++) {
+          if (sectionPageItems[pIdx].length > 0) {
+            const secClone = child.cloneNode(false);
+            if (pIdx === currentP - 1 && titleEl) {
+              secClone.appendChild(titleEl.cloneNode(true));
+            }
+            sectionPageItems[pIdx].forEach(item => secClone.appendChild(item));
+            pages[pIdx].push(secClone);
+          }
+        }
+        currentP = Math.max(currentP, itemPage);
+      } else {
+        const pIdx = Math.min(currentP - 1, totalPages - 1);
+        pages[pIdx].push(child);
+      }
+    });
+
+    return pages;
+  };
+
+  if (is2Col) {
+    const leftCol = areaCv.querySelector('.resume__left');
+    const rightCol = areaCv.querySelector('.resume__right');
+
+    const leftPages = splitColumnElements(leftCol);
+    const rightPages = splitColumnElements(rightCol);
+
+    areaCv.innerHTML = '';
+
+    for (let p = 0; p < totalPages; p++) {
+      const pageBox = doc.createElement('div');
+      pageBox.className = 'a4-page-box';
+      pageBox.setAttribute('data-page-number', String(p + 1));
+      pageBox.style.setProperty('width', '210mm', 'important');
+      pageBox.style.setProperty('min-width', '210mm', 'important');
+      pageBox.style.setProperty('max-width', '210mm', 'important');
+      pageBox.style.setProperty('height', '297mm', 'important');
+      pageBox.style.setProperty('min-height', '297mm', 'important');
+      pageBox.style.setProperty('max-height', '297mm', 'important');
+      pageBox.style.setProperty('overflow', 'hidden', 'important');
+      pageBox.style.setProperty('box-sizing', 'border-box', 'important');
+      pageBox.style.setProperty('position', 'relative', 'important');
+      pageBox.style.setProperty('margin', '0 auto', 'important');
+      pageBox.style.setProperty('padding', '0', 'important');
+
+      if (p === totalPages - 1) {
+        pageBox.style.setProperty('break-after', 'auto', 'important');
+        pageBox.style.setProperty('page-break-after', 'auto', 'important');
+      } else {
+        pageBox.style.setProperty('break-after', 'page', 'important');
+        pageBox.style.setProperty('page-break-after', 'always', 'important');
+      }
+
+      pageBox.style.background = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%)`;
+
+      const gridContainer = doc.createElement('div');
+      gridContainer.className = 'resume bd-grid';
+      gridContainer.style.setProperty('display', 'grid', 'important');
+      gridContainer.style.setProperty('grid-template-columns', `${leftColWidth} 1fr`, 'important');
+      gridContainer.style.setProperty('width', '100%', 'important');
+      gridContainer.style.setProperty('height', '100%', 'important');
+      gridContainer.style.setProperty('min-height', '297mm', 'important');
+      gridContainer.style.setProperty('max-height', '297mm', 'important');
+      gridContainer.style.setProperty('box-sizing', 'border-box', 'important');
+      gridContainer.style.setProperty('margin', '0', 'important');
+      gridContainer.style.setProperty('padding', '0', 'important');
+
+      const pageLeftCol = doc.createElement('div');
+      pageLeftCol.className = 'resume__left';
+      pageLeftCol.style.setProperty('background', leftBg, 'important');
+      pageLeftCol.style.setProperty('height', '100%', 'important');
+      pageLeftCol.style.setProperty('box-sizing', 'border-box', 'important');
+      pageLeftCol.style.setProperty('padding', 'var(--page-padding, 24px)', 'important');
+      leftPages[p].forEach(item => {
+        item.style.setProperty('margin-top', '0px', 'important');
+        item.style.setProperty('break-before', 'auto', 'important');
+        item.style.setProperty('page-break-before', 'auto', 'important');
+        item.classList.remove('force-page-break-before', 'break-page-before');
+        pageLeftCol.appendChild(item);
+      });
+
+      const pageRightCol = doc.createElement('div');
+      pageRightCol.className = 'resume__right';
+      pageRightCol.style.setProperty('background', rightBg, 'important');
+      pageRightCol.style.setProperty('height', '100%', 'important');
+      pageRightCol.style.setProperty('box-sizing', 'border-box', 'important');
+      pageRightCol.style.setProperty('padding', 'var(--page-padding, 24px)', 'important');
+      rightPages[p].forEach(item => {
+        item.style.setProperty('margin-top', '0px', 'important');
+        item.style.setProperty('break-before', 'auto', 'important');
+        item.style.setProperty('page-break-before', 'auto', 'important');
+        item.classList.remove('force-page-break-before', 'break-page-before');
+        pageRightCol.appendChild(item);
+      });
+
+      gridContainer.appendChild(pageLeftCol);
+      gridContainer.appendChild(pageRightCol);
+      pageBox.appendChild(gridContainer);
+      areaCv.appendChild(pageBox);
+    }
+  } else {
+    const singlePages = splitColumnElements(areaCv);
+    areaCv.innerHTML = '';
+
+    for (let p = 0; p < totalPages; p++) {
+      const pageBox = doc.createElement('div');
+      pageBox.className = 'a4-page-box';
+      pageBox.setAttribute('data-page-number', String(p + 1));
+      pageBox.style.setProperty('width', '210mm', 'important');
+      pageBox.style.setProperty('min-width', '210mm', 'important');
+      pageBox.style.setProperty('max-width', '210mm', 'important');
+      pageBox.style.setProperty('height', '297mm', 'important');
+      pageBox.style.setProperty('min-height', '297mm', 'important');
+      pageBox.style.setProperty('max-height', '297mm', 'important');
+      pageBox.style.setProperty('overflow', 'hidden', 'important');
+      pageBox.style.setProperty('box-sizing', 'border-box', 'important');
+      pageBox.style.setProperty('position', 'relative', 'important');
+      pageBox.style.setProperty('margin', '0 auto', 'important');
+      pageBox.style.setProperty('padding', '0', 'important');
+
+      if (p === totalPages - 1) {
+        pageBox.style.setProperty('break-after', 'auto', 'important');
+        pageBox.style.setProperty('page-break-after', 'auto', 'important');
+      } else {
+        pageBox.style.setProperty('break-after', 'page', 'important');
+        pageBox.style.setProperty('page-break-after', 'always', 'important');
+      }
+
+      const singleContainer = doc.createElement('div');
+      singleContainer.className = 'resume resume__single-column';
+      singleContainer.style.setProperty('width', '100%', 'important');
+      singleContainer.style.setProperty('height', '100%', 'important');
+      singleContainer.style.setProperty('min-height', '297mm', 'important');
+      singleContainer.style.setProperty('max-height', '297mm', 'important');
+      singleContainer.style.setProperty('box-sizing', 'border-box', 'important');
+      singleContainer.style.setProperty('padding', 'var(--page-padding, 24px)', 'important');
+      singleContainer.style.setProperty('background', '#ffffff', 'important');
+
+      singlePages[p].forEach(item => {
+        item.style.setProperty('margin-top', '0px', 'important');
+        item.style.setProperty('break-before', 'auto', 'important');
+        item.style.setProperty('page-break-before', 'auto', 'important');
+        item.classList.remove('force-page-break-before', 'break-page-before');
+        singleContainer.appendChild(item);
+      });
+
+      pageBox.appendChild(singleContainer);
+      areaCv.appendChild(pageBox);
+    }
+  }
+}
+
+/**
  * Creates an isolated iframe, writes clean print HTML, calculates auto-scale,
  * triggers browser native print, and cleans up the DOM.
  * @param {Object} cvData 
@@ -1180,9 +1443,17 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     const docLang = lang || cvData?.layout?.language || 'es';
 
     let bodyMarkup = '';
+    const is2Col = Boolean(liveAreaCv?.classList?.contains('bd-grid') || cvData?.layout?.type === '2-column' || (liveAreaCv?.querySelector?.('.resume__left') && liveAreaCv?.querySelector?.('.resume__right')));
+
     if (liveAreaCv) {
       const sanitizedClone = createSanitizedPrintClone(liveAreaCv);
       if (sanitizedClone) {
+        partitionAreaCvIntoA4PageBoxes(sanitizedClone, {
+          totalPages: snapshot?.totalPages,
+          cvData,
+          snapshot,
+          is2Col
+        });
         bodyMarkup = sanitizedClone.outerHTML;
       }
     }
@@ -1200,8 +1471,6 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
     activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
     activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
-
-    const is2Col = Boolean(liveAreaCv?.classList?.contains('bd-grid') || cvData?.layout?.type === '2-column' || (liveAreaCv?.querySelector?.('.resume__left') && liveAreaCv?.querySelector?.('.resume__right')));
 
     const hasParallelColumnBreaks = Boolean(
       liveAreaCv?.querySelector?.('.resume__left [data-editor-break-forced="true"]') &&
@@ -1469,6 +1738,7 @@ ${snapshotBreaksCSS}
               iframe.style.height = `${totalPages * pageHeightPx}px`;
             }
 
+            const isJSDOM = typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent);
             if (areaCv && areaCv.style) {
               areaCv.style.setProperty('width', '100%', 'important');
               areaCv.style.setProperty('max-width', '100%', 'important');

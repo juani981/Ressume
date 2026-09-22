@@ -60,6 +60,10 @@ export function resetForcedPageBreaks(areaCv) {
     el.removeAttribute('data-editor-break-fold');
   });
 
+  const previouslyTagged = areaCv.querySelectorAll('[data-target-page]');
+  previouslyTagged.forEach((el) => el.removeAttribute('data-target-page'));
+  areaCv.removeAttribute('data-total-pages');
+
   const offsetButtons = areaCv.querySelectorAll(
     '.section-action-buttons[style*="top"]',
   );
@@ -491,6 +495,25 @@ export function executePaginationAlgorithm({
   for (let p = 1; p < finalPages; p++) {
     pageBreaks.push(p * pageHeightPx + (p - 1) * gapPx);
   }
+
+  // Tag rich editor telemetry on DOM (Rule 14: Cero Adivinanzas Heurísticas)
+  areaCv.setAttribute('data-total-pages', String(finalPages));
+  colDefs.forEach((col) => {
+    col.items.forEach((item) => {
+      const { top } = getRelativeBounds(item, areaCv);
+      let targetPage = 1;
+      for (let p = 0; p < pageBreaks.length; p++) {
+        if (top >= pageBreaks[p] - 4) {
+          targetPage = p + 2;
+        }
+      }
+      if (item.getAttribute('data-editor-break-forced') === 'true') {
+        const fold = parseInt(item.getAttribute('data-editor-break-fold') || '1', 10);
+        targetPage = Math.max(targetPage, fold + 1);
+      }
+      item.setAttribute('data-target-page', String(targetPage));
+    });
+  });
 
   const auditPadding = Number(cvData?.layout?.pagePadding ?? DEFAULT_PAGE_PADDING);
 

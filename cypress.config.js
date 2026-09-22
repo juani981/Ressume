@@ -110,6 +110,19 @@ export default defineConfig({
           return null;
         },
 
+        getLatestDownloadedPdf(folderPath) {
+          const resolved = path.resolve(folderPath);
+          if (!fs.existsSync(resolved)) return null;
+          const files = fs.readdirSync(resolved).filter(f => f.endsWith('.pdf'));
+          if (files.length === 0) return null;
+          const sorted = files.map(f => ({
+            name: f,
+            path: path.join(resolved, f),
+            time: fs.statSync(path.join(resolved, f)).mtimeMs
+          })).sort((a, b) => b.time - a.time);
+          return sorted[0];
+        },
+
         printWithChrome({ url, outputPath }) {
           const resolvedOut = path.resolve(outputPath);
           if (fs.existsSync(resolvedOut)) {

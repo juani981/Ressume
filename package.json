@@ -4,9 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "copy:wasm": "node scripts/copyTypstWasm.mjs",
-    "predev": "npm run copy:wasm",
-    "prebuild": "npm run copy:wasm",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
