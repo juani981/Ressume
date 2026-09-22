@@ -5,6 +5,7 @@ import TranslationModal from './TranslationModal';
 import VersionManagerModal from './VersionManagerModal';
 import ColorPickerSwatch from './ColorPickerSwatch';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
+import { useTypstPdfEngine } from '../../hooks/useTypstPdfEngine';
 import { 
   Columns, 
   FileText,
@@ -21,7 +22,8 @@ import {
   BotMessageSquare,
   Languages,
   FolderDown,
-  FileX
+  FileX,
+  Sparkles
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -38,6 +40,8 @@ const ActionMenu = () => {
     totalPages,
     deletePage
   } = useCV();
+
+  const { exportTypstPDF, isExporting: isTypstExporting, isInitializing: isTypstInitializing } = useTypstPdfEngine();
 
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -397,6 +401,38 @@ const ActionMenu = () => {
           </button>
           <span className="action-menu-tooltip">
             Descargar/Imprimir PDF
+          </span>
+        </div>
+
+        {/* Action 2: Typst PDF Export — motor determinista WASM */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="action-menu-btn"
+            onClick={() => {
+              exportTypstPDF(cvData).catch(() => {});
+            }}
+            disabled={isTypstExporting || isTypstInitializing}
+            aria-label="Descargar PDF con Typst (alta fidelidad)"
+            title="Descargar PDF vectorial con Typst WASM (paginación determinista)"
+            data-testid="btn-action-typst-pdf"
+            style={{
+              color: (isTypstExporting || isTypstInitializing) ? '#a78bfa' : '#7c3aed',
+              opacity: (isTypstExporting || isTypstInitializing) ? 0.7 : 1,
+            }}
+          >
+            {(isTypstExporting || isTypstInitializing)
+              ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+              : <Sparkles size={20} />
+            }
+          </button>
+          <span className="action-menu-tooltip">
+            {isTypstInitializing
+              ? 'Cargando motor Typst (~13MB)…'
+              : isTypstExporting
+                ? 'Compilando PDF con Typst…'
+                : 'PDF Typst (paginación exacta)'
+            }
           </span>
         </div>
 

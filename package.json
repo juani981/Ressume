@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "copy:wasm": "node scripts/copyTypstWasm.mjs",
+    "predev": "npm run copy:wasm",
+    "prebuild": "npm run copy:wasm",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -17,6 +20,8 @@
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@myriaddreamin/typst-ts-web-compiler": "^0.7.0",
+    "@myriaddreamin/typst.ts": "^0.7.0",
     "lucide-react": "^1.39.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
