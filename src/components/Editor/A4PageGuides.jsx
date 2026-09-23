@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import { EDITOR_PAGE_HEIGHT_MM, A4_GAP_PX } from '../../utils/pageGeometry';
 
 /**
  * Visual indicators for A4 sheet boundaries and content margins in the live editor.
@@ -31,10 +32,10 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage })
           data-testid={`a4-page-fold-${i + 1}`}
           style={{
             position: 'absolute',
-            top: `calc(${(i + 1) * 297}mm + ${i * 20}px)`,
+            top: `calc(${(i + 1) * EDITOR_PAGE_HEIGHT_MM}mm + ${i * A4_GAP_PX}px)`,
             left: 0,
             right: 0,
-            height: '20px',
+            height: `${A4_GAP_PX}px`,
             zIndex: 60,
             pointerEvents: 'auto',
           }}>

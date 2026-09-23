@@ -2,11 +2,12 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { A4PageBox } from '../components/CV/A4PageBox';
+import { EDITOR_PAGE_HEIGHT_CSS } from '../utils/pageGeometry';
 import printStyles from '../styles/print.css?raw';
 
 describe('A4PageBox Component & Print Support (Rule 15)', () => {
   describe('1. Immutable Physical Dimensions & Base Layout', () => {
-    it('renders container with .a4-page-box class and immutable physical dimensions', () => {
+    it('renders container with .a4-page-box class and editor-tuned vertical height', () => {
       const { container } = render(<A4PageBox pageNumber={1} totalPages={2} />);
       const pageBox = container.querySelector('.a4-page-box');
 
@@ -14,9 +15,9 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(pageBox.style.width).toBe('210mm');
       expect(pageBox.style.minWidth).toBe('210mm');
       expect(pageBox.style.maxWidth).toBe('210mm');
-      expect(pageBox.style.height).toBe('297mm');
-      expect(pageBox.style.minHeight).toBe('297mm');
-      expect(pageBox.style.maxHeight).toBe('297mm');
+      expect(pageBox.style.height).toBe(EDITOR_PAGE_HEIGHT_CSS);
+      expect(pageBox.style.minHeight).toBe(EDITOR_PAGE_HEIGHT_CSS);
+      expect(pageBox.style.maxHeight).toBe(EDITOR_PAGE_HEIGHT_CSS);
       expect(pageBox.style.overflow).toBe('hidden');
       expect(pageBox.style.boxSizing).toBe('border-box');
       expect(pageBox.style.position).toBe('relative');
@@ -24,6 +25,14 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(pageBox.style.marginLeft).toBe('auto');
       expect(pageBox.style.marginRight).toBe('auto');
       expect(pageBox.style.boxShadow).toBe('0 4px 12px rgba(0, 0, 0, 0.1)');
+    });
+
+    it('supports custom pageHeight prop override (e.g. 297mm)', () => {
+      const { container } = render(<A4PageBox pageNumber={1} totalPages={1} pageHeight="297mm" />);
+      const pageBox = container.querySelector('.a4-page-box');
+      expect(pageBox.style.height).toBe('297mm');
+      expect(pageBox.style.minHeight).toBe('297mm');
+      expect(pageBox.style.maxHeight).toBe('297mm');
     });
 
     it('renders page badge with "Página N de M" and .no-print class', () => {

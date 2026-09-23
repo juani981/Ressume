@@ -20,7 +20,7 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     }
   });
 
-  it('1. CSS print.css enforces identical user-set padding-top and margin-top: 0 on page break elements', () => {
+  it('1. CSS print.css enforces identical user-set padding-top and margin-top: 0 on page break elements while preventing cascading breaks on editor annotations', () => {
     expect(printStyles).toContain('.force-page-break-before');
     expect(printStyles).toContain('break-before: page !important');
     expect(printStyles).toContain('padding-top: var(--page-padding, 24px) !important');
@@ -30,12 +30,13 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     expect(printStyles).toMatch(
       /\.break-page-before:not\(:first-child\)[\s\S]*?padding-top:\s*var\(--page-padding/
     );
+    // Verify anti-cascade protection on editor-forced annotations
     expect(printStyles).toMatch(
-      /\[data-editor-break-forced="true"\]:not\(:first-child\)[\s\S]*?padding-top:\s*var\(--page-padding/
+      /\[data-editor-break-forced="true"\][\s\S]*?break-before:\s*auto\s*!important/
     );
   });
 
-  it('2. createSanitizedPrintClone preserves [data-editor-break-forced="true"] and maps them to page break with padding-top and margin-top: 0', () => {
+  it('2. createSanitizedPrintClone neutralizes [data-editor-break-forced="true"] to break-before: auto and removes injected margins to prevent cascading orphan pages', () => {
     const areaCv = document.createElement('div');
     areaCv.id = 'area-cv';
     areaCv.className = 'resume bd-grid';
@@ -59,6 +60,7 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     page2Item.id = 'item-page2';
     page2Item.setAttribute('data-editor-break-forced', 'true');
     page2Item.setAttribute('data-editor-break-fold', '1');
+    page2Item.style.marginTop = '44px';
     rightCol.appendChild(page2Item);
 
     areaCv.appendChild(leftCol);
@@ -76,13 +78,12 @@ describe('Page 2 Margin & Padding Parity (Top Spacing Consistency Across Pages)'
     expect(clonedPage1Item.style.paddingTop).toBe('');
     expect(clonedPage1Item.classList.contains('force-page-break-before')).toBe(false);
 
-    // Page 2 item HAS break-before: page and padding-top: var(--page-padding)
-    expect(clonedPage2Item.style.breakBefore).toBe('page');
-    expect(clonedPage2Item.style.paddingTop).toBe('var(--page-padding, 24px)');
-    expect(clonedPage2Item.style.marginTop).toBe('0px');
-    expect(clonedPage2Item.classList.contains('force-page-break-before')).toBe(true);
-    expect(clonedPage2Item.classList.contains('break-page-before')).toBe(true);
-    expect(clonedPage2Item.getAttribute('data-page-break')).toBe('before');
+    // Page 2 item: break-before is set to auto and editor margin-top is scrubbed (NO cascading page break)
+    expect(clonedPage2Item.style.breakBefore).toBe('auto');
+    expect(clonedPage2Item.style.pageBreakBefore).toBe('auto');
+    expect(clonedPage2Item.style.marginTop).toBe('');
+    expect(clonedPage2Item.classList.contains('force-page-break-before')).toBe(false);
+    expect(clonedPage2Item.hasAttribute('data-editor-break-forced')).toBe(false);
   });
 
   it('3. Defensive scrub in createSanitizedPrintClone guarantees Page 1 first element never receives duplicate top padding', () => {

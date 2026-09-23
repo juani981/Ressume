@@ -5,6 +5,8 @@
  * for universal typography scaling and line heights across the CV editor and print engine.
  */
 
+import { A4_PAGE_SIZE } from './pageGeometry';
+
 export const FONT_FAMILIES = {
   Poppins: "'Poppins', sans-serif",
   Inter: "'Inter', sans-serif",
@@ -62,6 +64,7 @@ export function computeTypographyTokens(layout = {}) {
     '--left-col-percent': `${leftColPercent}%`,
     '--left-bg': layout.leftBg || 'var(--container-color-alt)',
     '--right-bg': layout.rightBg || '#ffffff',
+    ...A4_PAGE_SIZE.cssVariables,
   };
 }
 

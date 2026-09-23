@@ -6,10 +6,6 @@
  * and enforces dynamic auto-scaling to fit within a maximum of 2 A4 pages.
  */
 
-const A4_PAGE_HEIGHT_PX = 1123; // 1 A4 page at 96 DPI
-const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI (1123px * 2 = 2246px)
-const MIN_SCALE_FLOOR = 0.75;
-
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { renderRichHTML, stripHtml } from './richTextEngine';
@@ -18,9 +14,20 @@ import { PrintBaseSection } from '../components/CV/BaseSection';
 import baseStyles from '../index.css?raw';
 import printStyles from '../styles/print.css?raw';
 import { getDynamicTextColors } from './colorUtils';
-import { getRulerHeightPx } from './pageGeometry';
+import {
+  A4_PAGE_SIZE,
+  A4_WIDTH_PX,
+  A4_PAGE_HEIGHT_PX,
+  A4_WIDTH_CSS,
+  A4_HEIGHT_CSS,
+  A4_DOCUMENT_SCALE,
+  getRulerHeightPx,
+} from './pageGeometry';
 import { getFontFamilyStack, computeTypographyTokens } from './typographyUtils';
 export { renderRichHTML, stripHtml };
+
+const MAX_A4_2PAGE_HEIGHT_PX = A4_PAGE_HEIGHT_PX * 2; // 2246px
+const MIN_SCALE_FLOOR = 0.75;
 
 /**
  * Generates scoped CSS variables and typography token declarations from CV layout settings.
@@ -50,6 +57,11 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
     html,
     body,
     #area-cv {
+      --a4-page-width: ${A4_WIDTH_CSS};
+      --a4-page-height: ${A4_HEIGHT_CSS};
+      --a4-page-width-px: ${A4_WIDTH_PX}px;
+      --a4-page-height-px: ${A4_PAGE_HEIGHT_PX}px;
+      --a4-page-scale: ${A4_DOCUMENT_SCALE};
       --page-padding: ${pagePadding}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
@@ -741,13 +753,35 @@ export const createSanitizedPrintClone = (areaCvElement) => {
       node.classList.remove('force-page-break-before', 'break-page-before');
       node.removeAttribute('data-page-break');
       node.removeAttribute('data-page-break-before');
+      node.removeAttribute('data-page-break-forced');
+      node.removeAttribute('data-editor-break-forced');
+      node.removeAttribute('data-editor-break-fold');
+
+      let parent = node.parentElement;
+      while (parent && parent !== clone) {
+        if (parent.classList.contains('experience__content') ||
+            parent.classList.contains('experience__data') ||
+            parent.classList.contains('experience__bullets-container') ||
+            parent.classList.contains('experience__bullets') ||
+            parent.classList.contains('simple-list-container') ||
+            parent.classList.contains('simple-list-ul')) {
+          parent.style.setProperty('break-inside', 'auto', 'important');
+          parent.style.setProperty('page-break-inside', 'auto', 'important');
+        }
+        parent = parent.parentElement;
+      }
     });
   } else {
-    // Legacy fallback (when A4PageBoxes are not yet present):
-    const seenFolds = new Set();
-    clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
-      const foldKey = String(node.getAttribute('data-editor-break-fold') || '1');
-      if (seenFolds.has(foldKey)) {
+    // In continuous mode (fallback):
+    // In 2-column mode, left and right columns run in parallel; forcing child breaks
+    // causes CSS paged media to create separate full-document pages for each child, resulting in fragmentation (e.g. 5 pages instead of 2).
+    // ATS single-column mode breaks linearly, so forced breaks are preserved strictly there.
+    const is2ColClone = Boolean(
+      clone.querySelector('.resume__left') && clone.querySelector('.resume__right')
+    );
+
+    if (is2ColClone) {
+      clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
         node.style.setProperty('break-before', 'auto');
         node.style.setProperty('page-break-before', 'auto');
         node.style.removeProperty('padding-top');
@@ -755,18 +789,66 @@ export const createSanitizedPrintClone = (areaCvElement) => {
         node.classList.remove('force-page-break-before', 'break-page-before');
         node.removeAttribute('data-page-break');
         node.removeAttribute('data-page-break-before');
-      } else {
-        seenFolds.add(foldKey);
-        node.style.setProperty('break-before', 'page');
-        node.style.setProperty('page-break-before', 'always');
-        node.style.setProperty('padding-top', 'var(--page-padding, 24px)');
-        node.style.setProperty('margin-top', '0px');
-        node.classList.add('force-page-break-before', 'break-page-before');
-        node.setAttribute('data-page-break', 'before');
-        node.setAttribute('data-page-break-before', 'true');
-        node.setAttribute('data-page-break-forced', 'true');
-      }
-    });
+        node.removeAttribute('data-page-break-forced');
+        node.removeAttribute('data-editor-break-forced');
+        node.removeAttribute('data-editor-break-fold');
+
+        let parent = node.parentElement;
+        while (parent && parent !== clone) {
+          if (parent.classList.contains('experience__content') ||
+              parent.classList.contains('experience__data') ||
+              parent.classList.contains('experience__bullets-container') ||
+              parent.classList.contains('experience__bullets') ||
+              parent.classList.contains('simple-list-container') ||
+              parent.classList.contains('simple-list-ul')) {
+            parent.style.setProperty('break-inside', 'auto', 'important');
+            parent.style.setProperty('page-break-inside', 'auto', 'important');
+          }
+          parent = parent.parentElement;
+        }
+      });
+    } else {
+      const seenLinearFolds = new Set();
+      clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
+        const foldKey = String(node.getAttribute('data-editor-break-fold') || '1');
+        if (seenLinearFolds.has(foldKey)) {
+          node.style.setProperty('break-before', 'auto');
+          node.style.setProperty('page-break-before', 'auto');
+          node.style.removeProperty('padding-top');
+          node.style.removeProperty('margin-top');
+          node.classList.remove('force-page-break-before', 'break-page-before');
+          node.removeAttribute('data-page-break');
+          node.removeAttribute('data-page-break-before');
+          node.removeAttribute('data-page-break-forced');
+          node.removeAttribute('data-editor-break-forced');
+          node.removeAttribute('data-editor-break-fold');
+        } else {
+          seenLinearFolds.add(foldKey);
+          node.style.setProperty('break-before', 'page');
+          node.style.setProperty('page-break-before', 'always');
+          node.style.setProperty('padding-top', 'var(--page-padding, 24px)');
+          node.style.setProperty('margin-top', '0px');
+          node.classList.add('force-page-break-before', 'break-page-before');
+          node.setAttribute('data-page-break', 'before');
+          node.setAttribute('data-page-break-before', 'true');
+          node.setAttribute('data-page-break-forced', 'true');
+        }
+
+        let parent = node.parentElement;
+        while (parent && parent !== clone) {
+          if (parent.classList.contains('experience__content') ||
+              parent.classList.contains('experience__data') ||
+              parent.classList.contains('experience__bullets-container') ||
+              parent.classList.contains('experience__bullets') ||
+              parent.classList.contains('simple-list-container') ||
+              parent.classList.contains('simple-list-ul')) {
+            parent.style.setProperty('break-inside', 'auto', 'important');
+            parent.style.setProperty('page-break-inside', 'auto', 'important');
+          }
+          parent = parent.parentElement;
+        }
+      });
+    }
   }
 
   // Defensive scrub: ensure that the first child of each column/container never inherits break-before or extra padding
@@ -1124,11 +1206,11 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     iframe.style.position = 'fixed';
     iframe.style.top = '-10000px';
     iframe.style.left = '-10000px';
-    const iframeWidth = snapshot?.width ? `${snapshot.width}px` : '794px';
+    const iframeWidth = snapshot?.width ? `${snapshot.width}px` : `${A4_WIDTH_PX}px`;
     iframe.style.width = iframeWidth;
     iframe.style.minWidth = iframeWidth;
     const pageCount = snapshot?.totalPages && snapshot.totalPages > 0 ? snapshot.totalPages : 1;
-    iframe.style.height = `${pageCount * 1123}px`;
+    iframe.style.height = `${pageCount * A4_PAGE_HEIGHT_PX}px`;
     iframe.style.border = '0';
     iframe.style.opacity = '0';
     iframe.style.visibility = 'hidden';
@@ -1236,6 +1318,8 @@ ${activePrintStyles}
 
           // Transfer ALL layout tokens from cvData.layout to document root, body, and #area-cv
           const layout = cvData?.layout || {};
+          const is2Col = layout.type === '2-column' && !layout.isAtsMode;
+          const isAtsMode = Boolean(layout.isAtsMode || layout.type === '1-column');
           const typographyTokens = computeTypographyTokens(layout);
           if (doc.documentElement?.style && typeof doc.documentElement.style.setProperty === 'function') {
             Object.entries(typographyTokens).forEach(([prop, val]) => {
@@ -1310,17 +1394,28 @@ ${activePrintStyles}
           }
 
           // Passive Deterministic Print Projection (Rules 16 & 17 of AGENTS.md)
-          // Ensure #area-cv is clean with width: 100%, margin: 0, padding: 0
+          // Ensure #area-cv is clean with width: 100%, margin: 0, and respects page padding
+          const pageBoxes = doc.querySelectorAll ? doc.querySelectorAll('.a4-page-box') : [];
+          const hasA4PageBoxes = pageBoxes.length > 0 || areaCv?.classList?.contains('has-a4-page-boxes');
+          const isAtsOrSingle = isAtsMode || !is2Col || areaCv?.classList?.contains('resume__single-column');
+          const pagePaddingVal = cvData?.layout?.pagePadding != null
+            ? `${cvData.layout.pagePadding}px`
+            : 'var(--page-padding, 24px)';
+
           if (areaCv && areaCv.style) {
             areaCv.style.setProperty('margin', '0', 'important');
-            areaCv.style.setProperty('padding', '0', 'important');
+            if (hasA4PageBoxes || (is2Col && !isAtsOrSingle)) {
+              areaCv.style.setProperty('padding', '0', 'important');
+            } else {
+              // ATS 1-column single container: maintain user-defined page padding
+              areaCv.style.setProperty('padding', pagePaddingVal, 'important');
+            }
             areaCv.style.setProperty('width', '100%', 'important');
             areaCv.style.setProperty('max-width', '100%', 'important');
             areaCv.style.removeProperty('box-shadow');
           }
 
-          // Each .a4-page-box governs its 297mm inmutably
-          const pageBoxes = doc.querySelectorAll ? doc.querySelectorAll('.a4-page-box') : [];
+          // Each .a4-page-box governs its 297mm inmutably and preserves user padding
           if (pageBoxes.length > 0) {
             pageBoxes.forEach((box, index) => {
               box.style.setProperty('width', '210mm', 'important');
@@ -1336,6 +1431,9 @@ ${activePrintStyles}
               box.style.setProperty('box-shadow', 'none', 'important');
               box.style.setProperty('break-inside', 'avoid', 'important');
               box.style.setProperty('page-break-inside', 'avoid', 'important');
+              if (isAtsOrSingle) {
+                box.style.setProperty('padding', pagePaddingVal, 'important');
+              }
               if (index < pageBoxes.length - 1) {
                 box.style.setProperty('break-after', 'page', 'important');
                 box.style.setProperty('page-break-after', 'always', 'important');
@@ -1343,6 +1441,14 @@ ${activePrintStyles}
                 box.style.setProperty('break-after', 'auto', 'important');
                 box.style.setProperty('page-break-after', 'auto', 'important');
               }
+            });
+          }
+
+          // In 2-column mode, ensure columns consistently apply the user's page padding
+          if (is2Col && !isAtsOrSingle) {
+            const cols = doc.querySelectorAll ? doc.querySelectorAll('.resume__left, .resume__right') : [];
+            cols.forEach((col) => {
+              col.style.setProperty('padding', pagePaddingVal, 'important');
             });
           }
 
@@ -1371,6 +1477,12 @@ ${activePrintStyles}
               areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
               areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
               areaCv.style.setProperty('--print-total-pages', String(totalPages));
+            }
+          } else {
+            // Real browser execution: strictly lock document zoom to 1.0 and reset transform
+            if (doc.body?.style) {
+              doc.body.style.zoom = '1.0';
+              doc.body.style.transform = 'none';
             }
           }
 

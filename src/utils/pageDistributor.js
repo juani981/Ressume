@@ -10,7 +10,7 @@
  * Invariant 16: Zero Dynamic Reflow on Print
  */
 
-import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from './pageGeometry.js';
+import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from './pageGeometry.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 
 export const DEFAULT_SECTION_GAP_PX = 16;
@@ -369,7 +369,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
     isAts = Boolean(layout.isAtsMode === true || layout.type === '1-column');
   }
 
-  const pageHeight = options.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
+  const pageHeight = options.pageHeightPx ?? EDITOR_PAGE_HEIGHT_PX;
   const padding = options.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
   const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding);
 

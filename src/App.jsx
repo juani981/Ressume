@@ -24,6 +24,13 @@ import { getDynamicTextVariables } from "./utils/colorUtils";
 import A4PageGuides from "./components/Editor/A4PageGuides";
 import ColumnResizer from "./components/Editor/ColumnResizer";
 import CVDragOverlay from "./components/Editor/CVDragOverlay";
+import {
+   A4_PAGE_SIZE,
+   A4_WIDTH_PX,
+   A4_HEIGHT_MM,
+   EDITOR_PAGE_HEIGHT_MM,
+   A4_GAP_PX,
+} from "./utils/pageGeometry";
 
 function DroppableColumn({ id, column, className, style, children }) {
    const { setNodeRef } = useDroppable({
@@ -266,8 +273,8 @@ function App() {
                      display: is2Col ? "grid" : "block",
                      alignItems: is2Col ? "stretch" : undefined,
                      width: "100%",
-                     minWidth: "794px",
-                     maxWidth: "794px",
+                     minWidth: `${A4_WIDTH_PX}px`,
+                     maxWidth: `${A4_WIDTH_PX}px`,
                      margin: "0 auto",
                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
                      background: is2Col
@@ -276,8 +283,8 @@ function App() {
                      gap: 0,
                      minHeight:
                         totalPages > 1
-                           ? `calc(${totalPages * 297}mm + ${(totalPages - 1) * 20}px)`
-                           : `${totalPages * 297}mm`,
+                           ? `calc(${totalPages * EDITOR_PAGE_HEIGHT_MM}mm + ${(totalPages - 1) * A4_GAP_PX}px)`
+                           : `${totalPages * EDITOR_PAGE_HEIGHT_MM}mm`,
                      position: "relative",
                      ...(is2Col
                         ? {
@@ -309,7 +316,7 @@ function App() {
                               background:
                                  cvData.layout?.leftBg ||
                                  "var(--container-color-alt)",
-                              padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`,
+                              padding: "var(--page-padding, 24px)",
                               minHeight: "100%",
                               height: "100%",
                               alignSelf: "stretch",
@@ -367,7 +374,7 @@ function App() {
                               background:
                                  cvData.layout?.rightBg ||
                                  "var(--container-color)",
-                              padding: `var(--page-padding, 2rem) var(--page-padding, 1.5rem)`,
+                              padding: "var(--page-padding, 24px)",
                               minHeight: "100%",
                               height: "100%",
                               alignSelf: "stretch",
@@ -414,11 +421,11 @@ function App() {
                      <div
                         className="resume__single-column"
                         style={{
-                           display: "flex",
-                           flexDirection: "column",
-                           width: "100%",
-                           maxWidth: "794px",
-                           margin: "0 auto",
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            maxWidth: `${A4_WIDTH_PX}px`,
+                            margin: "0 auto",
                            padding: 0,
                         }}>
                         <SortableContext

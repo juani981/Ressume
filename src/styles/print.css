@@ -50,6 +50,8 @@
     padding: 0 !important;
     background-color: #ffffff !important;
     -webkit-font-smoothing: antialiased;
+    transform: none !important;
+    zoom: 1.0 !important;
   }
 
   body {
@@ -74,6 +76,18 @@
     box-decoration-break: clone !important;
   }
 
+  /* When #area-cv contains discrete A4 page boxes, match exact 210mm physical page geometry */
+  #area-cv:has(.a4-page-box),
+  #area-cv.has-a4-page-boxes {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
   .resume__left,
   .resume__right {
     /* CRITICAL: Force block display in print so browser treats each column as a normal
@@ -91,7 +105,8 @@
     box-decoration-break: clone !important;
   }
 
-  #area-cv.resume__single-column {
+  #area-cv.resume__single-column,
+  .resume__single-column:not(#area-cv *) {
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
@@ -101,8 +116,8 @@
     box-decoration-break: clone !important;
   }
 
-  .resume__single-column,
-  #area-cv .resume__single-column {
+  /* Inner wrapper inside #area-cv does not duplicate horizontal padding */
+  #area-cv > .resume__single-column {
     padding: 0 !important;
     height: auto !important;
     min-height: 0 !important;
@@ -221,15 +236,20 @@
   .resume__single-column .force-page-break-before:not(:first-child),
   .resume__single-column [data-page-break="before"]:not(:first-child),
   .resume__single-column [data-page-break-before="true"]:not(:first-child),
-  .resume__single-column [data-editor-break-forced="true"]:not(:first-child),
   .break-page-before:not(:first-child),
   .force-page-break-before:not(:first-child),
   [data-page-break="before"]:not(:first-child),
-  [data-page-break-before="true"]:not(:first-child),
-  [data-editor-break-forced="true"]:not(:first-child) {
+  [data-page-break-before="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
     padding-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Protección contra quiebres en cascada: los cortes automáticos del editor NUNCA fuerzan salto en impresión */
+  [data-editor-break-forced="true"] {
+    break-before: auto !important;
+    page-break-before: auto !important;
     margin-top: 0 !important;
   }
 

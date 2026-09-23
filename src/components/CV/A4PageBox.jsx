@@ -13,6 +13,7 @@
  */
 
 import React from 'react';
+import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../utils/pageGeometry';
 
 /**
  * Helper to check if children contain custom column elements (.resume__left or .resume__right)
@@ -76,6 +77,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftColPercent = 32,
     gridTemplateColumns,
     pagePadding,
+    pageHeight = EDITOR_PAGE_HEIGHT_CSS,
     leftContent,
     rightContent,
     singleColumnContent,
@@ -102,13 +104,21 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   const effectiveGridColumns = gridTemplateColumns || 'var(--grid-template-columns, 1fr 2fr)';
 
   // Immutable physical A4 container dimensions
+  const effectivePadding = pagePadding != null
+    ? (typeof pagePadding === 'number' ? `${pagePadding}px` : pagePadding)
+    : 'var(--page-padding, 24px)';
+
+  // Effective height: defaults to editor tunable height, overridable by prop
+  const effectiveHeight = pageHeight || EDITOR_PAGE_HEIGHT_CSS;
+
+  // Container style adhering strictly to Rule 15 of AGENTS.md
   const containerStyle = {
-    width: '210mm',
-    minWidth: '210mm',
-    maxWidth: '210mm',
-    height: '297mm',
-    minHeight: '297mm',
-    maxHeight: '297mm',
+    width: A4_WIDTH_CSS,
+    minWidth: A4_WIDTH_CSS,
+    maxWidth: A4_WIDTH_CSS,
+    height: effectiveHeight,
+    minHeight: effectiveHeight,
+    maxHeight: effectiveHeight,
     overflow: 'hidden',
     boxSizing: 'border-box',
     position: 'relative',
@@ -124,7 +134,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
       : {
           display: 'block',
           background: '#ffffff',
-          padding: pagePadding || 'var(--page-padding, 24px)',
+          padding: effectivePadding,
         }),
     ...style,
   };
@@ -132,22 +142,23 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   // Badge text: "Página N de M"
   const currentBadgeText = badgeText || `Página ${pageNumber} de ${totalPages}`;
 
-  // Badge positioning style
+  // Badge style for editor display
   const badgeStyle = {
     position: 'absolute',
+    bottom: '12px',
     right: '16px',
-    ...(badgePosition === 'top-right' ? { top: '12px' } : { bottom: '12px' }),
-    zIndex: 50,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    color: '#ffffff',
+    padding: '4px 10px',
+    borderRadius: '12px',
     fontSize: '11px',
     fontWeight: 600,
-    letterSpacing: '0.04em',
-    padding: '3px 10px',
-    borderRadius: '12px',
-    backgroundColor: 'rgba(15, 23, 42, 0.08)',
-    color: '#64748b',
-    backdropFilter: 'blur(4px)',
+    letterSpacing: '0.05em',
+    zIndex: 10,
     pointerEvents: 'none',
     userSelect: 'none',
+    ...(badgePosition === 'top-right' ? { top: '12px', bottom: 'auto' } : {}),
+    ...(!badgePosition.includes('top') && !badgePosition.includes('bottom') ? {} : {}),
   };
 
   // Render 2-column content
@@ -163,6 +174,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              padding: effectivePadding,
               ...leftStyle,
             }}
           >
@@ -176,6 +188,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              padding: effectivePadding,
               ...rightStyle,
             }}
           >
@@ -201,6 +214,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 boxSizing: 'border-box',
                 display: 'flex',
                 flexDirection: 'column',
+                padding: effectivePadding,
                 ...leftStyle,
               }}
             >
@@ -214,6 +228,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 boxSizing: 'border-box',
                 display: 'flex',
                 flexDirection: 'column',
+                padding: effectivePadding,
                 ...rightStyle,
               }}
             >

@@ -38,7 +38,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING } from '../utils/pageGeometry';
+import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING, getRulerHeightPx } from '../utils/pageGeometry';
 import { getBreakableComponents } from '../utils/paginationEngine';
 
 /** A page with less than this much content (px) is considered blank. */
@@ -157,15 +157,8 @@ export function useBlankPageCleaner({
       const sections = cvData?.sections || [];
       const pagePadding = Number(cvData?.layout?.pagePadding ?? DEFAULT_PAGE_PADDING);
 
-      // Measure real page height (same as paginationEngine)
-      let pageHeightPx = A4_PAGE_HEIGHT_PX;
-      try {
-        const ruler = document.createElement('div');
-        ruler.style.cssText = 'height:297mm;position:absolute;visibility:hidden;top:-9999px;pointer-events:none;';
-        areaCv.appendChild(ruler);
-        if (ruler.offsetHeight > 0) pageHeightPx = ruler.offsetHeight;
-        ruler.remove();
-      } catch (_) {}
+      // Measure real page height using canonical ruler from pageGeometry
+      const pageHeightPx = getRulerHeightPx(areaCv);
 
       const lastPageIndex = totalPages - 1;
       const lastPageContentStart = getLastPageContentStart(lastPageIndex, pageHeightPx, A4_GAP_PX, pagePadding);
