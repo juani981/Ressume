@@ -15,11 +15,23 @@
 import React from 'react';
 import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../utils/pageGeometry';
 
+const flattenChildren = (children) => {
+  const result = [];
+  React.Children.forEach(children, (child) => {
+    if (React.isValidElement(child) && (child.type === React.Fragment || (child.props?.children && !child.props.className))) {
+      result.push(...flattenChildren(child.props.children));
+    } else if (child !== null && child !== undefined && typeof child !== 'boolean') {
+      result.push(child);
+    }
+  });
+  return result;
+};
+
 /**
  * Helper to check if children contain custom column elements (.resume__left or .resume__right)
  */
 const hasCustomColumns = (children) => {
-  return React.Children.toArray(children).some(
+  return flattenChildren(children).some(
     (child) =>
       React.isValidElement(child) &&
       child.props?.className &&
@@ -32,7 +44,7 @@ const hasCustomColumns = (children) => {
  * Helper to check if children already include a single column element (.resume__single-column)
  */
 const hasSingleColumn = (children) => {
-  return React.Children.toArray(children).some(
+  return flattenChildren(children).some(
     (child) =>
       React.isValidElement(child) &&
       child.props?.className &&
@@ -85,6 +97,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     badgePosition = 'bottom-right',
     showBadge = true,
     badgeText,
+    onDeletePage,
     className = '',
     style = {},
     leftStyle = {},
@@ -124,6 +137,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     position: 'relative',
     margin: '0 auto 32px auto',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    gridColumn: '1 / -1',
     ...(effective2Col
       ? {
           display: 'grid',
@@ -343,13 +357,43 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
       {effective2Col ? render2ColContent() : render1ColContent()}
 
       {showBadge && (
-        <span
+        <div
           className="a4-page-badge no-print"
           data-editor-ui="true"
-          style={badgeStyle}
+          style={{
+            ...badgeStyle,
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
         >
-          {currentBadgeText}
-        </span>
+          <span>{currentBadgeText}</span>
+          {pageNumber > 1 && typeof onDeletePage === 'function' && (
+            <button
+              type="button"
+              className="page-delete-btn"
+              data-editor-ui="true"
+              style={{
+                background: 'rgba(239, 68, 68, 0.85)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '2px 6px',
+                fontSize: '10px',
+                cursor: 'pointer',
+                lineHeight: 1,
+              }}
+              title={`Eliminar página ${pageNumber}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeletePage(pageNumber);
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

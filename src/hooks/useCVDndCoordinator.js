@@ -91,19 +91,22 @@ export function useCVDndCoordinator({
       position = event.delta.y > 0 ? 'below' : 'above';
     }
 
+    // Helper to extract canonical section ID ignoring __cont_ suffix
+    const toCanonicalSectionId = (id) => (typeof id === 'string' ? id.split('__cont_')[0] : id);
+
     // 1. Moving an Item (within same section, cross-section, or cross-column)
     if (activeData?.type === 'item') {
       const activeItemId = active.id;
-      const activeSectionId = activeData.sectionId;
+      const activeSectionId = toCanonicalSectionId(activeData.sectionId);
 
       let targetSectionId = null;
       let overItemId = null;
 
       if (overData?.type === 'item') {
-        targetSectionId = overData.sectionId;
+        targetSectionId = toCanonicalSectionId(overData.sectionId);
         overItemId = over.id;
       } else if (overData?.type === 'section') {
-        targetSectionId = over.id;
+        targetSectionId = toCanonicalSectionId(over.id);
         overItemId = null;
       } else if (overData?.type === 'column') {
         const colSections = (cvData?.sections || []).filter(
@@ -114,14 +117,15 @@ export function useCVDndCoordinator({
         }
       } else {
         // Find which section contains over.id
+        const cleanOver = toCanonicalSectionId(over.id);
         const foundSec = (cvData?.sections || []).find(
           (s) =>
-            s.id === over.id ||
+            s.id === cleanOver ||
             (s.items || []).some((i) => i.id === over.id),
         );
         if (foundSec) {
           targetSectionId = foundSec.id;
-          if (foundSec.id !== over.id) {
+          if (foundSec.id !== cleanOver) {
             overItemId = over.id;
           }
         }
@@ -141,7 +145,7 @@ export function useCVDndCoordinator({
 
     // 2. Moving a Section (cross-column or intra-column reordering)
     if (activeData?.type === 'section') {
-      const activeSectionId = active.id;
+      const activeSectionId = toCanonicalSectionId(active.id);
       const activeSection = (cvData?.sections || []).find(
         (s) => s.id === activeSectionId,
       );
@@ -154,23 +158,26 @@ export function useCVDndCoordinator({
         targetColumn = overData.column;
         overSectionId = null;
       } else if (overData?.type === 'section') {
-        const overSection = (cvData?.sections || []).find((s) => s.id === over.id);
+        const cleanOver = toCanonicalSectionId(over.id);
+        const overSection = (cvData?.sections || []).find((s) => s.id === cleanOver);
         if (overSection) {
           targetColumn = overSection.column;
           overSectionId = overSection.id;
         }
       } else if (overData?.type === 'item') {
+        const cleanOverSec = toCanonicalSectionId(overData.sectionId);
         const overSection = (cvData?.sections || []).find(
-          (s) => s.id === overData.sectionId,
+          (s) => s.id === cleanOverSec,
         );
         if (overSection) {
           targetColumn = overSection.column;
           overSectionId = overSection.id;
         }
       } else {
+        const cleanOver = toCanonicalSectionId(over.id);
         const foundSec = (cvData?.sections || []).find(
           (s) =>
-            s.id === over.id ||
+            s.id === cleanOver ||
             (s.items || []).some((i) => i.id === over.id),
         );
         if (foundSec) {

@@ -54,10 +54,10 @@
 
   /*========== Live Editor Vertical Tuned Dimensions ==========*/
   --editor-page-width: 210mm;
-  --editor-page-height: 282mm;
+  --editor-page-height: 272mm;
   --editor-page-width-px: 794px;
-  --editor-page-height-px: 1066px;
-  --editor-height-reduction-mm: 15mm;
+  --editor-page-height-px: 1028px;
+  --editor-height-reduction-mm: 25mm;
 }
 
 /*========== BASE ==========*/
@@ -1915,14 +1915,43 @@ body.ats-mode-active {
 
 #area-cv:has(.a4-page-box),
 #area-cv.has-a4-page-boxes {
-  width: var(--a4-page-width, 210mm);
-  min-width: var(--a4-page-width, 210mm);
-  max-width: var(--a4-page-width, 210mm);
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  border: none;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: var(--a4-page-width, 210mm) !important;
+  min-width: var(--a4-page-width, 210mm) !important;
+  max-width: var(--a4-page-width, 210mm) !important;
+  margin: 0 auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border: none !important;
+  min-height: auto !important;
 }
+
+#area-cv.has-a4-page-boxes .resume__left,
+#area-cv.has-a4-page-boxes .resume__right,
+#area-cv.has-a4-page-boxes .resume__single-column {
+  padding: var(--page-padding, 0px);
+  box-sizing: border-box;
+}
+
+#area-cv.has-a4-page-boxes .cv-section:first-child,
+#area-cv.has-a4-page-boxes .cv-section:first-of-type,
+#area-cv.has-a4-page-boxes .section:first-child,
+#area-cv.has-a4-page-boxes .section:first-of-type {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+#area-cv.has-a4-page-boxes .cv-section:last-child,
+#area-cv.has-a4-page-boxes .cv-section:last-of-type,
+#area-cv.has-a4-page-boxes .section:last-child,
+#area-cv.has-a4-page-boxes .section:last-of-type {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 
 .a4-page-box .a4-page-badge {
   position: absolute;

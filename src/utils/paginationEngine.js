@@ -265,6 +265,17 @@ export function executePaginationAlgorithm({
   // 1. Reset previous breaks
   resetForcedPageBreaks(areaCv);
 
+  const pageBoxes = areaCv.querySelectorAll('.a4-page-box');
+  if (pageBoxes.length > 0) {
+    // When editor-native discrete A4 boxes are present, pagination is deterministically
+    // controlled by React state distribution (Invariants 15 & 16).
+    // Avoid injecting heuristic DOM margin-top patches.
+    return {
+      totalPages: pageBoxes.length,
+      pageBreaks: [],
+    };
+  }
+
   // 2. Measure ruler height if not explicitly provided
   const pageHeightPx = customPageHeight || getRulerHeightPx(areaCv);
 

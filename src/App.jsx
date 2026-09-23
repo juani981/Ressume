@@ -14,14 +14,13 @@ import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
 import { DndContext, useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
-import { usePaginationEngine } from "./hooks/usePaginationEngine";
 import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
 import { useColumnResizer } from "./hooks/useColumnResizer";
-import { useBlankPageCleaner } from "./hooks/useBlankPageCleaner";
+import { useDocumentPages } from "./hooks/useDocumentPages";
 
 import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
-import A4PageGuides from "./components/Editor/A4PageGuides";
+import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
 import CVDragOverlay from "./components/Editor/CVDragOverlay";
 import {
@@ -83,27 +82,15 @@ function App() {
       moveSectionToColumnAndIndex,
    });
 
-   // 2. Pagination Engine Hook
-   const { totalPages, pageBreaks } = usePaginationEngine({
-      areaCvRef,
-      cvData,
-      setContextTotalPages,
-      activeDragItem,
-      activeDragSection,
-      paginationTrigger,
-   });
+   // 2. Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
+   const { pages, totalPages } = useDocumentPages({ cvData });
 
-   // 3. Blank Page Cleaner — runs after pagination, removes trailing empty pages
-   useBlankPageCleaner({
-      areaCvRef,
-      totalPages,
-      pageBreaks,
-      cvData,
-      updateSectionProperty,
-      isPrint: false,
-      activeDragItem,
-      activeDragSection,
-   });
+   // Keep context synchronized with document page count
+   useEffect(() => {
+      if (typeof setContextTotalPages === "function" && totalPages) {
+         setContextTotalPages(totalPages);
+      }
+   }, [totalPages, setContextTotalPages]);
 
    // 4. Column Resizer Hook
    const { isResizing, handleResizerMouseDown } = useColumnResizer({
@@ -264,196 +251,209 @@ function App() {
                {/* Top Center Layout Mode Switcher (Diseño Tradicional vs Optimizado ATS) */}
                <LayoutModeToggle />
 
-               <div
-                  className={`resume ${is2Col ? "bd-grid" : "resume__single-column"} ${isAtsMode ? "resume--ats-mode" : ""}`}
-                  id="area-cv"
-                  data-total-pages={totalPages}
-                  ref={areaCvRef}
-                  style={{
-                     display: is2Col ? "grid" : "block",
-                     alignItems: is2Col ? "stretch" : undefined,
-                     width: "100%",
-                     minWidth: `${A4_WIDTH_PX}px`,
-                     maxWidth: `${A4_WIDTH_PX}px`,
-                     margin: "0 auto",
-                     padding: is2Col ? 0 : "var(--page-padding, 24px)",
-                     background: is2Col
-                        ? `linear-gradient(to right, ${cvData.layout?.leftBg || "#f3f4f6"} 0%, ${cvData.layout?.leftBg || "#f3f4f6"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} 100%)`
-                        : "#ffffff",
-                     gap: 0,
-                     minHeight:
-                        totalPages > 1
-                           ? `calc(${totalPages * EDITOR_PAGE_HEIGHT_MM}mm + ${(totalPages - 1) * A4_GAP_PX}px)`
-                           : `${totalPages * EDITOR_PAGE_HEIGHT_MM}mm`,
-                     position: "relative",
-                     ...(is2Col
-                        ? {
-                             gridTemplateColumns,
-                             "--grid-template-columns": gridTemplateColumns,
-                             "--left-col-percent": `${leftColPercent}%`,
-                             "--left-bg":
-                                cvData.layout?.leftBg ||
-                                "var(--container-color-alt)",
-                             "--right-bg": cvData.layout?.rightBg || "#ffffff",
-                          }
-                        : {}),
-                     ...dynamicSpacing,
-                  }}>
-                  {/* Visual A4 Page Fold Guides & Margin Insets */}
-                  <A4PageGuides
-                     totalPages={totalPages}
-                     pagePadding={cvData.layout?.pagePadding}
-                     onDeletePage={deletePage}
-                  />
-
-                  {is2Col ? (
-                     <>
-                        <DroppableColumn
-                           id="column-left"
-                           column="left"
-                           className="resume__left"
-                           style={{
-                              background:
+                <div
+                   className={`resume ${is2Col ? "bd-grid" : "resume__single-column"} ${isAtsMode ? "resume--ats-mode" : ""} has-a4-page-boxes`}
+                   id="area-cv"
+                   data-total-pages={totalPages}
+                   ref={areaCvRef}
+                   style={{
+                      display: is2Col ? "grid" : "block",
+                      alignItems: is2Col ? "stretch" : undefined,
+                      width: "100%",
+                      minWidth: `${A4_WIDTH_PX}px`,
+                      maxWidth: `${A4_WIDTH_PX}px`,
+                      margin: "0 auto",
+                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
+                      background: is2Col
+                         ? `linear-gradient(to right, ${cvData.layout?.leftBg || "#f3f4f6"} 0%, ${cvData.layout?.leftBg || "#f3f4f6"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} 100%)`
+                         : "#ffffff",
+                      minHeight: `${totalPages * EDITOR_PAGE_HEIGHT_MM}mm`,
+                      position: "relative",
+                      ...(is2Col
+                         ? {
+                              gridTemplateColumns,
+                              "--grid-template-columns": gridTemplateColumns,
+                              "--left-col-percent": `${leftColPercent}%`,
+                              "--left-bg":
                                  cvData.layout?.leftBg ||
                                  "var(--container-color-alt)",
-                              padding: "var(--page-padding, 24px)",
-                              minHeight: "100%",
-                              height: "100%",
-                              alignSelf: "stretch",
-                              display: "flex",
-                              flexDirection: "column",
-                              boxSizing: "border-box",
-                              minWidth: 0,
-                              maxWidth: "100%",
-                              color: "var(--text-color)",
-                              ...getDynamicTextVariables(cvData.layout?.leftBg),
-                           }}>
-                           <SortableContext
-                              items={leftSections.map((s) => s.id)}
-                              strategy={verticalListSortingStrategy}>
-                              {leftSections.map((section) => (
-                                 <BaseSection
-                                    key={section.id}
-                                    section={section}
-                                 />
-                              ))}
-                           </SortableContext>
+                              "--right-bg": cvData.layout?.rightBg || "#ffffff",
+                           }
+                         : {}),
+                      ...dynamicSpacing,
+                   }}>
+                   {pages.map((pageModel) => (
+                      <A4PageBox
+                         key={`page-${pageModel.pageNumber}`}
+                         pageNumber={pageModel.pageNumber}
+                         totalPages={pages.length}
+                         is2Col={is2Col}
+                         isAtsMode={isAtsMode}
+                         leftBg={cvData.layout?.leftBg || "#f3f4f6"}
+                         rightBg={cvData.layout?.rightBg || "#ffffff"}
+                         leftColPercent={leftColPercent}
+                         gridTemplateColumns={gridTemplateColumns}
+                         pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
+                         onDeletePage={deletePage}
+                      >
+                         {is2Col ? (
+                            <>
+                               <DroppableColumn
+                                  id={pageModel.pageNumber === 1 ? "column-left" : `column-left-page-${pageModel.pageNumber}`}
+                                  column="left"
+                                  className="resume__left"
+                                  style={{
+                                     background:
+                                        cvData.layout?.leftBg ||
+                                        "var(--container-color-alt)",
+                                     padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
+                                     minHeight: "100%",
+                                     height: "100%",
+                                     alignSelf: "stretch",
+                                     display: "flex",
+                                     flexDirection: "column",
+                                     boxSizing: "border-box",
+                                     minWidth: 0,
+                                     maxWidth: "100%",
+                                     color: "var(--text-color)",
+                                     ...getDynamicTextVariables(cvData.layout?.leftBg),
+                                  }}>
+                                  <SortableContext
+                                     items={pageModel.leftSections.map((s) => s.id)}
+                                     strategy={verticalListSortingStrategy}>
+                                     {pageModel.leftSections.map((section) => (
+                                        <BaseSection
+                                           key={section.id}
+                                           section={section}
+                                        />
+                                     ))}
+                                  </SortableContext>
 
-                           <div
-                              className="column-add-section no-print"
-                              data-editor-ui="true"
-                              data-editor-add="true"
-                              style={{
-                                 textAlign: "center",
-                                 marginTop: "1.5rem",
-                              }}>
-                              <button
-                                 type="button"
-                                 className="add-section-btn no-print"
-                                 data-editor-add="true"
-                                 onClick={() => handleOpenAddSection("left")}
-                                 title="Agregar nueva sección a la columna lateral">
-                                 <PlusCircle size={16} /> Agregar
-                                 Sección Lateral
-                              </button>
-                           </div>
-                        </DroppableColumn>
+                                  {pageModel.pageNumber === pages.length && (
+                                     <div
+                                        className="column-add-section no-print"
+                                        data-editor-ui="true"
+                                        data-editor-add="true"
+                                        style={{
+                                           textAlign: "center",
+                                           marginTop: "1.5rem",
+                                        }}>
+                                        <button
+                                           type="button"
+                                           className="add-section-btn no-print"
+                                           data-editor-add="true"
+                                           onClick={() => handleOpenAddSection("left")}
+                                           title="Agregar nueva sección a la columna lateral">
+                                           <PlusCircle size={16} /> Agregar
+                                           Sección Lateral
+                                        </button>
+                                     </div>
+                                  )}
+                               </DroppableColumn>
 
-                        {/* Draggable Column Divider / Resizer */}
-                        <ColumnResizer
-                           leftColPercent={leftColPercent}
-                           isResizing={isResizing}
-                           onStartResize={handleResizerMouseDown}
-                        />
+                               {/* Draggable Column Divider / Resizer */}
+                               <ColumnResizer
+                                  leftColPercent={leftColPercent}
+                                  isResizing={isResizing}
+                                  onStartResize={handleResizerMouseDown}
+                               />
 
-                        <DroppableColumn
-                           id="column-right"
-                           column="right"
-                           className="resume__right"
-                           style={{
-                              background:
-                                 cvData.layout?.rightBg ||
-                                 "var(--container-color)",
-                              padding: "var(--page-padding, 24px)",
-                              minHeight: "100%",
-                              height: "100%",
-                              alignSelf: "stretch",
-                              display: "flex",
-                              flexDirection: "column",
-                              boxSizing: "border-box",
-                              minWidth: 0,
-                              maxWidth: "100%",
-                              color: "var(--text-color)",
-                              ...getDynamicTextVariables(cvData.layout?.rightBg),
-                           }}>
-                           <SortableContext
-                              items={rightSections.map((s) => s.id)}
-                              strategy={verticalListSortingStrategy}>
-                              {rightSections.map((section) => (
-                                 <BaseSection
-                                    key={section.id}
-                                    section={section}
-                                 />
-                              ))}
-                           </SortableContext>
+                               <DroppableColumn
+                                  id={pageModel.pageNumber === 1 ? "column-right" : `column-right-page-${pageModel.pageNumber}`}
+                                  column="right"
+                                  className="resume__right"
+                                  style={{
+                                     background:
+                                        cvData.layout?.rightBg ||
+                                        "var(--container-color)",
+                                     padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
+                                     minHeight: "100%",
+                                     height: "100%",
+                                     alignSelf: "stretch",
+                                     display: "flex",
+                                     flexDirection: "column",
+                                     boxSizing: "border-box",
+                                     minWidth: 0,
+                                     maxWidth: "100%",
+                                     color: "var(--text-color)",
+                                     ...getDynamicTextVariables(cvData.layout?.rightBg),
+                                  }}>
+                                  <SortableContext
+                                     items={pageModel.rightSections.map((s) => s.id)}
+                                     strategy={verticalListSortingStrategy}>
+                                     {pageModel.rightSections.map((section) => (
+                                        <BaseSection
+                                           key={section.id}
+                                           section={section}
+                                        />
+                                     ))}
+                                  </SortableContext>
 
-                           <div
-                              className="column-add-section no-print"
-                              data-editor-ui="true"
-                              data-editor-add="true"
-                              style={{
-                                 textAlign: "center",
-                                 marginTop: "1.5rem",
-                              }}>
-                              <button
-                                 type="button"
-                                 className="add-section-btn no-print"
-                                 data-editor-add="true"
-                                 onClick={() => handleOpenAddSection("right")}
-                                 title="Agregar nueva sección a la columna principal">
-                                 <PlusCircle size={16} /> Agregar
-                                 Sección Principal
-                              </button>
-                           </div>
-                        </DroppableColumn>
-                     </>
-                  ) : (
-                     <div
-                        className="resume__single-column"
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "100%",
-                            maxWidth: `${A4_WIDTH_PX}px`,
-                            margin: "0 auto",
-                           padding: 0,
-                        }}>
-                        <SortableContext
-                           items={(cvData.sections || []).map((s) => s.id)}
-                           strategy={verticalListSortingStrategy}>
-                           {(cvData.sections || []).map((section) => (
-                              <BaseSection key={section.id} section={section} />
-                           ))}
-                        </SortableContext>
+                                  {pageModel.pageNumber === pages.length && (
+                                     <div
+                                        className="column-add-section no-print"
+                                        data-editor-ui="true"
+                                        data-editor-add="true"
+                                        style={{
+                                           textAlign: "center",
+                                           marginTop: "1.5rem",
+                                        }}>
+                                        <button
+                                           type="button"
+                                           className="add-section-btn no-print"
+                                           data-editor-add="true"
+                                           onClick={() => handleOpenAddSection("right")}
+                                           title="Agregar nueva sección a la columna principal">
+                                           <PlusCircle size={16} /> Agregar
+                                           Sección Principal
+                                        </button>
+                                     </div>
+                                  )}
+                               </DroppableColumn>
+                            </>
+                         ) : (
+                            <DroppableColumn
+                               id={pageModel.pageNumber === 1 ? "column-single" : `column-single-page-${pageModel.pageNumber}`}
+                               column="single"
+                               className="resume__single-column"
+                               style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  width: "100%",
+                                  minHeight: "100%",
+                                  height: "100%",
+                                  padding: 0,
+                               }}>
+                               <SortableContext
+                                  items={pageModel.singleSections.map((s) => s.id)}
+                                  strategy={verticalListSortingStrategy}>
+                                  {pageModel.singleSections.map((section) => (
+                                     <BaseSection key={section.id} section={section} />
+                                  ))}
+                               </SortableContext>
 
-                        <div
-                           className="column-add-section no-print"
-                           data-editor-ui="true"
-                           data-editor-add="true"
-                           style={{ textAlign: "center", marginTop: "1.5rem" }}>
-                           <button
-                              type="button"
-                              className="add-section-btn no-print"
-                              data-editor-add="true"
-                              onClick={() => handleOpenAddSection("left")}
-                              title="Agregar nueva sección">
-                              <PlusCircle size={16} /> Agregar
-                              Nueva Sección
-                           </button>
-                        </div>
-                     </div>
-                  )}
-               </div>
+                               {pageModel.pageNumber === pages.length && (
+                                  <div
+                                     className="column-add-section no-print"
+                                     data-editor-ui="true"
+                                     data-editor-add="true"
+                                     style={{ textAlign: "center", marginTop: "1.5rem" }}>
+                                     <button
+                                        type="button"
+                                        className="add-section-btn no-print"
+                                        data-editor-add="true"
+                                        onClick={() => handleOpenAddSection("left")}
+                                        title="Agregar nueva sección">
+                                        <PlusCircle size={16} /> Agregar
+                                        Nueva Sección
+                                     </button>
+                                  </div>
+                               )}
+                            </DroppableColumn>
+                         )}
+                      </A4PageBox>
+                   ))}
+                </div>
             </main>
 
             {/* Drag Overlay for ghost preview */}

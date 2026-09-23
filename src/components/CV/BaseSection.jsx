@@ -206,65 +206,69 @@ const EditableBaseSection = ({ section }) => {
       {...attributes}
       {...containerDragListeners}
     >
-      <DragHandle listeners={listeners} attributes={attributes} />
+      {!section.isContinuation && (
+        <DragHandle listeners={listeners} attributes={attributes} />
+      )}
       
-      <div 
-        className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
-        data-editor-ui="true"
-        data-testid={`section-actions-${section.id}`}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <button 
-          type="button"
-          className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
-          title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
+      {!section.isContinuation && (
+        <div 
+          className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+          data-editor-ui="true"
+          data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
-            if (typeof toggleTooltipForSection === 'function') {
-              toggleTooltipForSection(section, bounding);
-            }
-          }}
         >
-          <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
-        </button>
-
-        {allowBulletCustomization && (
-          <button
-            type="button"
-            className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
-            title="Personalizar círculo del título"
-            aria-label="Personalizar círculo del título"
-            data-testid={`btn-bullet-style-${section.id}`}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
-              setIsBulletPopoverOpen(prev => !prev);
-            }}
-          >
-            <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
-          </button>
-        )}
-
-        {allowDelete && (
           <button 
             type="button"
-            className="round-btn-del section-del-btn"
-            title={`Eliminar sección ${section.title || section.id}`}
+            className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
+            title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              deleteSection(section.id);
+              const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
+              if (typeof toggleTooltipForSection === 'function') {
+                toggleTooltipForSection(section, bounding);
+              }
             }}
           >
-            <Trash2 size={13} />
+            <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
           </button>
-        )}
-      </div>
 
-      {descriptor.hasTitle !== false && (
+          {allowBulletCustomization && (
+            <button 
+              type="button"
+              className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
+              title="Personalizar círculo del título"
+              aria-label="Personalizar círculo del título"
+              data-testid={`btn-bullet-style-${section.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
+                setIsBulletPopoverOpen(prev => !prev);
+              }}
+            >
+              <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
+            </button>
+          )}
+
+          {allowDelete && (
+            <button 
+              type="button"
+              className="round-btn-del section-del-btn"
+              title={`Eliminar sección ${section.title || section.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSection(section.id);
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
         <h2 className="section-title" data-section-title={section.id}>
           <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.id, val)} />
         </h2>
@@ -274,7 +278,7 @@ const EditableBaseSection = ({ section }) => {
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
           <SectionItemsRenderer
             items={section.items || []}
-            sectionId={section.id}
+            sectionId={section.originalSectionId || section.id}
             sectionType={section.type}
             descriptor={descriptor}
             isPrint={false}
@@ -293,7 +297,7 @@ const EditableBaseSection = ({ section }) => {
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              addSectionItem(section.id);
+              addSectionItem(section.originalSectionId || section.id);
             }}
           >
             <Plus size={18} strokeWidth={2.5} />
@@ -306,17 +310,17 @@ const EditableBaseSection = ({ section }) => {
           isOpen={isBulletPopoverOpen}
           onClose={() => setIsBulletPopoverOpen(false)}
           bulletStyle={section.bulletStyle}
-          onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.id, newStyle)}
+          onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.originalSectionId || section.id, newStyle)}
           triggerRect={bulletTriggerRect}
         />
       )}
 
       <IntegratedBottomSpacer
-        containerId={section.id}
+        containerId={section.originalSectionId || section.id}
         height={section.bottomSpacing || 0}
         onUpdateHeight={(newH) => {
           if (typeof updateSectionProperty === 'function') {
-            updateSectionProperty(section.id, 'bottomSpacing', newH);
+            updateSectionProperty(section.originalSectionId || section.id, 'bottomSpacing', newH);
           }
         }}
       />

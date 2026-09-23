@@ -69,30 +69,33 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
   }
 
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
+  const lineHeight = options.lineHeight ?? 1.45;
+  const fontFactor = fontScale * (lineHeight / 1.45);
 
   switch (sectionType) {
     case 'profile_header': {
       let h = 60;
       if (item.subtitle) h += 20;
       if (item.photo) h += 50;
-      return h + itemGap;
+      return Math.round(h * fontScale) + itemGap;
     }
     case 'contact': {
       if (Array.isArray(item.contacts) && item.contacts.length > 0) {
         const rows = Math.ceil(item.contacts.length / 2);
-        return 16 + rows * 22 + itemGap;
+        return Math.round((16 + rows * 22) * fontScale) + itemGap;
       }
-      return 60 + itemGap;
+      return Math.round(60 * fontScale) + itemGap;
     }
     case 'about': {
       const text = item.description || item.text || '';
       const lines = Math.max(1, Math.ceil(text.length / 60));
-      return 20 + lines * 18 + itemGap;
+      return Math.round((20 + lines * 18) * fontFactor) + itemGap;
     }
     case 'skills': {
       const desc = item.description || '';
       const lines = Math.max(1, Math.ceil(desc.length / 60));
-      return 22 + lines * 18 + itemGap;
+      return Math.round((22 + lines * 18) * fontFactor) + itemGap;
     }
     case 'list':
     case 'experience':
@@ -107,15 +110,15 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
       if (Array.isArray(item.bullets) && item.bullets.length > 0) {
         h += item.bullets.length * 28;
       }
-      return h + itemGap;
+      return Math.round(h * fontFactor) + itemGap;
     }
     case 'education': {
-      return 46 + itemGap;
+      return Math.round(46 * fontFactor) + itemGap;
     }
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      return 24 + itemGap;
+      return Math.round(24 * fontFactor) + itemGap;
     }
     case 'spacer': {
       return item.height || 24;
@@ -129,7 +132,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
       if (Array.isArray(item.bullets)) {
         h += item.bullets.length * 20;
       }
-      return h + itemGap;
+      return Math.round(h * fontFactor) + itemGap;
     }
   }
 }
@@ -369,22 +372,33 @@ export function distributeSectionsToPages(cvData, options = {}) {
     isAts = Boolean(layout.isAtsMode === true || layout.type === '1-column');
   }
 
-  const pageHeight = options.pageHeightPx ?? EDITOR_PAGE_HEIGHT_PX;
-  const padding = options.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding);
+  const mergedOptions = {
+    fontScale: layout.fontScale ?? 1.0,
+    titleScale: layout.titleScale ?? 1.0,
+    bodyScale: layout.bodyScale ?? 1.0,
+    lineHeight: layout.lineHeight ?? 1.45,
+    pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
+    sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
+    itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
+    ...options,
+  };
+
+  const pageHeight = mergedOptions.pageHeightPx ?? EDITOR_PAGE_HEIGHT_PX;
+  const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
+  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding);
 
   let singleBuckets = {};
   let leftBuckets = {};
   let rightBuckets = {};
 
   if (isAts) {
-    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, options);
+    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, mergedOptions);
   } else {
     const leftList = sections.filter(s => s && s.column === 'left');
     const rightList = sections.filter(s => s && s.column !== 'left');
 
-    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, options);
-    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, options);
+    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, mergedOptions);
+    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, mergedOptions);
   }
 
   const allBucketKeys = [

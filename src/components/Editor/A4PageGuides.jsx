@@ -82,8 +82,8 @@ export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage })
 
       {/* Visual Page Margin Insets — editor-only, no-print */}
       {Array.from({ length: totalPages }).map((_, i) => {
-        const bottomInsetTop = `calc(${(i + 1) * 297}mm + ${i * 20}px - ${pagePaddingPx}px)`;
-        const topInsetTop = `calc(${(i + 1) * 297}mm + ${i * 20 + 20}px)`;
+        const bottomInsetTop = `calc(${(i + 1) * EDITOR_PAGE_HEIGHT_MM}mm + ${i * A4_GAP_PX}px - ${pagePaddingPx}px)`;
+        const topInsetTop = `calc(${(i + 1) * EDITOR_PAGE_HEIGHT_MM}mm + ${i * A4_GAP_PX + A4_GAP_PX}px)`;
 
         return (
           <React.Fragment key={`page-inset-${i}`}>

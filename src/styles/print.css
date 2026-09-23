@@ -88,6 +88,30 @@
     box-shadow: none !important;
   }
 
+  .a4-page-box .resume__left,
+  .a4-page-box .resume__right,
+  .a4-page-box .resume__single-column {
+    padding: var(--page-padding, 0px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .a4-page-box .cv-section:first-child,
+  .a4-page-box .cv-section:first-of-type,
+  .a4-page-box .section:first-child,
+  .a4-page-box .section:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .a4-page-box .cv-section:last-child,
+  .a4-page-box .cv-section:last-of-type,
+  .a4-page-box .section:last-child,
+  .a4-page-box .section:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+
   .resume__left,
   .resume__right {
     /* CRITICAL: Force block display in print so browser treats each column as a normal
