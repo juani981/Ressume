@@ -1881,6 +1881,46 @@ body.ats-mode-active {
 }
 
 /* ==========================================================
+   A4 PAGE BOX (Editor-Native Discrete A4 Boxes - Rule 15)
+   ========================================================== */
+.a4-page-box {
+  width: 210mm;
+  min-width: 210mm;
+  max-width: 210mm;
+  height: 297mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  margin: 0 auto 32px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.a4-page-box .a4-page-badge {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 50;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background-color: rgba(15, 23, 42, 0.08);
+  color: #64748b;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+body.ats-mode-active .a4-page-box .a4-page-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+/* ==========================================================
    A4 PAGE FOLD GUIDE (Visual Separation of Pages in Live Editor)
    ========================================================== */
 .a4-page-fold-guide {

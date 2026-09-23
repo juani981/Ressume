@@ -106,6 +106,21 @@ Ninguna cantidad de tests verdes, ningún log de consola, ningún `pdfinfo` que 
 | M3 | Implementó `overflowingBullet` en `paginationEngine.js` | Tests: ✅ — PDF real: no validado |
 | M4 | Escribió spec Cypress 09 (4/4 pasando) | Tests: ✅ — PDF real: no validado |
 | M5 | Remediación: purgó overrides, factores 0.84, min-height inflado | Tests: ✅ 44/44 Cypress, 903 Vitest — PDF usuario: **3 páginas, sección Educación fracturada** |
+| M6 | Desvío con Typst WASM desacoplado | Tests: ✅ — PDF usuario: **Estilo opinionado roto, desalineado del editor** |
+| M7 | Particionado post-hoc en iframe sobre editor continuo | Tests: ✅ — PDF usuario: **Mismo fracaso estructural por discrepancia continuo vs paged** |
+
+---
+
+## 6. La Falacia del "Lienzo Continuo": Por Qué Todo Falló
+El mayor error conceptual de los agentes fue creer que se podía ofrecer un editor de scroll continuo infinito y luego, en una fracción de segundo al hacer clic en "Imprimir", pedirle a un script o a CSS que dividiera ese árbol continuo en páginas A4 perfectas sin que se desfasara nada.
+- La pantalla y el papel no comparten métricas subpíxel.
+- Querer corregir en la impresión lo que el editor nunca estructuró como páginas es imposible.
+- **La Solución Canónica**: 
+  1. El editor debe estar compuesto nativamente por cajas fijas A4 (`.a4-page-box`).
+  2. La estructura de páginas queda tallada en piedra en el editor.
+  3. El motor de impresión es un renderizador pasivo determinista.
+
+---
 
 **Conclusión**: Las herramientas de testing automatizado disponibles son incapaces de detectar este bug. El único detector confiable es el ojo humano sobre el PDF impreso.
 

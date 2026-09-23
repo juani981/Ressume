@@ -39,4 +39,31 @@
 - **Prohibición de declarar paridad sin validación visual**: Ningún agente puede afirmar que "la paginación está resuelta" o que hay "paridad 1:1" basándose en tests verdes de Vitest o Cypress. La única validación válida es que el usuario confirme visualmente el PDF impreso en su navegador real (Zen Browser / Gecko / Chromium).
 - **Historial de fracasos**: Al menos 5 iteraciones de agentes produjeron PDFs rotos mientras sus tests pasaban al 100%. La evidencia física está en `muestra_fracaso.pdf` en la raíz del proyecto.
 
+## 15. Invariante de Cajas A4 Fijas Nativas en el Editor (Editor-Native Discrete A4 Boxes)
+- **Estructura Física Discreta en Vivo**: El editor (`#area-cv`) no puede ser un contenedor de flujo vertical continuo infinito. La interfaz de usuario debe componerse directamente de una lista de cajas cerradas `<A4PageBox pageNumber={N}>`.
+- **Dimensiones Inmutables**: Cada `.a4-page-box` en el editor debe poseer estrictamente:
+  ```css
+  width: 210mm;
+  min-width: 210mm;
+  max-width: 210mm;
+  height: 297mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  margin: 0 auto 32px auto; /* Separación física visible en el editor */
+  ```
+- **Prohibición de Lienzo Continuo con Pliegues Simulados**: Queda terminantemente prohibido representar el CV como una sola sábana continua con líneas rojas o punteadas que intenten simular dónde caerá la página. El límite físico de la página debe ser visible y real en la pantalla de edición.
+- **Distribución de Contenido**: Las secciones y componentes se distribuyen entre las cajas de página en el estado de React. Si un bloque no cabe en la Página 1, pertenece al contenedor de la Página 2.
+
+## 16. Principio de Estructura Fija Tallada en Piedra (Zero Dynamic Reflow on Print)
+- **El Editor es la Única Fuente de Verdad**: La estructura de páginas y la ubicación de cada elemento en su respectiva hoja y columna es decidida de forma exclusiva por el Editor y queda "tallada en piedra" en el estado del documento.
+- **Prohibición de Disposición Dinámica en Impresión**: El motor de impresión (sea `@media print`, iframe o canvas) tiene terminantemente prohibido ejecutar disposición dinámica, algoritmos de corte heurístico o reposicionamiento basado en reglas relativas al PDF. Su único rol es proyectar de forma puramente pasiva y determinista la estructura fija que el editor le suministra. WYSIWYG absoluto.
+
+## 17. Directiva de Minimalismo Radical y Reemplazo Tecnológico
+- **Libertad de Stack para Máxima Simplicidad**: Se autoriza e instruye explícitamente a sustituir o reimplementar cualquier función, subsistema heurístico o pipeline heredado usando cualquier API, enfoque o librería moderna que garantice el resultado visual esperado con la menor cantidad de código posible.
+- **Eliminación de Complejidad Accidental**: Es preferible un modelo de 150 líneas de código limpio y determinista basado en componentes antes que mantener suites de 1500 líneas de heurísticas de medición y parches en el DOM.
+
+
 
