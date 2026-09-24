@@ -47,20 +47,20 @@ describe('Dynamic Contact System & ContactTypePicker', () => {
 
     it('retrieves config for all standardized recruiter-friendly contact types', () => {
       const leetcodeCfg = getContactConfig('leetcode');
-      expect(leetcodeCfg.icon).toBe('bx bx-code-alt');
+      expect(leetcodeCfg.icon).toBe('Code2');
       expect(leetcodeCfg.category).toBe('code');
 
       const whatsappCfg = getContactConfig('whatsapp');
-      expect(whatsappCfg.icon).toBe('bx bxl-whatsapp');
+      expect(whatsappCfg.icon).toBe('MessageCircle');
 
       const workModeCfg = getContactConfig('work_mode');
-      expect(workModeCfg.icon).toBe('bx bx-laptop');
+      expect(workModeCfg.icon).toBe('Laptop');
 
       const visaCfg = getContactConfig('citizenship');
-      expect(visaCfg.icon).toBe('bx bx-id-card');
+      expect(visaCfg.icon).toBe('IdCard');
 
       const unknownCfg = getContactConfig('other_custom_network');
-      expect(unknownCfg.icon).toBe('bx bx-link');
+      expect(unknownCfg.icon).toBe('Link');
     });
 
     it('syncs flat fields for backward compatibility', () => {
@@ -254,13 +254,13 @@ describe('Dynamic Contact System & ContactTypePicker', () => {
 
       const html = generateCleanPrintHTML(sampleCv, 'es');
       expect(html).toContain('juan@tech.com');
-      expect(html).toContain('bx bx-envelope');
+      expect(html).toContain('lucide-mail');
       expect(html).toContain('leetcode.com/juan');
-      expect(html).toContain('bx bx-code-alt');
+      expect(html).toContain('lucide-code');
       expect(html).toContain('+5493816706133');
-      expect(html).toContain('bx bxl-whatsapp');
+      expect(html).toContain('lucide-message-circle');
       expect(html).toContain('Remoto Full-time');
-      expect(html).toContain('bx bx-laptop');
+      expect(html).toContain('lucide-laptop');
 
       // Does not contain any editor buttons
       expect(html).not.toContain('add-contact-btn');

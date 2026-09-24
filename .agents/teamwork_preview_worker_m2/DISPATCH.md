@@ -1,23 +1,55 @@
-## 2026-09-03T05:17:00Z
-You are Worker M2 for Ressume CV editor project.
+## 2026-09-20T04:19:25Z
+
+You are a Worker subagent (teamwork_preview_worker_m2).
 Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
-Workspace directory: /home/juani/Documentos/Ressume
-Authoritative user request: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (under header ## 2026-09-03T03:17:21Z)
-Project Scope: /home/juani/Documentos/Ressume/.agents/teamwork_preview_orchestrator_8/PROJECT.md
-Architectural Blueprint: /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o7_survey_2/handoff.md
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
+Survey reports:
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_explorer_o17_survey_2/handoff.md
 
-Tasks:
-1. Implement src/components/Editor/RichTextToolbar.jsx (singleton floating toolbar, AGENTS.md Rule 3 dynamic bounding rect positioning, alignment buttons L/C/R/J, bold/italic buttons, mousedown preventDefault).
-2. Upgrade src/components/Editor/InlineEdit.jsx to rich-text contentEditable with full backward compatibility, keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y), and alignment persistence.
-3. Update src/context/CVContext.jsx (prevent global window Ctrl+Z/Y listener from hijacking text editing in editable fields).
-4. Update src/utils/staticHtmlPdfEngine.js so rich text formatting tags (<b>, <i>, alignment) render properly instead of escaping into literal &lt;b&gt;.
-5. Verify src/components/PDF/richTextPdf.jsx renders rich text in React-PDF.
-6. Create src/tests/epic2-rich-text-toolbar.test.jsx covering all Epic 2 requirements and edge cases.
-7. Run npm test and npm run build directly.
-8. Write handoff.md in your working directory and notify parent via send_message.
+MANDATORY INTEGRITY WARNING:
+DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-## 2026-09-03T05:30:16Z
-[Message from Orchestrator 2c65867e-7bbe-40ab-b346-34c64b943ca4]
-**Context**: Milestone 2 implementation check.
-**Content**: Please provide an update on your progress with Epic 2 (RichTextToolbar, InlineEdit upgrade, shortcuts, cross-engine rendering). What files have been modified/created, and what step are you currently executing?
-**Action**: Update progress.md and report your current status.
+Scope and Exclusive File Ownership for Milestone 2:
+Files you own:
+- `src/components/CV/items/ProjectsItem.jsx`
+- `src/components/CV/items/VolunteeringItem.jsx`
+- `src/components/CV/items/ReferencesItem.jsx`
+- `src/components/CV/items/PublicationsItem.jsx`
+- `src/components/CV/items/LanguagesItem.jsx`
+- `src/components/CV/items/CertificatesItem.jsx`
+- `src/components/CV/items/AwardsItem.jsx`
+- `src/components/CV/items/MentoringItem.jsx`
+- `src/components/CV/SortableBulletItem.jsx`
+- `src/components/CV/items/ExperienceItem.jsx`
+- `src/styles/index.css`
+- `src/styles/print.css`
+- `src/tests/m3-parity-and-forbidden-zones.test.jsx`
+- `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`
+- `src/tests/challenger-print-engine-stress.test.jsx`
+
+Tasks for Milestone 2 (Sincronización Estricta de Sliders y Variables de Diseño):
+1. **Harmonize Item Components Typography (Feature 5)**:
+   Update the 8 item components to use categorical scale CSS variables so that user slider adjustments to `bodyScale` and `listScale` take effect uniformly on dates, subtitles, and lists:
+   - `var(--body-smaller-font-size, var(--smaller-font-size))` instead of hardcoded `var(--smaller-font-size)`:
+     - `src/components/CV/items/ProjectsItem.jsx`
+     - `src/components/CV/items/VolunteeringItem.jsx`
+     - `src/components/CV/items/ReferencesItem.jsx`
+     - `src/components/CV/items/PublicationsItem.jsx`
+     - `src/components/CV/items/LanguagesItem.jsx`
+     - `src/components/CV/items/CertificatesItem.jsx`
+     - `src/components/CV/items/AwardsItem.jsx`
+     - `src/components/CV/items/MentoringItem.jsx`
+   - `var(--body-small-font-size, var(--small-font-size))` instead of hardcoded `var(--small-font-size)`:
+     - `ReferencesItem.jsx`, `PublicationsItem.jsx`, `CertificatesItem.jsx`, `LanguagesItem.jsx`, `AwardsItem.jsx`.
+   - `var(--list-font-size, var(--normal-font-size))` in `LanguagesItem.jsx` (language title).
+2. **Standardize `itemGap` & Spacing Fallbacks (Feature 6)**:
+   Align `itemGap` fallbacks across `index.css`, `print.css`, `SortableBulletItem.jsx`, and `ExperienceItem.jsx` to `var(--item-gap, 8px)`.
+3. **Connect Section Title Spacing to Sliders (Feature 7)**:
+   In `src/styles/index.css` and `src/styles/print.css`, change `.section-title` margin-bottom from hardcoded `1.5rem !important` (24px) to `var(--item-gap, 12px) !important` or `calc(var(--item-gap, 8px) * 1.5) !important` so section title spacing responds proportionally to spacing sliders.
+4. **Update Legacy Test Assertions**:
+   In `src/tests/m3-parity-and-forbidden-zones.test.jsx`, `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`, and `src/tests/challenger-print-engine-stress.test.jsx`, update the outdated assertions that checked for `box-decoration-break: slice` or tested the purged screen getBoundingClientRect anti-orphan logic so that all tests reflect the new CSS Paged Media `box-decoration-break: clone` architecture.
+5. **Verification**:
+   - Run `npm test` — all 58 test files and 900 tests must pass (100% green).
+   - Run `npm run build` — 0 errors.

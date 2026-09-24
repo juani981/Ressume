@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCV } from '../../context/CVContext';
 import AIExportModal from './AIExportModal';
+import TranslationModal from './TranslationModal';
 import VersionManagerModal from './VersionManagerModal';
 import ColorPickerSwatch from './ColorPickerSwatch';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
@@ -17,7 +18,10 @@ import {
   RotateCcw,
   Info,
   History,
-  BotMessageSquare
+  BotMessageSquare,
+  Languages,
+  FolderDown,
+  FileX
 } from 'lucide-react';
 
 const ActionMenu = () => {
@@ -29,7 +33,10 @@ const ActionMenu = () => {
     redo, 
     canUndo, 
     canRedo, 
-    showToast 
+    resetToDefault,
+    showToast,
+    totalPages,
+    deletePage
   } = useCV();
 
   const [loading, setLoading] = useState(false);
@@ -38,10 +45,30 @@ const ActionMenu = () => {
   
   // Grouped Submenus State (Epic 3)
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
   const isAtsMode = cvData.layout?.isAtsMode === true || cvData.layout?.type === '1-column';
   const is2Col = cvData.layout?.type === '2-column' && !cvData.layout?.isAtsMode;
+
+  const toggleAtsMode = () => {
+    if (isAtsMode) {
+      updateLayout({ type: '2-column', isAtsMode: false });
+    } else {
+      updateLayout({ type: '1-column', isAtsMode: true });
+    }
+  };
+
+  const handleExportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cvData, null, 2));
+    const a = document.createElement('a');
+    a.href = dataStr;
+    a.download = `cv-state-${activeLanguage || 'es'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   const handleGeneratePDF = async () => {
     if (loading) return;
@@ -51,27 +78,38 @@ const ActionMenu = () => {
     showToast('Generando PDF optimizado y preparando impresión...', 'loading', 0);
 
     let isFinished = false;
+    let focusTimeout = null;
+    let fallbackTimeout = null;
+
     const onControlReturned = () => {
       if (isFinished) return;
       isFinished = true;
-      window.removeEventListener('afterprint', onControlReturned);
-      window.removeEventListener('print-dialog-closed', onControlReturned);
-      window.removeEventListener('focus', onControlReturned);
+      if (focusTimeout) clearTimeout(focusTimeout);
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('afterprint', onControlReturned);
+        window.removeEventListener('print-dialog-closed', onControlReturned);
+        window.removeEventListener('focus', onControlReturned);
+      }
       setLoading(false);
       // 2. Notificación de confirmación tras cerrar el diálogo o retomar el control
       showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
     };
 
     // Escuchar eventos de cierre de impresión y foco del usuario
-    window.addEventListener('afterprint', onControlReturned, { once: true });
-    window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('afterprint', onControlReturned, { once: true });
+      window.addEventListener('print-dialog-closed', onControlReturned, { once: true });
+    }
 
-    const focusTimeout = setTimeout(() => {
-      window.addEventListener('focus', onControlReturned, { once: true });
+    focusTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && !isFinished) {
+        window.addEventListener('focus', onControlReturned, { once: true });
+      }
     }, 1200);
 
     // Fallback de seguridad en caso de entornos donde no se disparen eventos de ventana
-    const fallbackTimeout = setTimeout(() => {
+    fallbackTimeout = setTimeout(() => {
       onControlReturned();
     }, 8000);
 
@@ -79,7 +117,9 @@ const ActionMenu = () => {
       await executeCleanPrint(cvData, activeLanguage);
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
-      window.print();
+      if (typeof window !== 'undefined') {
+        window.print();
+      }
       onControlReturned();
     }
   };
@@ -117,7 +157,72 @@ const ActionMenu = () => {
           zIndex: 100 
         }}
       >
-        {/* 1. Deshacer (Undo) */}
+        {/* 1. Modo ATS Switch 
+        <div 
+          className="ats-toggle-container action-menu-btn-wrap" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '3px', 
+            paddingBottom: '0.2rem' 
+          }}
+        >
+          <button
+            type="button"
+            aria-pressed={isAtsMode}
+            onClick={toggleAtsMode}
+            className="action-menu-btn ats-switch-btn"
+            style={{
+              width: '42px',
+              height: '24px',
+              borderRadius: '999px',
+              background: isAtsMode ? '#10b981' : '#6366f1',
+              border: 'none',
+              padding: '2px',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'background-color 0.25s ease',
+              display: 'flex',
+              alignItems: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)'
+            }}
+            aria-label={isAtsMode ? 'Cambiar a 2 Columnas (Visual)' : 'Cambiar a 1 Columna (Lineal ATS)'}
+            title={isAtsMode ? 'Cambiar a 2 Columnas (Visual)' : 'Cambiar a 1 Columna (Lineal ATS)'}
+            data-testid="action-menu-ats-toggle"
+          >
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                background: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                transform: isAtsMode ? 'translateX(18px)' : 'translateX(0px)',
+                transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isAtsMode ? (
+                <FileText size={12} color="#10b981" />
+              ) : (
+                <Columns size={12} color="#6366f1" />
+              )}
+            </div>
+          </button>
+          <span style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: isAtsMode ? '#059669' : '#6366f1' }}>
+            {isAtsMode ? 'ATS' : '2-COL'}
+          </span>
+          <span className="action-menu-tooltip">
+            {isAtsMode ? 'Modo ATS (Activo) - Cambiar a 2 Columnas' : 'Modo 2 Columnas (Activo) - Cambiar a ATS'}
+          </span>
+        </div>
+
+        <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
+*/}
+        {/* 2. Deshacer (Undo) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -139,7 +244,7 @@ const ActionMenu = () => {
           </span>
         </div>
 
-        {/* 2. Rehacer (Redo) */}
+        {/* 3. Rehacer (Redo) */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -161,10 +266,85 @@ const ActionMenu = () => {
           </span>
         </div>
 
+        {/* 4. Restablecer CV Original
+        <div className="action-menu-btn-wrap">
+          <button 
+            type="button"
+            className="action-menu-btn"
+            onClick={() => {
+              if (window.confirm('¿Restablecer el CV con los datos y contacto originales? Puedes deshacer con Ctrl+Z.')) {
+                resetToDefault();
+              }
+            }}
+            style={{ color: '#f59e0b' }}
+            aria-label="Restablecer CV original (Juan Ignacio Carrizo)"
+            title="Restablecer CV original (Juan Ignacio Carrizo)"
+          >
+            <RotateCcw size={20} />
+          </button>
+          <span className="action-menu-tooltip">
+            Restablecer CV
+          </span>
+        </div>
+ */}
+        {/* 5. Idiomas y Traducción 
+        <div className="action-menu-btn-wrap">
+          <button 
+            type="button"
+            className="action-menu-btn"
+            onClick={() => setIsTranslationModalOpen(true)}
+            style={{ color: '#0ea5e9' }}
+            aria-label="Idiomas y Traducción"
+            title="Idiomas y Traducción del CV"
+          >
+            <Languages size={20} />
+          </button>
+          <span className="action-menu-tooltip">
+            Idiomas y Traducción
+          </span>
+        </div>*/}
+
         <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
 
+        {/* 7. Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="red" />
+          <stop offset="17%" stopColor="orange" />
+          <stop offset="33%" stopColor="yellow" />
+          <stop offset="50%" stopColor="green" />
+          <stop offset="67%" stopColor="blue" />
+          <stop offset="83%" stopColor="indigo" />
+          <stop offset="100%" stopColor="violet" />
+        </linearGradient>
+        </svg>
+        <div className="action-menu-btn-wrap">
+          <button 
+            type="button"
+            className="action-menu-btn"
+            onClick={() => {
+              setIsDesignMenuOpen(prev => {
+                if (!prev) setIsActionsMenuOpen(false);
+                return !prev;
+              });
+            }} 
+            style={{ 
+              color: isDesignMenuOpen ? '#3874ff' : '#6366f1',
+              background: isDesignMenuOpen ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+              borderRadius: '8px'
+            }}
+            aria-label="Ajustes de Diseño y Tipografía"
+            title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
+            data-testid="btn-open-design"
+          >
+            <Palette size={20} stroke='url(#rainbow-gradient)'/>
+          </button>
+          <span className="action-menu-tooltip">
+            Diseño (Colores, Espaciado, Tipografía)
+          </span>
+        </div>
 
-        {/* 3. Generar Prompts de IA */}
+         {/* 6. Generar Prompts de IA */}
         <div className="action-menu-btn-wrap">
           <button 
             type="button"
@@ -181,8 +361,9 @@ const ActionMenu = () => {
             Generar Prompts para análisis
           </span>
         </div>
+                <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
 
-        {/* 4. Gestor de Versiones */}
+{/* Gestor de Versiones */}
         <div className="action-menu-btn-wrap">
           <button
             type="button"
@@ -197,57 +378,70 @@ const ActionMenu = () => {
           </button>
           <span className="action-menu-tooltip">Gestor de Versiones</span>
         </div>
-
-        <hr style={{ width: '100%', border: 'none', borderTop: '1px solid rgba(0, 0, 0, 0.08)', margin: '0.1rem 0' }} />
-
-        {/* 5. Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
+        {/* 8. Acciones de Exportación */}
         <div className="action-menu-btn-wrap">
-          <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={() => {
-              setIsDesignMenuOpen(prev => !prev);
-            }} 
-            style={{ 
-              color: isDesignMenuOpen ? '#3874ff' : '#6366f1',
-              background: isDesignMenuOpen ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-              borderRadius: '8px'
-            }}
-            aria-label="Ajustes de Diseño y Tipografía"
-            title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
-            data-testid="btn-open-design"
-          >
-            <Palette size={20} />
+          {/* Action 1: Native Print / Clean PDF Export */}
+        <button
+          type="button"
+          className="action-menu-btn"
+          onClick={handleGeneratePDF}
+          disabled={loading}
+          aria-label="Descargar / Imprimir PDF"
+          title="Descargar / Imprimir PDF"
+          data-testid="btn-action-native-print"
+        >
+            
+
+            {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={20} color='#DC143C'/>}
+          
           </button>
           <span className="action-menu-tooltip">
-            Diseño (Colores, Espaciado, Tipografía)
+            Descargar/Imprimir PDF
           </span>
         </div>
 
-        {/* 6. Descargar como PDF (Impresión A4 Limpia Directa) */}
+        {/* Eliminar Página */}
         <div className="action-menu-btn-wrap">
-          <button 
+          <button
             type="button"
-            className="action-menu-btn"
-            onClick={handleGeneratePDF}
-            disabled={loading}
-            style={{ 
-              color: loading ? '#94a3b8' : '#e11d48',
-              cursor: loading ? 'wait' : 'pointer'
+            className="action-menu-btn delete-page-btn"
+            onClick={() => deletePage()}
+            aria-label="Eliminar página"
+            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
+            data-testid="btn-delete-page"
+            style={{
+              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
+              cursor: 'pointer'
             }}
-            aria-label="Descargar / Imprimir PDF"
-            title="Descargar / Imprimir PDF (Impresión A4 Limpia)"
-            data-testid="btn-action-native-print"
           >
-            {loading ? (
-              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-            ) : (
-              <FileDown size={20} />
-            )}
+            <FileX size={20} />
           </button>
           <span className="action-menu-tooltip">
-            {loading ? 'Generando PDF...' : 'Descargar como PDF'}
+            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
           </span>
+          {/* <button 
+            type="button"
+            className="action-menu-btn"
+            onClick={() => {
+              setIsActionsMenuOpen(prev => {
+                if (!prev) setIsDesignMenuOpen(false);
+                return !prev;
+              });
+            }} 
+            style={{ 
+              color: isActionsMenuOpen ? '#3874ff' : '#e11d48',
+              background: isActionsMenuOpen ? 'rgba(225, 29, 72, 0.1)' : 'transparent',
+              borderRadius: '8px'
+            }}
+            aria-label="Acciones y Exportación"
+            title="Acciones y Exportación (PDF, JSON)"
+            data-testid="btn-open-actions"
+          >
+            <FolderDown size={20} />
+          </button>
+          <span className="action-menu-tooltip">
+            Acciones de Exportación
+          </span> */}
         </div>
       </div>
 
@@ -404,11 +598,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Títulos (Encabezados)</span>
-                <b style={{ color: '#4f46e5' }}>{titleScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {titleScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(H1: ~{Math.round(24 * fontScale * titleScale)}px, H2: ~{Math.round(20 * fontScale * titleScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.40} 
                 step={0.05}
                 value={titleScale} 
@@ -423,11 +619,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Cuerpo (Descripciones)</span>
-                <b style={{ color: '#4f46e5' }}>{bodyScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {bodyScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(~{Math.round(15 * fontScale * bodyScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.30} 
                 step={0.05}
                 value={bodyScale} 
@@ -442,11 +640,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span style={{ fontWeight: 500 }}>Listas (Viñetas / Habilidades)</span>
-                <b style={{ color: '#4f46e5' }}>{listScale.toFixed(2)}x</b>
+                <b style={{ color: '#4f46e5' }}>
+                  {listScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(~{Math.round(15 * fontScale * listScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.80} 
+                min={0.50} 
                 max={1.30} 
                 step={0.05}
                 value={listScale} 
@@ -467,11 +667,13 @@ const ActionMenu = () => {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
                 <span>Escala General (Multiplicador)</span>
-                <b>{fontScale.toFixed(2)}x</b>
+                <b>
+                  {fontScale.toFixed(2)}x <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>(Base: ~{Math.round(15 * fontScale)}px)</span>
+                </b>
               </div>
               <input 
                 type="range" 
-                min={0.85} 
+                min={0.50} 
                 max={1.25} 
                 step={0.05}
                 value={fontScale} 
@@ -664,8 +866,84 @@ const ActionMenu = () => {
           )}
         </div>
       </div>
+      {/* =========================================================================
+          Grouped Submenu 2: 'Acciones' Popover (Export JSON, Print)
+          ========================================================================= 
+      <div 
+        className="actions-popover no-print"
+        style={{
+          position: 'fixed',
+          left: '4.75rem',
+          top: '50%',
+          transform: isActionsMenuOpen ? 'translateY(-50%) scale(1)' : 'translateY(-50%) scale(0.96)',
+          background: 'var(--container-color, #ffffff)',
+          borderRadius: '14px',
+          padding: '1.25rem',
+          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.2)',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+          width: '310px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem',
+          opacity: isActionsMenuOpen ? 1 : 0,
+          pointerEvents: isActionsMenuOpen ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease, transform 0.2s ease'
+        }}
+        data-testid="actions-submenu"
+      >
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingBottom: '0.5rem' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--title-color, #111)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FolderDown size={18} color="#3874ff" /> Acciones de Exportación
+          </span>
+          <button 
+            type="button"
+            onClick={() => setIsActionsMenuOpen(false)}
+            aria-label="Cerrar panel de acciones"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: '4px', display: 'flex' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        
+
+        
+        <button
+          type="button"
+          className="action-popover-item"
+          onClick={handleExportJSON}
+          aria-label="Exportar Estado (.JSON)"
+          title="Exportar Estado (.JSON)"
+          data-testid="btn-action-export-json"
+        >
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            background: '#eff6ff',
+            color: '#3b82f6',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <FileDown size={20} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
+              Exportar Estado (.JSON)
+            </div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '1px' }}>
+              Copia de respaldo editable completa
+            </div>
+          </div>
+        </button>
+      </div>*/}
 
       <AIExportModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
+      <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
     </>
   );

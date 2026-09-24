@@ -1,69 +1,52 @@
-# BRIEFING — 2026-09-03T02:05:00-03:00
+# BRIEFING — 2026-09-20T00:40:05-03:00
 
 ## Mission
-Implement Epic 1: Client-Side PDF Generation via @react-pdf/renderer with 1:1 layout mirror, selectable text, multi-page pagination, loading indicator, and toast notifications.
+Execute Milestone 1: Eliminación de Doble Motor y Restauración de CSS Paged Media in src/utils/staticHtmlPdfEngine.js and src/styles/print.css.
 
 ## 🔒 My Identity
-- Archetype: worker
+- Archetype: Worker
 - Roles: implementer, qa, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1
-- Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Milestone: Epic 1 - PDF Generation
+- Original parent: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Milestone: Milestone 1 (Eliminación de Doble Motor y Restauración de CSS Paged Media)
 
 ## 🔒 Key Constraints
-- DO NOT CHEAT. No hardcoding test results, no dummy implementations.
-- Client-side only — no server-side changes.
-- Do NOT replace staticHtmlPdfEngine.js — supplement it.
-- Fix line 79 in src/utils/staticHtmlPdfEngine.js.
-- Clean 100% test pass and build pass.
-- Standard fonts offline (Helvetica, Times-Roman, Courier).
-- Strict 1:1 visual styling and wrap={false} pagination across sections/items.
+- Files owned exclusively: `src/utils/staticHtmlPdfEngine.js`, `src/styles/print.css`. Do not modify other source files.
+- Strict adherence to AGENTS.md Rule 5 (Invariante de Paginación e Impresión PDF: Cero Parches Heurísticos de Pantalla) and Rule 6 (Verificación Real vs. Sesgo de JSDOM / Tests Sintéticos).
+- Mandatory integrity: no hardcoded test results, no dummy implementations.
+- Purge screen-based getBoundingClientRect() heuristics, print scaling, doc.body.style.zoom, and runtime CSS variable overrides.
+- Multi-page margins via box-decoration-break: clone !important in print.css.
+- Declarative break-after: avoid and break-inside: avoid.
+- Ensure strict integer A4 multiples for min-height: calc(${totalPages} * 297mm) !important.
 
 ## Current Parent
-- Conversation ID: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Updated: 2026-09-03T02:05:00-03:00
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: Full client-side PDF generation using @react-pdf/renderer, CVDocument component matching #area-cv styles, PdfIcons, reactPdfEngine utility, ActionMenu integration, unit & integration tests.
-- **Success criteria**: All Epic 1 acceptance criteria met, 100% tests pass (293/293), build passes in 4.1s.
-- **Interface contracts**: /home/juani/Documentos/Ressume/PROJECT.md
-- **Code layout**: src/components/PDF/, src/utils/, src/tests/
+- **What to build**: Purge heuristic screen-coordinate double pagination engine and dynamic print scaling in `src/utils/staticHtmlPdfEngine.js`, restoring declarative CSS Paged Media in `src/styles/print.css`.
+- **Success criteria**: Vitest suite passes (`npm test`), build passes (`npm run build`), Cypress print lifecycle and geometry tests pass (`npx cypress run --browser chrome-for-testing --spec "cypress/e2e/01-print-lifecycle.cy.js,cypress/e2e/02-print-geometry-and-pagination.cy.js"`).
+- **Interface contracts**: PROJECT.md, AGENTS.md
+- **Code layout**: src/utils/staticHtmlPdfEngine.js, src/styles/print.css
 
 ## Key Decisions Made
-- Standard PDF Type 1 fonts (Helvetica, Times-Roman, Courier) used to eliminate network font fetches.
-- Code-splitting with dynamic import in ActionMenu: main bundle remains small (401 kB), react-pdf chunk (1.28 MB) loaded on-demand.
-- Super-container header binding (`wrap={false}`) prevents orphaned headers across page cuts.
-- Vector SVG icons rendered via @react-pdf/renderer Svg/Path primitives.
+- Initializing workspace and reviewing survey reports.
 
 ## Artifact Index
-- DISPATCH.md — Assignment from orchestrator
-- BRIEFING.md — Persistent working memory
-- progress.md — Liveness heartbeat
-- handoff.md — 5-component handoff report
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1/DISPATCH.md — Assignment instructions
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1/BRIEFING.md — Situational awareness
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1/progress.md — Liveness & heartbeat
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1/handoff.md — Final handoff report
 
 ## Change Tracker
-- **Files modified**:
-  - `package.json`: added `@react-pdf/renderer` and `vite-plugin-node-polyfills`
-  - `vite.config.js`: configured `nodePolyfills`, `chunkSizeWarningLimit: 1600`, restricted tests to `src/`
-  - `src/utils/staticHtmlPdfEngine.js`: added `isLast = false` to line 79
-  - `src/utils/reactPdfEngine.js`: implemented `renderPdfBlob`, `generateAndDownloadPdf`, `normalizeCvDataForPdf`
-  - `src/components/PDF/PdfIcons.jsx`: implemented vector SVG icons
-  - `src/components/PDF/pdfStyleFactory.js`: implemented dynamic styling, YIQ contrast, pt conversions
-  - `src/components/PDF/richTextPdf.jsx`: implemented rich text tokenizer for b/i/em/strong tags
-  - `src/components/PDF/CVItemPdf.jsx`: implemented universal item renderer for all 13 item types
-  - `src/components/PDF/CVSectionPdf.jsx`: implemented super-container orphan prevention
-  - `src/components/PDF/CVDocument.jsx`: implemented 1:1 root Document mirror (2-col & 1-col)
-  - `src/components/Editor/ActionMenu.jsx`: integrated vector PDF export button, loading state, toast
-  - `src/tests/setup.js`: polyfilled `URL.createObjectURL` / `revokeObjectURL`
-  - `src/tests/epic1-react-pdf-generation.test.jsx`: added 16 tests across Tiers 1 and 2
-  - `PROJECT.md`: updated scope and marked M1 COMPLETE
-- **Build status**: PASS (vite v5.4.21, built in 4.10s)
-- **Pending issues**: none
+- **Files modified**: None yet
+- **Build status**: Untested
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (15 test files, 293 tests passing, 0 errors)
-- **Lint status**: clean
-- **Tests added/modified**: +16 comprehensive tests in `src/tests/epic1-react-pdf-generation.test.jsx`
+- **Build/test result**: Untested
+- **Lint status**: Untested
+- **Tests added/modified**: TBD
 
 ## Loaded Skills
-None
+- None

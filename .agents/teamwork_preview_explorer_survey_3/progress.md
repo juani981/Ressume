@@ -1,14 +1,13 @@
-# Progress — Explorer 3 (Survey)
+# Progress — Explorer 3 (Test Suite Baseline, Build Status & Extensibility)
 
-Last visited: 2026-09-02T02:16:50Z
+Last visited: 2026-09-11T03:22:00Z
 
-- [x] Workspace initialization (DISPATCH.md, BRIEFING.md, progress.md)
-- [x] Inspect package.json, build setup, dependencies, and test scripts
-- [x] Investigate existing test files, test runner configuration, coverage, and execute tests (104 tests: 93 pass, 11 fail)
-- [x] Investigate current print & PDF implementation (ActionMenu print buttons, window.print, iframe printing, puppeteer/backend)
-- [x] Investigate `generateCleanPrintHTML` (isolated HTML generation, DOM stripping, YIQ contrast, styling)
-- [x] Investigate print CSS and pagination rules (`break-inside: avoid !important`, `page-break-inside: avoid !important`, super-containers `.cv-section`, `.cv-block`)
-- [x] Investigate 2 A4 page auto-scaling, height measurement (2246px max height, DPI / mm to px conversion, scale floor limit)
-- [x] Synthesize findings and write `analysis.md`
-- [x] Write 5-component `handoff.md`
-- [x] Send completion message to parent
+- [x] Initialized DISPATCH.md and updated BRIEFING.md for current milestone
+- [x] Ran `npx vitest run`: Verified baseline of 628 tests across 37 test files, 100% passing
+- [x] Ran `npm run build`: Verified clean production build with 0 errors (1.66s, dist assets verified)
+- [x] Surveyed tests for usages and assertions on `BaseItem`, `BaseSection`, `CVContext`, `SortableBulletItem`, and `sectionRegistry`
+- [x] Identified test-level couplings, lifecycle expectations, and DOM queries across all 37 test files
+- [x] Designed Extensibility smoke-test: minimal `CustomNotesItem.jsx`, data shape, registry descriptor, and test location
+- [x] Drafted comprehensive architectural analysis (`analysis.md`)
+- [x] Completed 5-component handoff report (`handoff.md`)
+- [ ] Send summary message to caller agent

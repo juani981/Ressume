@@ -1,57 +1,59 @@
-# BRIEFING — 2026-09-02T02:30:00Z
+# BRIEFING — 2026-09-20T11:10:00-03:00
 
 ## Mission
-Adversarial Stress & Edge Case Verification of Ressume (Auto-scaling math, Zero-split page breaks, Tooltip positioning, Corrupted state / XSS, Full test suite & build).
+Adversarially stress-test layout and PDF print stability under extreme slider values and inspect physical PDF binaries using poppler utilities to provide an empirical verdict (APPROVE or REJECT).
 
 ## 🔒 My Identity
-- Archetype: empirical-challenger
+- Archetype: empirical_challenger
 - Roles: critic, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2
-- Original parent: 95a50137-de25-4c72-8e27-3f08a68caa88
-- Milestone: Adversarial Stress & Edge Case Verification
+- Original parent: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Milestone: layout_print_stability_stress_test
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code (report findings/failures)
-- Must empirically verify edge cases with executable test scripts/harnesses
-- Invariants & Rules: Obsidian callouts, @dnd-kit (no swapy), dynamic tooltips (getBoundingClientRect & viewport bounds), Tech domain focus, 0.75 floor auto-scaling, zero-split page breaks.
+- Review-only — do NOT modify implementation code (adversarial challenge & empirical stress-test)
+- Rule 5: Zero heuristic screen patches for print pagination (CSS Paged media only)
+- Rule 6: Real empirical browser/PDF verification required (no JSDOM-only claims)
+- .agents/ holds only metadata (plans, progress, handoffs) — tests/code must reside in workspace root or tests/
 
 ## Current Parent
-- Conversation ID: 95a50137-de25-4c72-8e27-3f08a68caa88
-- Updated: 2026-09-02T02:30:00Z
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: 2026-09-20T11:10:00-03:00
 
 ## Review Scope
-- **Files reviewed**:
-  - `src/utils/staticHtmlPdfEngine.js` (calculatePrintScale, escapeHTML, generateCleanPrintHTML, executeCleanPrint)
-  - `src/index.css` (print CSS, .cv-section, .cv-block, page-break-inside avoid)
-  - `src/components/Editor/SuggestionTooltip.jsx` (Obsidian callout standard, Lucide icons, dynamic bounding rect & viewport bounds)
-  - `src/components/CV/BaseSection.jsx` & `src/components/CV/BaseItem.jsx` (class assignments, DND ergonomics)
-  - `src/context/CVContext.jsx` (resilience to corrupted state / invalid localStorage)
-  - Automated DOM test suite (11 files, 218 tests) & Vite production build
-- **Interface contracts**: `/home/juani/Documentos/Ressume/PROJECT.md`, `/home/juani/Documentos/Ressume/TEST_READY.md`, `/home/juani/Documentos/Ressume/AGENTS.md`
-- **Review criteria**: Correctness, stress resistance, edge cases, invariants conformance
+- **Files to review**: `src/utils/staticHtmlPdfEngine.js`, `src/styles/print.css`, `src/utils/paginationEngine.js`, `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js`
+- **Interface contracts**: PROJECT.md, AGENTS.md, ORIGINAL_REQUEST.md
+- **Review criteria**: Extreme slider resilience, print iframe variable propagation, physical PDF poppler inspection (page count, zero phantom pages, bullet/item slicing at page boundaries)
+
+## Key Decisions Made
+- Executed full Vitest suite (903 passing tests across 58 test files).
+- Created Cypress adversarial spec `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js` covering 6 extreme slider scenarios (min extremes, max extremes, cross-extremes 1, cross-extremes 2, ATS 1-column extremes, page boundary bullet split).
+- Generated 6 physical PDF binaries via Chrome DevTools Protocol to `tests/adversarial-output/`.
+- Created poppler inspection suite `inspect_adversarial_pdfs.mjs` executing `pdfinfo`, `pdftotext`, `pdftotext -bbox-layout`, and `pdftoppm`.
+- EMPIRICALLY CONFIRMED CRITICAL BUGS: Phantom blank pages in 3 out of 6 PDFs (Pages 4-5 in ATS mode, Page 5 in cross-extremes 2, Page 2 in min-extremes) and text slicing across page boundary in `03-cross-extremes-1.pdf` (word "artefactos." with negative yMin `-1.27pt`).
+- Verdict: **REJECT**.
+
+## Artifact Index
+- `DISPATCH.md` — Initial dispatch message
+- `BRIEFING.md` — Situational awareness & decision log
+- `progress.md` — Liveness heartbeat & task checklist
+- `handoff.md` — Final 5-component handoff report with empirical proof
+- `cypress/e2e/10-adversarial-sliders-and-pdf-stability.cy.js` — Adversarial Cypress E2E test spec
+- `inspect_adversarial_pdfs.mjs` — Poppler inspection audit harness
+- `tests/adversarial-output/` — Generated physical PDF binaries and `audit-summary.json`
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Auto-scale math boundary conditions (heights <= 2246px, 2247-2994px, >= 2995px up to 100,000px, NaN, undefined, null, -100, Infinity): All strictly adhere to [0.75, 1.0] range.
-  - Zero-split page break rules: Verified `break-inside: avoid !important` and `page-break-inside: avoid !important` across all `.cv-section` and `.cv-block` elements in CSS and static print generator.
-  - Tooltip bounding rect positioning: Verified right overflow flip (`rect.left - 320`), bottom overflow clamp (`window.innerHeight - 420`), and top boundary clamp (`top = 20`).
-  - XSS injection & state corruption: Executed JSDOM active script execution tests with malicious payloads in all profile, section, and item fields; 0 scripts executed, 0 unescaped tags.
-  - Full test suite & production build: 218/218 tests passing, 0 build errors.
-- **Vulnerabilities found**: 0 blocking vulnerabilities. System is highly resilient.
-- **Untested angles**: None. All 5 core challenge missions fully verified.
+  1. Print iframe retains extreme CSS variables without reverting -> PASSED.
+  2. Extreme sliders cause zero phantom blank pages -> FAILED (3 of 6 PDFs contain trailing blank pages with 0 characters).
+  3. No words/text sliced across page boundaries -> FAILED (`.projects__content` not in `break-inside: avoid`, paragraph cut across boundary with negative yMin `-1.27pt`).
+  4. ATS 1-column mode page count does not compound -> FAILED (Editor compounds to 5 pages, print only needs 3, leaving 2 blank pages).
+- **Vulnerabilities found**:
+  - `staticHtmlPdfEngine.js:1449`: Injected `min-height: ${totalPages * 297}mm !important` forces blank pages when content is shorter than estimated.
+  - `print.css:137`: `.projects__content` (and other section types) missing from `break-inside: avoid !important`, permitting paragraph slicing.
+  - `paginationEngine.js:325`: Screen `marginTop` cascading inflates editor page count beyond actual print requirements.
+- **Untested angles**: None within specified review scope.
 
 ## Loaded Skills
-- None
-
-## Key Decisions Made
-- Confirmed full mathematical adherence to 0.75 floor for auto-scaling.
-- Confirmed strict Obsidian Callout visual design with Lucide-react icons and 0 unicode emojis.
-- Confirmed zero-split PDF print pagination across all super-containers and blocks.
-- Approved implementation without changes (Verdict: APPROVE).
-
-## Artifact Index
-- `.agents/teamwork_preview_challenger_2/DISPATCH.md` — Incoming dispatch record
-- `.agents/teamwork_preview_challenger_2/BRIEFING.md` — Agent state & index
-- `.agents/teamwork_preview_challenger_2/progress.md` — Heartbeat & execution log
-- `.agents/teamwork_preview_challenger_2/handoff.md` — Final handoff report & verdict
+- None specified in dispatch

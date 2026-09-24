@@ -21,7 +21,7 @@ describe('Google Docs Style HyperlinkEdit UX Component', () => {
     const trigger = screen.getByTestId('hyperlink-trigger');
     expect(trigger).toBeInTheDocument();
     expect(trigger.textContent).toContain(defaultText);
-    expect(trigger.querySelector('i.bx-link-external')).not.toBeNull();
+    expect(trigger.querySelector('svg')).not.toBeNull();
   });
 
   it('T2: Clicking the trigger opens the Google Docs popover with IR AL HIPERVINCULO and both editable fields', () => {

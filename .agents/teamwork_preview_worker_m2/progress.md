@@ -1,17 +1,35 @@
-# Progress — Worker M2
+# Progress - Milestone 2
 
-- Last visited: 2026-09-03T05:31:00Z
-- Status: Completed Milestone 2 (Epic 2)
-- Current Step: Writing handoff report and reporting completion to parent orchestrator
+Last visited: 2026-09-20T04:28:00Z
 
-## Completed Milestones & Steps
-1. [x] Architectural Investigation & Baseline Tests Verification (17 suites, 328 tests passed).
-2. [x] Implemented `src/utils/richTextEngine.js` for robust formatting extraction, alignment serialization, and XSS sanitization.
-3. [x] Created `src/components/Editor/RichTextToolbar.jsx` with full Rule 3 bounding rect tracking, flip/clamp positioning, formatting buttons, and focus preservation (`onMouseDown={(e) => e.preventDefault()}`).
-4. [x] Upgraded `src/components/Editor/InlineEdit.jsx` to rich-text contentEditable with full backward compatibility, shortcuts (Ctrl+B, Ctrl+I, Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y), and alignment persistence.
-5. [x] Updated `src/context/CVContext.jsx` to prevent window Ctrl+Z/Y listener from hijacking text editing inside editable fields and added `activeToolbar` state management.
-6. [x] Updated `src/utils/staticHtmlPdfEngine.js` so rich text tags (<b>, <i>, and alignment) render properly without escaping into literal entities.
-7. [x] Enhanced `src/components/PDF/richTextPdf.jsx` with embedded alignment detection and styled React-PDF output.
-8. [x] Created `src/tests/epic2-rich-text-toolbar.test.jsx` (24 comprehensive tests across 5 test suites covering all Epic 2 acceptance criteria and edge cases).
-9. [x] Executed full test suite (`npm test`) -> 18 test files, 352 passed, 0 failures.
-10. [x] Executed production build (`npm run build`) -> clean production build in ~3.3s with zero errors.
+## Status
+Milestone 2 completed successfully: Sincronización Estricta de Sliders y Variables de Diseño.
+
+## Checklist
+- [x] Read survey report handoff and project context
+- [x] Inspect existing item components and typography variables
+- [x] Task 1: Harmonize Item Components Typography (Feature 5) across 8 item components:
+  - ProjectsItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))`
+  - VolunteeringItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))`
+  - ReferencesItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))` and `var(--body-small-font-size, var(--small-font-size))`
+  - PublicationsItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))` and `var(--body-small-font-size, var(--small-font-size))`
+  - LanguagesItem.jsx: `var(--list-font-size, var(--normal-font-size))`, `var(--body-smaller-font-size, var(--smaller-font-size))`, and `var(--body-small-font-size, var(--small-font-size))`
+  - CertificatesItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))` and `var(--body-small-font-size, var(--small-font-size))`
+  - AwardsItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))` and `var(--body-small-font-size, var(--small-font-size))`
+  - MentoringItem.jsx: `var(--body-smaller-font-size, var(--smaller-font-size))`
+- [x] Task 2: Standardize itemGap & Spacing Fallbacks (Feature 6):
+  - `src/index.css`: `.experience__bullets li` aligned to `var(--item-gap, 8px)`
+  - `src/styles/print.css`: bullet list aligned to `var(--item-gap, 8px) !important;`
+  - `SortableBulletItem.jsx`: default marginBottom aligned to `'var(--item-gap, 8px)'`
+  - `ExperienceItem.jsx`: bullet marginBottom aligned to `'var(--item-gap, 8px)'`
+- [x] Task 3: Connect Section Title Spacing to Sliders (Feature 7):
+  - `src/index.css`: `.section-title` margin-bottom set to `calc(var(--item-gap, 8px) * 1.5) !important;`
+  - `src/styles/print.css`: `.section-title` and `.resume--ats-mode .section-title` margin-bottom set to `calc(var(--item-gap, 8px) * 1.5) !important;`
+- [x] Task 4: Update Legacy Test Assertions:
+  - `src/tests/m3-parity-and-forbidden-zones.test.jsx`: ZONE-2.5 updated to verify `box-decoration-break: clone` on columns
+  - `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`: STRESS 6 updated to verify clone architecture
+  - `src/tests/challenger-print-engine-stress.test.jsx`: S3.6 updated to verify declarative CSS Paged Media orphan protection; S4.2 updated for clone architecture; Suite 5 added to comprehensively verify M2 features
+- [x] Task 5: Run tests and build:
+  - `npm test`: 58 passed (58), 903 passed (903) (100% green)
+  - `npm run build`: built in 1.69s with 0 errors
+- [x] Write handoff.md and send message to parent

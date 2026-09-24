@@ -7,12 +7,7 @@ import SuggestionTooltip from '../components/Editor/SuggestionTooltip';
 import { defaultSchema } from '../utils/schema';
 import { adaptItemToSectionType, createDefaultSection } from '../utils/itemAdapter';
 
-let staticPdfEngine = {};
-try {
-  staticPdfEngine = await import('../utils/staticHtmlPdfEngine');
-} catch (e) {
-  // Module will be implemented in M5
-}
+import { generateCleanPrintHTML } from '../utils/staticHtmlPdfEngine';
 
 describe('Tier 3: Pairwise Cross-Feature Interactions', () => {
   beforeEach(() => {
@@ -31,14 +26,9 @@ describe('Tier 3: Pairwise Cross-Feature Interactions', () => {
       }
     };
 
-    if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-      const html = staticPdfEngine.generateCleanPrintHTML(customData);
-      expect(html).toContain('26px');
-      expect(html).toContain('12px');
-    } else {
-      expect(customData.layout.pagePadding).toBe(30);
-      expect(customData.layout.sectionGap).toBe(26);
-    }
+    const html = generateCleanPrintHTML(customData);
+    expect(html).toContain('26px');
+    expect(html).toContain('12px');
   });
 
   // Pair 2: Cross-Column DND (R2) + Section Registry (R3)
@@ -132,25 +122,17 @@ describe('Tier 3: Pairwise Cross-Feature Interactions', () => {
       ]
     };
 
-    if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-      const html = staticPdfEngine.generateCleanPrintHTML(customSectionData);
-      expect(html).toContain('PREMIOS Y RECONOCIMIENTOS');
-      expect(html).toContain('1er Puesto Hackathon Nacional 2024');
-      expect(html).not.toContain('round-btn-del');
-      expect(html).not.toContain('drag-handle');
-    } else {
-      expect(customSectionData.sections.some(s => s.id === 'awards')).toBe(true);
-    }
+    const html = generateCleanPrintHTML(customSectionData);
+    expect(html).toContain('PREMIOS Y RECONOCIMIENTOS');
+    expect(html).toContain('1er Puesto Hackathon Nacional 2024');
+    expect(html).not.toContain('round-btn-del');
+    expect(html).not.toContain('drag-handle');
   });
 
   // Pair 6: Lucide Icons (R4) + 2-Page PDF Auto-Scaler (R5)
   it('Pair 6: Contact BoxIcons are retained while tooltip Lucide icons are excluded in Print HTML (R5)', () => {
-    if (typeof staticPdfEngine.generateCleanPrintHTML === 'function') {
-      const html = staticPdfEngine.generateCleanPrintHTML(defaultSchema);
-      expect(html).not.toContain('suggestion-tooltip');
-      expect(html).not.toContain('obsidian-callout');
-    } else {
-      expect(true).toBe(true);
-    }
+    const html = generateCleanPrintHTML(defaultSchema);
+    expect(html).not.toContain('suggestion-tooltip');
+    expect(html).not.toContain('obsidian-callout');
   });
 });

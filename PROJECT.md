@@ -1,101 +1,60 @@
-# Project: Ressume CV Editor - 3 Feature Epics
+# Project: Ressume - 1:1 Editor vs. Print PDF Parity, Slider Synchronization & Real-Browser Verification
 
 ## Architecture
 Ressume is an interactive Vite + React CV editor rendering a live document inside `#area-cv`.
-State is managed centrally via `CVContext.jsx` (`cvData`, layout parameters, history stack, localStorage sync).
-The three epics augment the architecture:
-1. **Epic 1 (Client-Side Vector PDF Engine)**: Introduces `@react-pdf/renderer` in `src/utils/reactPdfEngine.js` and `src/components/PDF/CVDocument.jsx`, generating selectable vector PDFs completely offline (zero network requests) while preserving `staticHtmlPdfEngine.js` as an alternative native print option.
-2. **Epic 2 (Rich Inline Text Editing Toolbar)**: Enhances `src/components/Editor/InlineEdit.jsx` and introduces a floating formatting toolbar component `src/components/Editor/RichTextToolbar.jsx` with dynamic bounding rectangle tracking (AGENTS.md Rule 3), inline formatting (bold/italic), text alignment, keyboard shortcuts, history integration, and multi-engine rendering support.
-3. **Epic 3 (Floating Panel Reorganization & ATS Mode & Right-Docked Modal)**: Restructures `src/components/Editor/ActionMenu.jsx` into streamlined groups ('Diseño', 'Acciones', ATS mode toggle switch) and repositions `src/components/Editor/AddSectionModal.jsx` to dynamically float to the right of `#area-cv` using viewport geometry.
-
-```
-+-----------------------------------------------------------------------------------+
-|                                   App Shell                                       |
-|                                                                                   |
-|  +---------------------------+  +-------------------+  +-----------------------+  |
-|  |  Reorganized ActionMenu   |  |     #area-cv      |  | Floating Modal Right  |  |
-|  |  - ATS Mode Toggle Switch |  | (Interactive CV)  |  |  (AddSectionModal)    |  |
-|  |  - 'Diseño' Submenu       |  |                   |  +-----------------------+  |
-|  |  - 'Acciones' Submenu     |  | - Rich InlineEdit |                             |
-|  +-------------+-------------+  |   (b/i/align/etc) |                             |
-|                |                +---------+---------+                             |
-|                v                          |                                       |
-|   +--------------------------+            v                                       |
-|   | Export Handlers          |   +--------------------+                           |
-|   | - React-PDF Download     |   | Floating Rich      |                           |
-|   | - Native Clean Print     |   | Text Toolbar       |                           |
-|   | - JSON Export            |   +--------------------+                           |
-|   +------------+-------------+                                                    |
-|                |                                                                  |
-|                +--------> @react-pdf/renderer (Vector PDF)                        |
-|                +--------> staticHtmlPdfEngine.js (Iframe Print)                   |
-+-----------------------------------------------------------------------------------+
-```
+- **Canvas Model**: A4 standard canvas (210mm x 297mm / 794px at 96 DPI).
+- **Layout Modes**: 2-Column Visual Recruiter (`.resume.bd-grid`) and 1-Column ATS Optimized (`.resume__single-column`).
+- **Data Flow**: `CVContext.jsx` holds `cvData.layout` containing all design variables (typography scales, line-height, page-padding, section-gap, item-gap, column-width, background colors, font-family).
+- **Print Pipeline**: `src/utils/staticHtmlPdfEngine.js` clones `#area-cv`, sanitizes interactive controls, injects `index.css` and `print.css`, and triggers browser-native print / PDF export via an iframe.
+- **Architectural Invariants (AGENTS.md)**:
+  - **Rule 5 (Prohibición de Doble Motor en Conflicto)**: Zero heuristic screen-based calculations (`getBoundingClientRect()`) before printing. Paged media must be purely declarative via CSS Paged Media (`@page`, `break-inside: avoid`, `box-decoration-break: clone`).
+  - **Rule 6 (Verificación Real vs. Sesgo de JSDOM)**: JSDOM does not render fonts or execute A4 media boxes. Parity must be verified in a real browser via Cypress (`npx cypress run`).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Client-Side @react-pdf JIT Mirror | Capture layout variables, fonts, colors, padding, gaps, and CSS custom properties into React-PDF primitives | M1 | ORIGINAL_REQUEST §R1 |
-| 2 | Selectable Vector Text & Offline Execution | 100% vector text using standard PDF Type 1 fonts without network requests or canvas rasterization | M1 | ORIGINAL_REQUEST §R1 |
-| 3 | Multi-Page A4 Pagination & Zero-Split | Paginate content across A4 pages, breaking strictly between sections / never mid-item | M1 | ORIGINAL_REQUEST §R1 |
-| 4 | Generation Spinner & Toast Feedback | Show loading spinner during PDF generation and success toast upon download | M1 | ORIGINAL_REQUEST §R1 |
-| 5 | Dual-Engine Preservation & Bugfix | Retain `staticHtmlPdfEngine.js` intact and fix parameter `isLast = false` in `renderItemHTML` | M1 | ORIGINAL_REQUEST §R1 |
-| 6 | Floating Formatting Toolbar | Singleton floating toolbar positioned dynamically near active field tracking bounding rect (AGENTS.md Rule 3) | M2 | ORIGINAL_REQUEST §R2 |
-| 7 | Text Alignment Controls | Support left, center, right, justify alignments per text block/field | M2 | ORIGINAL_REQUEST §R2 |
-| 8 | Bold & Italic Shortcuts & Toggles | Toolbar buttons and keyboard shortcuts (Ctrl+B, Ctrl+I) toggle formatting on selections | M2 | ORIGINAL_REQUEST §R2 |
-| 9 | History & Native Editing Shortcuts | Support Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, cut, copy, paste within inline fields | M2 | ORIGINAL_REQUEST §R2 |
-| 10 | State Persistence in cvData | Persist rich formatted strings in `cvData` and `localStorage` without breaking schema or adapters | M2 | ORIGINAL_REQUEST §R2 |
-| 11 | Cross-Engine Rich Text Rendering | Render bold, italic, and alignment accurately in editor DOM, staticHtmlPdfEngine, and React-PDF | M2 | ORIGINAL_REQUEST §R2 |
-| 12 | ActionMenu Button Streamlining | Group top-level buttons into cohesive categories to reduce visual clutter | M3 | ORIGINAL_REQUEST §R3 |
-| 13 | Grouped 'Diseño' Submenu | Single entry point for colors, spacing sliders (padding, gaps), and typography settings | M3 | ORIGINAL_REQUEST §R3 |
-| 14 | ATS Layout Mode Toggle Switch | Top-of-panel switch for ATS single-column layout with clean white background and sober accents | M3 | ORIGINAL_REQUEST §R3 |
-| 15 | Grouped 'Acciones' Submenu | Single dropdown/popover for export options (JSON export, PDF download) | M3 | ORIGINAL_REQUEST §R3 |
-| 16 | Right-Docked Floating AddSectionModal | Render modal floating in the space to the right of `#area-cv` instead of center overlay | M3 | ORIGINAL_REQUEST §R3 |
-| 17 | Comprehensive E2E Verification & Audit | 100% green test suite across Tiers 1-4, zero dnd-kit regressions, and clean forensic audit | FINAL | Acceptance Criteria |
+| 1 | Purge Screen Heuristic Injections | Delete `getBoundingClientRect()` padding and break injections in `staticHtmlPdfEngine.js` (lines 1615–1638, 1590–1613, 1394–1402, and `enforceTwoColumnComponentPagination`) | M1 | Survey 1 §O2 |
+| 2 | Purge Print Scaling & Zoom Overrides | Remove `calculatePrintScale`, `doc.body.style.zoom`, and runtime CSS variable overrides in `staticHtmlPdfEngine.js` (lines 1453–1471, 1509–1525, 1640–1661) | M1 | Survey 1 §O1, Survey 2 §1.4.A |
+| 3 | Remove Asymmetric Column Inlining | Prevent `createSanitizedPrintClone` from inlining `break-before: page !important` on single column children in 2-col mode | M1 | Survey 1 §O3 |
+| 4 | Enforce Declarative Multi-Page Margins | Implement CSS Paged Media declarative margins (`box-decoration-break: clone !important;` with `--page-padding`) in `print.css` | M1 | Survey 1 §4.3, Survey 3 §1.3 |
+| 5 | Harmonize Item Components Typography | Update 8 item components to use `var(--body-smaller-font-size)` and `var(--body-small-font-size)` so `bodyScale` slider takes effect | M2 | Survey 2 §1.4.E |
+| 6 | Standardize `itemGap` & Spacing Fallbacks | Unify `itemGap` fallbacks across `index.css`, `print.css`, and item components to `var(--item-gap, 8px)` | M2 | Survey 2 §1.4.D |
+| 7 | Connect Section Title Spacing to Sliders | Replace hardcoded `margin-bottom: 1.5rem !important` on `.section-title` with dynamic `--item-gap` / slider-responsive token | M2 | Survey 2 §1.4.F |
+| 8 | Strict Slider & Layout Variable Sync | Verify 100% of `cvData.layout` tokens are transferred unscaled and unmutated to the print document | M2 | Survey 2 §1.1 |
+| 9 | Organic Bullet Flow & Non-Fracturing | Ensure bullet items break cleanly between `<li>` elements without word-slicing and without triggering double page breaks | M3 | Survey 3 §1.1, §1.2 |
+| 10 | Bounded Page Flow (Zero Solitary Bullets) | Prevent solitary items on Page 2 and trailing blank pages; maintain 2-page ceiling for sample high-density CVs in 1-col and 2-col | M3 | Survey 1 §O4, Survey 3 §1.4 |
+| 11 | Fix Cypress Spec 05 Media Emulation | Update `cypress/e2e/05-pixel-fidelity-and-css-parity.cy.js` to emulate print media during DOM measurement | M4 | Survey 3 §1.5 |
+| 12 | Author Real-Browser Parity Spec | Create/update Cypress spec verifying 1:1 bullet distribution, Page 2 top padding, slider changes, and PDF page count | M4 | Survey 3 §4.4 |
+| 13 | Full Cypress & Vitest Suite Execution | Run `npx cypress run --browser chrome-for-testing` and `npm test` verifying 100% green | M4 | Survey 3 §5.1, §5.2 |
+| 14 | Multi-Agent Review & Adversarial Testing | 2 Reviewers, 2 Challengers testing empirical print outputs in Chromium/Gecko | M5 | Acceptance Criteria |
+| 15 | Forensic Integrity Audit | Anti-cheating and code integrity audit by `teamwork_preview_auditor` | M5 | Acceptance Criteria |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Epic 1: Client-Side PDF Generation via @react-pdf/renderer | Features 1, 2, 3, 4, 5: React-PDF setup/polyfills, `CVDocument.jsx`, `reactPdfEngine.js`, staticHtml bugfix, toast/spinner | none | COMPLETE |
-| M2 | Epic 2: Rich Inline Text Editing Toolbar with Persistent State | Features 6, 7, 8, 9, 10, 11: `RichTextToolbar.jsx`, `InlineEdit.jsx` rich text upgrade, shortcuts, cross-engine render | M1 | PLANNED |
-| M3 | Epic 3: Floating Panel Reorganization & ATS Mode & Floating Modal | Features 12, 13, 14, 15, 16: ActionMenu restructuring ('Diseño', 'Acciones', ATS toggle), right-docked AddSectionModal | M1, M2 | PLANNED |
-| FINAL | Final Milestone: Full E2E Verification & Adversarial Hardening | Feature 17: Pass all E2E test tiers, challenger edge cases, and forensic integrity audit | M1, M2, M3 | PLANNED |
+| M1 | Eliminación de Doble Motor y Restauración de CSS Paged Media | Features 1, 2, 3, 4: Purge JS screen heuristics, remove print zoom & auto-scale, remove asymmetric column break inlining, configure declarative box-decoration-break | none | DONE |
+| M2 | Sincronización Estricta de Sliders y Variables de Diseño | Features 5, 6, 7, 8: Harmonize item component typography tokens, standardize itemGap, connect section title spacing, strict slider sync | M1 | DONE |
+| M3 | Flujo Orgánico de Viñetas y Estabilidad de Paginación | Features 9, 10: Organic bullet flow, eliminate solitary items and phantom pages in 1-col ATS and 2-col modes | M1, M2 | DONE |
+| M4 | Verificación E2E en Navegador Real con Cypress | Features 11, 12, 13: Fix media emulation in tests, author parity & slider spec, pass 100% Cypress and Vitest | M1, M2, M3 | DONE |
+| M5 | Verificación Integral, Stress Testing y Forensic Audit | Features 14, 15: 2 Reviewers, 2 Challengers, 1 Forensic Auditor | M1, M2, M3, M4 | IN_PROGRESS |
 
 ## Interface Contracts
-### `generateAndDownloadPdf`
-```typescript
-function generateAndDownloadPdf(cvData: CVData, lang?: string, options?: { filename?: string; showToast?: (msg: string, type: string) => void }): Promise<Blob>;
-// Renders React-PDF document to blob offline, triggers download as `CV_${name}.pdf`,
-// manages loading state and invokes showToast('PDF generado con éxito', 'success').
+### `src/utils/staticHtmlPdfEngine.js`
+```javascript
+export function generateLayoutVariablesCSS(layout: LayoutConfig): string;
+export function createSanitizedPrintClone(liveAreaCv: HTMLElement): HTMLElement;
+export function executeCleanPrint(cvData: CVData, lang?: string): Promise<{ success: boolean, totalPages: number }>;
 ```
 
-### `RichTextToolbar`
-```typescript
-interface RichTextToolbarProps {
-  activeElement: HTMLElement | null;
-  onFormat: (command: 'bold' | 'italic' | 'justifyLeft' | 'justifyCenter' | 'justifyRight' | 'justifyFull') => void;
-  activeFormats: { bold: boolean; italic: boolean; align: 'left' | 'center' | 'right' | 'justify' };
-  visible: boolean;
-}
-```
-
-### `ActionMenu` Mode & Grouping Contracts
-```typescript
-// ATS Mode: cvData.layout.type === '1-column' && cvData.layout.isAtsMode === true
-// 'Diseño' popover controls: Colors, Spacings (pagePadding, sectionGap, itemGap), Fonts
-// 'Acciones' popover controls: Export JSON, Export PDF (React-PDF & Native Print)
+### `src/utils/typographyUtils.js`
+```javascript
+export function computeTypographyTokens(layout: LayoutConfig): Record<string, string>;
 ```
 
 ## Code Layout
-- `src/utils/reactPdfEngine.js`: Core client-side React-PDF generation pipeline.
-- `src/components/PDF/CVDocument.jsx`: Declarative React-PDF layout mirror component.
-- `src/components/PDF/PdfIcons.jsx`: Clean vector SVG icon definitions for PDF output.
-- `src/components/PDF/pdfStyleFactory.js`: Style and point conversion factory with YIQ calculation.
-- `src/components/PDF/CVSectionPdf.jsx`: Super-container pagination and section wrapper.
-- `src/components/PDF/CVItemPdf.jsx`: Universal item renderer for all 13 item types.
-- `src/utils/staticHtmlPdfEngine.js`: Supplemented native iframe print engine + bugfix.
-- `src/components/Editor/InlineEdit.jsx`: Enhanced rich-text inline editable component.
-- `src/components/Editor/RichTextToolbar.jsx`: Floating formatting toolbar with bounding rect tracking.
-- `src/components/Editor/ActionMenu.jsx`: Reorganized floating panel with ATS switch and submenus.
-- `src/components/Editor/AddSectionModal.jsx`: Repositioned modal floating right of `#area-cv`.
-- `src/tests/`: Automated unit, integration, and E2E verification test suites.
+- `src/utils/staticHtmlPdfEngine.js`: Print cloning, CSS variable injection, and print iframe orchestration.
+- `src/styles/print.css`: Declarative CSS Paged Media rules (`@page`, `break-inside`, `box-decoration-break`, `@media print`).
+- `src/styles/index.css`: Editor base styles and typography token definitions.
+- `src/components/CV/items/`: Item components rendering dates, bullet points, and section entries.
+- `src/components/Editor/ActionMenu.jsx`: Slider controls and layout inputs.
+- `cypress/e2e/`: Real-browser Cypress E2E specs (`01-print-lifecycle.cy.js`, `02-print-geometry-and-pagination.cy.js`, `05-pixel-fidelity-and-css-parity.cy.js`, `08-two-column-print-synchronization.cy.js`, `09-bullet-flow-and-slider-parity.cy.js`).

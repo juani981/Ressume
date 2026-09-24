@@ -9,7 +9,10 @@
 Los archivos PDF fueron diseñados para la **fidelidad visual de impresión**, no para la interpretabilidad semántica de datos:
 - **Problema de columnas:** Los parsers de PDF y OCR leen horizontalmente a través de columnas de texto (`columna izquierda + columna derecha` se mezclan en una sola línea ilegible).
 - **Pérdida de jerarquía:** Los estilos visuales (negrita, tamaño de fuente, márgenes) se pierden al extraer texto plano de un PDF.
-- **Inconsistencia de caracteres:** Símbolos como viñetas (`•`), guiones largos (`—`) o iconos vectoriales suelen convertirse en caracteres corruptos (`?`, `\uFFFD`).
+- **Inconsistencia de caracteres y glifos:** Símbolos como viñetas (`•`), checkboxes (`☑`, `✓`) o iconos vectoriales suelen convertirse en caracteres corruptos (`?`, `\uFFFD`) o forzar el descarte de la línea completa por el OCR del ATS.
+- **Confusión de sintaxis monetaria / regex ($):** Escribir términos técnicos encerrados en dólares (ej. `$N+1$`, `$CI/CD$`) activa los parsers de compensación salarial o regex del ATS, corrompiendo la indexación de la habilidad.
+- **Ruptura de URLs:** Enlaces con espacios en blanco o dominios temporales de CI/CD (ej. `deploy-preview-4...`) son clasificados como URLs rotas o 404 por los bots de verificación del ATS.
+- **Dispersión de mayúsculas en taxonomías:** La falta de casing canónico (`JavaScript`, `MySQL`, `PostgreSQL`) reduce la puntuación de concordancia en ontologías de habilidades (Lightcast, O*NET).
 
 ### La Solución de Esta Abstracción:
 1. **Jerarquía Espacial y Estructural Preservada:** Se modela explícitamente la distribución visual (1 columna vs 2 columnas, posición izquierda/derecha, pesos de lectura).

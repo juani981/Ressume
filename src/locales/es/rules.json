@@ -68,5 +68,45 @@
     "suggestion_title": "Contactabilidad Directa en Texto Plano",
     "suggestion_body": "Presenta Email, Teléfono, Ubicación y perfiles de LinkedIn/GitHub en texto seleccionable directo sin iconos gráficos ni tablas que bloqueen la extracción OCR del ATS.",
     "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_dollar_syntax",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Sintaxis Técnica ATS: Evitar Símbolos de Dólar ($N+1$, $CI/CD$)",
+    "suggestion_body": "No utilices símbolos de dólar ($) para encerrar términos técnicos o fórmulas (ej: '$N+1$', '$CI/CD$'). Los parsers ATS (Workday, Taleo, Greenhouse) interpretan los signos '$' como campos salariales o variables de regex rotas, lo que provoca que las palabras clave no se indexen o se rechace el documento.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_es_url_integrity",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Integridad de URLs: Evitar Espacios y Enlaces Temporales de Preview",
+    "suggestion_body": "Verifica que ninguna URL contenga espacios en blanco accidentales y apunta siempre a dominios canónicos o repositorios definitivos en lugar de builds temporales (ej: 'deploy-preview-4...'). Los bots ATS validan la sintaxis de los enlaces y descartan URLs truncadas por espacios.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_warn_es_glyph_overload",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Sobrecarga de Glifos: Suprimir Checkboxes (☑) y Símbolos No Estándar",
+    "suggestion_body": "Suprime checkboxes (☑, ☐), tildes decorativas (✓) o caracteres gráficos en tus viñetas. Los motores de extracción de texto de los ATS transforman estos glifos en caracteres corruptos ('?', '\\uFFFD') o descartan la línea completa, perdiendo los logros asociados.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_info_es_technology_casing",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Taxonomía de Habilidades: Casing Canónico (JavaScript, MySQL)",
+    "suggestion_body": "Escribe las tecnologías respetando su capitalización estándar de la industria (ej: 'JavaScript' en vez de 'Javascript', 'MySQL' en vez de 'mysql', 'PostgreSQL', 'Docker'). Las taxonomías de habilidades de los ATS (Lightcast, O*NET) utilizan concordancia canónica para calcular el score de afinidad técnica.",
+    "severity": "info"
   }
 ]

@@ -1,20 +1,19 @@
-## 2026-09-02T02:27:36Z
+## 2026-09-20T13:57:17Z
 
-You are Challenger 2 for Adversarial Stress & Edge Case Verification of Ressume.
-Your working directory is /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2.
-Create your working directory if needed.
-Read the authoritative user request at /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md.
-Read /home/juani/Documentos/Ressume/PROJECT.md and /home/juani/Documentos/Ressume/TEST_READY.md.
-Read Worker 1 handoff at /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_1/handoff.md.
+You are Challenger 2 (teamwork_preview_challenger_2).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
 
-Challenger Mission:
-Adversarially challenge edge cases and failure modes:
-1. Auto-scaling math: verify `calculatePrintScale` with boundary inputs (heights 0, 1000, 2246, 2247, 3000, 5000, 10000, 100000, NaN, undefined) and verify strict clamp at 0.75 floor.
-2. Zero-Split page-break rules: verify `break-inside: avoid !important` on `.cv-section` and `.cv-block`.
-3. Tooltip positioning under extreme viewport coordinates (near right/bottom/top edges, small screens).
-4. Corrupted state and XSS strings: verify sanitization in static HTML export.
-5. Run tests via `npm test` and `npm run build`.
-
-Output:
-Write your stress-test report and verdict (APPROVE or REQUEST_CHANGES) to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2/handoff.md`.
-Send completion message to parent with summary and verdict.
+Your Task:
+Adversarially stress-test layout and PDF print stability:
+1. Adversarial slider testing:
+   - Test extreme slider values (e.g. fontScale at 0.50 and 1.25, lineHeight at 1.25 and 1.85, pagePadding at 0 and 60px, leftColumnWidth at 20% and 55%).
+   - Verify whether the print iframe and PDF output retain these variables without crashing, overflowing, or reverting to defaults.
+2. Inspect physical PDF output binaries using poppler utilities (`pdfinfo`, `pdftotext`):
+   - Check page count and ensure zero phantom blank pages.
+   - Check bullet points at page boundaries to verify that words or lines of text are not sliced in half.
+3. State an unambiguous verdict: APPROVE or REJECT.
+Write your full report to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_2/handoff.md`.
+Send a message when done.

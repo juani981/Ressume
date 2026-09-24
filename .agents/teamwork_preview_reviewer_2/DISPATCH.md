@@ -1,22 +1,25 @@
-## 2026-09-02T02:27:36Z
-You are Reviewer 2 specializing in Human-Interaction QA Review & UX Verification for Ressume.
-Your working directory is /home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2.
-Create your working directory if needed.
-Read the authoritative user request at /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md (## 2026-09-02T02:11:43Z).
-Read /home/juani/Documentos/Ressume/PROJECT.md and /home/juani/Documentos/Ressume/TEST_READY.md.
-Read Worker 1 handoff at /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_1/handoff.md.
+## 2026-09-20T13:57:17Z
+You are Reviewer 2 (teamwork_preview_reviewer_2).
+Your working directory is: /home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2
+The workspace root is: /home/juani/Documentos/Ressume
+The authoritative original user request is at: /home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md
+The project plan is at: /home/juani/Documentos/Ressume/PROJECT.md
+AGENTS.md guidelines are at: /home/juani/Documentos/Ressume/AGENTS.md
 
-QA / Interaction Focus:
-1. Human-interaction subtleties: Hover states on grab handles (`.section-drag-handle`, `.item-drag-handle`), grab/grabbing cursor affordances.
-2. Tooltip ergonomics: Obsidian Callout standard (4px solid left border, red/orange/blue themes, lucide-react icons, 0 unicode emojis), dynamic `getBoundingClientRect()` clamping within viewport boundaries (`window.innerWidth`, `window.innerHeight`).
-3. ActionMenu toolbar ergonomics: Smooth popover flyouts, slider responsiveness (`min`, `max`, `step`), active category toggles, accessibility labels.
-4. ATS 1-Column and 2-Column visual balance: Expansive centered document paper, no horizontal squishing.
-5. Bilingual & schema integrity: Preserving text and profile fields across interactions.
+Worker Handoff Reports to inspect:
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m1_engine_css/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m3/handoff.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m4_cypress/handoff.md
 
-Execution:
-- Run `npm test` and `npm run build`.
-- Verify DOM test suite and inspect interaction components.
-
-Output:
-Write your QA report and verdict (APPROVE or REQUEST_CHANGES) to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2/handoff.md`.
-Send completion message to parent with your verdict and findings.
+Your Task:
+Conduct an architectural and invariant review focusing on AGENTS.md rules:
+1. Rule 5 (Prohibición de Doble Motor en Conflicto): Verify that all screen `getBoundingClientRect()` margin/padding injections were purged from `src/utils/staticHtmlPdfEngine.js` and that pagination relies strictly on declarative CSS Paged Media.
+2. Rule 6 (Verificación Real vs. Sesgo de JSDOM): Verify that the solution is validated in a real browser (Cypress on Chrome for Testing) and not merely in JSDOM/Vitest.
+3. Verify that all 10 `cvData.layout` sliders propagate cleanly to print without `@media print` fixed overrides.
+4. Run:
+   - `npm run build`
+   - `npx cypress run --browser chrome-for-testing --spec "cypress/e2e/08-two-column-print-synchronization.cy.js,cypress/e2e/09-bullet-flow-and-slider-parity.cy.js"`
+5. State an unambiguous verdict: APPROVE or REQUEST_CHANGES.
+Write your full review report to `/home/juani/Documentos/Ressume/.agents/teamwork_preview_reviewer_2/handoff.md`.
+Send a message when done.

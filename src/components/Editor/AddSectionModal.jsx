@@ -15,12 +15,18 @@ import {
   Users, 
   ListCheck, 
   UserSquare2,
-  Plus
+  Plus,
+  MoveVertical,
+  Camera,
+  Contact
 } from 'lucide-react';
 
 const iconMap = {
   'profile_header': UserSquare2,
+  'title_subtitle': UserSquare2,
+  'contact': Contact,
   'about': UserSquare2,
+  'photo': Camera,
   'list': Briefcase,
   'projects': FolderGit2,
   'education': GraduationCap,
@@ -31,7 +37,8 @@ const iconMap = {
   'publications': BookOpen,
   'volunteering': HeartHandshake,
   'references': Users,
-  'simple_list': ListCheck
+  'simple_list': ListCheck,
+  'spacer': MoveVertical
 };
 
 /**
@@ -185,9 +192,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={18} color="#3874ff" /> Añadir Sección al CV
             </h3>
-            <p style={{ margin: '2px 0 0 0', fontSize: '0.76rem', color: 'var(--text-color-light, #64748b)' }}>
-              Destino: {targetColumn === 'left' ? 'Columna Lateral' : 'Columna Principal'}
-            </p>
+            
           </div>
 
           <button
@@ -362,6 +367,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
                   {desc.type === 'references' && 'Contactos de confianza y datos de recomendación.'}
                   {desc.type === 'about' && 'Resumen profesional sobre tu perfil y objetivos.'}
                   {desc.type === 'simple_list' && 'Lista simple con viñetas limpias para cursos rápidos o menciones.'}
+                  {desc.type === 'spacer' && 'Espacio vertical en blanco ajustable para balancear columnas y maquetar.'}
                 </p>
               </div>
             );

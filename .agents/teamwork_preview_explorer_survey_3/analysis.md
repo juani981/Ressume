@@ -1,427 +1,379 @@
-# Phase 0 Survey: Explorer 3 Technical Analysis Report
+# Ressume Architectural Review & Refactoring: Comprehensive Analysis Report
 
-**Date**: 2026-09-02  
-**Explorer**: Explorer 3 (Survey Investigator & Synthesizer)  
-**Target Project**: Ressume CV Editor (`/home/juani/Documentos/Ressume`)  
-**Scope**: Strict Zero-Split PDF Printing Core, Static HTML Generation (`generateCleanPrintHTML`), 2 A4 Page Auto-Scaling & Height Calculation, Test Infrastructure (Vitest / RTL / jsdom), and Build/Execution Pipeline.
-
----
-
-## Executive Summary
-
-Ressume contains a modular React architecture backed by `@dnd-kit`, `lucide-react`, and a dedicated static HTML PDF rendering core in `src/utils/staticHtmlPdfEngine.js`. The production build (`npm run build`) executes cleanly with zero errors in ~1.18 seconds.
-
-The automated test suite comprises **9 test files and 104 test cases** running under Vitest and jsdom. Currently, **93 tests pass (89.4%) and 11 tests fail (10.6%)**. All 11 failures are isolated to `src/utils/staticHtmlPdfEngine.js` and trace back to three specific implementation discrepancies:
-1. `MIN_SCALE_FLOOR` set to `0.82` instead of the expected `0.75` scale floor limit.
-2. Missing `--page-padding: ${pagePadding}px;` CSS variable declaration in `:root` within `generateCleanPrintHTML`.
-3. Iframe styling (`210mm` vs `0px`) and container class naming (`resume` vs `resume bd-grid`).
-
-Resolving these discrepancies in the next phase will achieve 100% test pass rate across the existing test suite and provide a solid foundation for the Phase 1 features (universal typography, independent spacing controls, ATS 1-column overhaul, enhanced drag ergonomics, and categorized toolbar).
+**Date**: 2026-09-11  
+**Agent**: Explorer 3 (Test Suite Baseline, Build Verification & Extensibility Smoke-Test Architecture)  
+**Target Repository**: `/home/juani/Documentos/Ressume`  
+**Milestone**: Benchmark Architectural Review & Refactoring  
 
 ---
 
-## 1. Strict Zero-Split PDF Printing Core
+## 1. Executive Summary
 
-### 1.1 Super-Container & Pagination Architecture
-The PDF/print engine prevents mid-container page-break splits across document sections and experience/education blocks using W3C CSS Fragmentation Level 3/4 standards.
+A comprehensive investigation of the Ressume codebase test suite, build pipeline, component coupling, and extensibility patterns was conducted.
 
-```
-+-------------------------------------------------------------------------+
-| .resume (#area-cv)                                                      |
-|   +-----------------------------+   +---------------------------------+ |
-|   | .resume__left (col 1)       |   | .resume__right (col 2)          | |
-|   |   +-----------------------+ |   |   +---------------------------+ | |
-|   |   | .cv-section           | |   |   | .cv-section               | | |
-|   |   | (break-inside: avoid) | |   |   | (break-inside: avoid)     | | |
-|   |   |  .section-title       | |   |   |  .section-title           | | |
-|   |   |  .cv-block            | |   |   |  .cv-block                | | |
-|   |   |  .cv-block            | |   |   |  .cv-block                | | |
-|   |   +-----------------------+ |   |   +---------------------------+ | |
-|   +-----------------------------+   +---------------------------------+ |
-+-------------------------------------------------------------------------+
-```
-
-### 1.2 Inspection of Rule Enforcement
-
-#### A. Static HTML Core (`src/utils/staticHtmlPdfEngine.js` lines 414–423)
-```css
-/* Super-container CSS Page Break & Splitting Prevention */
-.cv-section,
-.cv-block,
-.section,
-.experience__content,
-.education__content,
-.skills__name {
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-```
-* **Status**: Strict `break-inside: avoid !important;` and `page-break-inside: avoid !important;` are enforced on super-containers and sub-blocks.
-
-#### B. Main Application Print Stylesheet (`src/index.css` lines 906–923)
-```css
-/* Control de Saltos de Página (Page Breaks) */
-.experience__content, 
-.education__content,
-.skills__name,
-.editable-item-container {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-.cv-section {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-p, h2, h3, li {
-  orphans: 3;
-  widows: 3;
-}
-```
-* **Observation**: In `src/index.css`, `!important` is currently omitted from `break-inside: avoid` and `page-break-inside: avoid`, and `.cv-block` is not explicitly declared in this selector list.
-* **Impact**: If a browser print is triggered directly via `window.print()` without the isolated iframe engine, browser default layout engines may override non-`!important` page-break rules in flex/grid contexts.
-
-#### C. Live DOM vs Static HTML Class Invariants
-* In `src/components/CV/BaseSection.jsx` (line 55):
-  `className="${sectionClass} section editable-section-container cv-section"` (includes `.cv-section`).
-* In `src/components/CV/BaseItem.jsx` (lines 57, 73, 88, 102, 118, 134):
-  `className="... editable-item-container"` (does **not** directly include `.cv-block`, although `CVBlock.jsx` wraps `BaseItem`).
-* In `src/utils/staticHtmlPdfEngine.js` (lines 84, 100, 108, 119, 135, 144, 195):
-  `.cv-section` and `.cv-block` are systematically attached to all section containers and atomic item blocks.
+1. **Test Suite Baseline**: Running `npx vitest run` yields **37 test files and 628 tests**, **100% passing (628/628)** in ~25.5s.
+2. **Production Build Status**: Running `npm run build` completes with **0 errors and 0 warnings** in 1.66s, transforming 1,927 modules into production assets.
+3. **Core Couplings Identified**:
+   - `CVContext.jsx` (~728 lines) is a god-context providing ~40 states and methods. While tests do not mock `CVContext` via `vi.mock`, multiple suites directly assert on its shape (e.g. `realtime-sticky-pagination.test.jsx` testing `renderHook(() => useCV(), { wrapper: CVProvider })` for pagination metrics; `test_inspect_juan_cv.test.jsx` using dynamic `await import('../context/CVContext')`).
+   - `BaseItem.jsx` (262 lines) and `BaseSection.jsx` (319 lines) bypass `sectionRegistry.js` via hardcoded `if (sectionType === ...)` and `if (section.type === ...)` chains.
+   - `SortableBulletItem` is duplicated 3× across `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx`.
+   - `educationRounderAlignment.test.jsx` requires `PrintBaseItem` named export and `.education__content` with `style.display: flex`.
+   - `spacer-component.test.jsx` requires `PrintBaseSection` named export and spacer routing in both edit and print modes.
+4. **Extensibility Smoke-Test Design**:
+   - Designed a minimal new section type: `custom_notes` with item component `src/components/CV/items/CustomNotesItem.jsx`.
+   - Fully specified its registry descriptor, schema, and accompanying smoke-test in `src/tests/extensibilitySmoke.test.jsx`.
+   - Verified that once `BaseSection` and `BaseItem` are converted to true Template components guided by the Strategy/Factory registry descriptor, adding `custom_notes` requires modifying **only** `sectionRegistry.js` + adding `CustomNotesItem.jsx`, requiring zero changes to `BaseItem`, `BaseSection`, `CVContext`, or `App`.
 
 ---
 
-## 2. Static HTML Generation (`generateCleanPrintHTML`) & Print Stylesheets
+## 2. Vitest Test Suite Baseline & Survey
 
-### 2.1 File Location & Core Structure
-* **File**: `src/utils/staticHtmlPdfEngine.js` (511 lines)
-* **Main Export**: `generateCleanPrintHTML(cvData)`
+### 2.1 Execution Results
+- **Command**: `npx vitest run`
+- **Exit Code**: `0`
+- **Output Metrics**:
+  - `Test Files  37 passed (37)`
+  - `Tests  628 passed (628)`
+  - `Duration  25.52s`
+  - `Modules Transformed  1,927`
 
-### 2.2 Key Capabilities
-1. **Zero Editor UI Artifacts**:
-   The static generator cleanly omits all interactive editor controls without relying on CSS `display: none`:
-   * No drag handles (`.drag-handle`, `.section-drag-handle`, `.item-drag-handle`)
-   * No deletion / addition buttons (`.round-btn-del`, `.round-btn-add`, `.section-del-btn`, `.add-section-btn`)
-   * No AI suggestion tooltips (`.suggestion-tooltip`, `.obsidian-callout`)
-   * No form inputs or editable wrappers (`<input>`, `<button>`, `contenteditable`, `.inline-input`)
-   * No navigation bars (`.l-navbar`, `.spacing-popover`, `.no-print`)
+### 2.2 Inventory of All 37 Test Files and Passing Counts
 
-2. **XSS Sanitization & Entity Escaping**:
-   Lines 15–23 implement `escapeHTML(str)`:
-   ```javascript
-   export const escapeHTML = (str) => {
-     if (str === null || str === undefined) return '';
-     return String(str)
-       .replace(/&/g, '&amp;')
-       .replace(/</g, '&lt;')
-       .replace(/>/g, '&gt;')
-       .replace(/"/g, '&quot;')
-       .replace(/'/g, '&#039;');
-   };
-   ```
-   All text fields (`profile.name`, `item.title`, `item.subtitle`, `item.bullets`, `item.description`) pass through `escapeHTML()`.
-
-3. **Dynamic Contrast Calculation (YIQ Color Intelligence)**:
-   Lines 41–74 compute contrast ratios from hex colors (`leftBg`, `rightBg`) to dynamically assign `--title-color`, `--text-color`, `--text-color-light`, `--container-color-alt`, and `--circle-color`. Supports both 6-character (`#0f172a`) and 3-character (`#000`) hex codes.
-
-4. **Multi-Layout Support**:
-   * **2-Column Mode**: `<div class="resume" id="area-cv" style="display: grid; grid-template-columns: 1fr 2fr; ...">`
-   * **1-Column ATS Mode**: `<div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 100%; ...">`
-
-### 2.3 Gaps & Deficiencies in `generateCleanPrintHTML`
-
-| # | Issue | Current Code Location | Expected Behavior / Test Requirement | Impact |
-|---|-------|----------------------|--------------------------------------|--------|
-| 1 | Missing `--page-padding` in `:root` | `src/utils/staticHtmlPdfEngine.js:258-271` | `:root { --page-padding: ${pagePadding}px; ... }` | Fails `staticHtmlPdfEngine.test.js:188`, `challenger-stress-suite.test.jsx:504`, `pairwise-interactions.test.jsx:36` |
-| 2 | Missing `bd-grid` in 2-col resume root | `src/utils/staticHtmlPdfEngine.js:230` | `<div class="resume bd-grid" id="area-cv" ...>` | Fails `challenger-stress-suite.test.jsx:108` |
-| 3 | Hardcoded font family and typography tokens | `src/utils/staticHtmlPdfEngine.js:264-271` | Dynamic `--body-font`, `--font-scale`, `--line-height` | Required for R1 (2026-09-02T02:11:43Z) universal typography engine |
-| 4 | Hardcoded padding in 1-column layout | `src/utils/staticHtmlPdfEngine.js:241` (`padding: 2rem 2.5rem;`) | `padding: var(--page-padding, 24px);` | Breaks spacing customization in 1-col ATS mode |
-
----
-
-## 3. 2 A4 Page Auto-Scaling & Height Calculation
-
-### 3.1 Mathematical Foundation of A4 Auto-Scaling
-* **Standard A4 Physical Dimensions**: $210\text{ mm} \times 297\text{ mm}$ ($8.27\text{ in} \times 11.69\text{ in}$)
-* **CSS Pixel Conversion at 96 DPI**:
-  * $1\text{ mm} = \frac{96\text{ px}}{25.4\text{ mm}} \approx 3.779527559\text{ px}$
-  * $1\text{ A4 Width} = 210 \times 3.779527559 = 793.7\text{ px}$ (rendered container width $\approx 794\text{ px} - 840\text{ px}$)
-  * $1\text{ A4 Height} = 297 \times 3.779527559 = 1122.52\text{ px} \approx 1123\text{ px}$
-  * $2\text{ A4 Pages Maximum Height} = 1122.52 \times 2 = 2245.04\text{ px} \approx 2246\text{ px}$ (`MAX_A4_2PAGE_HEIGHT_PX = 2246`)
-
-### 3.2 Auto-Scale Algorithm & Floor Limit
-```
-                       +-------------------------------+
-                       | Input: renderedHeight (px)    |
-                       +---------------+---------------+
-                                       |
-                                       v
-                        [ renderedHeight <= 2246px? ]
-                               /               \
-                             YES                NO
-                             /                    \
-                     +-------------+       +------------------------------------+
-                     | Return 1.0  |       | calculated = 2246 / renderedHeight |
-                     +-------------+       +-----------------+------------------+
-                                                             |
-                                                             v
-                                            [ calculated < MIN_SCALE_FLOOR (0.75)? ]
-                                                    /                  \
-                                                  YES                   NO
-                                                  /                       \
-                                         +------------------+     +------------------+
-                                         | Return 0.75      |     | Return calculated|
-                                         | (Strict Floor)   |     | (e.g. 0.898)     |
-                                         +------------------+     +------------------+
-```
-
-### 3.3 Discrepancy Analysis in `calculatePrintScale`
-In `src/utils/staticHtmlPdfEngine.js`:
-```javascript
-const MAX_A4_2PAGE_HEIGHT_PX = 2246; // 2 A4 pages at 96 DPI
-const MIN_SCALE_FLOOR = 0.82; // <-- BUG: Set to 0.82 instead of 0.75
-
-export const calculatePrintScale = (renderedHeight) => {
-  if (!renderedHeight || renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX) {
-    return 1.0;
-  }
-  const calculated = MAX_A4_2PAGE_HEIGHT_PX / renderedHeight;
-  return Math.max(MIN_SCALE_FLOOR, +(calculated.toFixed(3)));
-};
-```
-* **Test Expectation (`staticHtmlPdfEngine.test.js:125-135` & `challenger-stress-suite.test.jsx:255-264`)**:
-  * Height = 3000px $\rightarrow$ $\frac{2246}{3000} = 0.7486 \rightarrow$ clamped to floor **0.75**.
-  * Height = 10000px $\rightarrow$ clamped to floor **0.75**.
-* **Current Result**: Returns `0.82`, causing 4 test failures.
-* **Fix**: Change `MIN_SCALE_FLOOR` from `0.82` to `0.75`.
-
-### 3.4 Client-Side Isolated Iframe Execution (`executeCleanPrint`)
-`src/utils/staticHtmlPdfEngine.js` lines 457–510:
-1. Generates clean static HTML.
-2. Injects hidden `<iframe>` into `document.body`.
-3. Writes static HTML and waits for `readyState === 'complete'` / `onload`.
-4. Measures `doc.body.scrollHeight` and computes `scale = calculatePrintScale(renderedHeight)`.
-5. Applies `doc.body.style.zoom = scale` when `scale < 1.0`.
-6. Invokes `iframe.contentWindow.print()` and cleans up iframe.
-
-* **Iframe Dimension Discrepancy**:
-  * `executeCleanPrint` currently sets: `iframe.style.width = '210mm'; iframe.style.height = '297mm';`
-  * `challenger-stress-suite.test.jsx:204-205` asserts: `expect(iframe.style.width).toBe('0px'); expect(iframe.style.height).toBe('0px');`
-
-### 3.5 Backend PDF Pipeline Alignment (`netlify/functions/generate-pdf.js` & `scripts/generate-pdf.js`)
-* **Current Backend Setup**:
-  `netlify/functions/generate-pdf.js` boots Chromium via Puppeteer, navigates to frontend URL, injects `localStorage`, reloads, measures height, and renders custom single-page PDF with `width: '968px', height: '${finalHeight}px'`.
-* **Alignment Need**:
-  Backend should leverage `generateCleanPrintHTML(cvData)` directly with `page.setContent(html)` and `page.pdf({ format: 'A4', printBackground: true })`, ensuring identical formatting, faster execution (no URL load/reload), and adherence to 2 A4 pages.
+| # | Test File Path | Tests Passed | Primary Coverage Area |
+|---|----------------|--------------|-----------------------|
+| 1 | `src/tests/dom-geometry-typography.test.jsx` | 101 | DOM coordinates, typography scales, DnD handles, registry |
+| 2 | `src/tests/version-manager-hub.test.jsx` | 40 | CV versions, snapshots, localStorage persistence |
+| 3 | `src/tests/spacer-component.test.jsx` | 33 | Spacer blocks, resize handles, print avoidance, BaseSection routing |
+| 4 | `src/tests/empirical-challenger-deep-audit.test.jsx` | 29 | Deep audit of rendering bounds, CSS custom properties |
+| 5 | `src/tests/challenger-stress-suite.test.jsx` | 28 | Stress test of state updates, DOM mutation, memory |
+| 6 | `src/tests/cleanPrintEngineVerification.test.jsx` | 25 | Static HTML print generation, iframe stripping, pagination |
+| 7 | `src/tests/adversarial-spacing-layout-extremes.test.jsx` | 24 | Extreme padding/gap sliders, boundary limits |
+| 8 | `src/tests/epic2-rich-text-toolbar.test.jsx` | 24 | Formatting toolbar, bold/italic shortcuts, undo isolation |
+| 9 | `src/tests/challenger-m2-1-rich-text-stress.test.jsx` | 21 | ContentEditable paste sanitization, rich text stress |
+| 10 | `src/tests/epic3-actionmenu-ats-modal.test.jsx` | 19 | Floating panel reorganization, ATS mode, AddSectionModal |
+| 11 | `src/tests/liveHtmlSanitization.test.jsx` | 19 | HTML entity sanitization, clipboard handling |
+| 12 | `src/tests/visual-polish-and-mirroring.test.jsx` | 19 | Text color inheritance, mirror rendering |
+| 13 | `src/tests/pdfFilenameParametrization.test.jsx` | 16 | Dynamic PDF file naming from user profile |
+| 14 | `src/tests/pixelParityEditorPrint.test.jsx` | 16 | 0px pixel parity between `#area-cv` and print DOM |
+| 15 | `src/tests/challenger-o10-dom-coordinates-stress.test.jsx` | 16 | Viewport and bounding rect clamp tests |
+| 16 | `src/tests/adversarial-challenger.test.jsx` | 15 | Corrupted localStorage, unregistered section fallbacks |
+| 17 | `src/tests/staticHtmlPdfEngine.test.js` | 15 | Core iframe and CSS rule generation for print |
+| 18 | `src/tests/addButtonsAndResizerParity.test.jsx` | 14 | Add section buttons, column divider resizer |
+| 19 | `src/tests/realtime-sticky-pagination.test.jsx` | 12 | CVContext page metrics, fold detection, sticky pagination |
+| 20 | `src/tests/challengerCleanPrintLifecycle.test.jsx` | 12 | Clean print lifecycle, iframe unmounting, print dialog |
+| 21 | `src/tests/dynamic-contacts.test.jsx` | 11 | Dynamic contact items normalization and rendering |
+| 22 | `src/tests/spacing.test.jsx` | 11 | Dynamic margin & spacing controls, CSS variables |
+| 23 | `src/tests/polymorphic-dnd.test.jsx` | 10 | Cross-column and cross-section drag-and-drop |
+| 24 | `src/tests/iconography.test.jsx` | 10 | Lucide-react iconography, BoxIcons preservation |
+| 25 | `src/tests/registry.test.jsx` | 10 | Extensible registry contract, itemAdapter fallback |
+| 26 | `src/tests/two-column-pdf-pagination-and-extension.test.jsx` | 10 | Two-column pagination balance and print output |
+| 27 | `src/tests/challenger-m3-epic3-stress.test.jsx` | 10 | ActionMenu modal positioning and ATS toggles |
+| 28 | `src/tests/customTooltipTour.test.jsx` | 9 | Obsidian callout tooltips and positioning |
+| 29 | `src/tests/final-e2e-cross-cutting-challenger.test.jsx` | 8 | End-to-end integration and undo/redo stacks |
+| 30 | `src/tests/editorSnapshotBreakPropagation.test.jsx` | 7 | CSS page break rule propagation |
+| 31 | `src/tests/hyperlink-edit.test.jsx` | 6 | Link and linkText inline editing |
+| 32 | `src/tests/pairwise-interactions.test.jsx` | 6 | Pairwise combination of toolbar buttons and drag |
+| 33 | `src/tests/atsPrintModeFidelity.test.js` | 5 | ATS single-column print fidelity |
+| 34 | `src/tests/bulletPointsNativePrint.test.jsx` | 5 | Native `<li>` bullet rendering in print and editor |
+| 35 | `src/tests/e2e-scenarios.test.jsx` | 5 | High-level user scenarios (add/move/edit) |
+| 36 | `src/tests/test_inspect_juan_cv.test.jsx` | 4 | Import integrity with real-world CV data |
+| 37 | `src/tests/educationRounderAlignment.test.jsx` | 3 | Education rounder flex alignment and PrintBaseItem |
+| **Total** | **37 files** | **628 tests** | **100% Passing** |
 
 ---
 
-## 4. Existing Testing Infrastructure
+## 3. Production Build Status
 
-### 4.1 Test Stack & Configuration
-* **Test Runner**: Vitest v1.3.1 (`"test": "vitest run"`, `"test:watch": "vitest"`)
-* **Environment**: `jsdom` v24.0.0
-* **Testing Libraries**: `@testing-library/react` v14.2.1, `@testing-library/jest-dom` v6.4.2
-* **Config File**: `vite.config.js`:
-  ```javascript
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/tests/setup.js',
-    css: false,
+- **Command**: `npm run build`
+- **Tool**: Vite 5.4.21
+- **Exit Code**: `0`
+- **Execution Time**: `1.66s`
+- **Output Modules Transformed**: `1,927`
+- **Output Artifacts**:
+  - `dist/index.html` — 0.90 kB (gzip: 0.48 kB)
+  - `dist/assets/index-B4YhPPb3.css` — 34.08 kB (gzip: 6.82 kB)
+  - `dist/assets/index-8-duKAF3.js` — 728.29 kB (gzip: 212.36 kB)
+- **Status**: 100% clean, zero errors, zero warnings.
+
+---
+
+## 4. Test Suite Inspection: Target Components
+
+### 4.1 Tests Asserting on `BaseItem`
+`BaseItem` is imported in 3 test files and checked in 1 additional suite:
+1. `src/tests/educationRounderAlignment.test.jsx` (Lines 5, 7):
+   - Directly imports `{ PrintBaseItem }` and `BaseItem`.
+   - Test `E1.2` renders `<PrintBaseItem item={item} sectionId="education" sectionType="education" isLast={false} />`.
+   - Asserts that the outer container has class `.education__content` and style `display: flex`.
+   - Asserts that `.education__time`, `.education__data`, and `.education__rounder` exist.
+2. `src/tests/dom-geometry-typography.test.jsx` (Line 9):
+   - Test `F7.4` renders `<BaseItem item={item} sectionId="experience" sectionType="experience" />`.
+   - Asserts that `.item-drag-handle` is rendered for draggable items.
+3. `src/tests/adversarial-challenger.test.jsx` (Line 11):
+   - Imports `BaseItem` for deep component inspection.
+4. `src/tests/visual-polish-and-mirroring.test.jsx` (Line 95):
+   - Mentions `BaseItem` in test title verifying `color: var(--text-color)` inheritance.
+
+### 4.2 Tests Asserting on `BaseSection`
+`BaseSection` is imported in 4 test files:
+1. `src/tests/spacer-component.test.jsx` (Lines 6, 7):
+   - Directly imports `{ PrintBaseSection }` and `BaseSection`.
+   - Test `T4.4` renders `<BaseSection section={mockSpacer} isPrint={false} />` and expects `.spacer-resize-handle`.
+   - Test `T4.4` renders `<BaseSection section={mockSpacer} isPrint={true} />` and expects `.spacer-section` with height.
+   - Tests render `<BaseSection section={mockSection} />` across multiple integration tests.
+2. `src/tests/dom-geometry-typography.test.jsx` (Line 8):
+   - Test `F7.3` renders `<BaseSection section={section} />` and asserts `.section-drag-handle` is present.
+3. `src/tests/visual-polish-and-mirroring.test.jsx` (Line 6):
+   - Imports `BaseSection` and mounts it to verify CSS variable styling and text-color inheritance.
+4. `src/tests/adversarial-challenger.test.jsx` (Line 10):
+   - Test `EMP-3.1` registers a custom `patents` section and renders `<BaseSection section={patentSection} />`.
+   - Asserts that custom item renderer renders within `BaseSection`.
+5. `src/tests/registry.test.jsx` (Line 132):
+   - Test `T2.4` asserts section ID and title integrity on update.
+
+### 4.3 Tests Asserting on `CVContext`
+- `CVProvider` and `useCV` are used in 28 out of 37 test files.
+- `realtime-sticky-pagination.test.jsx` (Lines 25–85):
+  - Uses `renderHook(() => useCV(), { wrapper: CVProvider })`.
+  - Asserts on:
+    - `pageHeightPx` (>= 1000)
+    - `pageGapPx` (= 20)
+    - `totalPages` (>= 1)
+    - `getPageBounds(pageNum)` returning `{ top, bottom, foldTop, foldBottom }`
+    - `getElementPageInfo({ top, height })` returning `{ pageNum, isCrossingFold, remainingInPage }`
+    - `paginationTrigger` counter and `triggerPaginationRecalc()` callback
+- `spacing.test.jsx`:
+  - Directly tests `updateLayout` updating `pagePadding`, `sectionGap`, `itemGap`.
+- `adversarial-challenger.test.jsx`:
+  - Exercises error handling when localStorage contains corrupt data (`sections: null`, primitive strings, invalid JSON).
+- `test_inspect_juan_cv.test.jsx`:
+  - Dynamically imports `CVProvider` via `await import('../context/CVContext')`.
+- `final-e2e-cross-cutting-challenger.test.jsx`:
+  - Tests `undo`, `redo`, `canUndo`, `canRedo`.
+
+### 4.4 Tests Asserting on `SortableBulletItem`
+- No test file directly imports `SortableBulletItem` by name.
+- Tests in `bulletPointsNativePrint.test.jsx` assert on the DOM output produced by bullet items:
+  - Edit mode: `li.bullet-item-row.editable-item-container.cv-block`, `.bullet-del-btn`, `.item-drag-handle`.
+  - Print mode: `ul.experience__bullets li`, list-style-type: disc, no interactive buttons.
+
+### 4.5 Tests Asserting on `sectionRegistry`
+- `src/tests/dom-geometry-typography.test.jsx`:
+  - Imports `getAllSectionDescriptors` and `getSectionDescriptor`.
+  - Test `F8.1`: verifies standard section types are returned (`profile_header`, `about`, `skills`, `education`, `list`, `simple_list`).
+  - Test `F8.2`: verifies `getSectionDescriptor('skills')` returns descriptor with `itemComponent` and `createDefaultItem`.
+- `src/tests/spacer-component.test.jsx`:
+  - Test `T1.1`: verifies spacer descriptor is properly registered.
+- `src/tests/adversarial-challenger.test.jsx`:
+  - Test `EMP-3.1`: tests dynamic registration of custom `patents` section via `registerSectionType`.
+  - Test `EMP-3.2`: tests fallback descriptor for unknown section types.
+
+---
+
+## 5. Architectural Violations & Root Causes
+
+### 5.1 Duplicated `SortableBulletItem` Component
+- **Locations**:
+  - `src/components/CV/items/ExperienceItem.jsx` (lines 24–90)
+  - `src/components/CV/items/ProjectsItem.jsx` (lines 24–90)
+  - `src/components/CV/items/VolunteeringItem.jsx` (lines 23–89)
+- **Violation**: 3× identical code duplication (~65 lines each).
+- **Subtle difference**: `ExperienceItem` uses `marginBottom: 'var(--item-gap, 6px)'` while `ProjectsItem` and `VolunteeringItem` use `marginBottom: 'calc(var(--item-gap, 6px) / 2)'`.
+- **Solution**: Extract to `src/components/CV/SortableBulletItem.jsx` supporting an optional `marginBottom` prop (defaulting to `'var(--item-gap, 6px)'` or `'calc(var(--item-gap, 6px) / 2)'`).
+
+### 5.2 Bypass of Registry in `BaseItem.jsx`
+- **Violation**: `BaseItem.jsx` contains explicit branching chains:
+  - `if (sectionType === 'profile_header')`
+  - `if (sectionType === 'simple_list')`
+  - `if (isListItem)` (where `isListItem = descriptor.containerTag === 'ul' || sectionType === 'skills'`)
+  - `if (sectionType === 'about')`
+  - `if (sectionType === 'education')`
+- **Solution**: All container elements, classes, and styles must come from `descriptor.itemTag`, `descriptor.itemClass`, `descriptor.containerTag`, and `descriptor.isFlex`. `BaseItem` becomes a pure template component with 0 `if (sectionType === ...)` guards.
+
+### 5.3 Bypass of Registry in `BaseSection.jsx`
+- **Violation**: `BaseSection.jsx` contains explicit branching chains:
+  - `section.type === 'spacer'`
+  - `section.type === 'skills' ? 'skills' : section.type === 'education' ? 'education' : ...`
+  - In `EditableBaseSection`:
+    - `section.type === 'simple_list' ? <ul ...> : section.type === 'skills' ? <ul ...> : <div ...>`
+- **Solution**: The descriptor already defines `sectionClass`, `containerTag`, `containerClass`, `isHeader`, and `isSpacer`. `BaseSection` must read these directly from `descriptor`. For `spacer`, the descriptor can specify `sectionComponent: SpacerBlock` or flag `isSpacer`. `BaseSection` becomes a pure template component with 0 `if (section.type === ...)` guards.
+
+### 5.4 God Context in `CVContext.jsx`
+- **Lines**: 728 lines.
+- **Mixes**: CV CRUD, undo/redo history stacks, layout controls, typography, PDF export triggers, AI suggestion toggle/positioning, rich text floating toolbar state, toast notifications, pagination calculations and fold crossing.
+- **Solution**: Decompose into 4 focused hooks + sub-modules:
+  - `useCVData.js`: CV data state, sections CRUD, items CRUD, profile updates, localStorage persistence.
+  - `useCVHistory.js`: Undo/redo history stacks, past, future, canUndo, canRedo, applyStateWithHistory.
+  - `useCVLayout.js`: Spacing, padding, typography scales, ATS single/two-column layout.
+  - `useCVExport.js`: PDF generation helpers, print engine trigger, export state.
+  - `CVContext.jsx`: Acts as a backward-compatible facade (<=200 lines) exposing the exact same `useCV()` hook and `CVProvider` so zero existing callers or tests break.
+
+---
+
+## 6. Extensibility Smoke-Test Design
+
+### 6.1 Requirements
+From authoritative request:
+> "Adding a hypothetical new section type requires editing only `sectionRegistry.js` + one new item component file — no changes to `BaseItem`, `BaseSection`, `CVContext`, or `App`. Verified by actually implementing one new minimal section type as a smoke-test (with accompanying test)."
+
+### 6.2 Proposed Minimal Section Type: `custom_notes`
+- **Why not `publications` or `awards`?**: Both `publications` (PublicationsItem) and `awards` (AwardsItem) already exist in `src/components/CV/items/` and are already registered in `sectionRegistry.js`. Creating a truly new section type `custom_notes` guarantees a valid, non-redundant extensibility verification.
+- **Component File**: `src/components/CV/items/CustomNotesItem.jsx` (estimated ~45 lines, well under 300 lines limit).
+- **Data Shape**:
+  ```json
+  {
+    "id": "note_1725234567890_1_abcde",
+    "title": "Nota Personal / Declaración",
+    "content": "Compromiso constante con la calidad arquitectónica, testing riguroso y documentación clara."
   }
   ```
-* **Test Setup (`src/tests/setup.js`)**:
-  * Mocks and manages `localStorage` in-memory store.
-  * Polyfills `window.matchMedia`, `ResizeObserver`, `IntersectionObserver`, `window.print`, `window.scrollTo`.
-  * Invokes `@testing-library/react` `cleanup()` and `vi.clearAllMocks()` after each test.
+- **Component Implementation**:
+  ```jsx
+  import React from 'react';
+  import InlineEdit from '../../Editor/InlineEdit';
 
-### 4.2 Complete Test Suite Inventory & Health Matrix
-
-| Test Suite File | Focus Area | Total Tests | Passed | Failed | Status |
-|-----------------|------------|:-----------:|:------:|:------:|:------:|
-| `src/tests/spacing.test.jsx` | R1: Spacing variables, localStorage, slider controls | 10 | 10 | 0 | ✅ PASS |
-| `src/tests/polymorphic-dnd.test.jsx` | R2: Cross-column DND, item adapter polymorphism | 10 | 10 | 0 | ✅ PASS |
-| `src/tests/registry.test.jsx` | R3: Component/section extensible registry | 10 | 10 | 0 | ✅ PASS |
-| `src/tests/iconography.test.jsx` | R4: Lucide icons, Obsidian callouts, tooltip bounds | 10 | 10 | 0 | ✅ PASS |
-| `src/tests/e2e-scenarios.test.jsx` | R1–R5: End-to-end full CV user lifecycle | 5 | 5 | 0 | ✅ PASS |
-| `src/tests/adversarial-challenger.test.jsx` | Robustness, corrupted storage, XSS, Boxicons | 15 | 15 | 0 | ✅ PASS |
-| `src/tests/staticHtmlPdfEngine.test.js` | R5: Static HTML print engine & auto-scaler | 10 | 7 | 3 | ⚠️ FAIL |
-| `src/tests/challenger-stress-suite.test.jsx` | Deep stress testing: PDF, math, tooltips | 28 | 21 | 7 | ⚠️ FAIL |
-| `src/tests/pairwise-interactions.test.jsx` | Multi-feature interactions & combinations | 6 | 5 | 1 | ⚠️ FAIL |
-| **TOTAL** | | **104** | **93** | **11** | **89.4% Pass** |
-
-### 4.3 Root Cause Breakdown of 11 Test Failures
-
-```
-Total Failures: 11
- ├── Issue A: MIN_SCALE_FLOOR = 0.82 instead of 0.75 (5 failures)
- │    ├── staticHtmlPdfEngine.test.js: T2.1 (calculatePrintScale at 3000px)
- │    ├── staticHtmlPdfEngine.test.js: T2.2 (calculatePrintScale at 10000px)
- │    ├── challenger-stress-suite.test.jsx: 2.3 (scale ratio at 2800px)
- │    ├── challenger-stress-suite.test.jsx: 2.4 (floor limit at 2995px+)
- │    └── challenger-stress-suite.test.jsx: 2.5 (Monte Carlo random heights)
- │
- ├── Issue B: Missing --page-padding in :root within static HTML (4 failures)
- │    ├── staticHtmlPdfEngine.test.js: T2.5 (Preserves custom CSS spacing)
- │    ├── challenger-stress-suite.test.jsx: 1.3 (1-col ATS --page-padding)
- │    ├── challenger-stress-suite.test.jsx: 4.1 (YIQ contrast & dynamic spacing)
- │    └── pairwise-interactions.test.jsx: 1.1 (Static print HTML preserves spacing)
- │
- └── Issue C: Container Classes & Iframe Dimensions (2 failures)
-      ├── challenger-stress-suite.test.jsx: 1.2 (asserts class="resume bd-grid" id="area-cv")
-      └── challenger-stress-suite.test.jsx: 1.5 (asserts iframe.style.width == '0px')
-```
-
----
-
-## 5. Build and Execution Pipeline
-
-### 5.1 `package.json` Scripts & Dependencies
-* **Build Script**: `npm run build` $\rightarrow$ `vite build`
-* **Test Script**: `npm test` $\rightarrow$ `vitest run`
-* **Dev Server**: `npm run dev` $\rightarrow$ `vite` (port 5173, `0.0.0.0`)
-
-```json
-{
-  "dependencies": {
-    "@dnd-kit/core": "^6.1.0",
-    "@dnd-kit/sortable": "^8.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "lucide-react": "^1.39.0",
-    "netlify-cli": "^27.4.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@vitejs/plugin-react": "^4.2.1",
-    "jsdom": "^24.0.0",
-    "vite": "^5.0.8",
-    "vitest": "^1.3.1"
-  }
-}
-```
-
-### 5.2 Build Execution Verification
-* **Command**: `npm run build`
-* **Result**:
-  * Transformed 1869 modules.
-  * Generated `dist/index.html` (0.49 kB), `dist/assets/index-*.css` (12.75 kB), `dist/assets/index-*.js` (332.57 kB).
-  * Build time: **1.18s**, Exit Code: **0**.
-  * No bundle size warnings or missing module errors.
-
----
-
-## 6. Architecture & Implementation Proposal for Subsequent Phases
-
-Based on the 2026-09-02T02:11:43Z requirements, the following precise code updates are proposed for implementation in Phase 1:
-
-### 6.1 `src/utils/staticHtmlPdfEngine.js` Refactor Snippet
-```javascript
-// Change floor limit from 0.82 to 0.75
-const MIN_SCALE_FLOOR = 0.75;
-
-// In generateCleanPrintHTML:
-export const generateCleanPrintHTML = (cvData) => {
-  const data = cvData || {};
-  const layout = data.layout || {};
-  const sections = Array.isArray(data.sections) ? data.sections : [];
-
-  const is2Col = layout.type !== '1-column';
-  const pagePadding = Number(layout.pagePadding ?? 24);
-  const sectionGap = Number(layout.sectionGap ?? 20);
-  const itemGap = Number(layout.itemGap ?? 8);
-  const fontFamily = layout.fontFamily || "'Poppins', sans-serif";
-  const fontScale = layout.fontScale || 1.0;
-  const lineHeight = layout.lineHeight || 1.45;
-
-  const leftBg = layout.leftBg || '#fafafa';
-  const rightBg = layout.rightBg || '#ffffff';
-  const leftColors = getDynamicTextColors(leftBg);
-  const rightColors = getDynamicTextColors(rightBg);
-
-  const leftSections = sections.filter(s => s.column === 'left');
-  const rightSections = sections.filter(s => s.column === 'right');
-
-  let bodyContent = '';
-  if (is2Col) {
-    bodyContent = `
-      <div class="resume bd-grid" id="area-cv" style="display: grid; grid-template-columns: 1fr 2fr; width: 100%; max-width: 100%; margin: 0; padding: 0; box-shadow: none;">
-        <div class="resume__left" style="background: ${leftBg}; padding: var(--page-padding, 1.5rem 1.25rem); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor};">
-          ${leftSections.map(renderSectionHTML).join('')}
+  /**
+   * CustomNotesItem — Minimal item component for extensible smoke testing.
+   * Proves that a new section type requires zero modifications to core components.
+   */
+  const CustomNotesItem = ({ item = {}, sectionId, onUpdateItem, isPrint = false }) => {
+    if (isPrint) {
+      return (
+        <div className="custom-notes-item" style={{ width: '100%' }}>
+          {item.title && (
+            <h3 className="custom-notes__title" style={{ fontSize: 'var(--title-h3-size, 0.95rem)', fontWeight: 600, margin: '0 0 4px 0' }}>
+              <InlineEdit value={item.title} isPrint={true} />
+            </h3>
+          )}
+          <p className="custom-notes__content" style={{ margin: 0, fontSize: 'var(--body-font-size, 0.85rem)', lineHeight: 1.45 }}>
+            <InlineEdit value={item.content || ''} isPrint={true} />
+          </p>
         </div>
-        <div class="resume__right" style="background: ${rightBg}; padding: var(--page-padding, 1.5rem 1.5rem); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor};">
-          ${rightSections.map(renderSectionHTML).join('')}
-        </div>
-      </div>
-    `;
-  } else {
-    bodyContent = `
-      <div class="resume resume__single-column" id="area-cv" style="width: 100%; max-width: 840px; margin: 0 auto; padding: var(--page-padding, 2rem 2.5rem); background: #ffffff;">
-        ${sections.map(renderSectionHTML).join('')}
-      </div>
-    `;
-  }
-
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHTML(data.profile?.name || 'Curriculum Vitae')}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:wght@300;400;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --page-padding: ${pagePadding}px;
-      --section-gap: ${sectionGap}px;
-      --item-gap: ${itemGap}px;
-      --title-color: #0f172a;
-      --text-color: #334155;
-      --text-color-light: #64748b;
-      --body-font: ${fontFamily};
-      --font-scale: ${fontScale};
-      --line-height: ${lineHeight};
-      --h1-font-size: calc(1.45rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.15rem * var(--font-scale, 1));
-      --h3-font-size: calc(0.95rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.88rem * var(--font-scale, 1));
-      --small-font-size: calc(0.82rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.75rem * var(--font-scale, 1));
+      );
     }
-    ...
-  `;
-};
-```
 
-### 6.2 `src/index.css` Print Rule Strengthening
-```css
-@media print {
-  .cv-section,
-  .cv-block,
-  .experience__content, 
-  .education__content,
-  .skills__name,
-  .editable-item-container {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
+    return (
+      <div className="custom-notes-item" style={{ width: '100%' }}>
+        <h3 className="custom-notes__title" style={{ fontSize: 'var(--title-h3-size, 0.95rem)', fontWeight: 600, margin: '0 0 4px 0' }}>
+          <InlineEdit
+            value={item.title || ''}
+            onSave={(val) => onUpdateItem && onUpdateItem(sectionId, item.id, 'title', val)}
+            placeholder="Título de la nota..."
+          />
+        </h3>
+        <p className="custom-notes__content" style={{ margin: 0, fontSize: 'var(--body-font-size, 0.85rem)', lineHeight: 1.45 }}>
+          <InlineEdit
+            value={item.content || ''}
+            onSave={(val) => onUpdateItem && onUpdateItem(sectionId, item.id, 'content', val)}
+            placeholder="Escribe aquí tu nota..."
+          />
+        </p>
+      </div>
+    );
+  };
+
+  export default CustomNotesItem;
+  ```
+
+### 6.3 Registry Entry (`src/registry/sectionRegistry.js`)
+```javascript
+import CustomNotesItem from '../components/CV/items/CustomNotesItem';
+
+// Registration descriptor
+{
+  type: 'custom_notes',
+  label: 'Notas Adicionales',
+  description: 'Anotaciones breves, testimonios o declaraciones personales',
+  defaultTitle: 'NOTAS ADICIONALES',
+  defaultColumn: 'right',
+  icon: 'bx-notepad',
+  allowDelete: true,
+  allowAddItem: true,
+  sectionClass: 'experience',
+  containerTag: 'div',
+  containerClass: 'experience__container bd-grid',
+  itemTag: 'div',
+  itemClass: 'experience__content',
+  get itemComponent() { return CustomNotesItem; },
+  renderMarkdown: (item) => `### ${item.title || ''}\n${item.content || ''}\n`,
+  renderXML: (item) => `<note title="${item.title || ''}">${item.content || ''}</note>`,
+  renderPlainText: (item) => `${item.title || ''}: ${item.content || ''}\n`,
+  createDefaultItem: () => ({
+    id: generateUniqueId('note'),
+    title: 'Nota Profesional',
+    content: 'Enfoque continuo en buenas prácticas, testing automatizado y código limpio.'
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    return {
+      id: src.id || generateUniqueId('note'),
+      title: src.title || src.name || 'Nota',
+      content: src.description || src.content || (Array.isArray(src.bullets) ? src.bullets.join('. ') : '') || src.text || 'Contenido de la nota'
+    };
+  },
+  schema: { title: 'string', content: 'string' }
 }
 ```
 
+### 6.4 Smoke-Test Specification (`src/tests/extensibilitySmoke.test.jsx`)
+The smoke test suite should include the following verifications:
+1. **Registry Verification**:
+   - `getSectionDescriptor('custom_notes')` returns the registered descriptor with `itemComponent === CustomNotesItem`.
+   - `getAllSectionDescriptors()` contains `'custom_notes'`.
+2. **Factory Instantiation**:
+   - `createDefaultSection('right', 'custom_notes', 'NOTAS ADICIONALES')` instantiates a valid section container with default item.
+3. **Template Rendering in Edit Mode**:
+   - Renders `<BaseSection section={section} />` inside `<CVProvider>`.
+   - Confirms `CustomNotesItem` renders with its title and content.
+   - Confirms section drag handle, delete button, and add item button are present without modifying `BaseSection`.
+4. **Template Rendering in Print Mode**:
+   - Renders `<BaseSection section={section} isPrint={true} />`.
+   - Confirms clean semantic HTML with zero interactive editor buttons.
+5. **Polymorphic Adaptation**:
+   - `adaptItemToSectionType({ title: 'Task', bullets: ['Done'] }, 'custom_notes')` returns adapted note item with title and content.
+6. **Zero Core Modification Assertion**:
+   - Asserts that neither `BaseItem.jsx`, `BaseSection.jsx`, `CVContext.jsx`, nor `App.jsx` contain any reference to string `'custom_notes'`.
+
 ---
 
-## 7. Verification Matrix for Implementation Phase
+## 7. Test-Level Couplings & Mocks Checklist
 
-| Check | Command / Assertion | Expected Value |
-|---|---|---|
-| Vitest Suite | `npx vitest run` | 9 test files passed, 104 tests passed, 0 failed |
-| Production Build | `npm run build` | `✓ built in ~1.2s`, dist files generated |
-| Auto-Scale Floor | `calculatePrintScale(10000)` | Strict `0.75` |
-| CSS Injections | `generateCleanPrintHTML(cvData)` | Contains `--page-padding: ...`, `--section-gap: ...`, `--item-gap: ...` |
-| Zero Artifacts | `generateCleanPrintHTML(cvData)` | 0 instances of `.drag-handle`, `.round-btn-*`, `<input>`, etc. |
+| Test File | Tested Component / Feature | Critical Invariant to Preserve |
+|-----------|----------------------------|--------------------------------|
+| `src/tests/realtime-sticky-pagination.test.jsx` | `useCV()` hook | Must return `pageHeightPx`, `pageGapPx`, `totalPages`, `getPageBounds`, `getElementPageInfo`, `paginationTrigger`, `triggerPaginationRecalc`. |
+| `src/tests/educationRounderAlignment.test.jsx` | `PrintBaseItem` from `BaseItem.jsx` | Named export `PrintBaseItem` must exist; outer element for `education` must have class `.education__content` and `style.display: flex`. |
+| `src/tests/spacer-component.test.jsx` | `BaseSection` and `PrintBaseSection` | Named export `PrintBaseSection` must exist; `BaseSection` must route spacer to `SpacerBlock` in both edit and print modes. |
+| `src/tests/test_inspect_juan_cv.test.jsx` | `CVProvider` | Dynamic `await import('../context/CVContext')` must resolve `{ CVProvider }`. |
+| `src/tests/dom-geometry-typography.test.jsx` | `BaseItem`, `BaseSection`, `sectionRegistry` | Drag handle class `.item-drag-handle` in `BaseItem` and `.section-drag-handle` in `BaseSection`; `getAllSectionDescriptors()`. |
+| `src/tests/bulletPointsNativePrint.test.jsx` | Bullet lists & print view | Item print views (`ExperienceItemPrintView`, `ProjectsItemPrintView`, `VolunteeringItemPrintView`) must be exported; sortable li must have `.bullet-item-row.cv-block`. |
+| `src/tests/adversarial-challenger.test.jsx` | `CVContext`, `sectionRegistry`, `BaseSection` | Safe handling of corrupted/null `localStorage` data; fallback descriptor for unregistered section types; custom section rendering in `BaseSection`. |
+
+### 7.1 Mock Usage in Repository
+- `vi.mock` is **never used** anywhere in `src/tests/`.
+- `vi.spyOn` is used strictly for DOM and browser APIs:
+  - `document.body.appendChild` (clean print iframe test)
+  - `window.print` (print trigger test)
+  - `mockAreaCv.getBoundingClientRect` (floating modal coordinates)
+  - `HTMLAnchorElement.prototype.click` (download link)
+  - `window.URL.createObjectURL` (blob URL generation)
+- This means decomposing `CVContext` or refactoring `BaseItem`/`BaseSection` will **not break any module-level mock expectations**, provided the public facade signatures and rendered DOM structure/classes are preserved.
+
+---
+
+## 8. Recommendations & Next Steps for Team
+
+1. **SortableBulletItem Extraction**: Create `src/components/CV/SortableBulletItem.jsx` and replace internal definitions in `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx`.
+2. **Registry Descriptor Contract Enrichment**:
+   - Add JSDoc `@typedef {Object} SectionDescriptor` in `sectionRegistry.js`.
+   - Ensure all 14 descriptors declare `sectionClass`, `containerTag`, `containerClass`, `itemTag`, `itemClass`, `isHeader`, and `isSpacer`.
+3. **BaseSection & BaseItem Refactoring**:
+   - Refactor `BaseSection.jsx` to render `descriptor.containerTag` and `descriptor.containerClass`, delegating to `SpacerBlock` via `descriptor.isSpacer` or `descriptor.sectionComponent`.
+   - Refactor `BaseItem.jsx` to render `descriptor.itemTag` and `descriptor.itemClass` with flex styling as declared by descriptor.
+   - Eliminate all `if (sectionType === ...)` and `if (section.type === ...)` guards.
+4. **CVContext Decomposition**:
+   - Split into `useCVData.js`, `useCVHistory.js`, `useCVLayout.js`, `useCVExport.js`.
+   - Keep `CVContext.jsx` as a concise facade (<=200 lines) exporting `useCV` and `CVProvider`.
+5. **Implement Smoke Test & New Section**:
+   - Add `CustomNotesItem.jsx`.
+   - Register `custom_notes` in `sectionRegistry.js`.
+   - Add `src/tests/extensibilitySmoke.test.jsx` and verify 38 test files and 634+ tests pass cleanly.

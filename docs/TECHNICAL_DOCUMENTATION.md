@@ -1,24 +1,38 @@
 # Documentación Técnica
 
+> **Nota para Desarrolladores:** Para especificaciones detalladas, consulte las guías autoritativas en `/docs`:
+> - [Arquitectura del Editor y Flujo de Datos](arquitectura.md)
+> - [Guía de Extensibilidad de Secciones e Ítems](guia-extensibilidad-secciones.md)
+> - [Diseño, Invariantes y Accesibilidad](diseno-invariantes.md)
+> - [Motor de Impresión PDF y Paridad Visual](motor-impresion-pdf.md)
+> - [Manual de Desarrollo](DEVELOPMENT_MANUAL.md)
+
+---
+
 ## 1. Arquitectura del Frontend
 
-El cliente es una Single Page Application (SPA) desarrollada con React 18 y Vite. Sigue un patrón arquitectónico basado en estado global para evitar el *prop drilling* excesivo.
+El cliente es una Single Page Application (SPA) desarrollada con React 18 y Vite. Sigue un patrón arquitectónico basado en flujo de datos unidireccional y una fachada central en `src/context/CVContext.jsx`.
 
-### 1.1 Estado Global (Context API)
-El estado de la aplicación reside íntegramente en `src/context/CVContext.jsx`. 
-*   **Inicialización:** El contexto verifica si existe la clave `cvData` en el `localStorage`. Si no existe o es inválida, inyecta la estructura base definida en `src/utils/schema.js`.
-*   **Sincronización:** Un `useEffect` acoplado al estado de `cvData` asegura que cada mutación (edición de texto, reordenamiento de bloques) se persista automáticamente en el almacenamiento local con latencia cero.
-*   **Mutaciones:** Las funciones controladoras (`updateProfile`, `updateSectionTitle`, `reorderSections`, `reorderSectionItems`) abstraen la lógica de inmutabilidad de React, proporcionando una interfaz limpia a los componentes de la vista.
+### 1.1 Estado Global (Context API & Descomposición Modular)
+El estado de la aplicación reside en `src/context/CVContext.jsx`, descompuesto en 4 hooks modulares especializados:
+- `useCVData`: Mutaciones inmutables de perfil, secciones e ítems, sincronizado automáticamente con `localStorage`.
+- `useCVHistory`: Pila inmutable de Deshacer / Rehacer (`undo`, `redo`).
+- `useCVLayout`: Modos de diseño (2 columnas tradicional vs ATS 1 columna), proporciones de columna, tipografía y espaciado.
+- `useCVExport`: Orquestación de exportación limpia de PDF y serialización JSON.
 
-### 1.2 Motor de Drag & Drop
-El sistema de ordenamiento utiliza `@dnd-kit/core` y `@dnd-kit/sortable`. 
-*   El diseño es jerárquico. Existe un `DndContext` de nivel superior en `App.jsx` que gestiona el orden de las **secciones mayores** (Experiencia, Habilidades).
-*   Cada componente `CVSection` inicializa un segundo `DndContext` interno con restricción de movimiento vertical (`verticalListSortingStrategy`) para manejar el reordenamiento de **elementos internos** (ítems de experiencia, proyectos).
-*   Se utiliza un algoritmo de detección de colisiones (`closestCenter`) para optimizar la experiencia gráfica.
+### 1.2 Motor de Drag & Drop (@dnd-kit)
+El sistema de ordenamiento utiliza exclusivamente `@dnd-kit` (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) orquestado por el hook `src/hooks/useCVDndCoordinator.js`:
+- El diseño es jerárquico de 2 niveles:
+  1. `DndContext` de nivel superior en `App.jsx` que gestiona el orden de las **secciones mayores** y el movimiento polimórfico entre columnas (`leftCol` <-> `rightCol`).
+  2. `SortableContext` interno en cada `BaseSection.jsx` con estrategia vertical (`verticalListSortingStrategy`) para manejar el reordenamiento de **elementos internos** (ítems de experiencia, educación, proyectos) y viñetas anidadas (`SortableBulletItem.jsx`).
+- Detección de colisiones mediante `closestCorners`.
+- Prohibición estricta de `swapy` para evitar colisiones de IDs en el Virtual DOM de React.
+
+---
 
 ## 2. Esquema de Datos (JSON Schema)
 
-La estructura semántica del currículum obedece al siguiente esquema tipo:
+La estructura semántica del currículum obedece al esquema definido en `src/utils/schema.js`:
 
 ```json
 {
@@ -32,11 +46,27 @@ La estructura semántica del currículum obedece al siguiente esquema tipo:
     "github": "string",
     "description": "string"
   },
+  "layout": {
+    "type": "2-column",
+    "isAtsMode": false,
+    "fontFamily": "Poppins",
+    "fontScale": 1.0,
+    "lineHeight": 1.45,
+    "pagePadding": 24,
+    "sectionGap": 20,
+    "itemGap": 8,
+    "leftBg": "#f3f4f6",
+    "rightBg": "#ffffff",
+    "leftColumnWidth": 33.33
+  },
   "sections": [
     {
       "id": "string",
-      "type": "generic",
+      "type": "list",
+      "column": "right",
       "title": "string",
+      "bottomSpacing": 0,
+      "bulletStyle": { "size": "normal", "variant": "bold", "showLine": true },
       "items": [
         {
           "id": "string",
@@ -44,7 +74,7 @@ La estructura semántica del currículum obedece al siguiente esquema tipo:
           "subtitle": "string",
           "date": "string",
           "bullets": [
-             { "id": "string", "text": "string" }
+            "string"
           ]
         }
       ]
@@ -52,17 +82,17 @@ La estructura semántica del currículum obedece al siguiente esquema tipo:
   ]
 }
 ```
-Cualquier alteración en el esquema requiere migración del estado persistido de los clientes.
 
-## 3. Arquitectura del Backend (PDF Engine)
+---
 
-El backend es un entorno Serverless alojado en Netlify Functions (`generate-pdf.js`). Su propósito exclusivo es la rasterización y renderizado a PDF.
+## 3. Motor de Exportación e Impresión PDF (Client-Side Engine)
 
-### 3.1 Flujo de Ejecución (Inyección de Estado)
-1.  **Recepción:** El endpoint recibe un método `POST` desde el cliente, cuyo cuerpo (`event.body`) contiene la URL actual (`url`) y el árbol de estado JSON (`cv_state`).
-2.  **Inicialización Headless:** Se instancia un navegador Chrome en modo headless usando `@sparticuz/chromium` para asegurar compatibilidad con la limitación de 50MB de AWS Lambda.
-3.  **Inyección en Tiempo de Ejecución:** Antes del renderizado del DOM en React, Puppeteer navega hacia la `url`, evalúa un script en el contexto de la página (`page.evaluate`) que inyecta la carga útil `cv_state` directamente en el `localStorage` de la instancia.
-4.  **Reflow y Pintado:** Se invoca `page.reload()` esperando `networkidle0`. React inicializa leyendo el `localStorage` inyectado, renderizando las ediciones del usuario local.
-5.  **Aislamiento CSS:** El script de Puppeteer inyecta una etiqueta `<style>` que aplica un filtro para ocultar los componentes de la interfaz de edición (ej. `ActionMenu`, `DragHandle`) y fuerza el ancho del contenedor (`968px`) anulando reglas responsivas perjudiciales para formatos A4/Letter.
-6.  **Cálculo Dinámico de Altura:** El backend calcula el `offsetHeight` real de la página post-renderizado para garantizar que el PDF emitido no sufra recortes.
-7.  **Emisión:** Devuelve un buffer en base64 de vuelta al cliente.
+El renderizado e impresión a PDF es 100% del lado del cliente, gestionado por `src/utils/staticHtmlPdfEngine.js` (`executeCleanPrint`). No requiere servidores backend, Puppeteer ni dependencias nativas complejas.
+
+### 3.1 Flujo de Ejecución (Aislamiento y Renderizado)
+1. **Generación de HTML Limpio (`generateCleanPrintHTML`):** Serializa el estado activo del CV (`cvData`) utilizando los componentes visuales puros de React (`PrintBaseSection`, `PrintBaseItem`), purgando 26 selectores de artefactos interactivos de edición.
+2. **Inyección en Iframe Aislado:** Crea un elemento `<iframe>` invisible fuera del flujo visual (`top: -10000px; width: 794px`), inyectando el HTML generado junto con los estilos de producción (`src/index.css` saneado, `src/styles/print.css` y saltos dinámicos).
+3. **Paginación y Prevención de Ruptura:** Aplica `break-inside: avoid !important` en todos los super-contenedores y traslada encabezados huérfanos mediante `isOrphanTitle`. Configura `box-decoration-break: slice` en las columnas para impedir la duplicación de paddings en la página 2.
+4. **Propagación de Variables CSS:** Transfiere dinámicamente las propiedades `--*` activas en el `#area-cv` del editor a la raíz del documento de impresión.
+5. **Sincronización de Fuentes y Disparo:** Espera a que las fuentes web estén listas (`document.fonts.ready`), enfoca el iframe e invoca `contentWindow.print()` (con fallback a `window.print()`).
+6. **Limpieza Automática:** Al concluir o cancelar el diálogo de impresión (`afterprint`, `print-dialog-closed`), el iframe temporal es desmontado del DOM sin dejar nodos huérfanos.

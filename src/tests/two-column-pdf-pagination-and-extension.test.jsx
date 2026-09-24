@@ -304,7 +304,7 @@ describe('Goal: 2-Column PDF Generation Integrity & Full-Page Left Column Extens
       // Check @media print rules
       expect(html).toContain('var(--print-target-height-mm, 297mm)');
       expect(html).toContain('align-self: stretch !important;');
-      expect(html).toContain('box-decoration-break: clone !important;');
+      expect(html).toContain('box-decoration-break: slice !important;');
 
       // Check break-inside avoid on all component types
       expect(html).toMatch(/\.cv-block[\s\S]*?break-inside:\s*avoid\s*!important/);
@@ -346,9 +346,10 @@ describe('Goal: 2-Column PDF Generation Integrity & Full-Page Left Column Extens
 
       const areaCv = container.querySelector('#area-cv');
       expect(areaCv).not.toBeNull();
-      expect(areaCv.style.display).toBe('grid');
-      expect(areaCv.style.alignItems).toBe('stretch');
-      expect(areaCv.style.minHeight).toContain('mm');
+      const pageBox = container.querySelector('.a4-page-box') || areaCv;
+      expect(pageBox.style.display).toBe('grid');
+      expect(pageBox.style.alignItems).toBe('stretch');
+      expect(pageBox.style.minHeight).toContain('mm');
 
       const colLeft = container.querySelector('#column-left');
       expect(colLeft).not.toBeNull();

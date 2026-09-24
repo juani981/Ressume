@@ -1,61 +1,61 @@
-# BRIEFING — 2026-09-03T09:56:00Z
+# BRIEFING — 2026-09-11T23:56:30Z
 
 ## Mission
-Conduct comprehensive empirical cross-cutting stress testing across all 3 epics (Client-Side PDF Generation, Rich Inline Text Editing Toolbar, ActionMenu Reorganization & ATS Mode & Right Modal) plus cross-cutting stability (dnd-kit, undo/redo, toasts, clean print, multi-mode switching) and deliver a verdict with reproducible evidence.
+Empirical stress verification of pagination, forbidden boundary zones, and 1:1 parity for Milestone M5.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_challenger
+- Archetype: empirical_challenger
 - Roles: critic, specialist
-- Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final_1
-- Original parent: 8b3f3989-1330-4777-875a-b112a5beefa7
-- Milestone: Final E2E Cross-Cutting Verification
+- Working directory: C:\Users\usuariodgc\Documents\Ressume\.agents\teamwork_preview_challenger_final_1
+- Original parent: babbdd3c-c0ac-4180-a547-27fb13f18d9e
+- Milestone: M5 Final Stress Verification
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review and challenge with empirical testing — execute tests and builds directly.
-- Never manufacture false challenges; acknowledge when robust.
-- All verification must be empirical: execute tests, commands, oracles.
-- Do NOT modify production implementation code; if test files are authored, place them in `src/tests/` (never in `.agents/`).
-- Deliver 5-component handoff.md with explicit verdict (APPROVE or REQUEST_CHANGES).
+- Review-only — do NOT modify implementation code (report failures as findings)
+- Strictly empirical: verify all claims by executing tests/tools directly
+- Find bugs by writing and executing tests — generators, oracles, stress harnesses
+- .agents/ holds only metadata, never source/test/data
 
 ## Current Parent
-- Conversation ID: 8b3f3989-1330-4777-875a-b112a5beefa7
-- Updated: not yet
+- Conversation ID: babbdd3c-c0ac-4180-a547-27fb13f18d9e
+- Updated: 2026-09-11T23:56:30Z
 
 ## Review Scope
-- **Files reviewed & stress-tested**:
-  - `src/utils/reactPdfEngine.js`, `src/components/PDF/CVDocument.jsx`, `src/components/PDF/CVSectionPdf.jsx`, `src/components/PDF/CVItemPdf.jsx`, `src/components/PDF/richTextPdf.jsx`, `src/components/PDF/pdfStyleFactory.js`
-  - `src/components/Editor/InlineEdit.jsx`, `src/components/Editor/RichTextToolbar.jsx`, `src/utils/richTextEngine.js`
-  - `src/components/Editor/ActionMenu.jsx`, `src/components/Editor/AddSectionModal.jsx`
-  - `src/context/CVContext.jsx`, `src/utils/staticHtmlPdfEngine.js`, `src/registry/sectionRegistry.js`
-  - Authored comprehensive E2E test file: `src/tests/final-e2e-cross-cutting-challenger.test.jsx`
-- **Interface contracts**: `/home/juani/Documentos/Ressume/PROJECT.md`, `/home/juani/Documentos/Ressume/AGENTS.md`, `/home/juani/Documentos/Ressume/.agents/ORIGINAL_REQUEST.md`
-
-## Key Decisions Made
-- Executed empirical verification and authored `src/tests/final-e2e-cross-cutting-challenger.test.jsx` covering multi-epic interactions.
-- Full test suite passed: 23 test files, 442/442 tests (100% green).
-- Full production build passed: `npm run build` succeeded with code 0 in 3.45s with clean chunk splitting.
-- Final Verdict: APPROVE.
+- **Files to review**:
+  - src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx
+  - src/utils/pageGeometry.js
+  - src/utils/paginationEngine.js
+  - src/utils/staticHtmlPdfEngine.js
+  - src/styles/print.css
+- **Interface contracts**: PROJECT.md, AGENTS.md, ORIGINAL_REQUEST.md
+- **Review criteria**: correctness, empirical stress resilience, forbidden zone boundary detection, 0px drift
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. Rich formatting survival across ATS 1-column toggle and cross-engine rendering (React-PDF + staticHtml): Confirmed robust, formatting preserved in `cvData` and parsed cleanly into both engines.
-  2. Undo/Redo isolation between contentEditable typing and CVContext layout state: Confirmed robust, local edits don't hijack global undo, while blur commits changes and global undo steps through history.
-  3. ActionMenu button topology constraint (<= 8 buttons): Confirmed exactly 8 top-level interactive controls in `l-navbar`.
-  4. Submenu mutual exclusion: Confirmed opening "Diseño" closes "Acciones" and vice versa.
-  5. AddSectionModal dynamic viewport geometry: Confirmed right-docking when space >= 260px and screen edge fallback when narrow.
-  6. Super-container zero-split pagination: Confirmed `wrap={false}` bindings in React-PDF and `break-inside: avoid` in static HTML.
-  7. Dynamic YIQ contrast across extreme color palettes: Confirmed high-contrast white/dark selection across all color boundaries.
-  8. Polymorphic item adapter with rich text: Confirmed rich HTML tags (`<b>`, `<i>`, `text-align`) are preserved across conversions.
-- **Vulnerabilities found**: None. System demonstrates high resilience, full AGENTS.md compliance, and zero regressions.
-- **Untested angles**: None within client-side scope.
+  - Sub-pixel boundary accuracy of `isInForbiddenBoundaryZone` and `getForbiddenZone` across pages 1 to 5.
+  - Zero-height, inverted coordinates, and extreme padding bounds (0px to 64px).
+  - Invariant auditor strictness (`auditForbiddenBoundaryZones`) catching rogue elements at deep folds.
+  - Multi-page 1-column ATS layout resolution under multiple boundary straddles.
+  - Asymmetric and dual cross-column straddles in 2-column mode.
+  - Section title orphan avoidance pushing titles when child elements straddle folds, and corresponding action button/drag handle repositioning.
+  - `box-decoration-break: slice` enforcement eliminating double-padding (zero `clone` instances).
+  - 794px width strictness across dynamic configurations.
+  - 1:1 CSS custom property transfer loop integrity without drift or loss.
+- **Vulnerabilities found**: 0 vulnerabilities found. All 12 adversarial test cases passed. Full test suite (42 files, 727 tests) passed. Build passed with 0 errors.
+- **Untested angles**: Live physical printer driver differences (handled via automated scale guard and A4 96 DPI CSS standardization).
 
 ## Loaded Skills
-- None
+- None specified in dispatch
+
+## Key Decisions Made
+- Executed `m5-pagination-forbidden-zones-adversarial.test.jsx` directly via Vitest -> 12/12 passed.
+- Executed full Vitest suite (`npm test -- --run`) -> 42/42 files passed, 727/727 tests passed.
+- Executed `npm run build` -> Clean production build in 10.48s.
+- Formulated verdict: `CONFIRMED_CORRECT`.
 
 ## Artifact Index
-- `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final_1/DISPATCH.md` — Assignment instructions
-- `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final_1/BRIEFING.md` — Situational awareness
-- `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final_1/progress.md` — Liveness & heartbeat
-- `/home/juani/Documentos/Ressume/.agents/teamwork_preview_challenger_final_1/handoff.md` — Final handoff report
-- `/home/juani/Documentos/Ressume/src/tests/final-e2e-cross-cutting-challenger.test.jsx` — Cross-cutting E2E test suite
+- DISPATCH.md — Dispatch log
+- BRIEFING.md — Situational awareness
+- progress.md — Liveness & heartbeat
+- handoff.md — Final handoff report

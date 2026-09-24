@@ -68,5 +68,45 @@
     "suggestion_title": "Direct Plain-Text Contact Information",
     "suggestion_body": "Present Email, Phone, Location, and LinkedIn/GitHub URLs in selectable plain text without graphic icons or tables that block ATS OCR extraction.",
     "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_dollar_syntax",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "ATS Technical Syntax: Avoid Dollar Symbols ($N+1, $CI/CD)",
+    "suggestion_body": "Do not use dollar symbols ($) to enclose technical terms or expressions (e.g. '$N+1$', '$CI/CD$'). ATS parsers (Workday, Taleo, Greenhouse) interpret '$' signs as compensation figures or broken regex variables, failing keyword matching.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_crit_en_url_integrity",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "URL Integrity: Eliminate Spaces and Temporary Preview Builds",
+    "suggestion_body": "Ensure no URLs contain accidental whitespace, and always point to canonical domains or production repositories rather than temporary deploy preview URLs ('deploy-preview-4...'). ATS crawlers reject links broken by whitespace.",
+    "severity": "critical"
+  },
+  {
+    "id": "ats_warn_en_glyph_overload",
+    "target_section": "global",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Glyph Overload: Eliminate Checkboxes (☑) and Non-Standard Symbols",
+    "suggestion_body": "Suppress checkboxes (☑, ☐), decorative checkmarks (✓), or non-standard bullet symbols. ATS OCR and text layer extractors convert these into replacement characters ('?', '\\uFFFD') or drop the entire bullet row.",
+    "severity": "warning"
+  },
+  {
+    "id": "ats_info_en_technology_casing",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Skills Taxonomy: Canonical Technology Casing (JavaScript, MySQL)",
+    "suggestion_body": "Format technologies with canonical industry casing (e.g., 'JavaScript' instead of 'Javascript', 'MySQL' instead of 'mysql', 'PostgreSQL', 'Docker'). ATS taxonomy ontologies (Lightcast, O*NET) match canonical casing for scoring.",
+    "severity": "info"
   }
 ]

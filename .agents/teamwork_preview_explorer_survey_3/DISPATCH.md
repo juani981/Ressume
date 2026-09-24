@@ -1,9 +1,12 @@
-# Dispatch History
+# Explorer 3 Task Assignment
+Run baseline tests and build, investigate test suite structure and smoke-test extensibility verification.
+Report findings in `handoff.md`.
 
-## 2026-09-02T02:12:56Z
-Focus Area:
-1. Strict Zero-Split PDF Printing Core
-2. Static HTML Generation (`generateCleanPrintHTML`) and Print Stylesheets
-3. 2 A4 Page Auto-Scaling & Height Calculation without Content Clipping
-4. Existing Testing Infrastructure (Vitest, React Testing Library, jsdom/happy-dom, existing tests)
-5. Build and Execution Pipeline (`package.json` scripts, build setup, dev environment)
+## 2026-09-11T03:16:31Z
+Investigate test suite baseline, build status, and extensibility smoke-test design.
+1. Run `npx vitest run`: Document total number of tests and test files passing. Check if any tests test BaseItem, BaseSection, CVContext, SortableBulletItem, or sectionRegistry.
+2. Run `npm run build`: Verify build succeeds with 0 errors. Document output.
+3. Investigate the Extensibility requirement: Plan exact design for minimal section type (e.g. CustomNotesItem or PublicationsItem or AwardsItem), data shape, registry entry, smoke test location.
+4. Identify test-level couplings or mocks that might be affected by decomposing CVContext or refactoring BaseItem/BaseSection.
+5. Write findings to handoff.md.
+6. Send message to caller agent.

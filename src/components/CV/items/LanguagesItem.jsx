@@ -16,7 +16,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           }} 
         />
         <div style={{ minWidth: 0 }}>
-          <span style={{ fontWeight: 600, fontSize: 'var(--normal-font-size)', color: 'var(--title-color)' }}>
+          <span style={{ fontWeight: 600, fontSize: 'var(--list-font-size, var(--normal-font-size))', color: 'var(--title-color)' }}>
             <InlineEdit 
               value={item.title || item.language || ''} 
               isPrint={isPrint}
@@ -25,7 +25,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
             />
           </span>
           {item.description && (
-            <div style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <div style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.description} 
                 isPrint={isPrint}
@@ -39,7 +39,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
 
       <span 
         style={{ 
-          fontSize: 'var(--small-font-size)', 
+          fontSize: 'var(--body-small-font-size, var(--small-font-size))', 
           fontWeight: 500,
           padding: '2px 8px',
           borderRadius: '12px',

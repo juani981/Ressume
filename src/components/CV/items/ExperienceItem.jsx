@@ -1,8 +1,9 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
-import SimpleListItem from './SimpleListItem';
-import DragHandle from '../../Editor/DragHandle';
+import SortableBulletItem from '../SortableBulletItem';
+import AddBulletPoint from '../../Editor/AddBulletPoint';
+import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -15,73 +16,9 @@ import {
   SortableContext, 
   verticalListSortingStrategy, 
   arrayMove, 
-  sortableKeyboardCoordinates, 
-  useSortable 
+  sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
-const SortableBulletItem = ({ 
-  bulletId, 
-  bulletText, 
-  bulletIndex, 
-  sectionId, 
-  itemId, 
-  bullets, 
-  onUpdateItem, 
-  onDeleteBullet 
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: bulletId,
-    data: {
-      type: 'bullet',
-      bulletIndex
-    }
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    position: 'relative',
-    opacity: isDragging ? 0.35 : 1,
-    display: 'flex',
-    alignItems: 'flex-start',
-    marginTop: 0,
-    marginBottom: 'var(--item-gap, 6px)',
-    paddingRight: '1.5rem',
-    paddingLeft: '1.25rem',
-    color: 'inherit'
-  };
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="bullet-item-row editable-item-container cv-block"
-    >
-      <DragHandle isInner={true} listeners={listeners} attributes={attributes} />
-      <SimpleListItem 
-        item={{ id: bulletIndex, text: bulletText }} 
-        sectionId={sectionId} 
-        onUpdateItem={(secId, bIdx, field, val) => {
-          const newBullets = [...bullets];
-          newBullets[bIdx] = val;
-          onUpdateItem(sectionId, itemId, 'bullets', newBullets);
-        }}
-      />
-      <button
-        type="button"
-        className="round-btn-del bullet-del-btn no-print"
-        title="Eliminar esta viñeta"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDeleteBullet(bulletIndex);
-        }}
-      >
-        <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
-      </button>
-    </li>
-  );
-};
 
 const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
   const bullets = item.bullets || [];
@@ -132,18 +69,21 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
 
         {bullets.length > 0 && (
           <div className="experience__bullets-container">
-            <ul className="experience__bullets" style={{ paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
                 const bulletText = typeof b === 'string' ? b : (b?.text || '');
                 return (
                   <li
                     key={idx}
                     className="cv-block"
+                    data-item-id={`${item.id}_bullet_${idx}`}
                     style={{
-                      display: 'list-item',
-                      listStyleType: 'disc',
-                      marginBottom: 'calc(var(--item-gap, 6px) / 2)',
-                      lineHeight: 1.45,
+                      display: 'block',
+                      listStyle: 'none',
+                      listStyleType: 'none',
+                      marginBottom: 'var(--item-gap, 8px)',
+                      lineHeight: 'var(--line-height, 1.45)',
+                      fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
                     }}
@@ -151,6 +91,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                     <InlineEdit 
                       value={bulletText} 
                       isPrint={true}
+                      display="inline"
                     />
                   </li>
                 );
@@ -263,7 +204,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -283,17 +224,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div className="bullet-add-row no-print" style={{ paddingLeft: '1.25rem' }}>
-            <button
-              type="button"
-              className="add-bullet-btn no-print"
-              onClick={handleAddBullet}
-              title="Agregar viñeta / logro a este puesto"
-            >
-              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
-              <span>Agregar viñeta</span>
-            </button>
-          </div>
+          <AddBulletPoint helperText={"Agregar hito/logro en éste puesto"} handleAddBullet={handleAddBullet}  />
         </div>
       </div>
     </>
