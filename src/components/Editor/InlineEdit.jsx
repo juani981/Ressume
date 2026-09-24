@@ -89,6 +89,10 @@ const InlineEditPrintView = ({
       className={`inline-edit-display ${className}`}
       style={{
         display: display || (multiline ? 'block' : 'inline-block'),
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowWrap: 'break-word',
+        wordBreak: 'break-word',
         textAlign: alignment,
         color: 'inherit',
         whiteSpace: multiline ? 'pre-wrap' : 'normal',
@@ -510,12 +514,15 @@ const InlineEditEditor = ({
             outlineOffset: '2px',
             borderRadius: '3px',
             minWidth: '20px',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
             minHeight: '1.5em',
             display: multiline ? 'block' : 'inline-block',
             width: multiline ? '100%' : 'auto',
             textAlign: currentAlignment,
             cursor: 'text',
             wordBreak: 'break-word',
+            overflowWrap: 'break-word',
             whiteSpace: multiline ? 'pre-wrap' : 'normal',
             color: 'inherit'
           }}
@@ -556,6 +563,10 @@ const InlineEditEditor = ({
         cursor: 'pointer',
         display: display || (multiline ? 'block' : 'inline-block'),
         minWidth: '20px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        overflowWrap: 'break-word',
+        wordBreak: 'break-word',
         minHeight: '1em',
         textAlign: currentAlignment,
         color: 'inherit',

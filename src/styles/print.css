@@ -127,6 +127,11 @@
     height: 100% !important;
     align-self: stretch !important;
     box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     -webkit-box-decoration-break: clone !important;
@@ -591,5 +596,41 @@
   ul.simple-list-ul li span.inline-edit-display {
     display: inline !important;
     margin: 0 !important;
+  }
+
+  /* Universal word-wrap and horizontal containment in print */
+  .resume__left *,
+  .resume__right *,
+  .cv-section,
+  .cv-block,
+  .editable-section-container,
+  .editable-item-container,
+  .section-title,
+  .experience__title,
+  .experience__company,
+  .experience__description,
+  .education__title,
+  .education__studies,
+  .education__year,
+  .profile__description,
+  .bullet-item-row,
+  .simple-list-item,
+  .skills__name,
+  .languages__name,
+  .inline-edit-display {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  .resume__left a,
+  .resume__right a,
+  .social__link,
+  .hyperlink-display {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
   }
 }

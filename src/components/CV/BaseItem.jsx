@@ -38,6 +38,10 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
     display: descriptor.itemStyle?.display || 'flex',
     position: 'relative',
     color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
     ...(descriptor.itemStyle || {})
   };
 
@@ -48,7 +52,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
       className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
-      style={style}
+      style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     >
       {ItemComponent && (
         <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
@@ -90,6 +94,10 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
     color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
     ...(descriptor.itemStyle || {})
   };
 

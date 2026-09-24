@@ -186,7 +186,11 @@ const EditableBaseSection = ({ section }) => {
     position: 'relative',
     opacity: isDragging ? 0.4 : 1,
     marginBottom: 'var(--section-gap, 20px)',
-    color: 'var(--text-color)'
+    color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box'
   };
 
   const isTooltipOpen = activeTooltip?.section?.id === section.id;
@@ -274,7 +278,7 @@ const EditableBaseSection = ({ section }) => {
         </h2>
       )}
       
-      <div className={wrapperClass}>
+      <div className={wrapperClass} style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
           <SectionItemsRenderer
             items={section.items || []}

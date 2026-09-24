@@ -25,7 +25,7 @@ const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           flexShrink: 0 
         }} 
       />
-      <span style={{ flex: 1, color: 'inherit' }}>
+      <span style={{ flex: 1, minWidth: 0, maxWidth: '100%', color: 'inherit' }}>
         <InlineEdit 
           value={item?.text || ''} 
           onSave={(val) => onUpdateItem?.(sectionId, item.id, 'text', val)} 

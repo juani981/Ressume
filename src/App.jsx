@@ -318,6 +318,8 @@ function App() {
                                      boxSizing: "border-box",
                                      minWidth: 0,
                                      maxWidth: "100%",
+                                     overflowWrap: "break-word",
+                                     wordBreak: "break-word",
                                      color: "var(--text-color)",
                                      ...getDynamicTextVariables(cvData.layout?.leftBg),
                                   }}>
@@ -380,6 +382,8 @@ function App() {
                                      boxSizing: "border-box",
                                      minWidth: 0,
                                      maxWidth: "100%",
+                                     overflowWrap: "break-word",
+                                     wordBreak: "break-word",
                                      color: "var(--text-color)",
                                      ...getDynamicTextVariables(cvData.layout?.rightBg),
                                   }}>

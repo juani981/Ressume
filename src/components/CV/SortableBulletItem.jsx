@@ -64,7 +64,11 @@ export const SortableBulletItem = ({
     paddingLeft: '1.15rem',
     color: 'inherit',
     lineHeight: 'var(--line-height, 1.45)',
-    fontSize: 'var(--list-font-size, var(--normal-font-size))'
+    fontSize: 'var(--list-font-size, var(--normal-font-size))',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box'
   };
 
   const containerDragListeners = createContainerDragListeners(listeners, true);

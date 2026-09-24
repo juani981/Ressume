@@ -2092,3 +2092,159 @@ body.ats-mode-active .a4-page-fold-badge {
   background: #3874ff !important;
   box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.4);
 }
+
+/* ==========================================================
+   2-COLUMN MODE & UNIVERSAL WORD-WRAP CONTAINMENT
+   Guarantees that all content (titles, bullets, descriptions,
+   contacts, skills, links) wraps properly within column boundaries
+   without horizontal overflow or truncation.
+   ========================================================== */
+
+.resume__left,
+.resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left *,
+.resume__right *,
+.a4-page-box .resume__left *,
+.a4-page-box .resume__right * {
+  box-sizing: border-box;
+}
+
+.resume__left .cv-section,
+.resume__right .cv-section,
+.resume__left .editable-section-container,
+.resume__right .editable-section-container,
+.resume__left .cv-block,
+.resume__right .cv-block,
+.resume__left .editable-item-container,
+.resume__right .editable-item-container,
+.a4-page-box .cv-section,
+.a4-page-box .cv-block,
+.a4-page-box .editable-section-container,
+.a4-page-box .editable-item-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left .section-title,
+.resume__right .section-title,
+.a4-page-box .section-title,
+.a4-page-box .home__title,
+.a4-page-box .home__subtitle,
+.a4-page-box .home__profession,
+.a4-page-box .experience__title,
+.a4-page-box .experience__company,
+.a4-page-box .experience__description,
+.a4-page-box .education__title,
+.a4-page-box .education__studies,
+.a4-page-box .education__year,
+.a4-page-box .profile__description,
+.a4-page-box .bullet-item-row,
+.a4-page-box .simple-list-item,
+.a4-page-box .skills__name,
+.a4-page-box .languages__name,
+.a4-page-box p,
+.a4-page-box h1,
+.a4-page-box h2,
+.a4-page-box h3,
+.a4-page-box h4,
+.a4-page-box span,
+.a4-page-box li,
+.a4-page-box a {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  max-width: 100%;
+}
+
+/* Ensure hyperlinks and URLs break properly anywhere even without whitespace */
+.resume__left a,
+.resume__right a,
+.resume__left .social__link,
+.resume__right .social__link,
+.resume__left .hyperlink-display,
+.resume__right .hyperlink-display,
+.a4-page-box a,
+.a4-page-box .social__link,
+.a4-page-box .hyperlink-display {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* InlineEdit bounding */
+.inline-edit-display {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.inline-input {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Container adaptations for 2-column sidebar mode: prevent multiple max-content columns from overflowing */
+.resume__left .social__container,
+.resume__right .social__container,
+.has-a4-page-boxes .social__container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  grid-template-columns: none !important;
+  gap: 8px 12px !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .skills__content {
+  grid-template-columns: 1fr !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .languages__content {
+  grid-template-columns: 1fr !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .interests__container {
+  grid-template-columns: repeat(2, 1fr) !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Bullet item row horizontal containment */
+.bullet-item-row {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.bullet-item-row span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
