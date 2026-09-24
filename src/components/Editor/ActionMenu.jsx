@@ -399,50 +399,6 @@ const ActionMenu = () => {
             Descargar/Imprimir PDF
           </span>
         </div>
-
-        {/* Eliminar Página */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn delete-page-btn"
-            onClick={() => deletePage()}
-            aria-label="Eliminar página"
-            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
-            data-testid="btn-delete-page"
-            style={{
-              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
-              cursor: 'pointer'
-            }}
-          >
-            <FileX size={20} />
-          </button>
-          <span className="action-menu-tooltip">
-            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
-          </span>
-          {/* <button 
-            type="button"
-            className="action-menu-btn"
-            onClick={() => {
-              setIsActionsMenuOpen(prev => {
-                if (!prev) setIsDesignMenuOpen(false);
-                return !prev;
-              });
-            }} 
-            style={{ 
-              color: isActionsMenuOpen ? '#3874ff' : '#e11d48',
-              background: isActionsMenuOpen ? 'rgba(225, 29, 72, 0.1)' : 'transparent',
-              borderRadius: '8px'
-            }}
-            aria-label="Acciones y Exportación"
-            title="Acciones y Exportación (PDF, JSON)"
-            data-testid="btn-open-actions"
-          >
-            <FolderDown size={20} />
-          </button>
-          <span className="action-menu-tooltip">
-            Acciones de Exportación
-          </span> */}
-        </div>
       </div>
 
       {/* =========================================================================

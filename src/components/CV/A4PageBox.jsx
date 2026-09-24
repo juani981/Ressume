@@ -417,6 +417,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 lineHeight: 1,
               }}
               title={`Eliminar página ${pageNumber}`}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeletePage(pageNumber);

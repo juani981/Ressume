@@ -132,6 +132,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
           type="button"
           className="round-btn-del item-del-btn no-print"
           data-editor-ui="true"
+          data-testid={`btn-delete-item-${item?.id || sectionType}`}
           title="Eliminar este elemento"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={handleDelete}

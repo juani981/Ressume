@@ -225,6 +225,7 @@ const EditableBaseSection = ({ section }) => {
             type="button"
             className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
             title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
+            data-testid={`btn-tips-${section.id}`}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
@@ -260,6 +261,7 @@ const EditableBaseSection = ({ section }) => {
               type="button"
               className="round-btn-del section-del-btn"
               title={`Eliminar sección ${section.title || section.id}`}
+              data-testid={`btn-delete-section-${section.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();

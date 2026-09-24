@@ -1053,7 +1053,7 @@ a,
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
   transition: transform 0.15s ease, opacity 0.2s ease, visibility 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1064,6 +1064,7 @@ a,
   background: #dc2626;
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
   opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .section-del-btn {
@@ -1071,10 +1072,11 @@ a,
   right: 0.35rem;
 }
 
-.editable-section-container:hover>.section-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover>.section-del-btn,
+.section-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* ==========================================================
@@ -1093,20 +1095,22 @@ a,
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  cursor: default;
   transform: translateY(-2px);
   transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Hover: Make all buttons in the group float into view together */
 .editable-section-container:hover>.section-action-buttons,
-.editable-section-container:hover .section-action-buttons {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover .section-action-buttons,
+.section-action-buttons:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   transform: translateY(0);
 }
 
@@ -1134,10 +1138,19 @@ a,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: pointer !important;
   padding: 0;
   flex-shrink: 0;
   transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Ensure inner SVG icons do not intercept pointer events from the button */
+.section-action-buttons button svg,
+.round-btn-del svg,
+.round-btn-add svg,
+.add-bullet-btn svg,
+.add-contact-btn svg {
+  pointer-events: none;
 }
 
 /* 1. TOOLTIPS Button inside action buttons */
@@ -1211,7 +1224,7 @@ a,
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1236,10 +1249,11 @@ a,
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
 }
 
-.editable-section-container:hover>.section-tips-toggle-btn {
-  opacity: 0.95;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover>.section-tips-toggle-btn,
+.section-tips-toggle-btn:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .section-tips-toggle-btn:hover {
@@ -1277,10 +1291,11 @@ a,
   height: 20px;
 }
 
-.editable-item-container:hover>.item-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editable-item-container:hover>.item-del-btn,
+.item-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* Section add item button container (Positioned directly on bottom border: 50% in, 50% out) */
@@ -1330,14 +1345,15 @@ a,
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
 }
 
-.bullet-item-row:hover .bullet-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.bullet-item-row:hover .bullet-del-btn,
+.bullet-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .bullet-item-row .bullet-del-btn:hover {
-  opacity: 1;
+  opacity: 1 !important;
   transform: scale(1.15);
 }
 

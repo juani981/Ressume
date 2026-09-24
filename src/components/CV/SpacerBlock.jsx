@@ -500,6 +500,7 @@ export const EditableSpacerBlock = ({ section }) => {
         className="spacer-controls-bar no-print"
         data-editor-ui="true"
         data-testid={`spacer-controls-${section.id}`}
+        onPointerDown={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
           top: '50%',
@@ -514,7 +515,7 @@ export const EditableSpacerBlock = ({ section }) => {
           borderRadius: '20px',
           padding: '2px 8px',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
-          zIndex: 30,
+          zIndex: 150,
           opacity: isHovered || isResizing || isEditingExact ? 1 : 0,
           pointerEvents: isHovered || isResizing || isEditingExact ? 'auto' : 'none',
           transition: 'opacity 0.15s ease',
@@ -633,6 +634,7 @@ export const EditableSpacerBlock = ({ section }) => {
         <button
           type="button"
           data-testid={`spacer-del-btn-${section.id}`}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             deleteSection(section.id);
