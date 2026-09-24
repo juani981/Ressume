@@ -126,8 +126,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
       {...attributes}
       {...containerDragListeners}
     >
-      {hasItemDrag && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
-      {allowDelete && (
+      {hasItemDrag && !item?.isContinuationItem && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
+      {allowDelete && !item?.isContinuationItem && (
         <button
           type="button"
           className="round-btn-del item-del-btn no-print"
@@ -144,7 +144,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         <ItemComponent 
           item={item} 
           sectionId={sectionId} 
-          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, itemId, key, val)} 
+          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
         />
       )}
     </ItemTag>

@@ -30,6 +30,9 @@
     box-sizing: border-box !important;
     margin: 0 !important;
     box-shadow: none !important;
+    gap: 0 !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
   }
 
   .a4-page-box:last-child {
@@ -90,7 +93,7 @@
 
   .a4-page-box .resume__left,
   .a4-page-box .resume__right {
-    padding: var(--page-padding, 0px) !important;
+    padding: var(--page-padding, 24px) !important;
     box-sizing: border-box !important;
   }
 

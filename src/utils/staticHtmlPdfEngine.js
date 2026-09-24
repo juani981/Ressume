@@ -97,6 +97,9 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
     }
     #area-cv.bd-grid {
       grid-template-columns: ${gridTemplateColumns} !important;
+      gap: 0 !important;
+      column-gap: 0 !important;
+      row-gap: 0 !important;
     }
   `;
 };
@@ -457,11 +460,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; ${twoColWidthStyle} min-height: 297mm; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; gap: 0; column-gap: 0; row-gap: 0; ${twoColWidthStyle} min-height: 297mm; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
           ${leftSectionsCol.map(renderSectionHTML).join('')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
           ${rightSectionsCol.map(renderSectionHTML).join('')}
         </div>
       </div>

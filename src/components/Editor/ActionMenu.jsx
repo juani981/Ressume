@@ -381,22 +381,40 @@ const ActionMenu = () => {
         {/* 8. Acciones de Exportación */}
         <div className="action-menu-btn-wrap">
           {/* Action 1: Native Print / Clean PDF Export */}
-        <button
-          type="button"
-          className="action-menu-btn"
-          onClick={handleGeneratePDF}
-          disabled={loading}
-          aria-label="Descargar / Imprimir PDF"
-          title="Descargar / Imprimir PDF"
-          data-testid="btn-action-native-print"
-        >
-            
-
+          <button
+            type="button"
+            className="action-menu-btn"
+            onClick={handleGeneratePDF}
+            disabled={loading}
+            aria-label="Descargar / Imprimir PDF"
+            title="Descargar / Imprimir PDF"
+            data-testid="btn-action-native-print"
+          >
             {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={20} color='#DC143C'/>}
-          
           </button>
           <span className="action-menu-tooltip">
             Descargar/Imprimir PDF
+          </span>
+        </div>
+
+        {/* Eliminar Página */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="action-menu-btn delete-page-btn"
+            onClick={() => deletePage()}
+            aria-label="Eliminar página"
+            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
+            data-testid="btn-delete-page"
+            style={{
+              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
+              cursor: 'pointer'
+            }}
+          >
+            <FileX size={20} />
+          </button>
+          <span className="action-menu-tooltip">
+            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
           </span>
         </div>
       </div>

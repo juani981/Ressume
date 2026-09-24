@@ -26,50 +26,54 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
   return (
     <>
       <div className="experience__time">
-        <span className="experience__rounder"></span>
+        {!item.isContinuationItem && <span className="experience__rounder"></span>}
         {!isLast && <span className="experience__line"></span>}
       </div>
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
-        <h3 className="experience__title">
-          <InlineEdit 
-            value={item.title || ''} 
-            isPrint={true}
-          />
-        </h3>
-        <span className="experience__company">
-          <InlineEdit 
-            value={item.date || ''} 
-            isPrint={true}
-          />
-          {(item.subtitle || item.date) && ' | '}
-          <InlineEdit 
-            value={item.subtitle || ''} 
-            isPrint={true}
-          />
-        </span>
-        {item.link && (
-          <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
-            <HyperlinkEdit 
-              url={item.link} 
-              text={item.linkText || item.link} 
-              isPrint={true}
-            />
-          </span>
-        )}
-        {item.description && (
-          <p className="experience__description">
-            <InlineEdit 
-              value={item.description} 
-              multiline 
-              isPrint={true}
-            />
-          </p>
+        {!item.isContinuationItem && (
+          <>
+            <h3 className="experience__title">
+              <InlineEdit 
+                value={item.title || ''} 
+                isPrint={true}
+              />
+            </h3>
+            <span className="experience__company">
+              <InlineEdit 
+                value={item.date || ''} 
+                isPrint={true}
+              />
+              {(item.subtitle || item.date) && ' | '}
+              <InlineEdit 
+                value={item.subtitle || ''} 
+                isPrint={true}
+              />
+            </span>
+            {item.link && (
+              <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+                <HyperlinkEdit 
+                  url={item.link} 
+                  text={item.linkText || item.link} 
+                  isPrint={true}
+                />
+              </span>
+            )}
+            {item.description && (
+              <p className="experience__description">
+                <InlineEdit 
+                  value={item.description} 
+                  multiline 
+                  isPrint={true}
+                />
+              </p>
+            )}
+          </>
         )}
 
         {bullets.length > 0 && (
           <div className="experience__bullets-container">
-            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
+            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: item.isContinuationItem ? 0 : '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
                 const bulletText = typeof b === 'string' ? b : (b?.text || '');
                 return (
@@ -106,11 +110,14 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
 
 const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const bullets = item.bullets || [];
+  const targetItemId = item.originalItemId || item.id;
+  const canonicalBullets = item.originalBullets || bullets;
+  const startOffset = item.bulletStartIndex || 0;
 
   const bulletItems = bullets.map((b, idx) => ({
     id: `${item.id}_bullet_${idx}`,
     text: typeof b === 'string' ? b : (b?.text || ''),
-    index: idx
+    index: startOffset + idx
   }));
 
   const sensors = useSensors(
@@ -125,13 +132,13 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
   );
 
   const handleAddBullet = () => {
-    const newBullets = [...bullets, 'Nuevo logro o responsabilidad'];
-    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+    const newBullets = [...canonicalBullets, 'Nuevo logro o responsabilidad'];
+    onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
   const handleDeleteBullet = (bulletIndex) => {
-    const newBullets = bullets.filter((_, idx) => idx !== bulletIndex);
-    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+    const newBullets = canonicalBullets.filter((_, idx) => idx !== bulletIndex);
+    onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
   const handleBulletDragEnd = (event) => {
@@ -142,54 +149,60 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
     const newIndex = bulletItems.findIndex(b => b.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const newBullets = arrayMove(bullets, oldIndex, newIndex);
-      onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+      const realOld = startOffset + oldIndex;
+      const realNew = startOffset + newIndex;
+      const newBullets = arrayMove(canonicalBullets, realOld, realNew);
+      onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
     }
   };
 
   return (
     <>
       <div className="experience__time">
-        <span className="experience__rounder"></span>
+        {!item.isContinuationItem && <span className="experience__rounder"></span>}
         <span className="experience__line"></span>
       </div>
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
-        <h3 className="experience__title">
-          <InlineEdit 
-            value={item.title || ''} 
-            onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
-          />
-        </h3>
-        <span className="experience__company">
-          <InlineEdit 
-            value={item.date || ''} 
-            onSave={(val) => onUpdateItem(sectionId, item.id, 'date', val)} 
-          />
-          {(item.subtitle || item.date) && ' | '}
-          <InlineEdit 
-            value={item.subtitle || ''} 
-            onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 
-          />
-        </span>
-        {item.link && (
-          <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
-            <HyperlinkEdit 
-              url={item.link} 
-              text={item.linkText || item.link} 
-              onSave={({ url, text }) => onUpdateItem(sectionId, item.id, { link: url, linkText: text })} 
-              onRemove={() => onUpdateItem(sectionId, item.id, { link: '', linkText: '' })} 
-            />
-          </span>
-        )}
-        {item.description && (
-          <p className="experience__description">
-            <InlineEdit 
-              value={item.description} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'description', val)} 
-              multiline 
-            />
-          </p>
+        {!item.isContinuationItem && (
+          <>
+            <h3 className="experience__title">
+              <InlineEdit 
+                value={item.title || ''} 
+                onSave={(val) => onUpdateItem(sectionId, targetItemId, 'title', val)} 
+              />
+            </h3>
+            <span className="experience__company">
+              <InlineEdit 
+                value={item.date || ''} 
+                onSave={(val) => onUpdateItem(sectionId, targetItemId, 'date', val)} 
+              />
+              {(item.subtitle || item.date) && ' | '}
+              <InlineEdit 
+                value={item.subtitle || ''} 
+                onSave={(val) => onUpdateItem(sectionId, targetItemId, 'subtitle', val)} 
+              />
+            </span>
+            {item.link && (
+              <span className="social__container bd-grid" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+                <HyperlinkEdit 
+                  url={item.link} 
+                  text={item.linkText || item.link} 
+                  onSave={({ url, text }) => onUpdateItem(sectionId, targetItemId, { link: url, linkText: text })} 
+                  onRemove={() => onUpdateItem(sectionId, targetItemId, { link: '', linkText: '' })} 
+                />
+              </span>
+            )}
+            {item.description && (
+              <p className="experience__description">
+                <InlineEdit 
+                  value={item.description} 
+                  onSave={(val) => onUpdateItem(sectionId, targetItemId, 'description', val)} 
+                  multiline 
+                />
+              </p>
+            )}
+          </>
         )}
 
         {/* Draggable Bullets List with Add/Delete capabilities */}
@@ -204,7 +217,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: item.isContinuationItem ? 0 : '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -212,8 +225,8 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                       bulletText={bulletObj.text}
                       bulletIndex={bulletObj.index}
                       sectionId={sectionId}
-                      itemId={item.id}
-                      bullets={bullets}
+                      itemId={targetItemId}
+                      bullets={canonicalBullets}
                       onUpdateItem={onUpdateItem}
                       onDeleteBullet={handleDeleteBullet}
                     />
@@ -224,7 +237,9 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <AddBulletPoint helperText={"Agregar hito/logro en éste puesto"} handleAddBullet={handleAddBullet}  />
+          {!item.isContinuationItem && (
+            <AddBulletPoint helperText={"Agregar hito/logro en éste puesto"} handleAddBullet={handleAddBullet}  />
+          )}
         </div>
       </div>
     </>

@@ -54,10 +54,10 @@
 
   /*========== Live Editor Vertical Tuned Dimensions ==========*/
   --editor-page-width: 210mm;
-  --editor-page-height: 272mm;
+  --editor-page-height: 297mm;
   --editor-page-width-px: 794px;
-  --editor-page-height-px: 1028px;
-  --editor-height-reduction-mm: 25mm;
+  --editor-page-height-px: 1123px;
+  --editor-height-reduction-mm: 0mm;
 }
 
 /*========== BASE ==========*/
@@ -85,6 +85,13 @@ body {
   font-size: var(--normal-font-size);
   background-color: var(--body-color);
   color: var(--text-color);
+  position: relative;
+  z-index: 0;
+}
+
+.l-main {
+  position: relative;
+  z-index: 0;
 }
 
 #area-cv {
@@ -97,6 +104,7 @@ body {
   color: var(--text-color);
   box-sizing: border-box;
   position: relative;
+  z-index: 1;
   box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
   border-radius: 4px;
   overflow-wrap: break-word;
@@ -1926,6 +1934,7 @@ body.ats-mode-active {
   overflow: hidden;
   box-sizing: border-box;
   position: relative;
+  z-index: 1;
   margin: 0 auto 32px auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
@@ -1945,11 +1954,13 @@ body.ats-mode-active {
   padding: 0 !important;
   border: none !important;
   min-height: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 #area-cv.has-a4-page-boxes .resume__left,
 #area-cv.has-a4-page-boxes .resume__right {
-  padding: var(--page-padding, 0px) !important;
+  padding: var(--page-padding, 24px) !important;
   box-sizing: border-box !important;
 }
 
@@ -1958,9 +1969,13 @@ body.ats-mode-active {
   box-sizing: border-box !important;
 }
 
+.a4-page-box.bd-grid,
 .a4-page-box {
   border: none !important;
   outline: none !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
 }
 
 #area-cv.has-a4-page-boxes .cv-section:first-child,

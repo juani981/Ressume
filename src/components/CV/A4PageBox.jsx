@@ -89,7 +89,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftColPercent = 32,
     gridTemplateColumns,
     pagePadding,
-    pageHeight = EDITOR_PAGE_HEIGHT_CSS,
+    pageHeight = A4_HEIGHT_CSS,
     leftContent,
     rightContent,
     singleColumnContent,
@@ -135,6 +135,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     overflow: 'hidden',
     boxSizing: 'border-box',
     position: 'relative',
+    zIndex: 1,
     margin: '0 auto 32px auto',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     gridColumn: '1 / -1',
@@ -145,6 +146,9 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
           alignItems: 'stretch',
           background: gradientBackground,
           padding: 0,
+          gap: 0,
+          columnGap: 0,
+          rowGap: 0,
         }
       : {
           display: 'block',

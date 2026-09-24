@@ -67,15 +67,15 @@ export const A4_DOCUMENT_SCALE = 1.0;
  * Height reduction in millimeters for the Live Editor container.
  * Change this single value to tune the editor's vertical page capacity.
  */
-export const EDITOR_HEIGHT_REDUCTION_MM = 25;
+export const EDITOR_HEIGHT_REDUCTION_MM = 0;
 
 export const EDITOR_PAGE_WIDTH_MM = A4_PRINT_WIDTH_MM;
-export const EDITOR_PAGE_HEIGHT_MM = A4_PRINT_HEIGHT_MM - EDITOR_HEIGHT_REDUCTION_MM; // 272mm
+export const EDITOR_PAGE_HEIGHT_MM = A4_PRINT_HEIGHT_MM - EDITOR_HEIGHT_REDUCTION_MM; // 297mm
 export const EDITOR_PAGE_WIDTH_CSS = `${EDITOR_PAGE_WIDTH_MM}mm`;
 export const EDITOR_PAGE_HEIGHT_CSS = `${EDITOR_PAGE_HEIGHT_MM}mm`;
 export const EDITOR_PAGE_WIDTH_PX = A4_PRINT_WIDTH_PX; // 794px
-export const EDITOR_PAGE_HEIGHT_PX = Math.round((EDITOR_PAGE_HEIGHT_MM * 96) / 25.4); // 1028px
-export const EDITOR_EXACT_HEIGHT_PX = (EDITOR_PAGE_HEIGHT_MM * 96) / 25.4; // 1028.09448px
+export const EDITOR_PAGE_HEIGHT_PX = Math.round((EDITOR_PAGE_HEIGHT_MM * 96) / 25.4); // 1123px
+export const EDITOR_EXACT_HEIGHT_PX = (EDITOR_PAGE_HEIGHT_MM * 96) / 25.4; // 1122.51968503937px
 
 /**
  * Print Canonical Page Specification Object.

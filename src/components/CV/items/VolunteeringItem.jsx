@@ -25,50 +25,54 @@ const VolunteeringItemPrintView = ({ item, sectionId, isLast = false }) => {
   return (
     <>
       <div className="experience__time">
-        <span className="experience__rounder"></span>
+        {!item.isContinuationItem && <span className="experience__rounder"></span>}
         {!isLast && <span className="experience__line"></span>}
       </div>
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
-          <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <InlineEdit 
-              value={item.title || ''} 
-              isPrint={true}
-            />
-          </h3>
-          {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
-              <InlineEdit 
-                value={item.date || ''} 
-                isPrint={true}
-              />
-            </span>
-          )}
-        </div>
+        {!item.isContinuationItem && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
+              <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <InlineEdit 
+                  value={item.title || ''} 
+                  isPrint={true}
+                />
+              </h3>
+              {item.date && (
+                <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
+                  <InlineEdit 
+                    value={item.date || ''} 
+                    isPrint={true}
+                  />
+                </span>
+              )}
+            </div>
 
-        {item.subtitle && (
-          <span className="experience__company" style={{ fontWeight: 500, color: 'var(--title-color)' }}>
-            <InlineEdit 
-              value={item.subtitle || ''} 
-              isPrint={true}
-            />
-          </span>
-        )}
+            {item.subtitle && (
+              <span className="experience__company" style={{ fontWeight: 500, color: 'var(--title-color)' }}>
+                <InlineEdit 
+                  value={item.subtitle || ''} 
+                  isPrint={true}
+                />
+              </span>
+            )}
 
-        {item.description && (
-          <p className="experience__description">
-            <InlineEdit 
-              value={item.description} 
-              multiline 
-              isPrint={true}
-            />
-          </p>
+            {item.description && (
+              <p className="experience__description">
+                <InlineEdit 
+                  value={item.description} 
+                  multiline 
+                  isPrint={true}
+                />
+              </p>
+            )}
+          </>
         )}
 
         {bullets.length > 0 && (
           <div className="experience__bullets-container">
-            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
+            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: item.isContinuationItem ? 0 : '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
                 const bulletText = typeof b === 'string' ? b : (b?.text || '');
                 return (
@@ -104,11 +108,14 @@ const VolunteeringItemPrintView = ({ item, sectionId, isLast = false }) => {
 
 const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const bullets = item.bullets || [];
+  const targetItemId = item.originalItemId || item.id;
+  const canonicalBullets = item.originalBullets || bullets;
+  const startOffset = item.bulletStartIndex || 0;
 
   const bulletItems = bullets.map((b, idx) => ({
     id: `${item.id}_vol_bullet_${idx}`,
     text: typeof b === 'string' ? b : (b?.text || ''),
-    index: idx
+    index: startOffset + idx
   }));
 
   const sensors = useSensors(
@@ -123,13 +130,13 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
   );
 
   const handleAddBullet = () => {
-    const newBullets = [...bullets, 'Actividad o contribución voluntaria realizada'];
-    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+    const newBullets = [...canonicalBullets, 'Actividad o contribución voluntaria realizada'];
+    onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
   const handleDeleteBullet = (bulletIndex) => {
-    const newBullets = bullets.filter((_, idx) => idx !== bulletIndex);
-    onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+    const newBullets = canonicalBullets.filter((_, idx) => idx !== bulletIndex);
+    onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
   const handleBulletDragEnd = (event) => {
@@ -140,57 +147,63 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
     const newIndex = bulletItems.findIndex(b => b.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const newBullets = arrayMove(bullets, oldIndex, newIndex);
-      onUpdateItem(sectionId, item.id, 'bullets', newBullets);
+      const realOld = startOffset + oldIndex;
+      const realNew = startOffset + newIndex;
+      const newBullets = arrayMove(canonicalBullets, realOld, realNew);
+      onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
     }
   };
 
   return (
     <>
       <div className="experience__time">
-        <span className="experience__rounder"></span>
+        {!item.isContinuationItem && <span className="experience__rounder"></span>}
         <span className="experience__line"></span>
       </div>
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
-          <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <InlineEdit 
-              value={item.title || ''} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'title', val)} 
-              placeholder="Rol / Voluntariado..."
-            />
-          </h3>
-          {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
-              <InlineEdit 
-                value={item.date || ''} 
-                onSave={(val) => onUpdateItem(sectionId, item.id, 'date', val)} 
-                placeholder="2024 – Presente"
-              />
-            </span>
-          )}
-        </div>
+        {!item.isContinuationItem && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
+              <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <InlineEdit 
+                  value={item.title || ''} 
+                  onSave={(val) => onUpdateItem(sectionId, targetItemId, 'title', val)} 
+                  placeholder="Rol / Voluntariado..."
+                />
+              </h3>
+              {item.date && (
+                <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
+                  <InlineEdit 
+                    value={item.date || ''} 
+                    onSave={(val) => onUpdateItem(sectionId, targetItemId, 'date', val)} 
+                    placeholder="2024 – Presente"
+                  />
+                </span>
+              )}
+            </div>
 
-        {item.subtitle && (
-          <span className="experience__company" style={{ fontWeight: 500, color: 'var(--title-color)' }}>
-            <InlineEdit 
-              value={item.subtitle || ''} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 
-              placeholder="Organización / ONG / Comunidad..."
-            />
-          </span>
-        )}
+            {item.subtitle && (
+              <span className="experience__company" style={{ fontWeight: 500, color: 'var(--title-color)' }}>
+                <InlineEdit 
+                  value={item.subtitle || ''} 
+                  onSave={(val) => onUpdateItem(sectionId, targetItemId, 'subtitle', val)} 
+                  placeholder="Organización / ONG / Comunidad..."
+                />
+              </span>
+            )}
 
-        {item.description && (
-          <p className="experience__description">
-            <InlineEdit 
-              value={item.description} 
-              onSave={(val) => onUpdateItem(sectionId, item.id, 'description', val)} 
-              placeholder="Descripción del propósito o impacto social..."
-              multiline 
-            />
-          </p>
+            {item.description && (
+              <p className="experience__description">
+                <InlineEdit 
+                  value={item.description} 
+                  onSave={(val) => onUpdateItem(sectionId, targetItemId, 'description', val)} 
+                  placeholder="Descripción del propósito o impacto social..."
+                  multiline 
+                />
+              </p>
+            )}
+          </>
         )}
 
         {/* Draggable Bullets List */}
@@ -205,7 +218,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: item.isContinuationItem ? 0 : '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -213,8 +226,8 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
                       bulletText={bulletObj.text}
                       bulletIndex={bulletObj.index}
                       sectionId={sectionId}
-                      itemId={item.id}
-                      bullets={bullets}
+                      itemId={targetItemId}
+                      bullets={canonicalBullets}
                       onUpdateItem={onUpdateItem}
                       onDeleteBullet={handleDeleteBullet}
                       marginBottom="calc(var(--item-gap, 8px) / 2)"
@@ -226,10 +239,12 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <AddBulletPoint 
-            helperText="Agregar viñeta de impacto voluntario" 
-            handleAddBullet={handleAddBullet} 
-          />
+          {!item.isContinuationItem && (
+            <AddBulletPoint 
+              helperText="Agregar viñeta de impacto voluntario" 
+              handleAddBullet={handleAddBullet} 
+            />
+          )}
         </div>
       </div>
     </>

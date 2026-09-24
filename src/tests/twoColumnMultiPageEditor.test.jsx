@@ -75,6 +75,7 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'e4', title: 'Software Engineer III', subtitle: 'Cloud Scale', date: '2016 - 2018', bullets: ['Built high-throughput ingestion engine processing 500k RPS', 'Reduced compute infrastructure spend by 35% through profiling'] },
               { id: 'e5', title: 'Fullstack Developer', subtitle: 'Startup Inc', date: '2015 - 2016', bullets: ['Fullstack development with React, Node, and GraphQL API gateway'] },
               { id: 'e6', title: 'Junior Developer', subtitle: 'WebAgency', date: '2014 - 2015', bullets: ['Built responsive client web applications and REST APIs'] },
+              { id: 'e7', title: 'Software Engineer', subtitle: 'Global Systems', date: '2013 - 2014', bullets: ['Maintained scalable database systems and internal tools'] },
             ],
           };
         }
@@ -106,6 +107,7 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'e4', title: 'Software Engineer III', subtitle: 'Cloud Scale', date: '2016 - 2018', bullets: ['Built high-throughput ingestion engine processing 500k RPS', 'Reduced compute infrastructure spend by 35% through profiling'] },
               { id: 'e5', title: 'Fullstack Developer', subtitle: 'Startup Inc', date: '2015 - 2016', bullets: ['Fullstack development with React, Node, and GraphQL API gateway'] },
               { id: 'e6', title: 'Junior Developer', subtitle: 'WebAgency', date: '2014 - 2015', bullets: ['Built responsive client web applications and REST APIs'] },
+              { id: 'e7', title: 'Software Engineer', subtitle: 'Global Systems', date: '2013 - 2014', bullets: ['Maintained scalable database systems and internal tools'] },
             ],
           };
         }

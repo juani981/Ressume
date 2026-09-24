@@ -248,6 +248,8 @@ function App() {
                   width: "100%",
                   margin: "0 auto",
                   padding: "1rem 1rem 3rem 1rem",
+                  position: "relative",
+                  zIndex: 0,
                }}>
                {/* Top Center Layout Mode Switcher (Diseño Tradicional vs Optimizado ATS) */}
                <LayoutModeToggle />
@@ -272,6 +274,10 @@ function App() {
                       border: "none",
                       minHeight: "auto",
                       position: "relative",
+                      zIndex: 1,
+                      gap: 0,
+                      rowGap: 0,
+                      columnGap: 0,
                       ...(is2Col
                          ? {
                               "--grid-template-columns": gridTemplateColumns,

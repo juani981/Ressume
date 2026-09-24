@@ -38,6 +38,9 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
   }
 
   if (section && section.title && section.title.trim() !== '') {
+    if (typeof options.headerHeightPx === 'number') {
+      return options.headerHeightPx;
+    }
     const isAts = Boolean(
       options.isAts ||
       options.isAtsMode ||
@@ -45,14 +48,95 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
       options.mode === '1-column' ||
       options.column === 'single'
     );
+    const fontScale = options.fontScale ?? (options.titleScale ?? 1.0);
+    const lineHeight = options.lineHeight ?? 1.45;
+    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+
     if (isAts) {
-      return options.headerHeightPx ?? 36;
+      return Math.round(24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
     }
+
     const isLeftCol = options.column === 'left';
-    return options.headerHeightPx ?? (options.isEditor ? (isLeftCol ? 52 : 44) : DEFAULT_HEADER_HEIGHT_PX);
+    // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 14 chars
+    const isMultiLine = isLeftCol && section.title.trim().length > 14;
+    const lines = isMultiLine ? 2 : 1;
+    return Math.round(lines * 24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
   }
 
   return 0;
+}
+
+/**
+ * Estimates the base height of an item containing bullets, excluding the bullets themselves.
+ *
+ * @param {Object} item - Item object
+ * @param {string} [sectionType=''] - Type of section containing the item
+ * @param {Object} [options={}] - Distribution options
+ * @returns {number} Estimated base item height in px
+ */
+export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
+  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
+  const lineHeight = options.lineHeight ?? 1.45;
+  const fontFactor = fontScale * (lineHeight / 1.45);
+  const isAts = Boolean(
+    options.isAts ||
+    options.isAtsMode ||
+    options.mode === 'ats' ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+  const isLeftCol = !isAts && options.column === 'left';
+  const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 50);
+
+  let h = isAts ? 38 : 42;
+  if (item.link) h += 16;
+  if (item.description) {
+    const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+    h += descLines * 18;
+  }
+  return Math.round(h * fontFactor) + Math.round(itemGap * 0.5);
+}
+
+/**
+ * Estimates the height of a single bullet point row in pixels.
+ *
+ * @param {string|Object} bullet - Bullet string or object
+ * @param {string} [sectionType=''] - Type of section containing the bullet
+ * @param {Object} [options={}] - Distribution options
+ * @returns {number} Estimated bullet height in px
+ */
+export function estimateSingleBulletHeight(bullet, sectionType = '', options = {}) {
+  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const fontScale = options.fontScale ?? (options.listScale ?? 1.0);
+  const lineHeight = options.lineHeight ?? 1.45;
+  const fontFactor = fontScale * (lineHeight / 1.45);
+  const isAts = Boolean(
+    options.isAts ||
+    options.isAtsMode ||
+    options.mode === 'ats' ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+  const isLeftCol = !isAts && options.column === 'left';
+  const charsPerLine = isLeftCol ? 20 : (isAts ? 76 : 46);
+
+  const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
+  const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine)));
+  return Math.round((bLines * 18) * fontFactor) + Math.round(itemGap * 0.5);
+}
+
+/**
+ * Estimates the total height of an array of bullets.
+ *
+ * @param {Array<string|Object>} bullets - Array of bullets
+ * @param {string} [sectionType=''] - Type of section containing bullets
+ * @param {Object} [options={}] - Distribution options
+ * @returns {number}
+ */
+export function estimateItemBulletsHeight(bullets, sectionType = '', options = {}) {
+  if (!Array.isArray(bullets) || bullets.length === 0) return 0;
+  return bullets.reduce((sum, b) => sum + estimateSingleBulletHeight(b, sectionType, options), 0);
 }
 
 /**
@@ -91,68 +175,69 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     options.column === 'single'
   );
   const isLeftCol = !isAts && options.column === 'left';
-  const isEditor = Boolean(options.isEditor);
 
   switch (sectionType) {
+    case 'photo': {
+      const size = Number(item.size) || 130;
+      return size + itemGap;
+    }
+    case 'title_subtitle': {
+      const titleScale = options.titleScale ?? 1.0;
+      let h = Math.round(26 * titleScale) + (item.subtitle ? Math.round(18 * titleScale) : 0);
+      return Math.round(h * (lineHeight / 1.45)) + itemGap;
+    }
     case 'profile_header': {
       if (isAts) {
-        let h = 48;
-        if (item.subtitle) h += 20;
+        let h = 44;
+        if (item.subtitle) h += 18;
         return Math.round(h * fontFactor) + itemGap;
       }
-      let h = isLeftCol ? 85 : 55;
-      if (item.subtitle) h += isLeftCol ? 28 : 18;
-      if (item.photo) h += isLeftCol ? 80 : 60;
+      let h = 45;
+      if (item.subtitle) h += isLeftCol ? 20 : 18;
+      if (item.photo) {
+        const photoH = Number(item.photoSize) || (isLeftCol ? 70 : 60);
+        h += photoH;
+      }
       return Math.round(h * fontFactor) + itemGap;
     }
     case 'contact': {
       if (Array.isArray(item.contacts) && item.contacts.length > 0) {
         if (isAts) {
-          // In ATS mode, contacts render horizontally in a responsive flex row
           const rows = Math.ceil(item.contacts.length / 4);
-          return Math.round((12 + rows * 20) * fontFactor) + itemGap;
+          return Math.round((10 + rows * 18) * fontFactor) + itemGap;
         }
         const rows = isLeftCol ? item.contacts.length : Math.ceil(item.contacts.length / 2);
-        return Math.round((20 + rows * (isLeftCol ? 32 : 24) + (isEditor ? 24 : 0)) * fontFactor) + itemGap;
+        return Math.round((rows * 20) * fontFactor) + itemGap;
       }
-      return Math.round(40 * fontFactor) + itemGap;
+      return Math.round(32 * fontFactor) + itemGap;
     }
     case 'about': {
       const text = item.description || item.text || '';
-      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 45);
+      const charsPerLine = isLeftCol ? 32 : (isAts ? 80 : 50);
       const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-      return Math.round((lines * 20) * fontFactor) + itemGap;
+      return Math.round((lines * 18) * fontFactor) + itemGap;
     }
     case 'skills': {
-      const desc = item.description || '';
-      const charsPerLine = isLeftCol ? 20 : (isAts ? 80 : 45);
-      const lines = Math.max(1, Math.ceil(desc.length / charsPerLine));
-      const titleH = item.title ? (isLeftCol ? 26 : 22) : 0;
-      return Math.round((titleH + lines * 20) * fontFactor) + itemGap + (isLeftCol && isEditor ? 14 : 0);
+      const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
+      const charsPerLine = isLeftCol ? 32 : (isAts ? 80 : 50);
+      const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
+      return Math.round((lines * 18) * fontFactor) + itemGap;
     }
     case 'education': {
-      if (isAts) {
-        let h = 46;
-        if (item.description) {
-          const lines = Math.max(1, Math.ceil(item.description.length / 80));
-          h += lines * 18;
-        }
-        return Math.round(h * fontFactor) + itemGap;
-      }
-      let h = isLeftCol ? 104 : 64;
+      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
+      let h = isLeftCol ? 52 : (isAts ? 40 : 44);
       if (item.description) {
-        const charsPerLine = isLeftCol ? 22 : 45;
         const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
-        h += lines * 20;
+        h += lines * 18;
       }
-      return Math.round(h * fontFactor) + itemGap + (isEditor ? 18 : 0);
+      return Math.round(h * fontFactor) + itemGap;
     }
     case 'list':
     case 'experience':
     case 'projects':
     case 'volunteering': {
-      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : (isEditor ? 42 : 52));
-      let h = isAts ? 44 : (isEditor ? 54 : 44);
+      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
+      let h = isAts ? 38 : 42;
       if (item.link) h += 16;
       if (item.description) {
         const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
@@ -162,7 +247,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
         for (const b of item.bullets) {
           const bStr = typeof b === 'string' ? b : (b?.text || '');
           const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine - 4)));
-          h += bLines * 18 + 4;
+          h += bLines * 18 + 2;
         }
       }
       return Math.round(h * fontFactor) + itemGap;
@@ -170,24 +255,24 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : (isEditor ? 45 : 50));
+      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
       const text = item.text || item.description || item.name || '';
       const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-      const h = (isAts ? 22 : (isEditor ? 28 : 22)) + (lines - 1) * 18;
+      const h = 20 + (lines - 1) * 18;
       return Math.round(h * fontFactor) + itemGap;
     }
     case 'spacer': {
       return item.height || 24;
     }
     default: {
-      let h = 40;
+      let h = 36;
       if (item.description || item.text) {
         const str = String(item.description || item.text);
-        const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 45);
+        const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
         h += Math.max(1, Math.ceil(str.length / charsPerLine)) * 18;
       }
       if (Array.isArray(item.bullets)) {
-        h += item.bullets.length * 20;
+        h += item.bullets.length * 18;
       }
       return Math.round(h * fontFactor) + itemGap;
     }
@@ -347,9 +432,13 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
     // Section has items and does not fit entirely on currentPage.
     const remainingOnCurrent = pageCapacity - currentUsedHeight;
     const minNeededForFirstItem = gapBefore + headerHeight + itemHeights[0];
+    const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 1;
+    const minBulletNeeded = firstItemHasBullets
+      ? (gapBefore + headerHeight + estimateItemBaseHeight(items[0], section.type, options) + estimateSingleBulletHeight(items[0].bullets[0], section.type, options))
+      : minNeededForFirstItem;
 
-    // CRITERION 2: If only header fits, but not the first item, jump to next page
-    if (currentUsedHeight > 0 && minNeededForFirstItem > remainingOnCurrent) {
+    // CRITERION 2: If neither first item nor its initial bullets fit, jump to next page
+    if (currentUsedHeight > 0 && minBulletNeeded > remainingOnCurrent) {
       currentPage++;
       currentUsedHeight = 0;
 
@@ -362,7 +451,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
       }
     }
 
-    // CRITERION 3: Header and n first items fit in current page -> write to current page, remaining to next page
+    // CRITERION 3: Header and n first items (or granular bullets) fit in current page -> write to current page, remaining to next page
     const currentGap = currentUsedHeight > 0 ? sectionGap : 0;
     const availableOnPage = pageCapacity - currentUsedHeight;
     let accumulated = currentGap + estimateHeaderHeight(section, false, options);
@@ -373,21 +462,80 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
       splitIdx++;
     }
 
-    // If on a fresh page even 1 item exceeds capacity, force 1 item so progress is made
-    if (splitIdx === 0) {
+    // Granular bullet splitting for the boundary item (items[splitIdx])
+    let partialCandidate = null;
+    let partialCandidateRemaining = null;
+
+    if (splitIdx < items.length) {
+      const candidate = items[splitIdx];
+      const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
+
+      if (hasBullets) {
+        const baseH = estimateItemBaseHeight(candidate, section.type, options);
+        const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+
+        if (accumulated + baseH + firstBulletH <= availableOnPage) {
+          let bAcc = baseH;
+          let bIdx = 0;
+          while (bIdx < candidate.bullets.length && (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)) {
+            bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+            bIdx++;
+          }
+
+          if (bIdx > 0 && bIdx < candidate.bullets.length) {
+            partialCandidate = {
+              ...candidate,
+              bullets: candidate.bullets.slice(0, bIdx),
+              originalBullets: candidate.bullets,
+              bulletStartIndex: 0,
+              isPartialItem: true,
+            };
+            partialCandidateRemaining = {
+              ...candidate,
+              id: `${candidate.id}__cont_${currentPage + 1}`,
+              originalItemId: candidate.id,
+              title: '',
+              subtitle: '',
+              date: '',
+              link: '',
+              description: '',
+              bullets: candidate.bullets.slice(bIdx),
+              originalBullets: candidate.bullets,
+              bulletStartIndex: bIdx,
+              isContinuationItem: true,
+            };
+            accumulated += bAcc;
+          }
+        }
+      }
+    }
+
+    // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
+    if (splitIdx === 0 && !partialCandidate) {
       splitIdx = 1;
       accumulated += itemHeights[0];
     }
 
+    const page1Items = items.slice(0, splitIdx);
+    if (partialCandidate) {
+      page1Items.push(partialCandidate);
+    }
+
     const part1 = {
       ...section,
-      items: items.slice(0, splitIdx),
+      items: page1Items,
     };
     addToBucket(currentPage, part1);
     currentUsedHeight += accumulated;
 
-    let remItems = items.slice(splitIdx);
-    let remHeights = itemHeights.slice(splitIdx);
+    let remItems = items.slice(splitIdx + (partialCandidate ? 1 : 0));
+    let remHeights = itemHeights.slice(splitIdx + (partialCandidate ? 1 : 0));
+
+    if (partialCandidateRemaining) {
+      const remH = estimateItemBulletsHeight(partialCandidateRemaining.bullets, section.type, options);
+      remItems = [partialCandidateRemaining, ...remItems];
+      remHeights = [remH, ...remHeights];
+    }
 
     // Remaining items go to the next page(s)
     while (remItems.length > 0) {
