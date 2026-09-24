@@ -1,6 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
+import { BadgeCheck } from 'lucide-react';
 
 const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
@@ -19,7 +20,7 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
           marginTop: '2px'
         }}
       >
-        <i className='bx bx-badge-check' style={{ fontSize: '15px' }}></i>
+        <BadgeCheck size={15} />
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -33,7 +34,7 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
             />
           </h3>
           {item.date && (
-            <span style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 isPrint={isPrint}
@@ -44,7 +45,7 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
           )}
         </div>
 
-        <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
+        <div style={{ fontSize: 'var(--body-small-font-size, var(--small-font-size))', color: 'inherit', marginTop: '1px' }}>
           <InlineEdit 
             value={item.subtitle || ''} 
             isPrint={isPrint}
@@ -54,7 +55,7 @@ const CertificatesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) =>
           {item.credentialId && (
             <>
               {' · '}
-              <span style={{ color: 'var(--text-color-light)', fontSize: 'var(--smaller-font-size)' }}>
+              <span style={{ color: 'var(--text-color-light)', fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))' }}>
                 ID: <InlineEdit 
                   value={item.credentialId || ''} 
                   isPrint={isPrint}

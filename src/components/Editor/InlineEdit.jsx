@@ -537,9 +537,10 @@ const InlineEditEditor = ({
     );
   }
 
-  const displayHtml = value 
+  const hasValue = Boolean(value && String(value).trim() !== '');
+  const displayHtml = hasValue 
     ? renderRichHTML(value) 
-    : `<span style="color: var(--text-color-light, #94a3b8); font-style: italic; opacity: 0.7;">${finalPlaceholder}</span>`;
+    : `<span class="inline-edit-placeholder" style="color: var(--text-color-light, #94a3b8); font-style: italic; opacity: 0.7;">${finalPlaceholder}</span>`;
 
   return (
     <span
@@ -550,6 +551,7 @@ const InlineEditEditor = ({
       aria-label={finalPlaceholder}
       className={`inline-edit-display ${className}`}
       data-testid="inline-edit-display"
+      data-is-empty={!hasValue ? "true" : undefined}
       style={{
         cursor: 'pointer',
         display: display || (multiline ? 'block' : 'inline-block'),

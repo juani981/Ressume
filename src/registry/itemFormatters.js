@@ -37,24 +37,30 @@ export const baseItemMarkdown = (item) => {
   if (title) lines.push(`### ${title}`);
 
   const meta = [];
-  const subtitle = stripHtml(item.subtitle || item.company || item.institution || '');
+  const subtitle = stripHtml(item.subtitle || item.company || item.institution || item.mentee || '');
   if (subtitle) meta.push(`**${subtitle}**`);
   const date = stripHtml(item.date || item.year || '');
   if (date) meta.push(`\`${date}\``);
   if (item.link) {
-    const rawLink = stripHtml(item.link);
+    const rawLink = stripHtml(item.link).replace(/\s+/g, '');
     const url = rawLink.startsWith('http') ? rawLink : `https://${rawLink}`;
     const text = stripHtml(item.linkText) || 'Enlace';
     meta.push(`[${text}](${url})`);
   }
   if (meta.length > 0) lines.push(meta.join(' | '));
 
-  const description = stripHtml(item.description || '');
+  const description = stripHtml(item.description || '')
+    .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+    .replace(/[☑☐✓✔🗹]/g, '')
+    .trim();
   if (description) lines.push(description);
 
   if (Array.isArray(item.bullets) && item.bullets.length > 0) {
     item.bullets.forEach(b => {
-      const cleanB = stripHtml(b);
+      const cleanB = stripHtml(b)
+        .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+        .replace(/[☑☐✓✔🗹]/g, '')
+        .trim();
       if (cleanB) lines.push(`- ${cleanB}`);
     });
   }
@@ -77,7 +83,21 @@ export const educationMarkdown = (item) => {
   if (subtitle) parts.push(subtitle);
   const date = stripHtml(item.date || item.year || '');
   if (date) parts.push(`\`${date}\``);
-  return parts.length > 0 ? `- ${parts.join(' | ')}` : '';
+
+  let res = parts.length > 0 ? `- ${parts.join(' | ')}` : '';
+  const desc = stripHtml(item.description || '');
+  if (desc) {
+    res += res ? `\n  ${desc}` : desc;
+  }
+  if (Array.isArray(item.bullets) && item.bullets.length > 0) {
+    item.bullets.forEach(b => {
+      const cleanB = stripHtml(b);
+      if (cleanB) {
+        res += res ? `\n  - ${cleanB}` : `- ${cleanB}`;
+      }
+    });
+  }
+  return res;
 };
 
 export const simpleListMarkdown = (item) => {
@@ -101,6 +121,8 @@ export const certificatesMarkdown = (item) => {
   const date = stripHtml(item.date || '');
   const credId = stripHtml(item.credentialId || '');
   const link = stripHtml(item.link || '');
+  const linkText = stripHtml(item.linkText || '') || 'Credencial';
+  const desc = stripHtml(item.description || '');
 
   let res = `- **${title}**`;
   if (issuer) res += ` | ${issuer}`;
@@ -108,14 +130,22 @@ export const certificatesMarkdown = (item) => {
   if (credId) res += ` (ID: ${credId})`;
   if (link) {
     const url = link.startsWith('http') ? link : `https://${link}`;
-    res += ` [Credencial](${url})`;
+    res += ` [${linkText}](${url})`;
+  }
+  if (desc) {
+    res += `\n  ${desc}`;
   }
   return res;
 };
 
 export const aboutMarkdown = (item) => {
   if (!item) return '';
-  return stripHtml(item.description || item.text || '');
+  if (item.description) return stripHtml(item.description);
+  if (item.text) return stripHtml(item.text);
+  if (Array.isArray(item.bullets) && item.bullets.length > 0) {
+    return item.bullets.map(b => stripHtml(b)).filter(Boolean).join('\n');
+  }
+  return '';
 };
 
 export const awardsMarkdown = (item) => {
@@ -139,6 +169,7 @@ export const publicationsMarkdown = (item) => {
   const publisher = stripHtml(item.subtitle || item.publisher || '');
   const date = stripHtml(item.date || '');
   const link = stripHtml(item.link || '');
+  const linkText = stripHtml(item.linkText || '') || 'Enlace';
   const desc = stripHtml(item.description || '');
 
   const parts = [`- 📖 **${title}**`];
@@ -146,7 +177,7 @@ export const publicationsMarkdown = (item) => {
   if (date) parts.push(`\`${date}\``);
   if (link) {
     const url = link.startsWith('http') ? link : `https://${link}`;
-    parts.push(`[Enlace](${url})`);
+    parts.push(`[${linkText}](${url})`);
   }
   let res = parts.join(' | ');
   if (desc) res += `\n  ${desc}`;
@@ -177,7 +208,8 @@ export const baseItemXML = (item, escapeXML) => {
   if (!item) return '';
   const esc = escapeXML || ((s) => s || '');
   const lines = [];
-  lines.push(`      <entry id="${esc(item.id)}" title="${esc(item.title || item.name)}" subtitle="${esc(item.subtitle || '')}" date="${esc(item.date || '')}" link="${esc(item.link || '')}">`);
+  const subtitle = esc(item.subtitle || item.company || item.institution || item.mentee || '');
+  lines.push(`      <entry id="${esc(item.id)}" title="${esc(item.title || item.name)}" subtitle="${subtitle}" date="${esc(item.date || '')}" link="${esc(item.link || '')}">`);
   if (item.description) {
     lines.push(`        <description>${esc(item.description)}</description>`);
   }
@@ -218,14 +250,24 @@ export const baseItemPlainText = (item) => {
   if (!item) return '';
   const lines = [];
   lines.push(`${stripHtml(item.title || item.name || item.text || '')}`);
-  if (item.subtitle || item.date) {
-    lines.push(`${stripHtml(item.subtitle || '')} | ${stripHtml(item.date || '')}`);
+  const subtitle = stripHtml(item.subtitle || item.company || item.institution || item.mentee || '');
+  if (subtitle || item.date) {
+    lines.push(`${subtitle} | ${stripHtml(item.date || '')}`);
   }
-  if (item.link) lines.push(`  Enlace: ${stripHtml(item.link)}`);
-  if (item.description) lines.push(stripHtml(item.description));
+  if (item.link) lines.push(`  Enlace: ${stripHtml(item.link).replace(/\s+/g, '')}`);
+  if (item.description) {
+    const cleanDesc = stripHtml(item.description)
+      .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+      .replace(/[☑☐✓✔🗹]/g, '')
+      .trim();
+    if (cleanDesc) lines.push(cleanDesc);
+  }
   if (Array.isArray(item.bullets) && item.bullets.length > 0) {
     item.bullets.forEach(b => {
-      const clean = stripHtml(b);
+      const clean = stripHtml(b)
+        .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+        .replace(/[☑☐✓✔🗹]/g, '')
+        .trim();
       if (clean) lines.push(`* ${clean}`);
     });
   }

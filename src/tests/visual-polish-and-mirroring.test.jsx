@@ -239,8 +239,9 @@ describe('Goal Verification: Visual Polish & State Mirroring Suite', () => {
 
       const areaCv = document.getElementById('area-cv');
       expect(areaCv).toBeInTheDocument();
-      // Verifies linear-gradient is present on master container background
-      expect(areaCv.style.background).toContain('linear-gradient');
+      // Verifies linear-gradient is present on master container or page box background
+      const pageBox = document.querySelector('.a4-page-box') || areaCv;
+      expect(pageBox.style.background).toContain('linear-gradient');
 
       const colLeft = document.getElementById('column-left');
       expect(colLeft.style.minHeight).toBe('100%');

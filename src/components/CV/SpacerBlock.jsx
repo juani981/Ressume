@@ -43,9 +43,6 @@ export const PrintSpacerBlock = ({ section, height: propHeight, isBlack: propIsB
         border: 'none',
         outline: 'none',
         display: 'block',
-        pageBreakInside: 'avoid',
-        breakInside: 'avoid',
-        WebkitColumnBreakInside: 'avoid',
       }}
     />
   );
@@ -173,6 +170,7 @@ export const SpacerResizeHandle = ({
   return (
     <div
       className="spacer-resize-handle no-print"
+      data-editor-ui="true"
       data-testid={testId}
       role="slider"
       aria-label="Ajustar altura de espacio en blanco"
@@ -204,8 +202,9 @@ export const SpacerResizeHandle = ({
     >
       <div
         style={{
-          width: isHovered || isResizing ? '64px' : '36px',
-          height: isHovered || isResizing ? '12px' : '4px',
+          width: isHovered || isResizing ? '30%' : '40%',
+          height: isHovered || isResizing ? '6px' : '2px',
+          marginBottom: '-6px',
           borderRadius: '6px',
           position: 'absolute',
           background: isResizing ? '#3874ff' : (isHovered ? '#60a5fa' : 'rgba(148, 163, 184, 0.6)'),
@@ -284,6 +283,7 @@ export const EditableIntegratedBottomSpacer = ({
   return (
     <div
       className="integrated-bottom-spacer no-print"
+      data-editor-ui="true"
       data-testid={`integrated-bottom-spacer-${containerId}`}
       data-spacer-height={localHeight}
       onMouseEnter={() => setIsHovered(true)}
@@ -482,6 +482,7 @@ export const EditableSpacerBlock = ({ section }) => {
       {/* 1. Sortable Drag Handle (top-left) */}
       <div
         className="no-print"
+        data-editor-ui="true"
         style={{
           position: 'absolute',
           top: '-12px',
@@ -497,6 +498,7 @@ export const EditableSpacerBlock = ({ section }) => {
       {/* 2. Floating Action Controls Bar (center) */}
       <div
         className="spacer-controls-bar no-print"
+        data-editor-ui="true"
         data-testid={`spacer-controls-${section.id}`}
         style={{
           position: 'absolute',

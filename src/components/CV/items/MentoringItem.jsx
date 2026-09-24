@@ -34,7 +34,7 @@ const MentoringItemPrintView = ({ item, isLast = false }) => (
           <InlineEdit value={item.title || ''} isPrint={true} />
         </h3>
         {item.date && (
-          <span className="experience__company" style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+          <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
             <InlineEdit value={item.date || ''} isPrint={true} />
           </span>
         )}

@@ -117,16 +117,20 @@ describe('R4: Callout & Tooltip Iconography Migration to lucide-react', () => {
       expect(svgs.length).toBeGreaterThan(0);
     });
 
-    it('T1.5: BoxIcons (bx bx-*, bx bxl-*) are preserved in CV header and contact links', () => {
+    it('T1.5: Lucide SVG icons are rendered in CV header and contact links with zero legacy BoxIcons', () => {
       render(
         <CVProvider>
           <App />
         </CVProvider>
       );
 
-      // Verify presence of BoxIcons for contact / external links
+      // Verify zero legacy BoxIcons remain
       const boxIcons = document.querySelectorAll('i.bx, i.bxl-linkedin-square, i.bxl-github, i.bx-envelope, i.bx-phone, i.bx-map');
-      expect(boxIcons.length).toBeGreaterThan(0);
+      expect(boxIcons.length).toBe(0);
+
+      // Verify Lucide SVGs exist for contact / social items
+      const contactSvgs = document.querySelectorAll('.contact-item-pill svg, .social__container svg, .header__content svg');
+      expect(contactSvgs.length).toBeGreaterThan(0);
     });
   });
 

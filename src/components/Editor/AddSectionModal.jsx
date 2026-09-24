@@ -16,12 +16,17 @@ import {
   ListCheck, 
   UserSquare2,
   Plus,
-  MoveVertical
+  MoveVertical,
+  Camera,
+  Contact
 } from 'lucide-react';
 
 const iconMap = {
   'profile_header': UserSquare2,
+  'title_subtitle': UserSquare2,
+  'contact': Contact,
   'about': UserSquare2,
+  'photo': Camera,
   'list': Briefcase,
   'projects': FolderGit2,
   'education': GraduationCap,
@@ -187,9 +192,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={18} color="#3874ff" /> Añadir Sección al CV
             </h3>
-            <p style={{ margin: '2px 0 0 0', fontSize: '0.76rem', color: 'var(--text-color-light, #64748b)' }}>
-              Destino: {targetColumn === 'left' ? 'Columna Lateral' : 'Columna Principal'}
-            </p>
+            
           </div>
 
           <button

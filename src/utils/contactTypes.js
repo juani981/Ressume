@@ -1,9 +1,94 @@
+import React from 'react';
+import {
+  Mail,
+  Phone,
+  MessageCircle,
+  Send,
+  MapPin,
+  Laptop,
+  IdCard,
+  Calendar,
+  Share2,
+  FolderGit2,
+  FolderGit,
+  Code2,
+  Layers,
+  Briefcase,
+  Globe,
+  FileText,
+  PenTool,
+  Palette,
+  Link as LinkIcon
+} from 'lucide-react';
+
 /**
  * Standardized Contact Types Catalog
  * 
- * Provides predefined, popular contact and profile item types with BoxIcons
+ * Provides predefined, popular contact and profile item types with Lucide icons
  * tailored for recruiters and technical ATS-friendly resumes.
  */
+
+export const CONTACT_ICON_MAP = {
+  Mail,
+  Phone,
+  MessageCircle,
+  Send,
+  MapPin,
+  Laptop,
+  IdCard,
+  Calendar,
+  Share2,
+  FolderGit2,
+  FolderGit,
+  Code2,
+  Layers,
+  Briefcase,
+  Globe,
+  FileText,
+  PenTool,
+  Palette,
+  Link: LinkIcon
+};
+
+/**
+ * ContactIcon component rendering Lucide-React SVG with fallback support
+ */
+export const ContactIcon = ({ name, size = 14, className = '', style = {}, ...props }) => {
+  let IconComponent = CONTACT_ICON_MAP[name];
+
+  if (!IconComponent && typeof name === 'string') {
+    const lower = name.toLowerCase();
+    if (lower.includes('envelope') || lower.includes('mail')) IconComponent = Mail;
+    else if (lower.includes('phone')) IconComponent = Phone;
+    else if (lower.includes('whatsapp')) IconComponent = MessageCircle;
+    else if (lower.includes('telegram')) IconComponent = Send;
+    else if (lower.includes('map') || lower.includes('location')) IconComponent = MapPin;
+    else if (lower.includes('laptop')) IconComponent = Laptop;
+    else if (lower.includes('id-card') || lower.includes('card')) IconComponent = IdCard;
+    else if (lower.includes('calendar')) IconComponent = Calendar;
+    else if (lower.includes('linkedin')) IconComponent = Share2;
+    else if (lower.includes('github')) IconComponent = FolderGit2;
+    else if (lower.includes('gitlab')) IconComponent = FolderGit;
+    else if (lower.includes('code')) IconComponent = Code2;
+    else if (lower.includes('stack-overflow') || lower.includes('stack')) IconComponent = Layers;
+    else if (lower.includes('briefcase') || lower.includes('portfolio')) IconComponent = Briefcase;
+    else if (lower.includes('globe') || lower.includes('website')) IconComponent = Globe;
+    else if (lower.includes('medium') || lower.includes('blog')) IconComponent = FileText;
+    else if (lower.includes('figma')) IconComponent = PenTool;
+    else if (lower.includes('dribbble')) IconComponent = Palette;
+  }
+
+  if (!IconComponent) {
+    IconComponent = LinkIcon;
+  }
+
+  return React.createElement(IconComponent, {
+    size,
+    className: `lucide ${className}`.trim(),
+    style,
+    ...props
+  });
+};
 
 export const CONTACT_CATEGORIES = {
   direct: { id: 'direct', label: 'Contacto Directo' },
@@ -17,28 +102,28 @@ export const CONTACT_TYPES = [
   {
     id: 'email',
     label: 'Email',
-    icon: 'bx bx-envelope',
+    icon: 'Mail',
     category: 'direct',
     placeholder: 'tu.email@ejemplo.com'
   },
   {
     id: 'phone',
     label: 'Teléfono',
-    icon: 'bx bx-phone',
+    icon: 'Phone',
     category: 'direct',
     placeholder: '+54 9 11 1234 5678'
   },
   {
     id: 'whatsapp',
     label: 'WhatsApp',
-    icon: 'bx bxl-whatsapp',
+    icon: 'MessageCircle',
     category: 'direct',
     placeholder: '+54 9 11 1234 5678'
   },
   {
     id: 'telegram',
     label: 'Telegram',
-    icon: 'bx bxl-telegram',
+    icon: 'Send',
     category: 'direct',
     placeholder: 't.me/usuario'
   },
@@ -47,28 +132,28 @@ export const CONTACT_TYPES = [
   {
     id: 'location',
     label: 'Ubicación',
-    icon: 'bx bx-map',
+    icon: 'MapPin',
     category: 'availability',
     placeholder: 'Ciudad, País'
   },
   {
     id: 'work_mode',
     label: 'Modalidad de Trabajo',
-    icon: 'bx bx-laptop',
+    icon: 'Laptop',
     category: 'availability',
     placeholder: 'Remoto / Híbrido'
   },
   {
     id: 'citizenship',
     label: 'Ciudadanía / Visado',
-    icon: 'bx bx-id-card',
+    icon: 'IdCard',
     category: 'availability',
     placeholder: 'Ciudadanía Europea / Permiso de trabajo'
   },
   {
     id: 'age',
     label: 'Edad / Fecha',
-    icon: 'bx bx-calendar',
+    icon: 'Calendar',
     category: 'availability',
     placeholder: '26 años'
   },
@@ -77,35 +162,35 @@ export const CONTACT_TYPES = [
   {
     id: 'linkedin',
     label: 'LinkedIn',
-    icon: 'bx bxl-linkedin-square',
+    icon: 'Share2',
     category: 'code',
     placeholder: 'linkedin.com/in/usuario'
   },
   {
     id: 'github',
     label: 'GitHub',
-    icon: 'bx bxl-github',
+    icon: 'FolderGit2',
     category: 'code',
     placeholder: 'github.com/usuario'
   },
   {
     id: 'gitlab',
     label: 'GitLab',
-    icon: 'bx bxl-gitlab',
+    icon: 'FolderGit',
     category: 'code',
     placeholder: 'gitlab.com/usuario'
   },
   {
     id: 'leetcode',
     label: 'LeetCode',
-    icon: 'bx bx-code-alt',
+    icon: 'Code2',
     category: 'code',
     placeholder: 'leetcode.com/usuario'
   },
   {
     id: 'stackoverflow',
     label: 'Stack Overflow',
-    icon: 'bx bxl-stack-overflow',
+    icon: 'Layers',
     category: 'code',
     placeholder: 'stackoverflow.com/users/...'
   },
@@ -114,35 +199,35 @@ export const CONTACT_TYPES = [
   {
     id: 'portfolio',
     label: 'Portfolio',
-    icon: 'bx bx-briefcase',
+    icon: 'Briefcase',
     category: 'web',
     placeholder: 'mi-portfolio.dev'
   },
   {
     id: 'website',
     label: 'Sitio Web',
-    icon: 'bx bx-globe',
+    icon: 'Globe',
     category: 'web',
     placeholder: 'misitio.com'
   },
   {
     id: 'blog',
     label: 'Blog / Artículos',
-    icon: 'bx bxl-medium',
+    icon: 'FileText',
     category: 'web',
     placeholder: 'medium.com/@usuario'
   },
   {
     id: 'figma',
     label: 'Figma',
-    icon: 'bx bxl-figma',
+    icon: 'PenTool',
     category: 'web',
     placeholder: 'figma.com/@usuario'
   },
   {
     id: 'dribbble',
     label: 'Dribbble / Behance',
-    icon: 'bx bxl-dribbble',
+    icon: 'Palette',
     category: 'web',
     placeholder: 'dribbble.com/usuario'
   }
@@ -159,7 +244,7 @@ export const getContactConfig = (typeId) => {
   return {
     id: typeId || 'custom',
     label: typeId ? typeId.charAt(0).toUpperCase() + typeId.slice(1) : 'Contacto',
-    icon: 'bx bx-link',
+    icon: 'Link',
     category: 'direct',
     placeholder: 'Información de contacto'
   };

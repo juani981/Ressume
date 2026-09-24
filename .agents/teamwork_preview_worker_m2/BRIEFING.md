@@ -1,91 +1,85 @@
-# BRIEFING — 2026-09-11T00:35:00Z
+# BRIEFING — 2026-09-20T04:28:00Z
 
 ## Mission
-Extract `SortableBulletItem` into a single shared component (`src/components/CV/SortableBulletItem.jsx`) and update `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` to import from it, eliminating 134 lines of duplicated code while maintaining 100% test pass rate (628 tests) and zero build errors.
+Implement Milestone 2: Sincronización Estricta de Sliders y Variables de Diseño (Features 5, 6, 7 and updating legacy tests).
 
 ## 🔒 My Identity
-- Archetype: implementer, qa, specialist
+- Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2
-- Original parent: 2c65867e-7bbe-40ab-b346-34c64b943ca4
-- Milestone: M2 (Epic 2)
-- Current Archetype: teamwork_preview_worker (Project Orchestrator 10)
-- Current parent: 330b6d43-f411-474e-9505-d78ef90b8c30
-- Current Milestone: M2 — Artifact Concealment & Component Template Harmonization
-- Assigned by Orchestrator 11: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Assignment Milestone: M2 — SortableBulletItem Extraction & Deduplication
+- Original parent: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Milestone: Milestone 2 (Sincronización Estricta de Sliders y Variables de Diseño)
 
 ## 🔒 Key Constraints
-- Authoritative user request: ORIGINAL_REQUEST.md ## 2026-09-03T03:17:21Z
-- DO NOT CHEAT: Genuine implementations only, no dummy facades, no hardcoded test expectations.
-- AGENTS.md Rule 3: Dynamic Tooltip & Popover Positioning tracking getBoundingClientRect(), flip when approaching boundary, clamp vertically.
-- Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+Z (undo), Ctrl+Shift+Z / Ctrl+Y (redo).
-- Text alignment: Left, Center, Right, Justify.
-- State persistence: formatting and alignment must persist in cvData (saved to localStorage).
-- Multi-engine rendering: HTML print engine (staticHtmlPdfEngine.js) and React-PDF render bold, italic, and alignment properly.
-- Prevent global window Ctrl+Z/Y listener in CVContext from hijacking active field editing.
-- Authoritative user request: ORIGINAL_REQUEST.md ## 2026-09-10T03:58:34Z
-- Strict 0px Visual & Geometric Parity (Editor vs Clean Print / PDF).
-- Exclusive File Ownership:
-  * src/components/CV/BaseSection.jsx
-  * src/components/CV/BaseItem.jsx
-  * src/components/CV/items/ExperienceItem.jsx
-  * src/components/CV/items/ProjectsItem.jsx
-  * src/components/CV/items/VolunteeringItem.jsx
-  * src/components/CV/items/SpacerBlock.jsx
-  * src/components/Editor/InlineEdit.jsx
-  * src/components/Editor/HyperlinkEdit.jsx
-- Do NOT edit files outside this set.
-- Authoritative user request: ORIGINAL_REQUEST.md ## 2026-09-11T03:13:35Z
-- Worker M2 Write Ownership:
-  * src/components/CV/SortableBulletItem.jsx (create)
-  * src/components/CV/items/ExperienceItem.jsx (refactor)
-  * src/components/CV/items/ProjectsItem.jsx (refactor)
-  * src/components/CV/items/VolunteeringItem.jsx (refactor)
-- Exact DOM structure preserved: `<li ref={setNodeRef} style={style} className="bullet-item-row editable-item-container cv-block" {...attributes} {...containerDragListeners}>`
-- Optional `marginBottom` prop defaulting to `'var(--item-gap, 6px)'`
-- `ProjectsItem` and `VolunteeringItem` pass `marginBottom="calc(var(--item-gap, 6px) / 2)"`
-- File must be < 300 lines with file-level doc and comprehensive JSDoc
-- 628/628 tests must pass (`npx vitest run`)
-- Production build must succeed with 0 errors (`npm run build`)
-- `grep -rn "const SortableBulletItem" src/` must match exactly ONE file
+- Exclusive file ownership:
+  - `src/components/CV/items/ProjectsItem.jsx`
+  - `src/components/CV/items/VolunteeringItem.jsx`
+  - `src/components/CV/items/ReferencesItem.jsx`
+  - `src/components/CV/items/PublicationsItem.jsx`
+  - `src/components/CV/items/LanguagesItem.jsx`
+  - `src/components/CV/items/CertificatesItem.jsx`
+  - `src/components/CV/items/AwardsItem.jsx`
+  - `src/components/CV/items/MentoringItem.jsx`
+  - `src/components/CV/SortableBulletItem.jsx`
+  - `src/components/CV/items/ExperienceItem.jsx`
+  - `src/styles/index.css` (src/index.css)
+  - `src/styles/print.css`
+  - `src/tests/m3-parity-and-forbidden-zones.test.jsx`
+  - `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`
+  - `src/tests/challenger-print-engine-stress.test.jsx`
+- Do NOT touch files owned by other agents.
+- Zero heuristic screen hacks (Rule 5 in AGENTS.md): No getBoundingClientRect() anti-orphan hacks.
+- CSS Paged Media canonical architecture (`box-decoration-break: clone`).
+- All 58 test files and 900+ tests must pass; build must pass with 0 errors.
+- Real genuine implementation, no cheating or facades.
 
 ## Current Parent
-- Conversation ID: ca5efa9a-2989-4d87-a34d-927b285b46f9
-- Updated: 2026-09-11T00:35:00Z
+- Conversation ID: 1a9839e6-32c0-4426-b6d9-cf6aa0d4937f
+- Updated: 2026-09-20T04:28:00Z
 
 ## Task Summary
-- **What to build**: Extract `SortableBulletItem.jsx` into `src/components/CV/SortableBulletItem.jsx` with full JSDoc and contract. Refactor `ExperienceItem.jsx`, `ProjectsItem.jsx`, and `VolunteeringItem.jsx` to import from it and clean up unused imports.
-- **Success criteria**: All 628 tests pass; build succeeds; `SortableBulletItem` in exactly 1 file; code is clean and adheres to Template/Factory guidelines.
-- **Interface contracts**: `docs/code-review.md` (Blueprint 1)
-- **Code layout**: Component in `src/components/CV/`, items in `src/components/CV/items/`.
-
-## Key Decisions Made
-- Extracted `SortableBulletItem` into `src/components/CV/SortableBulletItem.jsx` (104 lines).
-- Implemented file-level architectural contract and comprehensive JSDoc for all props.
-- Configured default `marginBottom = 'var(--item-gap, 6px)'`, matching `ExperienceItem`.
-- Passed `marginBottom="calc(var(--item-gap, 6px) / 2)"` in `ProjectsItem.jsx` and `VolunteeringItem.jsx`.
-- Cleaned unused imports across all three item components: `SimpleListItem`, `DragHandle`, `useSortable`, `CSS`, and `createContainerDragListeners`.
-
-## Artifact Index
-- DISPATCH.md — Assignment instructions
-- BRIEFING.md — Situational awareness
-- progress.md — Liveness & progress tracking
-- handoff.md — Final handoff report
+- **What to build**:
+  1. Harmonize 8 Item components typography (ProjectsItem, VolunteeringItem, ReferencesItem, PublicationsItem, LanguagesItem, CertificatesItem, AwardsItem, MentoringItem) to use categorical scale CSS variables.
+  2. Standardize `itemGap` fallbacks in index.css, print.css, SortableBulletItem.jsx, ExperienceItem.jsx to `var(--item-gap, 8px)`.
+  3. Connect `.section-title` margin-bottom to sliders in index.css and print.css (`calc(var(--item-gap, 8px) * 1.5) !important`).
+  4. Update legacy test assertions in m3-parity-and-forbidden-zones.test.jsx, m5-pagination-forbidden-zones-adversarial.test.jsx, challenger-print-engine-stress.test.jsx.
+- **Success criteria**: All tests pass (58 files, 903 tests), build passes (0 errors).
+- **Interface contracts**: PROJECT.md
+- **Code layout**: src/
 
 ## Change Tracker
 - **Files modified**:
-  - `src/components/CV/SortableBulletItem.jsx` (New file, 104 lines)
-  - `src/components/CV/items/ExperienceItem.jsx` (Removed duplicate component, cleaned imports, uses shared component)
-  - `src/components/CV/items/ProjectsItem.jsx` (Removed duplicate component, cleaned imports, passes custom marginBottom)
-  - `src/components/CV/items/VolunteeringItem.jsx` (Removed duplicate component, cleaned imports, passes custom marginBottom)
-- **Build status**: PASS (Vite production build completed in 1.57s with 0 errors)
-- **Pending issues**: none
+  - `src/components/CV/items/ProjectsItem.jsx`: harmonized date font size to `var(--body-smaller-font-size, var(--smaller-font-size))` and item-gap fallback to 8px
+  - `src/components/CV/items/VolunteeringItem.jsx`: harmonized date font size to `var(--body-smaller-font-size, var(--smaller-font-size))` and item-gap fallback to 8px
+  - `src/components/CV/items/ReferencesItem.jsx`: harmonized subtitle to `var(--body-small-font-size, var(--small-font-size))` and details to `var(--body-smaller-font-size, var(--smaller-font-size))`
+  - `src/components/CV/items/PublicationsItem.jsx`: harmonized date and subtitle to categorical scales
+  - `src/components/CV/items/LanguagesItem.jsx`: harmonized title to `var(--list-font-size, var(--normal-font-size))`, description to `var(--body-smaller-font-size, var(--smaller-font-size))`, level to `var(--body-small-font-size, var(--small-font-size))`
+  - `src/components/CV/items/CertificatesItem.jsx`: harmonized date, subtitle, credentialId to categorical scales
+  - `src/components/CV/items/AwardsItem.jsx`: harmonized date and subtitle to categorical scales
+  - `src/components/CV/items/MentoringItem.jsx`: harmonized date to `var(--body-smaller-font-size, var(--smaller-font-size))`
+  - `src/components/CV/SortableBulletItem.jsx`: standardized default marginBottom fallback to `var(--item-gap, 8px)`
+  - `src/components/CV/items/ExperienceItem.jsx`: standardized bullet marginBottom fallback to `var(--item-gap, 8px)`
+  - `src/index.css`: standardized bullet marginBottom to `var(--item-gap, 8px)` and `.section-title` margin-bottom to `calc(var(--item-gap, 8px) * 1.5) !important`
+  - `src/styles/print.css`: standardized bullet marginBottom to `var(--item-gap, 8px) !important` and `.section-title` margin-bottom to `calc(var(--item-gap, 8px) * 1.5) !important`
+  - `src/tests/m3-parity-and-forbidden-zones.test.jsx`: updated ZONE-2.5 for `box-decoration-break: clone` on columns
+  - `src/tests/m5-pagination-forbidden-zones-adversarial.test.jsx`: updated STRESS 6 for clone architecture
+  - `src/tests/challenger-print-engine-stress.test.jsx`: updated S3.6 and S4.2, added Suite 5 covering M2 features
+- **Build status**: PASS (0 errors, built in 1.69s)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: 37/37 test files passed (628/628 tests passed).
+- **Build/test result**: PASS — 58 test files passed (100%), 903 tests passed (0 failed)
 - **Lint status**: Clean
-- **Tests added/modified**: Covered by existing test suites (`bulletPointsNativePrint.test.jsx`, `dom-geometry-typography.test.jsx`, etc.)
+- **Tests added/modified**: Updated 3 legacy tests and added Suite 5 (3 comprehensive tests) in challenger-print-engine-stress.test.jsx
 
 ## Loaded Skills
-- none
+- None
+
+## Key Decisions Made
+- Used `calc(var(--item-gap, 8px) * 1.5) !important;` for `.section-title` margin-bottom so that it scales dynamically with the slider while defaulting to 12px.
+- Followed Rule 5 (zero heuristic screen getBoundingClientRect hacks) when adapting legacy tests.
+
+## Artifact Index
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/DISPATCH.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/progress.md
+- /home/juani/Documentos/Ressume/.agents/teamwork_preview_worker_m2/handoff.md

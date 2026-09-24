@@ -403,18 +403,21 @@ describe('Adversarial Challenger Suite: Empirical Stress-Testing', () => {
       expect(text).not.toContain('📄');
     });
 
-    it('EMP-4.2: Contact links and social headers strictly retain BoxIcons (bx bx-*, bx bxl-*)', () => {
+    it('EMP-4.2: Contact links and social headers render Lucide-React vector SVGs', () => {
       render(
         <CVProvider>
           <App />
         </CVProvider>
       );
 
-      const linkedInIcon = document.querySelector('.bx.bxl-linkedin-square, .bxl-linkedin-square');
-      const githubIcon = document.querySelector('.bx.bxl-github, .bxl-github');
-      const emailIcon = document.querySelector('.bx.bx-envelope, .bx-envelope');
-      const phoneIcon = document.querySelector('.bx.bx-phone, .bx-phone');
-      const mapIcon = document.querySelector('.bx.bx-map, .bx-map');
+      const contactPills = document.querySelectorAll('.contact-item-pill');
+      expect(contactPills.length).toBeGreaterThan(0);
+
+      const linkedInIcon = document.querySelector('.contact-item-pill .lucide-share-2, .contact-item-pill .lucide-share2');
+      const githubIcon = document.querySelector('.contact-item-pill .lucide-folder-git-2, .contact-item-pill .lucide-folder-git2');
+      const emailIcon = document.querySelector('.contact-item-pill .lucide-mail');
+      const phoneIcon = document.querySelector('.contact-item-pill .lucide-phone');
+      const mapIcon = document.querySelector('.contact-item-pill .lucide-map-pin');
 
       expect(linkedInIcon).toBeInTheDocument();
       expect(githubIcon).toBeInTheDocument();

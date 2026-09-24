@@ -18,11 +18,77 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { Lightbulb, MoreHorizontal } from 'lucide-react';
+import { Lightbulb, MoreHorizontal, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+
+/**
+ * Checks whether the container tag should be rendered as a list container (ul/ol).
+ *
+ * @param {string} tag
+ * @returns {boolean}
+ */
+export const isListContainerTag = (tag) => tag === 'ul' || tag === 'ol';
+
+/**
+ * Resolves the CSS wrapper class for a section based on its descriptor.
+ *
+ * @param {Object} descriptor
+ * @returns {string}
+ */
+export const resolveSectionWrapperClass = (descriptor) =>
+  descriptor?.wrapperClass !== undefined
+    ? descriptor.wrapperClass
+    : `${descriptor?.sectionClass || ''}__container bd-grid`;
+
+/**
+ * Shared renderer for section item lists in both interactive and print modes.
+ *
+ * @param {Object} props
+ * @param {Array} props.items
+ * @param {string} props.sectionId
+ * @param {string} props.sectionType
+ * @param {Object} props.descriptor
+ * @param {boolean} [props.isPrint=false]
+ * @returns {React.ReactElement|React.ReactElement[]}
+ */
+export const SectionItemsRenderer = ({
+  items = [],
+  sectionId,
+  sectionType,
+  descriptor,
+  isPrint = false,
+}) => {
+  const ContainerTag = descriptor?.containerTag;
+  const isList = isListContainerTag(ContainerTag);
+  const containerClass = descriptor?.containerClass || '';
+  const containerStyle = isPrint
+    ? descriptor?.printContainerStyle || {}
+    : descriptor?.containerStyle || {};
+
+  const renderedItems = items.map((item, index) => (
+    <BaseItem
+      key={item.id || index}
+      item={item}
+      sectionId={sectionId}
+      sectionType={sectionType}
+      isPrint={isPrint}
+      isLast={index === items.length - 1}
+    />
+  ));
+
+  if (isList && ContainerTag) {
+    return (
+      <ContainerTag className={containerClass} style={containerStyle}>
+        {renderedItems}
+      </ContainerTag>
+    );
+  }
+
+  return renderedItems;
+};
 
 /**
  * PrintBaseSection
@@ -42,38 +108,36 @@ export const PrintBaseSection = ({ section }) => {
   }
 
   const items = section.items || [];
-  const ContainerTag = descriptor.containerTag;
-  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
   const bulletClasses = section.bulletStyle ? ` ${getBulletClasses(section.bulletStyle)}` : '';
-  const wrapperClass = descriptor.wrapperClass !== undefined 
-    ? descriptor.wrapperClass 
-    : `${descriptor.sectionClass}__container bd-grid`;
+  const wrapperClass = resolveSectionWrapperClass(descriptor);
+
+  const hasPageBreak = Boolean(section.pageBreak === 'before' || section.breakBefore || section.isForcedBreak);
+  const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
 
   return (
     <section 
-      className={`${descriptor.sectionClass} section cv-section${bulletClasses}`} 
+      className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
       id={section.id}
       data-section-id={section.id}
       style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
     >
       {descriptor.hasTitle !== false && section.title && (
-        <h2 className="section-title" data-section-title={section.id}>
+        <h2 
+          className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
+          data-section-title={section.id}
+        >
           <InlineEdit value={section.title || ''} isPrint={true} />
         </h2>
       )}
 
       <div className={wrapperClass}>
-        {isListContainer ? (
-          <ContainerTag className={descriptor.containerClass || ''} style={descriptor.printContainerStyle || {}}>
-            {items.map((item, index) => (
-              <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
-            ))}
-          </ContainerTag>
-        ) : (
-          items.map((item, index) => (
-            <BaseItem key={item.id || index} item={item} sectionId={section.id} sectionType={section.type} isPrint={true} isLast={index === items.length - 1} />
-          ))
-        )}
+        <SectionItemsRenderer
+          items={items}
+          sectionId={section.id}
+          sectionType={section.type}
+          descriptor={descriptor}
+          isPrint={true}
+        />
       </div>
 
       <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
@@ -130,11 +194,7 @@ const EditableBaseSection = ({ section }) => {
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
   const containerDragListeners = createContainerDragListeners(listeners, false);
-  const ContainerTag = descriptor.containerTag;
-  const isListContainer = ContainerTag === 'ul' || ContainerTag === 'ol';
-  const wrapperClass = descriptor.wrapperClass !== undefined 
-    ? descriptor.wrapperClass 
-    : `${descriptor.sectionClass}__container bd-grid`;
+  const wrapperClass = resolveSectionWrapperClass(descriptor);
 
   return (
     <section 
@@ -146,60 +206,69 @@ const EditableBaseSection = ({ section }) => {
       {...attributes}
       {...containerDragListeners}
     >
-      <DragHandle listeners={listeners} attributes={attributes} />
+      {!section.isContinuation && (
+        <DragHandle listeners={listeners} attributes={attributes} />
+      )}
       
-      <div 
-        className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
-        data-testid={`section-actions-${section.id}`}
-      >
-        <button 
-          type="button"
-          className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
-          title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
-          onClick={(e) => {
-            e.stopPropagation();
-            const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
-            if (typeof toggleTooltipForSection === 'function') {
-              toggleTooltipForSection(section, bounding);
-            }
-          }}
+      {!section.isContinuation && (
+        <div 
+          className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+          data-editor-ui="true"
+          data-testid={`section-actions-${section.id}`}
+          onPointerDown={(e) => e.stopPropagation()}
         >
-          <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
-        </button>
-
-        {allowBulletCustomization && (
-          <button
-            type="button"
-            className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
-            title="Personalizar círculo del título"
-            aria-label="Personalizar círculo del título"
-            data-testid={`btn-bullet-style-${section.id}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
-              setIsBulletPopoverOpen(prev => !prev);
-            }}
-          >
-            <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
-          </button>
-        )}
-
-        {allowDelete && (
           <button 
             type="button"
-            className="round-btn-del section-del-btn"
-            title={`Eliminar sección ${section.title || section.id}`}
+            className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
+            title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              deleteSection(section.id);
+              const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
+              if (typeof toggleTooltipForSection === 'function') {
+                toggleTooltipForSection(section, bounding);
+              }
             }}
           >
-            <i className='bx bx-trash' style={{ fontSize: '13px' }}></i>
+            <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
           </button>
-        )}
-      </div>
 
-      {descriptor.hasTitle !== false && (
+          {allowBulletCustomization && (
+            <button 
+              type="button"
+              className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
+              title="Personalizar círculo del título"
+              aria-label="Personalizar círculo del título"
+              data-testid={`btn-bullet-style-${section.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
+                setIsBulletPopoverOpen(prev => !prev);
+              }}
+            >
+              <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
+            </button>
+          )}
+
+          {allowDelete && (
+            <button 
+              type="button"
+              className="round-btn-del section-del-btn"
+              title={`Eliminar sección ${section.title || section.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSection(section.id);
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
         <h2 className="section-title" data-section-title={section.id}>
           <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.id, val)} />
         </h2>
@@ -207,32 +276,31 @@ const EditableBaseSection = ({ section }) => {
       
       <div className={wrapperClass}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
-          {isListContainer ? (
-            <ContainerTag className={descriptor.containerClass || ''} style={descriptor.containerStyle || {}}>
-              {(section.items || []).map(item => (
-                <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-              ))}
-            </ContainerTag>
-          ) : (
-            (section.items || []).map(item => (
-              <BaseItem key={item.id} item={item} sectionId={section.id} sectionType={section.type} />
-            ))
-          )}
+          <SectionItemsRenderer
+            items={section.items || []}
+            sectionId={section.originalSectionId || section.id}
+            sectionType={section.type}
+            descriptor={descriptor}
+            isPrint={false}
+          />
         </SortableContext>
       </div>
 
       {allowAddItem && (
-        <div className="section-add-container no-print">
+        <div className="section-add-container no-print" data-editor-ui="true" data-editor-add="true">
           <button 
             type="button"
             className="round-btn-add no-print"
+            data-editor-ui="true"
+            data-editor-add="true"
             title={`Agregar nuevo elemento a ${section.title || 'esta sección'}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              addSectionItem(section.id);
+              addSectionItem(section.originalSectionId || section.id);
             }}
           >
-            <i className='bx bx-plus' style={{ fontSize: '18px', fontWeight: 'bold' }}></i>
+            <Plus size={18} strokeWidth={2.5} />
           </button>
         </div>
       )}
@@ -242,17 +310,17 @@ const EditableBaseSection = ({ section }) => {
           isOpen={isBulletPopoverOpen}
           onClose={() => setIsBulletPopoverOpen(false)}
           bulletStyle={section.bulletStyle}
-          onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.id, newStyle)}
+          onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.originalSectionId || section.id, newStyle)}
           triggerRect={bulletTriggerRect}
         />
       )}
 
       <IntegratedBottomSpacer
-        containerId={section.id}
+        containerId={section.originalSectionId || section.id}
         height={section.bottomSpacing || 0}
         onUpdateHeight={(newH) => {
           if (typeof updateSectionProperty === 'function') {
-            updateSectionProperty(section.id, 'bottomSpacing', newH);
+            updateSectionProperty(section.originalSectionId || section.id, 'bottomSpacing', newH);
           }
         }}
       />

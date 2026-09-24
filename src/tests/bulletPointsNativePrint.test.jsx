@@ -8,13 +8,14 @@ import { ProjectsItemPrintView } from '../components/CV/items/ProjectsItem';
 import { VolunteeringItemPrintView } from '../components/CV/items/VolunteeringItem';
 import SimpleListItem from '../components/CV/items/SimpleListItem';
 
-describe('Native Styled Bullet Points in PDF & Print Output', () => {
-  it('B1.1: generateCleanPrintHTML renders experience bullets as native <li> with list-style-type: disc', () => {
+describe('Native Styled Bullet Points Suppression in PDF & Print Output', () => {
+  it('B1.1: generateCleanPrintHTML suppresses native <li> bullets (list-style: none)', () => {
     const html = generateCleanPrintHTML(defaultSchema);
 
-    // Assert ul has experience__bullets class and disc list style
+    // Assert ul has experience__bullets class and NO disc list style
     expect(html).toContain('class="experience__bullets"');
-    expect(html).toContain('list-style-type:disc');
+    expect(html).not.toContain('list-style-type:disc');
+    expect(html).not.toContain('list-style-type: disc');
 
     // Assert zero fake circle spans or flex container artifacts inside the body markup
     const bodyHtml = html.split('<body')[1] || '';
@@ -23,7 +24,7 @@ describe('Native Styled Bullet Points in PDF & Print Output', () => {
     expect(bodyHtml).not.toContain('editable-item-container');
   });
 
-  it('B1.2: ExperienceItemPrintView renders native <li> elements with display: list-item and no line breaks', () => {
+  it('B1.2: ExperienceItemPrintView renders <li> elements with list-style: none and no native bullets', () => {
     const item = {
       id: 'test_exp',
       title: 'Senior Engineer',
@@ -45,18 +46,16 @@ describe('Native Styled Bullet Points in PDF & Print Output', () => {
     expect(lis.length).toBe(2);
 
     lis.forEach((li) => {
-      expect(li.style.display).toBe('list-item');
-      expect(li.style.listStyleType).toBe('disc');
+      expect(li.style.listStyleType).toBe('none');
       expect(li.querySelector('.simple-list-circle')).toBeNull();
       expect(li.querySelector('.bullet-item-row')).toBeNull();
       // Text must be in an inline element
       const inlineDisplay = li.querySelector('.inline-edit-display');
       expect(inlineDisplay).toBeInTheDocument();
-      expect(inlineDisplay.style.display).toBe('inline');
     });
   });
 
-  it('B1.3: ProjectsItemPrintView renders native <li> elements with list-style-type: disc', () => {
+  it('B1.3: ProjectsItemPrintView renders <li> elements without native disc bullets', () => {
     const item = {
       id: 'test_proj',
       title: 'Full Stack App',
@@ -73,13 +72,12 @@ describe('Native Styled Bullet Points in PDF & Print Output', () => {
     const lis = container.querySelectorAll('ul.experience__bullets li');
     expect(lis.length).toBe(2);
     lis.forEach((li) => {
-      expect(li.style.display).toBe('list-item');
-      expect(li.style.listStyleType).toBe('disc');
+      expect(li.style.listStyleType).toBe('none');
       expect(li.querySelector('.simple-list-circle')).toBeNull();
     });
   });
 
-  it('B1.4: VolunteeringItemPrintView renders native <li> elements with list-style-type: disc', () => {
+  it('B1.4: VolunteeringItemPrintView renders <li> elements without native disc bullets', () => {
     const item = {
       id: 'test_vol',
       title: 'Volunteer Lead',
@@ -94,8 +92,7 @@ describe('Native Styled Bullet Points in PDF & Print Output', () => {
 
     const lis = container.querySelectorAll('ul.experience__bullets li');
     expect(lis.length).toBe(1);
-    expect(lis[0].style.display).toBe('list-item');
-    expect(lis[0].style.listStyleType).toBe('disc');
+    expect(lis[0].style.listStyleType).toBe('none');
     expect(lis[0].querySelector('.simple-list-circle')).toBeNull();
   });
 

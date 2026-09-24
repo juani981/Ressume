@@ -1,5 +1,6 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
+import { Trophy } from 'lucide-react';
 
 const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
@@ -18,7 +19,7 @@ const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           marginTop: '2px'
         }}
       >
-        <i className='bx bx-trophy' style={{ fontSize: '15px' }}></i>
+        <Trophy size={15} />
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -32,7 +33,7 @@ const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
             />
           </h3>
           {item.date && (
-            <span style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 isPrint={isPrint}
@@ -44,7 +45,7 @@ const AwardsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
         </div>
 
         {item.subtitle && (
-          <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
+          <div style={{ fontSize: 'var(--body-small-font-size, var(--small-font-size))', color: 'inherit', marginTop: '1px' }}>
             <InlineEdit 
               value={item.subtitle || ''} 
               isPrint={isPrint}

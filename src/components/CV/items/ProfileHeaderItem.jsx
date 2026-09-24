@@ -1,186 +1,59 @@
-import React, { useState } from 'react';
-import InlineEdit from '../../Editor/InlineEdit';
-import ContactTypePicker from '../../Editor/ContactTypePicker';
-import { normalizeItemContacts, getContactConfig, syncFlatContactFields } from '../../../utils/contactTypes';
+/**
+ * @file ProfileHeaderItem.jsx
+ * @description Composite profile header component for backwards compatibility.
+ * Composes the separated ProfileTitleItem (TITLE-Subtitle) and ContactItem (Contacts).
+ *
+ * Implements Open/Closed pattern:
+ * - When used in detached layout, ProfileTitleItem and ContactItem can be used as independent sections.
+ * - When used as composite ProfileHeaderItem, seamlessly coordinates both sub-components.
+ */
 
-const ProfileHeaderPrintView = ({ item }) => {
-  const contacts = normalizeItemContacts(item);
+import React from 'react';
+import ProfileTitleItem, { ProfileTitlePrintView, ProfileTitleEditView } from './ProfileTitleItem';
+import ContactItem, { ContactPrintView, ContactEditView } from './ContactItem';
+import { normalizeItemContacts } from '../../../utils/contactTypes';
+
+/**
+ * Print View: Composes ProfileTitlePrintView and ContactPrintView.
+ */
+const ProfileHeaderPrintView = (props) => {
+  const contacts = normalizeItemContacts(props.item);
+  const hasContacts = contacts.some(c => c && c.value && String(c.value).trim() !== '');
 
   return (
     <>
-      <h1 className="home__title">
-        <InlineEdit 
-          value={item.name || ''} 
-          isPrint={true}
-        />
-      </h1>
-      <h2 className="home__subtitle">
-        <InlineEdit 
-          value={item.subtitle || ''} 
-          isPrint={true}
-        />
-      </h2>
-      
-      <div 
-        className="social__container bd-grid" 
-        style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginTop: '1rem' }}
-      >
-        {contacts
-          .filter(c => c && c.value && String(c.value).trim() !== '')
-          .map((contact, idx) => {
-            const config = getContactConfig(contact.type);
-            return (
-              <span 
-                key={contact.id || `contact_${idx}`} 
-                className="social__link contact-item-pill"
-                style={{
-                  position: 'relative',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <i className={config.icon}></i>{' '}
-                <InlineEdit 
-                  value={contact.value || ''} 
-                  isPrint={true}
-                />
-              </span>
-            );
-          })}
-      </div>
+      <ProfileTitlePrintView {...props} />
+      {hasContacts && (
+        <div style={{ marginTop: '1rem' }}>
+          <ContactPrintView {...props} />
+        </div>
+      )}
     </>
   );
 };
 
-const ProfileHeaderItemEditView = ({ item, sectionId, onUpdateItem }) => {
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [triggerRect, setTriggerRect] = useState(null);
-
-  const contacts = normalizeItemContacts(item);
-
-  const handleUpdateContactValue = (contactId, newValue) => {
-    const updated = contacts.map(c => c.id === contactId ? { ...c, value: newValue } : c);
-    const flatSync = syncFlatContactFields(updated);
-    onUpdateItem(sectionId, item.id, { contacts: updated, ...flatSync });
-  };
-
-  const handleDeleteContact = (contactId) => {
-    const updated = contacts.filter(c => c.id !== contactId);
-    const flatSync = syncFlatContactFields(updated);
-    onUpdateItem(sectionId, item.id, { contacts: updated, ...flatSync });
-  };
-
-  const handleSelectType = (typeConfig) => {
-    const newContact = {
-      id: `c_${typeConfig.id}_${Date.now()}`,
-      type: typeConfig.id,
-      value: ''
-    };
-    const updated = [...contacts, newContact];
-    const flatSync = syncFlatContactFields(updated);
-    onUpdateItem(sectionId, item.id, { contacts: updated, ...flatSync });
-    setIsPickerOpen(false);
-  };
+/**
+ * Edit View: Composes ProfileTitleEditView and ContactEditView.
+ */
+const ProfileHeaderItemEditView = (props) => {
+  const contacts = normalizeItemContacts(props.item);
+  const hasContacts = contacts.length > 0;
 
   return (
     <>
-      <h1 className="home__title">
-        <InlineEdit 
-          value={item.name || ''} 
-          onSave={(val) => onUpdateItem(sectionId, item.id, 'name', val)} 
-        />
-      </h1>
-      <h2 className="home__subtitle">
-        <InlineEdit 
-          value={item.subtitle || ''} 
-          onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 
-        />
-      </h2>
-      
-      <div 
-        className="social__container bd-grid" 
-        style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginTop: '1rem' }}
-      >
-        {contacts.map((contact, idx) => {
-          const config = getContactConfig(contact.type);
-          return (
-            <span 
-              key={contact.id || `contact_${idx}`} 
-              className="social__link contact-item-pill"
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <i className={config.icon}></i>{' '}
-              <InlineEdit 
-                value={contact.value || ''} 
-                placeholder={config.placeholder || config.label}
-                onSave={(val) => handleUpdateContactValue(contact.id, val)} 
-              />
-              <button
-                type="button"
-                className="contact-del-btn bullet-del-btn no-print"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteContact(contact.id);
-                }}
-                title={`Eliminar ${config.label}`}
-                aria-label={`Eliminar ${config.label}`}
-              >
-                <i className='bx bx-minus' style={{ fontSize: '12px', fontWeight: 'bold' }}></i>
-              </button>
-            </span>
-          );
-        })}
-
-        {/* Dynamic Contact Adder Button */}
-        <button
-          type="button"
-          className="add-contact-btn no-print"
-          onClick={(e) => {
-            e.stopPropagation();
-            const rect = e.currentTarget.getBoundingClientRect();
-            setTriggerRect(rect);
-            setIsPickerOpen(prev => !prev);
-          }}
-          title="Agregar nuevo dato de contacto o red social"
-          aria-label="Agregar dato de contacto"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '3px 9px',
-            borderRadius: '999px',
-            border: '1px dashed var(--first-color, #3874ff)',
-            background: 'rgba(56, 116, 255, 0.06)',
-            color: 'var(--first-color, #3874ff)',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            height: '24px'
-          }}
-        >
-          <i className='bx bx-plus' style={{ fontSize: '13px' }}></i>
-          <span>Contacto</span>
-        </button>
-      </div>
-
-      {/* Floating Category Picker Popover */}
-      <ContactTypePicker 
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        onSelectType={handleSelectType}
-        triggerRect={triggerRect}
-      />
+      <ProfileTitleEditView {...props} />
+      {hasContacts && (
+        <div style={{ marginTop: '1rem' }}>
+          <ContactEditView {...props} />
+        </div>
+      )}
     </>
   );
 };
 
+/**
+ * Composite ProfileHeaderItem component.
+ */
 const ProfileHeaderItem = (props) => {
   if (props.isPrint) {
     return <ProfileHeaderPrintView {...props} />;
@@ -188,5 +61,10 @@ const ProfileHeaderItem = (props) => {
   return <ProfileHeaderItemEditView {...props} />;
 };
 
-export { ProfileHeaderPrintView, ProfileHeaderItemEditView };
+export { 
+  ProfileHeaderPrintView, 
+  ProfileHeaderItemEditView, 
+  ProfileTitleItem, 
+  ContactItem 
+};
 export default ProfileHeaderItem;

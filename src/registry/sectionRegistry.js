@@ -14,8 +14,11 @@ import VolunteeringItem from '../components/CV/items/VolunteeringItem';
 import ReferencesItem from '../components/CV/items/ReferencesItem';
 import SpacerItem from '../components/CV/items/SpacerItem';
 import SpacerBlock from '../components/CV/SpacerBlock';
-// M5 extensibility smoke-test: new section type added with ONLY this import + registerSectionType below
 import MentoringItem from '../components/CV/items/MentoringItem';
+import PhotoItem from '../components/CV/items/PhotoItem';
+import ProfileTitleItem from '../components/CV/items/ProfileTitleItem';
+import ContactItem from '../components/CV/items/ContactItem';
+import { normalizeItemContacts, syncFlatContactFields } from '../utils/contactTypes';
 
 import {
   baseItemMarkdown,
@@ -50,7 +53,7 @@ const generateUniqueId = (prefix = 'item') => {
  * @property {string} label - Human-readable name used in UI menus, dialogs, and button titles.
  * @property {string} [defaultTitle=''] - Initial title string rendered in the section header.
  * @property {'left'|'right'} [defaultColumn='right'] - Default column target in two-column layouts.
- * @property {string} [icon='bx-folder-plus'] - BoxIcon icon CSS class for toolbar and modal buttons.
+ * @property {string} [icon='FolderPlus'] - Lucide icon name for toolbar and modal buttons.
  * @property {string} [description] - Optional explanatory text describing the section's purpose.
  * @property {boolean} [allowDelete=true] - Whether the user can delete the section from the CV.
  * @property {boolean} [allowAddItem=true] - Whether users can add new items to this section.
@@ -141,7 +144,7 @@ export const getSectionDescriptor = (type) => {
     label: type ? type.toUpperCase() : 'SECCIÓN PERSONALIZADA',
     defaultTitle: type ? type.toUpperCase() : 'NUEVA SECCIÓN',
     defaultColumn: 'right',
-    icon: 'bx-folder-plus',
+    icon: 'FolderPlus',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -206,10 +209,10 @@ const standardDescriptors = [
   // 1. Cabecera de Contacto
   {
     type: 'profile_header',
-    label: 'Cabecera de Perfil',
+    label: 'Título y Subtítulo',
     defaultTitle: '',
     defaultColumn: 'left',
-    icon: 'bx-id-card',
+    icon: 'UserSquare2',
     allowDelete: false,
     allowAddItem: false,
     allowDeleteItem: false,
@@ -259,7 +262,7 @@ const standardDescriptors = [
     label: 'Perfil Profesional',
     defaultTitle: 'Perfil Profesional',
     defaultColumn: 'left',
-    icon: 'bx-user',
+    icon: 'UserSquare2',
     allowDelete: true,
     allowAddItem: false,
     allowDeleteItem: true,
@@ -308,7 +311,7 @@ const standardDescriptors = [
     label: 'Experiencia Laboral',
     defaultTitle: 'EXPERIENCIA LABORAL',
     defaultColumn: 'right',
-    icon: 'bx-briefcase',
+    icon: 'Briefcase',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -368,7 +371,7 @@ const standardDescriptors = [
     label: 'Proyectos Destacados',
     defaultTitle: 'PROYECTOS DESTACADOS',
     defaultColumn: 'right',
-    icon: 'bx-folder',
+    icon: 'FolderGit2',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -419,7 +422,7 @@ const standardDescriptors = [
     label: 'Educación y Formación',
     defaultTitle: 'EDUCACIÓN',
     defaultColumn: 'left',
-    icon: 'bx-book-bookmark',
+    icon: 'GraduationCap',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -461,7 +464,7 @@ const standardDescriptors = [
     label: 'Habilidades Técnicas',
     defaultTitle: 'HABILIDADES TÉCNICAS',
     defaultColumn: 'left',
-    icon: 'bx-wrench',
+    icon: 'Wrench',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -476,8 +479,8 @@ const standardDescriptors = [
     printContainerStyle: { gridTemplateColumns: '1fr', padding: 0, margin: 0, listStyle: 'none' },
     itemTag: 'li',
     itemClass: 'skills__name',
-    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
-    printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
+    itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)', background: 'transparent' },
+    printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)', background: 'transparent' },
     get itemComponent() { return SkillsItem; },
     renderMarkdown: skillsMarkdown,
     renderXML: skillsXML,
@@ -519,7 +522,7 @@ const standardDescriptors = [
     label: 'Certificaciones y Credenciales',
     defaultTitle: 'CERTIFICACIONES',
     defaultColumn: 'left',
-    icon: 'bx-badge-check',
+    icon: 'BadgeCheck',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -565,7 +568,7 @@ const standardDescriptors = [
     label: 'Idiomas',
     defaultTitle: 'IDIOMAS',
     defaultColumn: 'left',
-    icon: 'bx-globe',
+    icon: 'Languages',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -605,7 +608,7 @@ const standardDescriptors = [
     label: 'Premios y Distinciones',
     defaultTitle: 'PREMIOS Y RECONOCIMIENTOS',
     defaultColumn: 'right',
-    icon: 'bx-trophy',
+    icon: 'Trophy',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -647,7 +650,7 @@ const standardDescriptors = [
     label: 'Publicaciones y Artículos',
     defaultTitle: 'PUBLICACIONES',
     defaultColumn: 'right',
-    icon: 'bx-book-open',
+    icon: 'BookOpen',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -693,7 +696,7 @@ const standardDescriptors = [
     label: 'Voluntariado y Liderazgo',
     defaultTitle: 'VOLUNTARIADO Y LIDERAZGO',
     defaultColumn: 'right',
-    icon: 'bx-heart',
+    icon: 'HeartHandshake',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -740,7 +743,7 @@ const standardDescriptors = [
     label: 'Referencias Profesionales',
     defaultTitle: 'REFERENCIAS',
     defaultColumn: 'left',
-    icon: 'bx-user-check',
+    icon: 'UserCheck',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -784,7 +787,7 @@ const standardDescriptors = [
     label: 'Lista Simple / Cursos',
     defaultTitle: 'CURSOS Y CERTIFICACIONES',
     defaultColumn: 'right',
-    icon: 'bx-list-ul',
+    icon: 'ListCheck',
     allowDelete: true,
     allowAddItem: true,
     allowDeleteItem: true,
@@ -796,11 +799,11 @@ const standardDescriptors = [
     containerTag: 'ul',
     containerClass: 'experience__bullets simple-list-ul',
     containerStyle: { color: 'var(--text-color)', padding: 0 },
-    printContainerStyle: { color: 'var(--text-color)', paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' },
+    printContainerStyle: { color: 'var(--text-color)', paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' },
     itemTag: 'li',
     itemClass: 'simple-list-item',
     itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
-    printItemStyle: { display: 'list-item', listStyleType: 'disc', marginBottom: 'var(--item-gap, 8px)', lineHeight: 1.45, color: 'var(--text-color)' },
+    printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', listStyleType: 'none', marginBottom: 'var(--item-gap, 8px)', lineHeight: 1.45, color: 'var(--text-color)' },
     get itemComponent() { return SimpleListItem; },
     renderMarkdown: simpleListMarkdown,
     renderXML: simpleListXML,
@@ -835,7 +838,7 @@ const standardDescriptors = [
     description: 'Espacio vertical ajustable para balancear columnas y maquetar el documento',
     defaultTitle: '',
     defaultColumn: 'right',
-    icon: 'bx-space-bar',
+    icon: 'MoveVertical',
     allowDelete: true,
     allowAddItem: false,
     allowDeleteItem: false,
@@ -887,7 +890,7 @@ registerSectionType({
   label: 'Mentoría',
   defaultTitle: 'MENTORÍA Y COACHING',
   defaultColumn: 'right',
-  icon: 'bx-brain',
+  icon: 'Brain',
   description: 'Sesiones de mentoría, coaching técnico, o acompañamiento profesional.',
   allowDelete: true,
   allowAddItem: true,
@@ -922,6 +925,148 @@ registerSectionType({
     };
   },
   schema: { title: 'string', date: 'string', mentee: 'string', description: 'string' }
+});
+
+/**
+ * Modular Photo Section Component Registration
+ * Enables adding a customizable profile picture to the CV (left or right column)
+ * Supporting local file upload (Data URL) and external web image URLs.
+ */
+registerSectionType({
+  type: 'photo',
+  label: 'Foto de Perfil',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'Camera',
+  description: 'Fotografía profesional de perfil con carga de archivo local o enlace URL y formas personalizables.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: true,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  sectionClass: 'cv-section-photo',
+  containerTag: 'div',
+  containerClass: 'photo__container',
+  itemTag: 'div',
+  itemClass: 'photo__content',
+  itemStyle: { display: 'flex', justifyContent: 'center', width: '100%' },
+  printItemStyle: { display: 'flex', justifyContent: 'center', width: '100%' },
+  get itemComponent() { return PhotoItem; },
+  renderMarkdown: (item) => item?.url ? `![Foto de Perfil](${item.url})\n` : '',
+  renderXML: (item) => `<photo url="${item?.url || ''}" shape="${item?.shape || 'circle'}" size="${item?.size || 130}"/>`,
+  renderPlainText: () => '',
+  createDefaultItem: () => ({
+    id: generateUniqueId('photo'),
+    url: '',
+    shape: 'circle',
+    size: 130,
+    alt: 'Foto de Perfil'
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    return {
+      id: src.id || generateUniqueId('photo'),
+      url: src.url || src.image || '',
+      shape: src.shape || 'circle',
+      size: Number(src.size) || 130,
+      alt: src.alt || 'Foto de Perfil'
+    };
+  },
+  schema: { url: 'string', shape: 'string', size: 'number', alt: 'string' }
+});
+
+/**
+ * Modular Contact Section Component Registration
+ * Enables candidate contact details, links, and networks to be detached
+ * from title/subtitle and placed freely across any column or layout position.
+ */
+registerSectionType({
+  type: 'contact',
+  label: 'Información de Contacto',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'Contact',
+  description: 'Datos de contacto, redes sociales, enlaces profesionales y canales de comunicación.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: true,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  sectionClass: 'social',
+  wrapperClass: '',
+  containerTag: 'div',
+  containerClass: '',
+  itemTag: 'div',
+  itemClass: '',
+  itemStyle: { position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return ContactItem; },
+  createDefaultItem: () => ({
+    id: generateUniqueId('contact'),
+    contacts: [
+      { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+      { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+      { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+      { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+      { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+    ]
+  }),
+  adaptItem: (source) => {
+    const src = source || {};
+    const contacts = normalizeItemContacts(src);
+    return {
+      id: src.id || generateUniqueId('contact'),
+      contacts,
+      ...syncFlatContactFields(contacts)
+    };
+  },
+  schema: { contacts: 'array', email: 'string', phone: 'string', location: 'string', linkedin: 'string', github: 'string' }
+});
+
+/**
+ * Modular Title & Subtitle Section Component Registration
+ * Enables candidate name and professional title to be detached
+ * and placed freely across any column or layout position.
+ */
+registerSectionType({
+  type: 'title_subtitle',
+  label: 'Título y Subtítulo',
+  defaultTitle: '',
+  defaultColumn: 'left',
+  icon: 'UserSquare2',
+  description: 'Nombre y título profesional del candidato, desacoplado e independiente de los datos de contacto.',
+  allowDelete: true,
+  allowAddItem: false,
+  allowDeleteItem: false,
+  hasTitle: false,
+  hasItemDrag: false,
+  supportsBulletCustomization: false,
+  isHeader: true,
+  sectionClass: 'home',
+  wrapperClass: '',
+  containerTag: 'div',
+  containerClass: 'home__container bd-grid',
+  itemTag: 'div',
+  itemClass: 'home__data bd-grid',
+  itemStyle: { position: 'relative', color: 'var(--text-color)' },
+  printItemStyle: { position: 'relative', color: 'var(--text-color)' },
+  get itemComponent() { return ProfileTitleItem; },
+  createDefaultItem: () => ({
+    id: generateUniqueId('prof'),
+    name: 'TU NOMBRE Y APELLIDO',
+    subtitle: 'Título Profesional / Especialidad'
+  }),
+  adaptItem: (item) => {
+    const src = item || {};
+    return {
+      id: src.id || generateUniqueId('prof'),
+      name: src.name || src.title || '',
+      subtitle: src.subtitle || ''
+    };
+  },
+  schema: { name: 'string', subtitle: 'string' }
 });
 
 

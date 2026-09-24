@@ -9,30 +9,88 @@ import { LOCALES } from '../../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../../utils/itemAdapter';
 import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
-import { normalizeItemContacts } from '../../utils/contactTypes';
+import { normalizeItemContacts, syncFlatContactFields } from '../../utils/contactTypes';
+import { deletePageFromDOMAndState } from '../../utils/pageDeletionEngine';
 
 /** Default language dictionaries from locales */
 export const baseDefaultContent = { es: LOCALES.es.content, en: LOCALES.en.content };
 
 /**
  * Normalizes CV schema to guarantee profile_header section exists and syncs legacy fields.
+ * Automatically detaches contact info into a standalone 'contact' section if bundled inside 'profile_header'.
  * @param {Object} data - Raw CV document state.
  * @returns {Object} Normalized CV document state.
  */
 export const ensureProfileHeader = (data) => {
   if (!data || !Array.isArray(data.sections)) return defaultSchema;
-  let sections = data.sections;
-  if (!sections.some(s => s.id === 'profile_header' || s.type === 'profile_header')) {
+  let sections = [...data.sections];
+
+  // 1. Ensure profile_header section exists
+  const hasProfileHeader = sections.some(s => s.id === 'profile_header' || s.type === 'profile_header');
+  if (!hasProfileHeader) {
     sections = [defaultSchema.sections[0], ...sections];
   }
+
+  // 2. Detach Contact section if bundled inside profile_header or missing
+  const profSecIndex = sections.findIndex(s => s.id === 'profile_header' || s.type === 'profile_header');
+  const hasContactSection = sections.some(s => s.id === 'contact' || s.type === 'contact');
+  
+  if (!hasContactSection && profSecIndex !== -1) {
+    const profSec = sections[profSecIndex];
+    const profItem = profSec?.items?.[0] || {};
+    const extractedContacts = (Array.isArray(profItem.contacts) && profItem.contacts.length > 0)
+      ? profItem.contacts
+      : normalizeItemContacts(profItem);
+
+    const contactSection = {
+      id: 'contact',
+      type: 'contact',
+      column: profSec.column || 'left',
+      title: '',
+      items: [
+        {
+          id: 'contact1',
+          contacts: extractedContacts.length > 0 ? extractedContacts : [
+            { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+            { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+            { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+            { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+            { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+          ],
+          ...syncFlatContactFields(extractedContacts)
+        }
+      ]
+    };
+    sections.splice(profSecIndex + 1, 0, contactSection);
+  }
+
+  // 3. Guarantee profile_header only retains candidate name & subtitle (no bundled contacts)
+  sections = sections.map(sec => {
+    if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+      const cleanItems = (sec.items || []).map(item => {
+        const { contacts, email, phone, location, linkedin, github, ...rest } = item;
+        return rest;
+      });
+      return { ...sec, items: cleanItems };
+    }
+    return sec;
+  });
+
+  // 4. Synchronize profile object if present
   if (data.profile) {
     sections = sections.map(sec => {
-      if (sec.id !== 'profile_header' && sec.type !== 'profile_header') return sec;
+      if (sec.id !== 'profile_header' && sec.type !== 'profile_header' && sec.id !== 'contact' && sec.type !== 'contact') return sec;
       const mergedItem = { ...(sec.items?.[0] || {}) };
-      ['name', 'subtitle', 'location', 'email', 'phone', 'linkedin', 'github'].forEach(f => {
-        if (data.profile[f] !== undefined) mergedItem[f] = data.profile[f];
-      });
-      if (!Array.isArray(mergedItem.contacts)) mergedItem.contacts = normalizeItemContacts(mergedItem);
+      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+        ['name', 'subtitle'].forEach(f => {
+          if (data.profile[f] !== undefined) mergedItem[f] = data.profile[f];
+        });
+      } else {
+        ['location', 'email', 'phone', 'linkedin', 'github'].forEach(f => {
+          if (data.profile[f] !== undefined) mergedItem[f] = data.profile[f];
+        });
+        if (!Array.isArray(mergedItem.contacts)) mergedItem.contacts = normalizeItemContacts(mergedItem);
+      }
       return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
     });
   }
@@ -146,7 +204,7 @@ export const useCVData = ({
   }, [applyStateWithHistory]);
   const deleteSectionItem = useCallback((sectionId, itemId) => {
     applyStateWithHistory(prev => ({
-      ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
+      ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
     }));
   }, [applyStateWithHistory]);
   const updateSectionItem = useCallback((sectionId, itemId, key, value) => {
@@ -161,7 +219,7 @@ export const useCVData = ({
     applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: newItems } : s) }));
   }, [applyStateWithHistory]);
 
-  const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId) => {
+  const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId, position = null) => {
     applyStateWithHistory(prev => {
       const sourceSec = prev.sections.find(s => s.id === activeSectionId);
       const targetSec = prev.sections.find(s => s.id === overSectionId);
@@ -170,21 +228,41 @@ export const useCVData = ({
       if (!sourceItem) return prev;
 
       if (activeSectionId === overSectionId) {
+        if (activeItemId === overItemId) return prev;
+
         const oldIndex = sourceSec.items.findIndex(i => i.id === activeItemId);
         let newIndex = sourceSec.items.findIndex(i => i.id === overItemId);
-        if (newIndex === -1) newIndex = sourceSec.items.length - 1;
-        const updatedItems = [...sourceSec.items];
-        const [moved] = updatedItems.splice(oldIndex, 1);
-        updatedItems.splice(newIndex, 0, moved);
-        return { ...prev, sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s) };
+        if (newIndex === -1) {
+          newIndex = sourceSec.items.length - 1;
+        } else if (position === 'below' || position === 'after') {
+          if (oldIndex > newIndex) {
+            newIndex = newIndex + 1;
+          }
+        } else if (position === 'above' || position === 'before') {
+          if (oldIndex < newIndex) {
+            newIndex = newIndex - 1;
+          }
+        }
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const updatedItems = [...sourceSec.items];
+          const [moved] = updatedItems.splice(oldIndex, 1);
+          updatedItems.splice(newIndex, 0, moved);
+          return { ...prev, sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s) };
+        }
+        return prev;
       }
 
       const adaptedItem = adaptItemToSectionType(sourceItem, targetSec.type);
       const newSourceItems = sourceSec.items.filter(i => i.id !== activeItemId);
       const newTargetItems = [...(targetSec.items || [])];
       const insertIndex = newTargetItems.findIndex(i => i.id === overItemId);
-      if (insertIndex === -1) newTargetItems.push(adaptedItem);
-      else newTargetItems.splice(insertIndex, 0, adaptedItem);
+      if (insertIndex === -1) {
+        newTargetItems.push(adaptedItem);
+      } else {
+        const finalInsertIndex = (position === 'below' || position === 'after') ? insertIndex + 1 : insertIndex;
+        newTargetItems.splice(finalInsertIndex, 0, adaptedItem);
+      }
 
       return {
         ...prev,
@@ -236,6 +314,14 @@ export const useCVData = ({
       ? languagePacks[activeLanguage] : extractDictionaryFromCV(cvData)
   ), [languagePacks, activeLanguage, cvData]);
 
+  const deletePage = useCallback((pageNumber) => {
+    return deletePageFromDOMAndState({
+      cvData,
+      applyStateWithHistory,
+      pageNumber
+    });
+  }, [cvData, applyStateWithHistory]);
+
   return {
     cvData, setCvData, languagePacks, activeLanguage,
     updateProfile, addSection, deleteSection, reorderSections,
@@ -243,6 +329,7 @@ export const useCVData = ({
     addSectionItem, deleteSectionItem, updateSectionItem, reorderSectionItems,
     moveItemBetweenSections, loadVersionSnapshot, resetToDefault,
     restoreContactSection, switchLanguage, importLanguagePack, getActiveDictionary,
+    deletePage,
   };
 };
 

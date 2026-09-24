@@ -1,0 +1,2647 @@
+<html lang="es" style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: #fafafa; --right-bg: #ffffff; font-family: Poppins, sans-serif;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV_JUAN IGNACIO CARRIZO_Senior Full-Stack Engineer &amp; Systems Architect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;family=Poppins:wght@400;500;600;700&amp;family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <style id="cv-base-styles">
+
+    :root,
+    html,
+    body,
+    #area-cv {
+      --page-padding: 24px;
+      --section-gap: 20px;
+      --item-gap: 8px;
+      --body-font: 'Poppins', sans-serif;
+      font-family: 'Poppins', sans-serif !important;
+      --font-scale: 1;
+      --title-scale: 1;
+      --body-scale: 1;
+      --list-scale: 1;
+      --line-height: 1.45;
+      line-height: 1.45;
+      --grid-template-columns: 1fr 2fr;
+      --left-col-percent: 33.33%;
+      --left-bg: #fafafa;
+      --right-bg: #ffffff;
+      --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+      --h3-font-size: calc(1rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+      --small-font-size: calc(0.875rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+
+      --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
+      --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
+      --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
+      --title-subtitle-size: calc(1.05rem * var(--font-scale, 1) * var(--title-scale, 1));
+
+      --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
+      --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
+      --body-smaller-font-size: calc(var(--smaller-font-size) * var(--body-scale, 1));
+
+      --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
+    }
+    #area-cv.bd-grid {
+      grid-template-columns: 1fr 2fr !important;
+    }
+  
+/*===== GOOGLE FONTS =====*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap");
+
+/*===== VARIABLES CSS =====*/
+:root {
+  --header-height: 3rem;
+
+  /*========== Colors ==========*/
+  --title-color: #0f172a;
+  --text-color: #334155;
+  --text-color-light: #64748b;
+  --container-color: #FFFFFF;
+  --container-color-alt: #F8FAFC;
+  --body-color: #e2e8f0;
+
+  /*========== Font and typography ==========*/
+  --font-scale: 1;
+  --title-scale: 1;
+  --body-scale: 1;
+  --list-scale: 1;
+  --line-height: 1.45;
+  --body-font: 'Poppins', sans-serif;
+  --page-padding: 24px;
+  --section-gap: 20px;
+  --item-gap: 8px;
+
+  --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+  --h3-font-size: calc(1rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+  --small-font-size: calc(0.875rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+
+  /*========== Font weight ==========*/
+  --font-medium: 500;
+  --font-semi-bold: 600;
+
+  /*========== Margenes ==========*/
+  --mb-1: .5rem;
+  --mb-2: 1rem;
+  --mb-3: 1.5rem;
+
+  /*========== z index ==========*/
+  --z-tooltip: 10;
+  --z-fixed: 100;
+}
+
+/*========== BASE ==========*/
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+
+
+body {
+  margin: 0 0 var(--header-height) 0;
+  padding: 0;
+  font-family: var(--body-font);
+  font-size: var(--normal-font-size);
+  background-color: var(--body-color);
+  color: var(--text-color);
+}
+
+#area-cv {
+  font-family: var(--body-font);
+  line-height: var(--line-height);
+  width: 794px;
+  min-width: 794px;
+  max-width: 794px;
+  margin: 0 auto;
+  color: var(--text-color);
+  box-sizing: border-box;
+  position: relative;
+  box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
+  border-radius: 4px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  /* Scoped typography re-declaration to guarantee immediate cascading when inline props update */
+  --h1-font-size: calc(1.5rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
+  --h3-font-size: calc(1rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
+  --small-font-size: calc(0.875rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+
+  /* Categorical typography variables (Titles, Body, Lists) */
+  --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
+  --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
+  --title-h3-size: calc(var(--h3-font-size) * var(--title-scale, 1));
+  --title-subtitle-size: calc(1.05rem * var(--font-scale, 1) * var(--title-scale, 1));
+
+  --body-font-size: calc(var(--normal-font-size) * var(--body-scale, 1));
+  --body-small-font-size: calc(var(--small-font-size) * var(--body-scale, 1));
+  --body-smaller-font-size: calc(var(--smaller-font-size) * var(--body-scale, 1));
+
+  --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
+}
+
+#area-cv.bd-grid {
+  display: grid;
+  padding: 0 !important;
+  gap: 0 !important;
+  /* CRÍTICO: 0 padding exterior para que el fondo izquierdo toque el borde y 0 gap para evitar desbordes */
+  grid-template-columns: var(--grid-template-columns, 1fr 2fr);
+  align-items: stretch;
+  background: linear-gradient(to right,
+      var(--left-bg, var(--container-color-alt)) 0%,
+      var(--left-bg, var(--container-color-alt)) var(--left-col-percent, 33%),
+      var(--right-bg, #ffffff) var(--left-col-percent, 33%),
+      var(--right-bg, #ffffff) 100%);
+}
+
+#area-cv.bd-grid .resume__left,
+#area-cv.bd-grid .resume__right {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Modo 1 Columna (ATS) - BFC Flexbox Architecture (Zero Margin Collapse) */
+#area-cv.resume__single-column {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: var(--page-padding, 24px);
+  background: #ffffff;
+}
+
+.resume__single-column {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100%;
+  max-width: 794px;
+  margin: 0 auto;
+}
+
+
+h1,
+h2,
+h3,
+ul,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--title-color);
+  font-weight: var(--font-medium);
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/*========== CLASS CSS ==========*/
+.section,
+.cv-section,
+.editor-control-stripped {
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  margin-bottom: var(--section-gap, 20px) !important;
+  position: relative;
+}
+
+.cv-section:last-of-type,
+.editor-control-stripped:last-of-type,
+.section:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+.cv-block,
+.editor-control-stripped,
+.experience__content,
+.education__content,
+.simple-list-item,
+.skills__name,
+.languages__name {
+  margin-top: 0 !important;
+  margin-bottom: var(--item-gap, 8px);
+}
+
+.cv-block:last-child,
+.cv-block:last-of-type,
+.editor-control-stripped:last-child,
+.editor-control-stripped:last-of-type,
+.bullet-item-row:last-child,
+.bullet-item-row:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+.section-title {
+  font-size: var(--title-h2-size, var(--h2-font-size));
+  color: var(--title-color);
+  font-weight: var(--font-semi-bold);
+  text-transform: uppercase;
+  letter-spacing: .35rem;
+  margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;
+  text-align: center;
+}
+
+.bd-container {
+  max-width: 1040px;
+  width: calc(100% - 2rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+.bd-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.experience__container,
+.education__container,
+.projects__container,
+.certificates__container,
+.awards__container,
+.publications__container,
+.volunteering__container,
+.references__container,
+.editor-control-stripped .bd-grid,
+.editor-control-stripped [class*="__container"] {
+  gap: 0 !important;
+}
+
+.l-header {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-fixed);
+  background-color: var(--body-color);
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, .1);
+  transition: .3s;
+}
+
+/*========== NAV ==========*/
+.nav {
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media screen and (max-width: 968px) {
+  .nav__menu {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    padding: 2rem 1.5rem;
+    background-color: var(--body-color);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+    border-radius: 1rem 1rem 0 0;
+    z-index: var(--z-fixed);
+    transition: .3s;
+  }
+}
+
+.nav__logo,
+.nav__toggle {
+  color: var(--title-color);
+  font-weight: var(--font-medium);
+}
+
+.nav__toggle {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.nav__item {
+  text-align: center;
+}
+
+.nav__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.nav__link {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--smaller-font-size);
+  color: var(--text-color-light);
+  font-weight: var(--font-medium);
+}
+
+.nav__link:hover {
+  color: var(--title-color);
+}
+
+.nav__icon {
+  font-size: 1.2rem;
+  margin-bottom: var(--mb-1);
+}
+
+/* Active menu */
+.active-link {
+  color: var(--title-color);
+}
+
+/*========== HOME ==========*/
+.home {
+  position: relative;
+}
+
+.home__container {
+  gap: 3rem;
+}
+
+.home__data {
+  gap: .5rem;
+  text-align: left;
+}
+
+.home__img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  justify-self: center;
+  margin-bottom: var(--mb-1);
+}
+
+.home__title {
+  font-size: var(--title-h1-size, var(--h1-font-size));
+}
+
+.home__subtitle {
+  font-size: var(--title-subtitle-size, var(--normal-font-size));
+  font-weight: var(--font-medium);
+  margin-bottom: var(--mb-1);
+}
+
+.home__profession {
+  font-size: var(--body-font-size, var(--normal-font-size));
+  margin-bottom: var(--mb-1);
+}
+
+.home__address {
+  gap: 1rem;
+}
+
+.home__information {
+  display: flex;
+  align-items: center;
+  font-size: var(--body-small-font-size, var(--small-font-size));
+}
+
+.home__icon {
+  font-size: 1.2rem;
+  margin-right: .25rem;
+}
+
+.home__button-movil {
+  display: inline-block;
+  border: 2px solid var(--text-color);
+  color: var(--title-color);
+  padding: 1rem 2rem;
+  border-radius: .25rem;
+  transition: .3s;
+  font-weight: var(--font-medium);
+  margin-top: var(--mb-3);
+}
+
+.home__button-movil:hover {
+  background-color: var(--text-color);
+  color: var(--container-color);
+}
+
+/*========== SOCIAL ==========*/
+.social__container {
+  grid-template-columns: max-content;
+  gap: 1rem;
+}
+
+.social__link {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--body-small-font-size, var(--small-font-size));
+  color: var(--text-color);
+}
+
+.social__link:hover {
+  color: var(--title-color);
+}
+
+.social__icon {
+  font-size: 1.2rem;
+  margin-right: .25rem;
+}
+
+/*========== PROFILE ==========*/
+.profile__description {
+  text-align: center;
+  font-size: var(--body-font-size, var(--normal-font-size));
+  line-height: var(--line-height, 1.45);
+}
+
+/*========== EDUCATION AND EXPERIENCE ==========*/
+.education__content,
+.experience__content {
+  display: flex;
+}
+
+.education__time,
+.experience__time {
+  padding-right: 1rem;
+}
+
+.education__rounder,
+.experience__rounder {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: var(--text-color-light);
+  border-radius: 50%;
+  margin-top: .25rem;
+}
+
+.education__line,
+.experience__line {
+  display: block;
+  width: 2px;
+  height: 100%;
+  background-color: var(--text-color-light);
+  transform: translate(7px, 0);
+}
+
+/* Global rule: Hide timeline line if it is the last item in the list/container */
+.editor-control-stripped:last-child .experience__line,
+.editor-control-stripped:last-child .education__line,
+.editor-control-stripped:last-child [class*="__line"],
+.editor-control-stripped:last-of-type .experience__line,
+.editor-control-stripped:last-of-type .education__line,
+.editor-control-stripped:last-of-type [class*="__line"],
+.cv-block:last-child .experience__line,
+.cv-block:last-child .education__line,
+.cv-block:last-child [class*="__line"],
+.cv-block:last-of-type .experience__line,
+.cv-block:last-of-type .education__line,
+.cv-block:last-of-type [class*="__line"],
+.experience__content:last-child .experience__line,
+.experience__content:last-of-type .experience__line,
+.education__content:last-child .education__line,
+.education__content:last-of-type .education__line {
+  display: none !important;
+}
+
+.education__data,
+.experience__data {
+  gap: .5rem;
+}
+
+.education__title,
+.experience__title {
+  font-size: var(--title-h3-size, var(--h3-font-size));
+}
+
+.education__studies,
+.experience__company {
+  font-size: var(--body-small-font-size, var(--small-font-size));
+  color: var(--title-color);
+}
+
+.education__year {
+  font-size: var(--body-smaller-font-size, var(--smaller-font-size));
+}
+
+.experience__description {
+  font-size: var(--body-font-size, var(--normal-font-size));
+  line-height: var(--line-height, 1.45);
+  margin-top: 0.25rem;
+}
+
+/*========== SKILLS AND LANGUAGES ==========*/
+.skills__content,
+.languages__content {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+
+.skills__name,
+.languages__name {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--item-gap, 8px);
+  font-size: var(--list-font-size, var(--normal-font-size));
+}
+
+.skills__circle,
+.languages__circle {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background-color: var(--text-color);
+  border-radius: 50%;
+  margin-right: .75rem;
+}
+
+/*========== CERTIFICATES ==========*/
+.certificates__title {
+  font-size: var(--title-h3-size, var(--h3-font-size));
+  margin-bottom: var(--mb-1);
+}
+
+/*========== REFERENCES ==========*/
+.references__content {
+  gap: .25rem;
+}
+
+.references__subtitle {
+  color: var(--text-color-light);
+}
+
+.references__subtitle,
+.references__contact {
+  font-size: var(--body-smaller-font-size, var(--smaller-font-size));
+}
+
+.references__title {
+  font-size: var(--title-h3-size, var(--h3-font-size));
+}
+
+/*========== INTERESTS ==========*/
+.interests__container {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: var(--mb-2);
+}
+
+.interests__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.interests__icon {
+  font-size: 1.5rem;
+  color: var(--text-color-light);
+  margin-bottom: .25rem;
+}
+
+/*========== SCROLL TOP ==========*/
+.scrolltop {
+  position: fixed;
+  right: 1rem;
+  bottom: -20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: .3rem;
+  background-color: var(--container-color-alt);
+  border-radius: .4rem;
+  z-index: var(--z-tooltip);
+  transition: .4s;
+  visibility: hidden;
+}
+
+.scrolltop__icon {
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+
+.show-scroll {
+  visibility: visible;
+  bottom: 5rem;
+}
+
+/*========== DOCUMENT CANVAS LAYOUT RULES (#area-cv Single Source of Truth) ==========*/
+#area-cv .home__container {
+  gap: 1.5rem;
+}
+
+#area-cv .home__data {
+  text-align: initial;
+}
+
+#area-cv .home__img {
+  justify-self: initial;
+}
+
+#area-cv .social__container {
+  grid-template-columns: repeat(3, max-content);
+}
+
+#area-cv .skills__content {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#area-cv .languages__content {
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 3.5rem;
+}
+
+#area-cv .interests__container {
+  grid-template-columns: repeat(4, max-content);
+  column-gap: 3.5rem;
+}
+
+#area-cv .section-title,
+#area-cv .profile__description {
+  text-align: initial;
+}
+
+#area-cv .resume__left {
+  background-color: var(--container-color-alt);
+}
+
+#area-cv .resume__left,
+#area-cv .resume__right {
+  padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
+}
+
+.resume {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  background-color: var(--container-color);
+  box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
+  border-radius: 8px;
+  overflow: visible;
+  margin: 0 auto;
+}
+
+.resume.resume__single-column,
+.resume:not(.bd-grid) {
+  display: block;
+  grid-template-columns: none;
+}
+
+/*========== MEDIA QUERIES ==========*/
+@media screen and (min-width: 968px) {
+
+  .bd-container {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .l-header,
+  .scrolltop {
+    display: none;
+  }
+}
+
+/*========== INLINE EDIT & DRAG HANDLE STYLES ==========*/
+.editor-control-stripped {
+  cursor: grab;
+  color: var(--text-color-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  position: absolute;
+  z-index: 20;
+  user-select: none;
+  touch-action: none;
+}
+
+.editor-control-stripped:active {
+  cursor: grabbing;
+}
+
+.editor-control-stripped:hover {
+  color: #3874ff;
+  transform: scale(1.15);
+}
+
+.editor-control-stripped {
+  top: 0.25rem;
+  left: -1.25rem;
+  font-size: 1.25rem;
+  padding: 1px 3px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.editor-control-stripped {
+  top: 0.15rem;
+  left: -1.15rem;
+  font-size: 1.05rem;
+  padding: 1px 2px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.editor-control-stripped:hover>.editor-control-stripped,
+.editor-control-stripped:hover>.editor-control-stripped {
+  opacity: 0.9;
+}
+
+/*========== PHOTO ITEM FLOATING CONTROLS ==========*/
+.cv-photo-item-edit {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.cv-photo-controls-floating {
+  position: absolute;
+  /* Appear ABOVE the image so the popover stays inside editor-control-stripped
+     bounding box. Placing it below (top: calc(100% + 6px)) caused the container
+     hover to break, hiding the section tips and delete buttons when mouse entered the popover. */
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  z-index: 120;
+}
+
+.cv-photo-item-edit:hover .cv-photo-controls-floating,
+.cv-photo-item-edit:focus-within .cv-photo-controls-floating,
+.cv-photo-controls-floating.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.cv-photo-preview-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.cv-photo-preview-wrapper:hover .cv-photo-hover-hint {
+  opacity: 1;
+}
+
+.cv-photo-hover-hint {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  gap: 3px;
+}
+
+/*========== COLUMN RESIZER (DRAGGABLE DIVIDER) ==========*/
+.editor-control-stripped {
+  touch-action: none;
+  z-index: 20;
+}
+
+.editor-control-stripped:hover .editor-control-stripped-bar,
+.editor-control-stripped-bar.active {
+  background: #3874ff !important;
+  width: 2px !important;
+  box-shadow: 0 0 6px rgba(56, 116, 255, 0.45) !important;
+}
+
+.editor-control-stripped:hover .editor-control-stripped-handle,
+.editor-control-stripped-bar.active .editor-control-stripped-handle {
+  background: #ffffff !important;
+  border-color: #3874ff !important;
+  box-shadow: 0 2px 8px rgba(56, 116, 255, 0.35) !important;
+  transform: translateY(-50%) scaleY(1.08) !important;
+}
+
+.editor-control-stripped:hover .editor-control-stripped-handle div,
+.editor-control-stripped-bar.active .editor-control-stripped-handle div {
+  background: #3874ff !important;
+}
+
+.editor-control-stripped {
+  border: 1px dashed transparent;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.editor-control-stripped:hover {
+  border-color: rgba(56, 116, 255, 0.4);
+}
+
+.editor-control-stripped:focus {
+  border-color: #3874ff;
+  outline: none;
+  background: rgba(56, 116, 255, 0.06);
+}
+
+/*========== DND EDITOR STYLES ==========*/
+.editor-control-stripped {
+  position: relative;
+  outline: 2px solid transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  border-radius: 6px;
+  padding: 0 0.25rem;
+}
+
+.editor-control-stripped {
+  position: relative;
+  outline: 1px dashed transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  border-radius: 4px;
+  padding: 0 0.25rem;
+  margin-top: 0 !important;
+}
+
+.editor-control-stripped:hover {
+  outline-color: rgba(56, 116, 255, 0.25);
+  background-color: rgba(56, 116, 255, 0.02);
+  z-index: 40;
+  cursor: grab;
+}
+
+.editor-control-stripped:hover {
+  outline-color: rgba(56, 116, 255, 0.35);
+  background-color: rgba(0, 0, 0, 0.03);
+  z-index: 45;
+  cursor: grab;
+}
+
+/* ==========================================================
+   SPLIT COMPONENT HOVER DECORATIONS (Two separate hover borders)
+   When a section or item breaks across page boundaries, the parent
+   container does not render a continuous box cutting through the fold.
+   Instead, ::before and ::after render distinct hover boxes per page.
+   ========================================================== */
+.editor-control-stripped.has-split-break,
+.editor-control-stripped.has-split-break {
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+.editor-control-stripped.has-split-break:hover,
+.editor-control-stripped.has-split-break:hover {
+  outline: none !important;
+  background-color: transparent !important;
+}
+
+/* Part 1: Top segment before the page fold */
+.editor-control-stripped.has-split-break::before,
+.editor-control-stripped.has-split-break::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--split-part1-height, 0px);
+  border-radius: 4px;
+  outline: 1px dashed transparent;
+  background-color: transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Part 2: Bottom segment after the page fold */
+.editor-control-stripped.has-split-break::after,
+.editor-control-stripped.has-split-break::after {
+  content: '';
+  position: absolute;
+  top: var(--split-part2-top, 0px);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+  outline: 1px dashed transparent;
+  background-color: transparent;
+  transition: outline-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hover highlights on split segments */
+.editor-control-stripped.has-split-break:hover::before,
+.editor-control-stripped.has-split-break:hover::after {
+  outline-color: rgba(56, 116, 255, 0.25);
+  background-color: rgba(56, 116, 255, 0.02);
+}
+
+.editor-control-stripped.has-split-break:hover::before,
+.editor-control-stripped.has-split-break:hover::after {
+  outline-color: rgba(56, 116, 255, 0.35);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Page 2 only split (when orphan title was moved to next page) */
+.editor-control-stripped.has-split-break--page2-only::before,
+.editor-control-stripped.has-split-break--page2-only::before {
+  display: none !important;
+}
+
+.bullet-item-row:hover {
+  cursor: grab;
+}
+
+.editor-control-stripped:active,
+.editor-control-stripped:active,
+.bullet-item-row:active {
+  cursor: grabbing;
+}
+
+/* Ensure text and interactive controls maintain their proper text/pointer cursor */
+.inline-edit-display,
+.inline-edit-display * {
+  cursor: pointer !important;
+}
+
+.editor-control-stripped {
+  cursor: text !important;
+}
+
+button,
+a,
+.editor-control-stripped,
+.editor-control-stripped,
+.add-bullet-btn,
+.add-section-btn,
+.editor-control-stripped {
+  cursor: pointer !important;
+}
+
+.editor-control-stripped {
+  cursor: col-resize !important;
+}
+
+.editor-control-stripped {
+  cursor: ns-resize !important;
+}
+
+/* Bullet points clean alignment */
+.experience__bullets {
+  padding-left: 0 !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.25rem !important;
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
+.experience__bullets li {
+  margin-bottom: var(--item-gap, 8px);
+  line-height: var(--line-height, 1.45);
+  font-size: var(--list-font-size, var(--normal-font-size));
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
+#area-cv ul:not(.nav__list) li,
+.simple-list-item {
+  font-size: var(--list-font-size, var(--normal-font-size));
+}
+
+/*========== ROUND ACTION BUTTONS (GREEN ADD / RED DELETE) ==========*/
+.editor-control-stripped {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.45);
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  z-index: 101;
+  pointer-events: auto;
+}
+
+.editor-control-stripped:hover {
+  transform: scale(1.18);
+  background: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.65);
+  z-index: 130 !important;
+}
+
+.editor-control-stripped {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+  transition: transform 0.15s ease, opacity 0.2s ease, visibility 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
+  position: absolute;
+  z-index: 25;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.editor-control-stripped:hover {
+  transform: scale(1.18);
+  background: #dc2626;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
+  opacity: 1 !important;
+}
+
+.editor-control-stripped {
+  top: 0.35rem;
+  right: 0.35rem;
+}
+
+.editor-control-stripped:hover>.editor-control-stripped {
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ==========================================================
+   SECTION ACTION BUTTONS GROUP (Floating Action Bar on Hover)
+   Structure: TOOLTIPS - 3 PUNTITOS - ELIMINAR
+   ========================================================== */
+.section-action-buttons {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  background: var(--container-color, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  z-index: 25;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover: Make all buttons in the group float into view together */
+.editor-control-stripped:hover>.section-action-buttons,
+.editor-control-stripped:hover .section-action-buttons {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Active State: Keep visible when either the AI tooltip or bullet popover is open */
+.section-action-buttons.has-active-popover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+/* Base button properties inside the floating group */
+.section-action-buttons .section-tips-toggle-btn,
+.section-action-buttons .section-bullet-style-btn,
+.section-action-buttons .editor-control-stripped {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* 1. TOOLTIPS Button inside action buttons */
+.section-action-buttons .section-tips-toggle-btn {
+  background: rgba(234, 179, 8, 0.14);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  box-shadow: none;
+}
+
+.section-action-buttons .section-tips-toggle-btn:hover {
+  transform: scale(1.15);
+  background: rgba(234, 179, 8, 0.25);
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.45);
+}
+
+.section-action-buttons .section-tips-toggle-btn.active {
+  background: #eab308 !important;
+  color: #ffffff !important;
+  border-color: #ca8a04 !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6) !important;
+}
+
+/* 2. 3 PUNTITOS Button (Timeline circle customization) */
+.section-action-buttons .section-bullet-style-btn {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  box-shadow: none;
+}
+
+.section-action-buttons .section-bullet-style-btn:hover {
+  transform: scale(1.15);
+  background: rgba(15, 23, 42, 0.16) !important;
+  box-shadow: 0 0 6px rgba(15, 23, 42, 0.25);
+}
+
+.section-action-buttons .section-bullet-style-btn.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 0 8px rgba(15, 23, 42, 0.45) !important;
+}
+
+/* 3. ELIMINAR Button */
+.section-action-buttons .editor-control-stripped {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
+}
+
+.section-action-buttons .editor-control-stripped:hover {
+  transform: scale(1.15);
+  background: #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5) !important;
+}
+
+/* AI Tips Section Toggle Lightbulb Button (Standalone Fallback) */
+.section-tips-toggle-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 2.45rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(234, 179, 8, 0.14);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.2);
+}
+
+.section-tips-toggle-btn.disabled {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: none;
+}
+
+.section-tips-toggle-btn.active {
+  background: #eab308;
+  color: #ffffff;
+  border-color: #ca8a04;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
+}
+
+.editor-control-stripped:hover>.section-tips-toggle-btn {
+  opacity: 0.95;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.section-tips-toggle-btn:hover {
+  transform: scale(1.18);
+  opacity: 1 !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.55);
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.editor-control-stripped {
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 20px;
+  height: 20px;
+}
+
+.editor-control-stripped:hover>.editor-control-stripped {
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Section add item button container (Positioned directly on bottom border: 50% in, 50% out) */
+.editor-control-stripped {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.editor-control-stripped:hover .editor-control-stripped,
+.editor-control-stripped:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 120 !important;
+}
+
+/* Bullet item hover delete and drag handle */
+.bullet-item-row {
+  position: relative;
+  padding-right: 1.5rem;
+  padding-left: 1.15rem;
+  border-radius: 4px;
+  margin-top: 0 !important;
+}
+
+.bullet-item-row .editor-control-stripped {
+  top: 0.1rem;
+  left: -0.75rem;
+}
+
+.bullet-item-row .bullet-del-btn {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  right: 0.1rem;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
+}
+
+.bullet-item-row:hover .bullet-del-btn {
+  opacity: 0.92;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.bullet-item-row .bullet-del-btn:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Add bullet button (Positioned directly centered on border line: 50% in, 50% out) */
+.bullet-add-row {
+  position: relative;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.editor-control-stripped:hover .bullet-add-row,
+.bullet-add-row:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 120 !important;
+}
+
+.add-bullet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #10b981;
+  background: #ffffff;
+  border: 1px dashed #10b981;
+  border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin: 0;
+  transform: translateY(-50%);
+  position: relative;
+  z-index: 110;
+  pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.add-bullet-btn:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #059669;
+  color: #059669;
+  transform: translateY(-50%) scale(1.06);
+  z-index: 130 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.column-add-section {
+  position: relative;
+  z-index: 100;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.resume__left:hover .column-add-section,
+.resume__right:hover .column-add-section,
+.resume__single-column:hover .column-add-section,
+.column-add-section:hover {
+  opacity: 1 !important;
+  z-index: 120 !important;
+}
+
+.add-section-btn {
+  background: transparent;
+  border: 2px dashed var(--text-color-light, #999);
+  color: var(--text-color, #555);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 110;
+  pointer-events: auto;
+}
+
+.add-section-btn:hover {
+  border-color: #3874ff;
+  color: #3874ff;
+  background: rgba(56, 116, 255, 0.08);
+  transform: translateY(-1px);
+  z-index: 130 !important;
+  box-shadow: 0 4px 12px rgba(56, 116, 255, 0.15);
+}
+
+/*========== ACTION MENU TOOLTIPS & BUTTONS ==========*/
+.editor-control-stripped-btn-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-control-stripped-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.45rem;
+  color: var(--title-color);
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.editor-control-stripped-btn:hover {
+  transform: scale(1.15);
+  background-color: rgba(56, 116, 255, 0.08);
+}
+
+/* Version Hub dedicated button (preserves topButtons <= 8 regression invariant) */
+.version-hub-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.45rem;
+  color: var(--title-color);
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.version-hub-btn:hover {
+  transform: scale(1.15);
+  background-color: rgba(56, 116, 255, 0.08);
+}
+
+.editor-control-stripped-tooltip {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 1000;
+}
+
+.editor-control-stripped-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #0f172a transparent transparent;
+}
+
+.editor-control-stripped-btn-wrap:hover .editor-control-stripped-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ==========================================================
+   ATS 1-COLUMN MODE & SOBER ACCENTS STYLES (EPIC 3)
+   ========================================================== */
+body {
+  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.ats-mode-active {
+  background-color: #0f172a !important;
+  /* Noticeably darker slate background for ATS mode */
+}
+
+.resume--ats-mode {
+  background-color: #ffffff !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid #334155 !important;
+  max-width: 794px !important;
+  margin: 0 auto !important;
+}
+
+.resume--ats-mode .resume__single-column {
+  background-color: #ffffff !important;
+  max-width: 794px !important;
+}
+
+.resume--ats-mode .section-title {
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 4px;
+  letter-spacing: 0.12rem;
+  text-align: left;
+  font-weight: 700;
+}
+
+.resume--ats-mode .editor-control-stripped,
+.resume--ats-mode .editor-control-stripped {
+  opacity: 0.2;
+}
+
+.resume--ats-mode:hover .editor-control-stripped,
+.resume--ats-mode:hover .editor-control-stripped {
+  opacity: 0.7;
+}
+
+.resume--ats-mode .badge {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+  /* border: 1px solid #cbd5e1 !important; */
+}
+
+.resume--ats-mode .skills__name,
+.resume--ats-mode .editor-control-stripped,
+.resume--ats-mode .experience__content,
+.resume--ats-mode .education__content {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================
+   ACTION POPUP & FLOATING MODAL STYLES (EPIC 3)
+   ========================================================== */
+.action-popover-item {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.action-popover-item:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #3874ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 116, 255, 0.08);
+}
+
+.action-popover-item:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* ==========================================================
+   VERSION MANAGER HUB & OBSIDIAN CALLOUTS (EPIC 4)
+   ========================================================== */
+.version-manager-modal {
+  animation: versionModalFadeIn 0.2s ease-out;
+}
+
+@keyframes versionModalFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.version-modal-dialog {
+  animation: versionDialogScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes versionDialogScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.version-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.version-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.modal-close-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/*========== OBSIDIAN CALLOUTS ==========*/
+.editor-control-stripped {
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.editor-control-stripped .callout-title {
+  display: flex;
+  gap: 8px;
+  font-weight: 600;
+  align-items: center;
+}
+
+.editor-control-stripped .callout-content {
+  color: var(--text-color, #334155);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ==========================================================
+   DYNAMIC CONTACT & PROFILE HEADER STYLES
+   ========================================================== */
+.contact-item-pill {
+  position: relative;
+  transition: all 0.2s ease;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.contact-item-pill:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.editor-control-stripped {
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 3px;
+  padding: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.contact-item-pill:hover .editor-control-stripped {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.editor-control-stripped:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.editor-control-stripped {
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.editor-control-stripped:hover {
+  background-color: rgba(56, 116, 255, 0.14) !important;
+  border-color: var(--first-color, #3874ff) !important;
+  transform: translateY(-1px);
+  z-index: 120 !important;
+  box-shadow: 0 2px 6px rgba(56, 116, 255, 0.2);
+}
+
+/* ==========================================================
+   DYNAMIC TEXT & BULLET CONTRAST VIA BASE ELEMENT INHERITANCE
+   Behavior defined ONCE on base elements:
+   .resume__left, .resume__right, .cv-section, .cv-block,
+   .editor-control-stripped, .editor-control-stripped.
+   All child text elements (free text, descriptions, spans,
+   paragraphs, inline edits) inherit color from the base element.
+   ========================================================== */
+.resume__left,
+.resume__right,
+.resume__single-column,
+.cv-section,
+.cv-block,
+.editor-control-stripped,
+.editor-control-stripped,
+.profile__description,
+.experience__description {
+  color: var(--text-color);
+}
+
+.cv-section p,
+.cv-section span,
+.cv-section div,
+.cv-section li,
+.cv-section b,
+.cv-section strong,
+.cv-section i,
+.cv-section em,
+.cv-block p,
+.cv-block span,
+.cv-block div,
+.cv-block li,
+.editor-control-stripped p,
+.editor-control-stripped span,
+.editor-control-stripped div,
+.editor-control-stripped li,
+.profile__description p,
+.profile__description span,
+.profile__description div,
+.experience__description p,
+.experience__description span,
+.experience__description div,
+.experience__bullets,
+.experience__bullets li,
+.experience__bullets-container,
+.bullet-item-row,
+.simple-list-item,
+.skills__name,
+.inline-edit-display,
+.inline-edit-display *,
+.editor-control-stripped,
+.editor-control-stripped * {
+  color: inherit;
+}
+
+.experience__bullets,
+.experience__bullets li,
+.experience__bullets-container,
+.bullet-item-row,
+.simple-list-item,
+.skills__name {
+  color: var(--text-color) !important;
+}
+
+.experience__bullets li span,
+.bullet-item-row span,
+.simple-list-item span,
+.skills__name span {
+  color: inherit;
+}
+
+/* ==========================================================
+   LEFT COLUMN CONTINUOUS STRETCH (Item 3)
+   ========================================================== */
+.resume.bd-grid {
+  min-height: 297mm;
+  align-items: stretch;
+  gap: 0 !important;
+}
+
+.resume.bd-grid .resume__left {
+  height: 100% !important;
+  min-height: 100% !important;
+  align-self: stretch !important;
+  display: flex;
+  flex-direction: column;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.resume.bd-grid .resume__right {
+  height: 100% !important;
+  min-height: 100% !important;
+  align-self: stretch !important;
+  display: flex;
+  flex-direction: column;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ==========================================================
+   BULLET & TIMELINE CIRCLE CUSTOMIZATION (Item 4)
+   Target ONLY timeline title rounders (.experience__rounder, .education__rounder).
+   Inner bullet points remain 100% standard and standardized.
+   Zero blue accent colors.
+   ========================================================== */
+/* 1. Size */
+.bullet-size-normal .experience__rounder,
+.bullet-size-normal .education__rounder {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.bullet-size-normal .experience__line,
+.bullet-size-normal .education__line {
+  transform: translate(5px, 0) !important;
+}
+
+.bullet-size-large .experience__rounder,
+.bullet-size-large .education__rounder {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.bullet-size-large .experience__line,
+.bullet-size-large .education__line {
+  transform: translate(8px, 0) !important;
+}
+
+/* 2. Visual Artifact / Variant */
+/* Variant: Negro / Bold (Solid dark black #0f172a) */
+.bullet-variant-bold .experience__rounder,
+.bullet-variant-bold .education__rounder,
+.bullet-variant-black .experience__rounder,
+.bullet-variant-black .education__rounder {
+  background-color: #0f172a !important;
+  border: none !important;
+}
+
+/* Variant: Gris (Subtle neutral slate gray #94a3b8) */
+.bullet-variant-gray .experience__rounder,
+.bullet-variant-gray .education__rounder {
+  background-color: var(--text-color-light, #94a3b8) !important;
+  border: none !important;
+}
+
+/* Variant: Anillo / Ring (Hollow ring with solid dark border #0f172a) */
+.bullet-variant-circle .experience__rounder,
+.bullet-variant-circle .education__rounder,
+.bullet-variant-ring .experience__rounder,
+.bullet-variant-ring .education__rounder {
+  background-color: var(--container-color, #ffffff) !important;
+  border: 2.5px solid #0f172a !important;
+}
+
+/* 3. Timeline Connector Line */
+.bullet-line-none .experience__line,
+.bullet-line-none .education__line,
+.bullet-line-none [class*="__line"] {
+  display: none !important;
+}
+
+.section-bullet-style-btn:hover {
+  background-color: rgba(15, 23, 42, 0.16) !important;
+  transform: scale(1.08);
+}
+
+/* ==========================================================
+   A4 PAGE FOLD GUIDE (Visual Separation of Pages in Live Editor)
+   ========================================================== */
+.a4-page-fold-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 60;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--body-color, #e2e8f0);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 -2px 4px rgba(0, 0, 0, 0.08);
+}
+
+body.ats-mode-active .a4-page-fold-guide {
+  background-color: #0f172a !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 -2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.a4-page-fold-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed rgba(100, 116, 139, 0.35);
+  pointer-events: none;
+}
+
+.a4-page-fold-badge {
+  position: relative;
+  z-index: 65;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+body.ats-mode-active .a4-page-fold-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.a4-page-delete-btn {
+  position: relative;
+  z-index: 70 !important;
+  pointer-events: auto !important;
+}
+
+/* ==========================================================
+   A4 PAGE MARGIN INSETS (editor-only visual guides)
+   These mark the implicit per-page content boundaries that
+   the pagination algorithm enforces via contentAreaBottom
+   and nextContentAreaTop. Hidden in print via .editor-control-stripped.
+   ========================================================== */
+
+.a4-page-inset {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* ==========================================================
+   SPACER & VERTICAL WHITESPACE COMPONENT
+   ========================================================== */
+
+.spacer-section {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.spacer-section.spacer--blank {
+  background-color: transparent;
+}
+
+.spacer-section.spacer--black {
+  background-color: #000000 !important;
+}
+
+.editor-control-stripped {
+  user-select: none;
+  touch-action: none;
+}
+
+.editor-control-stripped:focus {
+  outline: none;
+}
+
+.editor-control-stripped:focus-visible > div {
+  background: #3874ff !important;
+  box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.4);
+}
+  </style>
+  <style id="cv-print-styles">
+/*===================================================================
+  PRINT STYLESHEET (src/styles/print.css)
+  Applied exclusively on top of base styles (src/index.css) during print mode.
+  Handles page geometry, super-container anti-rupture, and print media overrides.
+===================================================================*/
+
+@media all {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #ffffff !important;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  #area-cv,
+  .resume {
+    width: 794px !important;
+    min-width: 794px !important;
+    max-width: 794px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+    -webkit-box-decoration-break: slice !important;
+    box-decoration-break: slice !important;
+  }
+
+  .resume__left,
+  .resume__right {
+    /* CRITICAL: Force block display in print so browser treats each column as a normal
+       fragmentation context. CSS grid tracks do NOT reliably respect break-inside:avoid
+       across all browsers during printing, causing text lines to be cut in half.
+       With display:block, the browser applies break-inside:avoid correctly on all items. */
+    display: block !important;
+    min-height: var(--print-target-height-mm, 297mm) !important;
+    height: 100% !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+  }
+
+  #area-cv.resume__single-column {
+    height: auto !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    padding: var(--page-padding, 24px) !important;
+    background: #ffffff !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+  }
+
+  .resume__single-column,
+  #area-cv .resume__single-column {
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+  }
+
+  /* 2. REGLA BASE: Por defecto NUNCA forzar salto de página */
+  *,
+  #area-cv,
+  .resume,
+  .resume__left,
+  .resume__right,
+  .cv-section,
+  .cv-block {
+    break-before: auto;
+    page-break-before: auto;
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Prevenir terminantemente que el documento o el primer elemento de cualquier columna quiebre antes */
+  body > :first-child,
+  #area-cv,
+  .resume,
+  .resume__left,
+  .resume__right,
+  #area-cv > :first-child,
+  .resume__left > :first-child,
+  .resume__right > :first-child,
+  .cv-section:first-child,
+  .cv-section:first-of-type,
+  .cv-block:first-child,
+  .cv-block:first-of-type {
+    break-before: avoid !important;
+    page-break-before: avoid !important;
+  }
+
+  /* Las secciones como contenedor permiten quebrar su contenido internamente */
+  .cv-section,
+  .section,
+  .editor-control-stripped {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  /* 3. REGLAS DE ESPECIFICIDAD: Bloques atómicos evitan división interna */
+  .cv-block,
+  .bullet-item-row,
+  li,
+  .experience__content,
+  .education__content,
+  .skills__name,
+  .profile__description,
+  .home__data,
+  .simple-list-item,
+  li.cv-block,
+  .contact__item,
+  .spacer-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+  }
+
+  .spacer-section {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 4. Protección contra encabezados huérfanos */
+  .section-title,
+  h1,
+  h2,
+  h3 {
+    text-align: left !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .section-title {
+    margin-bottom: calc(var(--item-gap, 8px) * 1.5) !important;
+  }
+
+  /* 5. REGLAS DE ESPECIFICIDAD SELECTIVAS: Asignación explícita de saltos */
+  /* Quiebre de página completa antes del elemento (nunca en el primer hijo) */
+  .force-page-break-before {
+     !important;
+     !important;
+    padding-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Quiebre de página completa antes del elemento en 1 columna / modo ATS */
+  .resume__single-column .break-page-before:not(:first-child),
+  .resume__single-column .force-page-break-before:not(:first-child),
+  .resume__single-column [data-page-break="before"]:not(:first-child),
+  .resume__single-column [data-page-break-before="true"]:not(:first-child),
+  .resume__single-column [data-editor-break-forced="true"]:not(:first-child),
+  .break-page-before:not(:first-child),
+  .force-page-break-before:not(:first-child),
+  [data-page-break="before"]:not(:first-child),
+  [data-page-break-before="true"]:not(:first-child),
+  [data-editor-break-forced="true"]:not(:first-child) {
+     !important;
+     !important;
+    padding-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Quiebre de página completa después del elemento */
+  .break-page-after,
+  .force-page-break-after,
+  [data-page-break="after"],
+  [data-page-break-after="true"] {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  /* Control de división de contenido: forzar mantener junto */
+  .break-inside-avoid,
+  .keep-together,
+  [data-break-inside="avoid"] {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Control de división de contenido: permitir división explícita */
+  .break-inside-auto,
+  .allow-split,
+  [data-break-inside="auto"] {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* 6. Supresión de márgenes terminales para evitar desbordes y hojas en blanco */
+  .cv-section:last-child,
+  .cv-section:last-of-type,
+  .cv-block:last-child,
+  .cv-block:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* ATS Mode Section Title in Print */
+  .resume--ats-mode .section-title,
+  .resume__single-column .section-title {
+    color: #0f172a !important;
+    border-bottom: 1.5px solid #0f172a !important;
+    padding-bottom: 4px !important;
+    letter-spacing: 0.12rem !important;
+    text-align: left !important;
+    font-weight: 700 !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* ATS Mode / Single Column in Print: compact tokens & container normalization */
+  .resume--ats-mode,
+  .resume__single-column {
+    --section-gap: 10px !important;
+    --item-gap: 5px !important;
+    --page-padding: 20px !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    -webkit-box-decoration-break: clone !important;
+    box-decoration-break: clone !important;
+  }
+
+  .resume--ats-mode .cv-section,
+  .resume__single-column .cv-section {
+    margin-bottom: var(--section-gap, 10px) !important;
+  }
+
+  /* ATS Mode: Neutralize editor-forced page breaks to allow clean organic CSS Paged Media flow */
+  #area-cv.resume--ats-mode [data-editor-break-forced="true"],
+  #area-cv.resume--ats-mode .break-page-before,
+  #area-cv.resume--ats-mode .force-page-break-before,
+  #area-cv.resume--ats-mode [data-page-break="before"],
+  #area-cv.resume--ats-mode [data-page-break-before="true"],
+  #area-cv.resume--ats-mode [data-section-title],
+  #area-cv.resume--ats-mode [data-section-id],
+  #area-cv.resume--ats-mode [data-item-id],
+  .resume--ats-mode [data-editor-break-forced="true"],
+  .resume--ats-mode .break-page-before,
+  .resume--ats-mode .force-page-break-before,
+  .resume--ats-mode [data-page-break="before"],
+  .resume--ats-mode [data-page-break-before="true"],
+  .resume--ats-mode [data-section-title],
+  .resume--ats-mode [data-section-id],
+  .resume--ats-mode [data-item-id],
+  #area-cv.resume__single-column [data-editor-break-forced="true"],
+  #area-cv.resume__single-column .break-page-before,
+  #area-cv.resume__single-column .force-page-break-before,
+  #area-cv.resume__single-column [data-page-break="before"],
+  #area-cv.resume__single-column [data-page-break-before="true"],
+  #area-cv.resume__single-column [data-section-title],
+  #area-cv.resume__single-column [data-section-id],
+  #area-cv.resume__single-column [data-item-id] {
+    break-before: auto !important;
+    page-break-before: auto !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* ATS Paper Container in Print: suppress card shadow & border on physical paper */
+  #area-cv.resume--ats-mode,
+  .resume--ats-mode {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  p, h1, h2, h3 {
+    orphans: 2;
+    widows: 2;
+  }
+
+  /* Interactive Editor Artifact Suppression Fallback */
+  .editor-control-stripped,
+  .editor-control-stripped,
+  .floating-rich-toolbar,
+  .rich-toolbar,
+  [data-editor-ui="true"],
+  .inline-edit-placeholder,
+  [data-is-empty="true"] {
+    display: none !important;
+  }
+
+  /*===================================================================
+    EXCEPCIÓN COMPONENTES EN-FLUJO: PRESERVAR ESPACIO PARA CERO DESPLAZAMIENTOS
+    Ocupan el mismo espacio dimensional en el PDF sin ser visibles
+  ===================================================================*/
+  .column-add-section,
+  .column-add-section.editor-control-stripped,
+  .add-section-btn,
+  .add-section-btn.editor-control-stripped,
+  .editor-control-stripped,
+  .editor-control-stripped.editor-control-stripped,
+  .editor-control-stripped,
+  .editor-control-stripped.editor-control-stripped,
+  .bullet-add-row,
+  .bullet-add-row.editor-control-stripped,
+  .add-bullet-btn,
+  .add-bullet-btn.editor-control-stripped,
+  .editor-control-stripped,
+  .editor-control-stripped.editor-control-stripped,
+  .print-transparent-spacer,
+  [data-print-transparent-spacer="true"],
+  [data-editor-add="true"],
+  [data-editor-add="true"].editor-control-stripped,
+  [data-editor-add="true"][data-editor-ui="true"],
+  .column-add-section,
+  .column-add-section.editor-control-stripped,
+  .add-section-btn,
+  .add-section-btn.editor-control-stripped,
+  .editor-control-stripped,
+  .editor-control-stripped.editor-control-stripped {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .bullet-add-row,
+  .bullet-add-row.editor-control-stripped {
+    display: block !important;
+  }
+  .add-bullet-btn,
+  .add-bullet-btn.editor-control-stripped {
+    display: inline-flex !important;
+  }
+  .editor-control-stripped,
+  .editor-control-stripped.editor-control-stripped {
+    display: inline-flex !important;
+  }
+
+  /* Preservar espaciador integrado con su altura real sin bordes interactivos */
+  .integrated-bottom-spacer,
+  .integrated-bottom-spacer.editor-control-stripped {
+    display: block !important;
+    visibility: visible !important;
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .integrated-bottom-spacer.editor-control-stripped .editor-control-stripped {
+    display: none !important;
+  }
+
+  /* Suppress all native browser list bullets in Print (Zero Native li Bullets) */
+  ul,
+  ol,
+  li,
+  ul.experience__bullets,
+  .experience__bullets,
+  ul.simple-list-ul,
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li {
+    list-style: none !important;
+    list-style-type: none !important;
+  }
+
+  li::marker,
+  ul li::marker,
+  ol li::marker,
+  .experience__bullets li::marker,
+  ul.simple-list-ul li::marker {
+    display: none !important;
+    content: "" !important;
+    font-size: 0 !important;
+    color: var(--circle-color, var(--text-color, #334155)) !important;
+  }
+
+  /* Atomic blocks, single-item entries, titles, and headers NEVER split across pages or slice characters */
+  .experience__content,
+  .experience__content.cv-block,
+  .education__content,
+  .cv-block,
+  .section-title,
+  .experience__title,
+  .education__title,
+  .experience__data,
+  h1, h2, h3, h4, h5, h6 {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Multi-bullet list containers and parent blocks allow organic splitting ONLY when containing at least 2 bullets */
+  .experience__bullets-container:has(li:nth-child(2)),
+  ul.experience__bullets:has(li:nth-child(2)),
+  ul.simple-list-ul:has(li:nth-child(2)),
+  .simple-list-container:has(li:nth-child(2)),
+  .experience__content:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__content:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__content:has(.experience__bullets-container li:nth-child(2)),
+  .experience__content:has(.bullet-item-row:nth-of-type(2)),
+  .experience__content:has([data-editor-break-forced="true"]),
+  .cv-block:has(ul.experience__bullets > li:nth-child(2)),
+  .cv-block:has(ul.simple-list-ul > li:nth-child(2)),
+  .cv-block:has(.experience__bullets-container li:nth-child(2)),
+  .cv-block:has(.bullet-item-row:nth-of-type(2)),
+  .cv-block:has([data-editor-break-forced="true"]),
+  .experience__content.cv-block:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__content.cv-block:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__content.cv-block:has(.experience__bullets-container li:nth-child(2)),
+  .experience__content.cv-block:has(.bullet-item-row:nth-of-type(2)),
+  .experience__content.cv-block:has([data-editor-break-forced="true"]),
+  .editor-control-stripped:has(ul.experience__bullets > li:nth-child(2)),
+  .editor-control-stripped:has(ul.simple-list-ul > li:nth-child(2)),
+  .editor-control-stripped:has(.experience__bullets-container li:nth-child(2)),
+  .editor-control-stripped:has(.bullet-item-row:nth-of-type(2)),
+  .editor-control-stripped:has([data-editor-break-forced="true"]),
+  .experience__data:has(ul.experience__bullets > li:nth-child(2)),
+  .experience__data:has(ul.simple-list-ul > li:nth-child(2)),
+  .experience__data:has(.experience__bullets-container li:nth-child(2)),
+  .experience__data:has([data-editor-break-forced="true"]) {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Individual bullets must strictly avoid mid-character splitting */
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li,
+  li.cv-block,
+  .bullet-item-row {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  ul.experience__bullets,
+  .experience__bullets,
+  ul.simple-list-ul {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .experience__description {
+    margin-bottom: 2px !important;
+  }
+
+  ul.experience__bullets li,
+  .experience__bullets li,
+  ul.simple-list-ul li,
+  .bullet-item-row {
+    margin-top: 0 !important;
+    margin-bottom: var(--item-gap, 8px) !important;
+    line-height: var(--line-height, 1.45) !important;
+    font-size: var(--list-font-size, var(--normal-font-size)) !important;
+    color: inherit !important;
+    text-align: left !important;
+  }
+
+  ul.experience__bullets li p,
+  ul.experience__bullets li span.inline-edit-display,
+  ul.experience__bullets li span.inline-edit-display * {
+    color: inherit !important;
+  }
+
+  /* Skills Bullet Rows: Guarantee 100% transparent background in PDF print */
+  .skills__name,
+  .skills__content,
+  li.skills__name {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  ul.experience__bullets li p,
+  ul.experience__bullets li div,
+  ul.experience__bullets li span.inline-edit-display,
+  .experience__bullets li p,
+  .experience__bullets li div,
+  .experience__bullets li span.inline-edit-display,
+  ul.simple-list-ul li p,
+  ul.simple-list-ul li div,
+  ul.simple-list-ul li span.inline-edit-display {
+    display: inline !important;
+    margin: 0 !important;
+  }
+}
+
+  </style>
+  <style id="cv-snapshot-breaks"></style>
+
+<style id="test-ats-compact">
+  @media print, all {
+    .resume--ats-mode,
+    .resume__single-column,
+    #area-cv.resume--ats-mode,
+    #area-cv.resume__single-column {
+      --section-gap: 8px !important;
+      --item-gap: 4px !important;
+      --page-padding: 16px !important;
+      --line-height: 1.38 !important;
+    }
+    .resume--ats-mode .section-title,
+    .resume__single-column .section-title {
+      margin-bottom: 4px !important;
+      padding-bottom: 2px !important;
+    }
+  }
+</style>
+</head>
+<body style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: #fafafa; --right-bg: #ffffff; font-family: Poppins, sans-serif;"><div class="resume resume__single-column resume--ats-mode" id="area-cv" data-total-pages="2" style="display: block; width: 100%; min-width: 794px; max-width: 794px; margin: 0px auto; padding: var(--page-padding, 24px); background: rgb(255, 255, 255); gap: 0px; min-height: 594mm !important; position: relative; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: #fafafa; --right-bg: #ffffff; --body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; font-family: Poppins, sans-serif; line-height: 1.45; --print-target-height-mm: 594mm; --print-total-pages: 2;"><div class="resume__single-column" style="display: flex; flex-direction: column; width: 100%; max-width: 794px; margin-right: auto; margin-bottom: 0px; margin-left: auto; padding-right: 0px; padding-bottom: 0px; padding-left: 0px;"><section class="home section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="profile_header" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><div class=""><div class="home__data bd-grid editable-item-container cv-block" data-item-id="prof_1" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><div class="home__data home__data-title-subtitle" style="break-inside: avoid !important;"><h1 class="home__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">JUAN IGNACIO CARRIZO</span></h1><h2 class="home__subtitle" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Senior Full-Stack Engineer &amp; Systems Architect</span></h2></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-profile_header" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="social section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="contact" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><div class=""><div class="experience__content editable-item-container cv-block" data-item-id="contact_1" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;"><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin lucide" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg> <span tabindex="0" role="button" aria-label="Ciudad, País" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">San Miguel de Tucumán, Argentina</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail lucide" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> <span tabindex="0" role="button" aria-label="tu.email@ejemplo.com" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">juanicarrizo97@gmail.com</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone lucide" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg> <span tabindex="0" role="button" aria-label="+54 9 11 1234 5678" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">+54 9 381 6706133</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 lucide-share-2 lucide" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg> <span tabindex="0" role="button" aria-label="linkedin.com/in/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">linkedin.com/in/juan-ignacio-carrizo-juani981</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-git2 lucide-folder-git-2 lucide" aria-hidden="true"><path d="M18 19a5 5 0 0 1-5-5v8"></path><path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5"></path><circle cx="13" cy="12" r="2"></circle><circle cx="20" cy="19" r="2"></circle></svg> <span tabindex="0" role="button" aria-label="github.com/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">github.com/juani981</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-contact" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="profile section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="about" data-section-id="about" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="about" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Perfil Profesional</span></h2><div class=""><div class="profile__description editable-item-container cv-block" data-item-id="about_1" data-section-id="about" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ingeniero de software especializado en arquitecturas distribuidas, backend (.NET, C#, PHP, Laravel) y optimización de bases de datos relacionales (Oracle, PostgreSQL, MySQL).</span></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-about" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="experience" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="experience" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">EXPERIENCIA LABORAL</span></h2><div class="experience__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="exp_1" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Desarrollador Web Full-Stack</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2023 – Actualidad</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Dirección General de Catastro | San Miguel de Tucumán</span></span><p class="experience__description"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo técnico en modernización de arquitecturas de bases de datos.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Refactorización integral de microservicios PHP y backend C#.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Optimización de planes de ejecución en PostgreSQL y Oracle.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1_bullet_2" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseño de pipelines de CI/CD contenerizados con Docker.</span></span></li></ul><div id="DndDescribedBy-13" style="display: none;">
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  </div><div id="DndLiveRegion-13" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_2" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Pasante de Soporte Técnico (IT)</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2023 – 2024</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Dirección General de Catastro | San Miguel de Tucumán</span></span><p class="experience__description"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Soporte de infraestructura y equipamiento institucional.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_2_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Administración y mantenimiento de estaciones de trabajo Windows.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_2_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Configuración y despliegue de switches y puntos de acceso de red.</span></span></li></ul><div id="DndDescribedBy-15" style="display: none;">
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  </div><div id="DndLiveRegion-15" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-experience" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="projects" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="projects" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">PROYECTOS DESTACADOS</span></h2><div class="experience__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="proj_1" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 4px;"><h3 class="experience__title" style="display: flex; align-items: center; gap: 6px; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre del Proyecto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ressume PDF Vector Engine</span></h3><span class="experience__company" style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025</span></span></div><span class="experience__company" style="font-weight: 500; color: var(--title-color);"><span tabindex="0" role="button" aria-label="Rol o Tecnologías (ej: React, Node.js, PostgreSQL)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">React · TypeScript · CSS Grid</span></span><div class="social__container bd-grid" style="margin-top: 0.2rem; margin-bottom: 0.2rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">Demo / Repositorio</span></span></div><p class="experience__description"><span tabindex="0" role="button" aria-label="Descripción del impacto, arquitectura o problema resuelto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Motor de exportación de CVs con 100% de texto seleccionable y cero artefactos.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="proj_1_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-17" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Renderizado estático A4 sin pérdida de calidad</span></span></li></ul><div id="DndDescribedBy-17" style="display: none;">
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  </div><div id="DndLiveRegion-17" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="proj_2" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 4px;"><h3 class="experience__title" style="display: flex; align-items: center; gap: 6px; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre del Proyecto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Orquestador Moodle &amp; Microservicios</span></h3><span class="experience__company" style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2024</span></span></div><span class="experience__company" style="font-weight: 500; color: var(--title-color);"><span tabindex="0" role="button" aria-label="Rol o Tecnologías (ej: React, Node.js, PostgreSQL)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Docker Compose · Terraform · Ansible · Python</span></span><div class="social__container bd-grid" style="margin-top: 0.2rem; margin-bottom: 0.2rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">GitHub Repo</span></span></div><p class="experience__description"><span tabindex="0" role="button" aria-label="Descripción del impacto, arquitectura o problema resuelto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Aprovisionamiento automatizado de infraestructura educativa basada en contenedores.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="proj_2_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-19" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Arquitectura para escenarios multi-nodo autoconfigurados</span></span></li></ul><div id="DndDescribedBy-19" style="display: none;">
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  </div><div id="DndLiveRegion-19" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-projects" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold has-split-break has-split-break--page2-only" id="education" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" data-section-split="page2-only" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); --split-part1-height: 0px; --split-part2-top: 176px; transition: transform linear;"><h2 class="section-title force-page-break-before break-page-before" data-section-title="education" data-editor-break-forced="true" data-editor-break-fold="1" style="margin-top: 0px !important;  padding-top: var(--page-padding, 24px) !important; break-inside: auto !important;" data-page-break="before" data-page-break-before="true" data-page-break-forced="true" data-page-break-fold="1"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">EDUCACIÓN</span></h2><div class="education__container bd-grid"><div class="education__content editable-item-container cv-block" data-item-id="edu_1" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div class="education__time"><span class="education__rounder"></span><span class="education__line"></span></div><div class="education__data bd-grid" style="width: 100%; break-inside: avoid !important;"><h3 class="education__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ingeniería en Informática</span></h3><span class="education__studies"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Universidad Nacional de Tucumán</span></span><span class="education__year"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2020 – 2025</span></span></div></div><div class="education__content editable-item-container cv-block" data-item-id="edu_2" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div class="education__time"><span class="education__rounder"></span><span class="education__line"></span></div><div class="education__data bd-grid" style="width: 100%; break-inside: avoid !important;"><h3 class="education__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Programador Universitario (Graduado)</span></h3><span class="education__studies"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Universidad Nacional de Tucumán</span></span><span class="education__year"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2021 – 2024</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-education" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="skills section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="skills" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="skills" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">HABILIDADES TÉCNICAS</span></h2><div class="skills__container bd-grid"><ul class="skills__content bd-grid" style="grid-template-columns: 1fr; padding: 0px; list-style: none !important;"><li class="skills__name editable-item-container cv-block" data-item-id="skill_1" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Backend &amp; Cloud</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">PostgreSQL, Docker, CI/CD, Node.js, PHP, C#</span></span></li><li class="skills__name editable-item-container cv-block" data-item-id="skill_2" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Bases de Datos</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Oracle PL/SQL, PostgreSQL, MySQL, Indexación</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-skills" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="certificates" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="certificates" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">CERTIFICACIONES</span></h2><div class="education__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="cert_1" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: flex-start; gap: 0.65rem;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background-color: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-check" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg></span><div style="flex: 1 1 0%; min-width: 0px;"><div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px;"><h3 class="education__title" style="margin: 0px; font-weight: 600; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre de la Certificación..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">AWS Certified Solutions Architect</span></h3><span style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025</span></span></div><div style="font-size: var(--body-small-font-size, var(--small-font-size)); color: inherit; margin-top: 1px;"><span tabindex="0" role="button" aria-label="Entidad Emisora (ej: AWS, Cisco, Microsoft)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Amazon Web Services</span> · <span style="color: var(--text-color-light); font-size: var(--body-smaller-font-size, var(--smaller-font-size));">ID: <span tabindex="0" role="button" aria-label="Código o Credencial..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">AWS-PSA-98214</span></span></div><div class="social__container bd-grid" style="margin-top: 0.15rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">Verificar Credencial</span></span></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="cert_2" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: flex-start; gap: 0.65rem;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background-color: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-check" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m16 9-5.5 5.5L8 12"></path></svg></span><div style="flex: 1 1 0%; min-width: 0px;"><div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px;"><h3 class="education__title" style="margin: 0px; font-weight: 600; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre de la Certificación..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diplomatura en Ingeniería de Datos</span></h3><span style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2024</span></span></div><div style="font-size: var(--body-small-font-size, var(--small-font-size)); color: inherit; margin-top: 1px;"><span tabindex="0" role="button" aria-label="Entidad Emisora (ej: AWS, Cisco, Microsoft)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Universidad Nacional de Tucumán</span> · <span style="color: var(--text-color-light); font-size: var(--body-smaller-font-size, var(--smaller-font-size));">ID: <span tabindex="0" role="button" aria-label="Código o Credencial..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">UNT-DATA-2024</span></span></div><div class="social__container bd-grid" style="margin-top: 0.15rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">Verificar</span></span></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-certificates" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="skills section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="languages" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="languages" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">IDIOMAS</span></h2><div class="skills__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="lang_1" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;"><div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 0%; min-width: 0px;"><span style="display: inline-block; width: 6px; height: 6px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; flex-shrink: 0;"></span><div style="min-width: 0px;"><span style="font-weight: 600; font-size: var(--list-font-size, var(--normal-font-size)); color: var(--title-color);"><span tabindex="0" role="button" aria-label="Idioma (ej: Inglés, Alemán)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Inglés</span></span><div style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="Detalle o certificación (ej: EF SET C2)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Certificación EF SET 75/100</span></div></div></div><span style="font-size: var(--body-small-font-size, var(--small-font-size)); font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); border: 1px solid rgba(0, 0, 0, 0.08); white-space: nowrap; flex-shrink: 0;"><span tabindex="0" role="button" aria-label="Nivel (ej: Bilingüe, C1, Nativo)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">C2 Avanzado / Profesional</span></span></div></div><div class="experience__content editable-item-container cv-block" data-item-id="lang_2" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;"><div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 0%; min-width: 0px;"><span style="display: inline-block; width: 6px; height: 6px; background-color: var(--circle-color, var(--text-color-light)); border-radius: 50%; flex-shrink: 0;"></span><div style="min-width: 0px;"><span style="font-weight: 600; font-size: var(--list-font-size, var(--normal-font-size)); color: var(--title-color);"><span tabindex="0" role="button" aria-label="Idioma (ej: Inglés, Alemán)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Español</span></span><div style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="Detalle o certificación (ej: EF SET C2)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Lengua materna</span></div></div></div><span style="font-size: var(--body-small-font-size, var(--small-font-size)); font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); border: 1px solid rgba(0, 0, 0, 0.08); white-space: nowrap; flex-shrink: 0;"><span tabindex="0" role="button" aria-label="Nivel (ej: Bilingüe, C1, Nativo)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nativo</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-languages" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="awards" data-section-id="awards" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="awards" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">PREMIOS Y DISTINCIONES</span></h2><div class="education__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="award_1" data-section-id="awards" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: flex-start; gap: 0.65rem;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background-color: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trophy" aria-hidden="true"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"></path><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"></path><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"></path><path d="M4 22h16"></path><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"></path><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"></path></svg></span><div style="flex: 1 1 0%; min-width: 0px;"><div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px;"><h3 class="education__title" style="margin: 0px; font-weight: 600; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre del Premio o Reconocimiento..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">1er Puesto — Hackathon de IA</span></h3><span style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2024</span></span></div><div style="font-size: var(--body-small-font-size, var(--small-font-size)); color: inherit; margin-top: 1px;"><span tabindex="0" role="button" aria-label="Organización Emisora / Competencia..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">MinCyT &amp; IEEE</span></div><p class="experience__description" style="margin-top: 0.2rem;"><span tabindex="0" role="button" aria-label="Motivo de la distinción o logro alcanzado..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Premio por desarrollo de sistema de diagnóstico predictivo.</span></p></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-awards" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="publications" data-section-id="publications" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="publications" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">PUBLICACIONES</span></h2><div class="education__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="pub_1" data-section-id="publications" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: flex-start; gap: 0.65rem;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background-color: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg></span><div style="flex: 1 1 0%; min-width: 0px;"><div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px;"><h3 class="education__title" style="margin: 0px; font-weight: 600; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Título del Artículo o Publicación..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Optimización de Microservicios con Event-Driven Design</span></h3><span style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2025" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2024</span></span></div><div style="font-size: var(--body-small-font-size, var(--small-font-size)); color: inherit; margin-top: 1px;"><span tabindex="0" role="button" aria-label="Editorial, Revista Científica o Conferencia..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">IEEE Latin America Transactions</span></div><div class="social__container bd-grid" style="margin-top: 0.15rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">Leer Paper</span></span></div><p class="experience__description" style="margin-top: 0.2rem;"><span tabindex="0" role="button" aria-label="Resumen del paper, hallazgos o temas cubiertos..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Análisis de rendimiento en backends de alta concurrencia.</span></p></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-publications" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="volunteering" data-section-id="volunteering" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="volunteering" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">VOLUNTARIADO Y LIDERAZGO</span></h2><div class="experience__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="vol_1" data-section-id="volunteering" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px;"><h3 class="experience__title" style="display: flex; align-items: center; gap: 6px; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Rol / Voluntariado..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Mentor Comunitario</span></h3><span class="experience__company" style="font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span tabindex="0" role="button" aria-label="2024 – Presente" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2023 – Presente</span></span></div><span class="experience__company" style="font-weight: 500; color: var(--title-color);"><span tabindex="0" role="button" aria-label="Organización / ONG / Comunidad..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Open Source Argentina</span></span><p class="experience__description"><span tabindex="0" role="button" aria-label="Descripción del propósito o impacto social..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Capacitación en programación para estudiantes.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="vol_1_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-21" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Talleres de Git y desarrollo web moderno</span></span></li></ul><div id="DndDescribedBy-21" style="display: none;">
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  </div><div id="DndLiveRegion-21" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-volunteering" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="skills section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="references" data-section-id="references" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="references" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">REFERENCIAS</span></h2><div class="skills__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="ref_1" data-section-id="references" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div style="width: 100%; display: flex; align-items: flex-start; gap: 0.65rem;"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background-color: var(--container-color-alt, rgba(0, 0, 0, 0.05)); color: var(--title-color); flex-shrink: 0; margin-top: 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-check" aria-hidden="true"><path d="m16 11 2 2 4-4"></path><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></span><div style="flex: 1 1 0%; min-width: 0px;"><h3 class="education__title" style="margin: 0px; font-weight: 600; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Nombre de la Referencia..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ing. Martín González</span></h3><div style="font-size: var(--body-small-font-size, var(--small-font-size)); color: inherit; margin-top: 1px;"><span tabindex="0" role="button" aria-label="Cargo y Empresa (ej: VP of Engineering en Globant)..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Líder de Arquitectura en Globant</span></div><div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.25rem; font-size: var(--body-smaller-font-size, var(--smaller-font-size)); color: var(--text-color-light);"><span style="display: inline-flex; align-items: center; gap: 4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> <span tabindex="0" role="button" aria-label="correo@ejemplo.com" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">martin.gonzalez@ejemplo.com</span></span><span style="display: inline-flex; align-items: center; gap: 4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg> <span tabindex="0" role="button" aria-label="+54 9 381 ..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">+54 9 381 555-1234</span></span><span style="font-style: italic;">(<span tabindex="0" role="button" aria-label="Relación (ej: Ex-Líder Técnico)" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ex-Líder Técnico Directo</span>)</span></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-references" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="simple_list" data-section-id="simple_list" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="simple_list" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">CURSOS ADICIONALES</span></h2><div class="experience__container bd-grid"><ul class="experience__bullets simple-list-ul" style="color: var(--text-color); padding: 0px; list-style: none !important; break-inside: auto !important;"><li class="simple-list-item editable-item-container cv-block" data-item-id="sl_1" data-section-id="simple_list" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Introducción al Análisis de Datos con Python — Desafío LATAM (2025)</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-simple_list" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div></div>
+
+<script>
+window.addEventListener('load', () => {
+  const sections = Array.from(document.querySelectorAll('#area-cv section, #area-cv .cv-section'));
+  const results = sections.map(s => {
+    const r = s.getBoundingClientRect();
+    return { id: s.id, top: r.top, bottom: r.bottom, height: r.height };
+  });
+  const area = document.getElementById('area-cv').getBoundingClientRect();
+  const d = document.createElement('pre');
+  d.id = 'measure-out';
+  d.textContent = JSON.stringify({ area, sections }, null, 2);
+  document.body.appendChild(d);
+});
+</script>
+
+<script>
+window.addEventListener('load', () => {
+  const eduContainer = document.querySelector('#education .education__container');
+  const eduSection = document.getElementById('education');
+  const csCont = window.getComputedStyle(eduContainer);
+  const csSec = window.getComputedStyle(eduSection);
+  const info = {
+    section: { display: csSec.display, breakInside: csSec.breakInside },
+    container: { display: csCont.display, breakInside: csCont.breakInside }
+  };
+  const d = document.createElement('pre');
+  d.id = 'edu-style-out';
+  d.textContent = JSON.stringify(info, null, 2);
+  document.body.appendChild(d);
+});
+</script>
+<pre id="measure-out">{
+  "area": {
+    "x": 0,
+    "y": 0,
+    "width": 794,
+    "height": 2245.03125,
+    "top": 0,
+    "right": 794,
+    "bottom": 2245.03125,
+    "left": 0
+  },
+  "sections": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ]
+}</pre><pre id="edu-style-out">{
+  "section": {
+    "display": "flex",
+    "breakInside": "auto"
+  },
+  "container": {
+    "display": "grid",
+    "breakInside": "auto"
+  }
+}</pre></body></html>

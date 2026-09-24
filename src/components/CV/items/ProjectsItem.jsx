@@ -2,6 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
+import { ListPlus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -16,6 +17,7 @@ import {
   arrayMove, 
   sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
+import AddBulletPoint from '../../Editor/AddBulletPoint';
 
 
 const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
@@ -37,7 +39,7 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
             />
           </h3>
           {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 isPrint={true}
@@ -77,18 +79,21 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
 
         {bullets.length > 0 && (
           <div className="experience__bullets-container">
-            <ul className="experience__bullets" style={{ paddingLeft: '1.15rem', marginTop: '0.25rem', marginBottom: 0, listStyleType: 'disc' }}>
+            <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
                 const bulletText = typeof b === 'string' ? b : (b?.text || '');
                 return (
                   <li
                     key={idx}
                     className="cv-block"
+                    data-item-id={`${item.id}_bullet_${idx}`}
                     style={{
-                      display: 'list-item',
-                      listStyleType: 'disc',
-                      marginBottom: 'calc(var(--item-gap, 6px) / 2)',
-                      lineHeight: 1.45,
+                      display: 'block',
+                      listStyle: 'none',
+                      listStyleType: 'none',
+                      marginBottom: 'calc(var(--item-gap, 8px) / 2)',
+                      lineHeight: 'var(--line-height, 1.45)',
+                      fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
                     }}
@@ -168,7 +173,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
             />
           </h3>
           {item.date && (
-            <span className="experience__company" style={{ fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+            <span className="experience__company" style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.date || ''} 
                 onSave={(val) => onUpdateItem(sectionId, item.id, 'date', val)} 
@@ -221,7 +226,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 items={bulletItems.map(b => b.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
+                <ul className="experience__bullets" style={{ padding: 0, marginTop: '0.25rem', marginBottom: 0, listStyle: 'none' }}>
                   {bulletItems.map((bulletObj) => (
                     <SortableBulletItem
                       key={bulletObj.id}
@@ -233,7 +238,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
                       bullets={bullets}
                       onUpdateItem={onUpdateItem}
                       onDeleteBullet={handleDeleteBullet}
-                      marginBottom="calc(var(--item-gap, 6px) / 2)"
+                      marginBottom="calc(var(--item-gap, 8px) / 2)"
                     />
                   ))}
                 </ul>
@@ -242,26 +247,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
           )}
 
           {/* Add Bullet Button */}
-          <div 
-            className="bullet-add-row no-print" 
-            style={{ 
-              paddingLeft: '1.15rem',
-              height: 0,
-              lineHeight: 0,
-              overflow: 'visible',
-              position: 'relative'
-            }}
-          >
-            <button
-              type="button"
-              className="add-bullet-btn no-print"
-              onClick={handleAddBullet}
-              title="Agregar logro / funcionalidad al proyecto"
-            >
-              <i className='bx bx-plus' style={{ fontSize: '13px', fontWeight: 'bold' }}></i>
-              <span>Agregar viñeta de impacto</span>
-            </button>
-          </div>
+          <AddBulletPoint helperText = {"Agregar logro / funcionalidad al proyecto"} handleAddBullet={handleAddBullet} />
         </div>
       </div>
     </>

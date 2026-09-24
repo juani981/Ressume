@@ -128,21 +128,52 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     }));
   }, [applyStateWithHistory]);
 
-  const moveSectionToColumnAndIndex = useCallback((activeSectionId, targetColumn, overSectionId = null) => {
+  const moveSectionToColumnAndIndex = useCallback((activeSectionId, targetColumn, overSectionId = null, position = null) => {
     if (typeof applyStateWithHistory !== 'function') return;
     applyStateWithHistory(prev => {
       const activeSec = prev.sections.find(s => s.id === activeSectionId);
       if (!activeSec) return prev;
+
+      if (overSectionId === activeSectionId && targetColumn === activeSec.column) {
+        return prev;
+      }
+
       const updatedSec = { ...activeSec, column: targetColumn };
       const remainingSections = prev.sections.filter(s => s.id !== activeSectionId);
+
       let insertIndex = -1;
       if (overSectionId && overSectionId !== activeSectionId) {
-        insertIndex = remainingSections.findIndex(s => s.id === overSectionId);
+        const overIndexInRemaining = remainingSections.findIndex(s => s.id === overSectionId);
+        if (overIndexInRemaining !== -1) {
+          let shouldPlaceBelow = false;
+          if (position === 'below' || position === 'after') {
+            shouldPlaceBelow = true;
+          } else if (position === 'above' || position === 'before') {
+            shouldPlaceBelow = false;
+          } else {
+            const colSections = prev.sections.filter(s => s.column === targetColumn);
+            const oldColIdx = colSections.findIndex(s => s.id === activeSectionId);
+            const overColIdx = colSections.findIndex(s => s.id === overSectionId);
+            if (oldColIdx !== -1 && overColIdx !== -1) {
+              shouldPlaceBelow = oldColIdx < overColIdx;
+            } else if (activeSec.column === targetColumn) {
+              const oldIdx = prev.sections.findIndex(s => s.id === activeSectionId);
+              const overIdx = prev.sections.findIndex(s => s.id === overSectionId);
+              shouldPlaceBelow = oldIdx !== -1 && overIdx !== -1 && oldIdx < overIdx;
+            } else {
+              shouldPlaceBelow = false;
+            }
+          }
+
+          insertIndex = shouldPlaceBelow ? overIndexInRemaining + 1 : overIndexInRemaining;
+        }
       }
+
       if (insertIndex === -1) {
         const lastColIndex = remainingSections.reduce((lastIdx, s, idx) => s.column === targetColumn ? idx : lastIdx, -1);
         insertIndex = lastColIndex !== -1 ? lastColIndex + 1 : remainingSections.length;
       }
+
       const newSections = [...remainingSections];
       newSections.splice(insertIndex, 0, updatedSec);
       return { ...prev, sections: newSections };

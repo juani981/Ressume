@@ -1,5 +1,6 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
+import { UserCheck, Mail, Phone } from 'lucide-react';
 
 const ReferencesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
   return (
@@ -18,7 +19,7 @@ const ReferencesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           marginTop: '2px'
         }}
       >
-        <i className='bx bx-user-check' style={{ fontSize: '15px' }}></i>
+        <UserCheck size={15} />
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -31,7 +32,7 @@ const ReferencesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           />
         </h3>
 
-        <div style={{ fontSize: 'var(--small-font-size)', color: 'inherit', marginTop: '1px' }}>
+        <div style={{ fontSize: 'var(--body-small-font-size, var(--small-font-size))', color: 'inherit', marginTop: '1px' }}>
           <InlineEdit 
             value={item.subtitle || item.position || ''} 
             isPrint={isPrint}
@@ -40,10 +41,10 @@ const ReferencesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           />
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem', fontSize: 'var(--smaller-font-size)', color: 'var(--text-color-light)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem', fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
           {(item.email || !isPrint) && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <i className='bx bx-envelope'></i>{' '}
+              <Mail size={13} />{' '}
               <InlineEdit 
                 value={item.email || ''} 
                 isPrint={isPrint}
@@ -55,7 +56,7 @@ const ReferencesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
 
           {(item.phone || !isPrint) && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <i className='bx bx-phone'></i>{' '}
+              <Phone size={13} />{' '}
               <InlineEdit 
                 value={item.phone || ''} 
                 isPrint={isPrint}

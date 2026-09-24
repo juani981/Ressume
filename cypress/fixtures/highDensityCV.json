@@ -1,0 +1,304 @@
+{
+  "profile": {
+    "name": "JUAN IGNACIO CARRIZO",
+    "subtitle": "Senior Full-Stack Engineer & Systems Architect",
+    "location": "San Miguel de Tucumán, Argentina",
+    "email": "juanicarrizo97@gmail.com",
+    "phone": "+54 9 381 6706133",
+    "linkedin": "linkedin.com/in/juan-ignacio-carrizo-juani981",
+    "github": "github.com/juani981"
+  },
+  "layout": {
+    "type": "2-column",
+    "isAtsMode": false,
+    "fontFamily": "Poppins",
+    "fontScale": 1.0,
+    "titleScale": 1.0,
+    "bodyScale": 1.0,
+    "listScale": 1.0,
+    "lineHeight": 1.45,
+    "pagePadding": 24,
+    "sectionGap": 20,
+    "itemGap": 8,
+    "leftBg": "#fafafa",
+    "rightBg": "#ffffff",
+    "leftColumnWidth": null
+  },
+  "sections": [
+    {
+      "id": "profile_header",
+      "type": "profile_header",
+      "column": "left",
+      "title": "",
+      "items": [
+        {
+          "id": "prof_1",
+          "name": "JUAN IGNACIO CARRIZO",
+          "subtitle": "Senior Full-Stack Engineer & Systems Architect",
+          "location": "San Miguel de Tucumán, Argentina",
+          "email": "juanicarrizo97@gmail.com",
+          "phone": "+54 9 381 6706133",
+          "linkedin": "linkedin.com/in/juan-ignacio-carrizo-juani981",
+          "github": "github.com/juani981"
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "type": "contact",
+      "column": "left",
+      "title": "",
+      "items": [
+        {
+          "id": "contact_1",
+          "location": "San Miguel de Tucumán, Argentina",
+          "email": "juanicarrizo97@gmail.com",
+          "phone": "+54 9 381 6706133",
+          "linkedin": "linkedin.com/in/juan-ignacio-carrizo-juani981",
+          "github": "github.com/juani981",
+          "contacts": [
+            { "id": "c_loc", "type": "location", "value": "San Miguel de Tucumán, Argentina" },
+            { "id": "c_email", "type": "email", "value": "juanicarrizo97@gmail.com" },
+            { "id": "c_phone", "type": "phone", "value": "+54 9 381 6706133" },
+            { "id": "c_linkedin", "type": "linkedin", "value": "linkedin.com/in/juan-ignacio-carrizo-juani981" },
+            { "id": "c_github", "type": "github", "value": "github.com/juani981" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "type": "about",
+      "column": "left",
+      "title": "Perfil Profesional",
+      "items": [
+        {
+          "id": "about_1",
+          "description": "Ingeniero de software especializado en arquitecturas distribuidas, backend (.NET, C#, PHP, Laravel) y optimización de bases de datos relacionales (Oracle, PostgreSQL, MySQL)."
+        }
+      ]
+    },
+    {
+      "id": "experience",
+      "type": "list",
+      "column": "right",
+      "title": "EXPERIENCIA LABORAL",
+      "bulletStyle": { "size": "normal", "variant": "bold", "showLine": true },
+      "items": [
+        {
+          "id": "exp_1",
+          "title": "Desarrollador Web Full-Stack",
+          "subtitle": "Dirección General de Catastro | San Miguel de Tucumán",
+          "date": "2023 – Actualidad",
+          "description": "Liderazgo técnico en modernización de arquitecturas de bases de datos.",
+          "bullets": [
+            "Refactorización integral de microservicios PHP y backend C#.",
+            "Optimización de planes de ejecución en PostgreSQL y Oracle.",
+            "Diseño de pipelines de CI/CD contenerizados con Docker."
+          ]
+        },
+        {
+          "id": "exp_2",
+          "title": "Pasante de Soporte Técnico (IT)",
+          "subtitle": "Dirección General de Catastro | San Miguel de Tucumán",
+          "date": "2023 – 2024",
+          "description": "Soporte de infraestructura y equipamiento institucional.",
+          "bullets": [
+            "Administración y mantenimiento de estaciones de trabajo Windows.",
+            "Configuración y despliegue de switches y puntos de acceso de red."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "type": "projects",
+      "column": "right",
+      "title": "PROYECTOS DESTACADOS",
+      "bulletStyle": { "size": "normal", "variant": "bold", "showLine": true },
+      "items": [
+        {
+          "id": "proj_1",
+          "title": "Ressume PDF Vector Engine",
+          "subtitle": "React · TypeScript · CSS Grid",
+          "date": "2025",
+          "link": "github.com/juani981/Ressume",
+          "linkText": "Demo / Repositorio",
+          "description": "Motor de exportación de CVs con 100% de texto seleccionable y cero artefactos.",
+          "bullets": ["Renderizado estático A4 sin pérdida de calidad"]
+        },
+        {
+          "id": "proj_2",
+          "title": "Orquestador Moodle & Microservicios",
+          "subtitle": "Docker Compose · Terraform · Ansible · Python",
+          "date": "2024",
+          "link": "github.com/juani981/Deployment-as-a-Service-Daas",
+          "linkText": "GitHub Repo",
+          "description": "Aprovisionamiento automatizado de infraestructura educativa basada en contenedores.",
+          "bullets": ["Arquitectura para escenarios multi-nodo autoconfigurados"]
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "type": "education",
+      "column": "left",
+      "title": "EDUCACIÓN",
+      "bulletStyle": { "size": "normal", "variant": "bold", "showLine": true },
+      "items": [
+        {
+          "id": "edu_1",
+          "title": "Ingeniería en Informática",
+          "subtitle": "Universidad Nacional de Tucumán",
+          "date": "2020 – 2025"
+        },
+        {
+          "id": "edu_2",
+          "title": "Programador Universitario (Graduado)",
+          "subtitle": "Universidad Nacional de Tucumán",
+          "date": "2021 – 2024"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "type": "skills",
+      "column": "left",
+      "title": "HABILIDADES TÉCNICAS",
+      "items": [
+        {
+          "id": "skill_1",
+          "title": "Backend & Cloud",
+          "description": "PostgreSQL, Docker, CI/CD, Node.js, PHP, C#"
+        },
+        {
+          "id": "skill_2",
+          "title": "Bases de Datos",
+          "description": "Oracle PL/SQL, PostgreSQL, MySQL, Indexación"
+        }
+      ]
+    },
+    {
+      "id": "certificates",
+      "type": "certificates",
+      "column": "right",
+      "title": "CERTIFICACIONES",
+      "items": [
+        {
+          "id": "cert_1",
+          "title": "AWS Certified Solutions Architect",
+          "subtitle": "Amazon Web Services",
+          "date": "2025",
+          "credentialId": "AWS-PSA-98214",
+          "link": "aws.amazon.com/verify",
+          "linkText": "Verificar Credencial"
+        },
+        {
+          "id": "cert_2",
+          "title": "Diplomatura en Ingeniería de Datos",
+          "subtitle": "Universidad Nacional de Tucumán",
+          "date": "2024",
+          "credentialId": "UNT-DATA-2024",
+          "link": "facet.unt.edu.ar",
+          "linkText": "Verificar"
+        }
+      ]
+    },
+    {
+      "id": "languages",
+      "type": "languages",
+      "column": "left",
+      "title": "IDIOMAS",
+      "items": [
+        {
+          "id": "lang_1",
+          "title": "Inglés",
+          "subtitle": "C2 Avanzado / Profesional",
+          "description": "Certificación EF SET 75/100"
+        },
+        {
+          "id": "lang_2",
+          "title": "Español",
+          "subtitle": "Nativo",
+          "description": "Lengua materna"
+        }
+      ]
+    },
+    {
+      "id": "awards",
+      "type": "awards",
+      "column": "right",
+      "title": "PREMIOS Y DISTINCIONES",
+      "items": [
+        {
+          "id": "award_1",
+          "title": "1er Puesto — Hackathon de IA",
+          "subtitle": "MinCyT & IEEE",
+          "date": "2024",
+          "description": "Premio por desarrollo de sistema de diagnóstico predictivo."
+        }
+      ]
+    },
+    {
+      "id": "publications",
+      "type": "publications",
+      "column": "right",
+      "title": "PUBLICACIONES",
+      "items": [
+        {
+          "id": "pub_1",
+          "title": "Optimización de Microservicios con Event-Driven Design",
+          "subtitle": "IEEE Latin America Transactions",
+          "date": "2024",
+          "link": "doi.org/10.1109/sample-paper",
+          "linkText": "Leer Paper",
+          "description": "Análisis de rendimiento en backends de alta concurrencia."
+        }
+      ]
+    },
+    {
+      "id": "volunteering",
+      "type": "volunteering",
+      "column": "right",
+      "title": "VOLUNTARIADO Y LIDERAZGO",
+      "items": [
+        {
+          "id": "vol_1",
+          "title": "Mentor Comunitario",
+          "subtitle": "Open Source Argentina",
+          "date": "2023 – Presente",
+          "description": "Capacitación en programación para estudiantes.",
+          "bullets": ["Talleres de Git y desarrollo web moderno"]
+        }
+      ]
+    },
+    {
+      "id": "references",
+      "type": "references",
+      "column": "left",
+      "title": "REFERENCIAS",
+      "items": [
+        {
+          "id": "ref_1",
+          "title": "Ing. Martín González",
+          "subtitle": "Líder de Arquitectura en Globant",
+          "email": "martin.gonzalez@ejemplo.com",
+          "phone": "+54 9 381 555-1234",
+          "relationship": "Ex-Líder Técnico Directo"
+        }
+      ]
+    },
+    {
+      "id": "simple_list",
+      "type": "simple_list",
+      "column": "right",
+      "title": "CURSOS ADICIONALES",
+      "items": [
+        {
+          "id": "sl_1",
+          "text": "Introducción al Análisis de Datos con Python — Desafío LATAM (2025)"
+        }
+      ]
+    }
+  ]
+}
