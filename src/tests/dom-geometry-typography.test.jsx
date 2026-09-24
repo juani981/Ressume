@@ -313,7 +313,8 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
         );
 
         const areaCV = container.querySelector('#area-cv');
-        expect(areaCV.style.gridTemplateColumns).toBe('38% 62%');
+        const pageBox = container.querySelector('.a4-page-box') || areaCV;
+        expect(pageBox.style.gridTemplateColumns).toBe('38% 62%');
       });
 
       it('F3.10: generateCleanPrintHTML outputs dynamic grid-template-columns when leftColumnWidth is customized', () => {

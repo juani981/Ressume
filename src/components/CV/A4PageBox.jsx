@@ -121,8 +121,8 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     ? (typeof pagePadding === 'number' ? `${pagePadding}px` : pagePadding)
     : 'var(--page-padding, 24px)';
 
-  // Effective height: defaults to editor tunable height, overridable by prop
-  const effectiveHeight = pageHeight || EDITOR_PAGE_HEIGHT_CSS;
+  // Effective height: defaults to standard A4 height (297mm), overridable by prop
+  const effectiveHeight = pageHeight || A4_HEIGHT_CSS;
 
   // Container style adhering strictly to Rule 15 of AGENTS.md
   const containerStyle = {
@@ -142,6 +142,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
       ? {
           display: 'grid',
           gridTemplateColumns: effectiveGridColumns,
+          alignItems: 'stretch',
           background: gradientBackground,
           padding: 0,
         }
@@ -338,7 +339,6 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   const classNames = [
     'a4-page-box',
     effective2Col ? 'bd-grid' : 'resume__single-column-page',
-    isAtsMode ? 'resume--ats-mode' : '',
     className,
   ]
     .filter(Boolean)

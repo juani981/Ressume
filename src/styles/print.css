@@ -89,9 +89,13 @@
   }
 
   .a4-page-box .resume__left,
-  .a4-page-box .resume__right,
-  .a4-page-box .resume__single-column {
+  .a4-page-box .resume__right {
     padding: var(--page-padding, 0px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .a4-page-box .resume__single-column {
+    padding: 0 !important;
     box-sizing: border-box !important;
   }
 
@@ -129,8 +133,8 @@
     box-decoration-break: clone !important;
   }
 
-  #area-cv.resume__single-column,
-  .resume__single-column:not(#area-cv *) {
+  #area-cv.resume__single-column:not(.has-a4-page-boxes):not(:has(.a4-page-box)),
+  .resume__single-column:not(#area-cv *):not(.a4-page-box):not(.has-a4-page-boxes) {
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;

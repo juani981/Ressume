@@ -27,6 +27,7 @@ import {
    A4_PAGE_SIZE,
    A4_WIDTH_PX,
    A4_HEIGHT_MM,
+   A4_HEIGHT_CSS,
    EDITOR_PAGE_HEIGHT_MM,
    A4_GAP_PX,
 } from "./utils/pageGeometry";
@@ -257,21 +258,22 @@ function App() {
                    data-total-pages={totalPages}
                    ref={areaCvRef}
                    style={{
-                      display: is2Col ? "grid" : "block",
-                      alignItems: is2Col ? "stretch" : undefined,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       width: "100%",
                       minWidth: `${A4_WIDTH_PX}px`,
                       maxWidth: `${A4_WIDTH_PX}px`,
                       margin: "0 auto",
-                      padding: is2Col ? 0 : "var(--page-padding, 24px)",
-                      background: is2Col
-                         ? `linear-gradient(to right, ${cvData.layout?.leftBg || "#f3f4f6"} 0%, ${cvData.layout?.leftBg || "#f3f4f6"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} ${leftColPercent}%, ${cvData.layout?.rightBg || "#ffffff"} 100%)`
-                         : "#ffffff",
-                      minHeight: `${totalPages * EDITOR_PAGE_HEIGHT_MM}mm`,
+                      padding: 0,
+                      background: "transparent",
+                      boxShadow: "none",
+                      borderRadius: 0,
+                      border: "none",
+                      minHeight: "auto",
                       position: "relative",
                       ...(is2Col
                          ? {
-                              gridTemplateColumns,
                               "--grid-template-columns": gridTemplateColumns,
                               "--left-col-percent": `${leftColPercent}%`,
                               "--left-bg":
@@ -293,6 +295,7 @@ function App() {
                          rightBg={cvData.layout?.rightBg || "#ffffff"}
                          leftColPercent={leftColPercent}
                          gridTemplateColumns={gridTemplateColumns}
+                         pageHeight={A4_HEIGHT_CSS}
                          pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
                          onDeletePage={deletePage}
                       >
@@ -351,12 +354,14 @@ function App() {
                                   )}
                                </DroppableColumn>
 
-                               {/* Draggable Column Divider / Resizer */}
-                               <ColumnResizer
-                                  leftColPercent={leftColPercent}
-                                  isResizing={isResizing}
-                                  onStartResize={handleResizerMouseDown}
-                               />
+                               {/* Draggable Column Divider / Resizer on Page 1 */}
+                               {pageModel.pageNumber === 1 && (
+                                  <ColumnResizer
+                                     leftColPercent={leftColPercent}
+                                     isResizing={isResizing}
+                                     onStartResize={handleResizerMouseDown}
+                                  />
+                               )}
 
                                <DroppableColumn
                                   id={pageModel.pageNumber === 1 ? "column-right" : `column-right-page-${pageModel.pageNumber}`}

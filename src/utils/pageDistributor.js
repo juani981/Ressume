@@ -31,17 +31,28 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
     if (options.omitContinuationHeader || options.omitContinuationTitle) {
       return 0;
     }
-    if (section.title && section.title.trim() !== '') {
-      return CONTINUATION_HEADER_HEIGHT_PX + (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX);
+    if (section && section.title && section.title.trim() !== '') {
+      return (options.continuationHeaderHeightPx ?? CONTINUATION_HEADER_HEIGHT_PX);
     }
     return 0;
   }
 
-  if (section.title && section.title.trim() !== '') {
-    return (options.headerHeightPx ?? DEFAULT_HEADER_HEIGHT_PX) + (options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX);
+  if (section && section.title && section.title.trim() !== '') {
+    const isAts = Boolean(
+      options.isAts ||
+      options.isAtsMode ||
+      options.mode === 'ats' ||
+      options.mode === '1-column' ||
+      options.column === 'single'
+    );
+    if (isAts) {
+      return options.headerHeightPx ?? 36;
+    }
+    const isLeftCol = options.column === 'left';
+    return options.headerHeightPx ?? (options.isEditor ? (isLeftCol ? 52 : 44) : DEFAULT_HEADER_HEIGHT_PX);
   }
 
-  return options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
+  return 0;
 }
 
 /**
@@ -72,62 +83,108 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
   const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
   const lineHeight = options.lineHeight ?? 1.45;
   const fontFactor = fontScale * (lineHeight / 1.45);
+  const isAts = Boolean(
+    options.isAts ||
+    options.isAtsMode ||
+    options.mode === 'ats' ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+  const isLeftCol = !isAts && options.column === 'left';
+  const isEditor = Boolean(options.isEditor);
 
   switch (sectionType) {
     case 'profile_header': {
-      let h = 60;
-      if (item.subtitle) h += 20;
-      if (item.photo) h += 50;
-      return Math.round(h * fontScale) + itemGap;
+      if (isAts) {
+        let h = 48;
+        if (item.subtitle) h += 20;
+        return Math.round(h * fontFactor) + itemGap;
+      }
+      let h = isLeftCol ? 85 : 55;
+      if (item.subtitle) h += isLeftCol ? 28 : 18;
+      if (item.photo) h += isLeftCol ? 80 : 60;
+      return Math.round(h * fontFactor) + itemGap;
     }
     case 'contact': {
       if (Array.isArray(item.contacts) && item.contacts.length > 0) {
-        const rows = Math.ceil(item.contacts.length / 2);
-        return Math.round((16 + rows * 22) * fontScale) + itemGap;
+        if (isAts) {
+          // In ATS mode, contacts render horizontally in a responsive flex row
+          const rows = Math.ceil(item.contacts.length / 4);
+          return Math.round((12 + rows * 20) * fontFactor) + itemGap;
+        }
+        const rows = isLeftCol ? item.contacts.length : Math.ceil(item.contacts.length / 2);
+        return Math.round((20 + rows * (isLeftCol ? 32 : 24) + (isEditor ? 24 : 0)) * fontFactor) + itemGap;
       }
-      return Math.round(60 * fontScale) + itemGap;
+      return Math.round(40 * fontFactor) + itemGap;
     }
     case 'about': {
       const text = item.description || item.text || '';
-      const lines = Math.max(1, Math.ceil(text.length / 60));
-      return Math.round((20 + lines * 18) * fontFactor) + itemGap;
+      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 45);
+      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'skills': {
       const desc = item.description || '';
-      const lines = Math.max(1, Math.ceil(desc.length / 60));
-      return Math.round((22 + lines * 18) * fontFactor) + itemGap;
+      const charsPerLine = isLeftCol ? 20 : (isAts ? 80 : 45);
+      const lines = Math.max(1, Math.ceil(desc.length / charsPerLine));
+      const titleH = item.title ? (isLeftCol ? 26 : 22) : 0;
+      return Math.round((titleH + lines * 20) * fontFactor) + itemGap + (isLeftCol && isEditor ? 14 : 0);
+    }
+    case 'education': {
+      if (isAts) {
+        let h = 46;
+        if (item.description) {
+          const lines = Math.max(1, Math.ceil(item.description.length / 80));
+          h += lines * 18;
+        }
+        return Math.round(h * fontFactor) + itemGap;
+      }
+      let h = isLeftCol ? 104 : 64;
+      if (item.description) {
+        const charsPerLine = isLeftCol ? 22 : 45;
+        const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+        h += lines * 20;
+      }
+      return Math.round(h * fontFactor) + itemGap + (isEditor ? 18 : 0);
     }
     case 'list':
     case 'experience':
     case 'projects':
     case 'volunteering': {
-      let h = 48;
+      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : (isEditor ? 42 : 52));
+      let h = isAts ? 44 : (isEditor ? 54 : 44);
       if (item.link) h += 16;
       if (item.description) {
-        const descLines = Math.max(1, Math.ceil(item.description.length / 60));
-        h += descLines * 20;
+        const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+        h += descLines * 18;
       }
       if (Array.isArray(item.bullets) && item.bullets.length > 0) {
-        h += item.bullets.length * 28;
+        for (const b of item.bullets) {
+          const bStr = typeof b === 'string' ? b : (b?.text || '');
+          const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine - 4)));
+          h += bLines * 18 + 4;
+        }
       }
       return Math.round(h * fontFactor) + itemGap;
-    }
-    case 'education': {
-      return Math.round(46 * fontFactor) + itemGap;
     }
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      return Math.round(24 * fontFactor) + itemGap;
+      const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : (isEditor ? 45 : 50));
+      const text = item.text || item.description || item.name || '';
+      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      const h = (isAts ? 22 : (isEditor ? 28 : 22)) + (lines - 1) * 18;
+      return Math.round(h * fontFactor) + itemGap;
     }
     case 'spacer': {
       return item.height || 24;
     }
     default: {
-      let h = 30;
+      let h = 40;
       if (item.description || item.text) {
         const str = String(item.description || item.text);
-        h += Math.max(1, Math.ceil(str.length / 60)) * 18;
+        const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 45);
+        h += Math.max(1, Math.ceil(str.length / charsPerLine)) * 18;
       }
       if (Array.isArray(item.bullets)) {
         h += item.bullets.length * 20;
@@ -152,7 +209,8 @@ export function estimateSectionHeight(section, options = {}) {
   const header = estimateHeaderHeight(section, Boolean(section.isContinuation), options);
   const items = Array.isArray(section.items) ? section.items : [];
   const itemsHeight = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
-  return header + itemsHeight;
+  const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
+  return header + itemsHeight + sectionGap;
 }
 
 /**
@@ -167,6 +225,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
   const buckets = {};
   let currentPage = 1;
   let currentUsedHeight = 0;
+  const pageCapacity = Math.max(100, capacity);
 
   function addToBucket(pageNum, sec) {
     if (!buckets[pageNum]) buckets[pageNum] = [];
@@ -255,84 +314,118 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
       continue;
     }
 
-    // Case 3: Automatic capacity-based distribution
+    // Case 3: Automatic capacity-based distribution adhering to the 3 Acceptance Criteria:
+    // 1. If the size of the section plus the margin set by the user fits still in the current page, do not jump.
+    // 2. If only the header of the section fits in the current page, but not the first item of the section, then jump it to the next page.
+    // 3. If the header of the section and n first items of the section fit in the current page, write that in the current page, and the remaining items to the next page.
+
+    const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
+    const gapBefore = currentUsedHeight > 0 ? sectionGap : 0;
     const headerHeight = estimateHeaderHeight(section, false, options);
     const itemHeights = items.map(it => estimateItemHeight(it, section.type, options));
     const totalItemsHeight = itemHeights.reduce((acc, h) => acc + h, 0);
-    const totalSectionHeight = headerHeight + totalItemsHeight;
+    const totalSectionHeight = gapBefore + headerHeight + (items.length > 0 ? totalItemsHeight : (section.height || 0));
 
-    if (items.length === 0) {
-      const secH = headerHeight + (section.height || 0);
-      if (currentUsedHeight + secH > capacity && currentUsedHeight > 0) {
-        currentPage++;
-        currentUsedHeight = 0;
-      }
+    // CRITERION 1: Fits still in the current page -> DO NOT JUMP
+    if (currentUsedHeight + totalSectionHeight <= pageCapacity) {
       addToBucket(currentPage, section);
-      currentUsedHeight += secH;
+      currentUsedHeight += totalSectionHeight;
       continue;
     }
 
-    if (currentUsedHeight + totalSectionHeight <= capacity) {
+    // Section has NO items (e.g. spacer) and exceeds capacity on current page
+    if (items.length === 0) {
+      if (currentUsedHeight > 0) {
+        currentPage++;
+        currentUsedHeight = 0;
+      }
       addToBucket(currentPage, section);
-      currentUsedHeight += totalSectionHeight;
-    } else {
-      // Section does not fit on current page entirely
-      const remainingOnCurrent = capacity - currentUsedHeight;
-      if (currentUsedHeight > 0 && (headerHeight + itemHeights[0] > remainingOnCurrent)) {
-        // Can't fit even header + first item on current page, advance to fresh page
-        currentPage++;
-        currentUsedHeight = 0;
+      currentUsedHeight += headerHeight + (section.height || 0);
+      continue;
+    }
+
+    // Section has items and does not fit entirely on currentPage.
+    const remainingOnCurrent = pageCapacity - currentUsedHeight;
+    const minNeededForFirstItem = gapBefore + headerHeight + itemHeights[0];
+
+    // CRITERION 2: If only header fits, but not the first item, jump to next page
+    if (currentUsedHeight > 0 && minNeededForFirstItem > remainingOnCurrent) {
+      currentPage++;
+      currentUsedHeight = 0;
+
+      // On the fresh page, if the whole section fits now, place it directly
+      const freshTotalHeight = headerHeight + totalItemsHeight;
+      if (freshTotalHeight <= pageCapacity) {
+        addToBucket(currentPage, section);
+        currentUsedHeight = freshTotalHeight;
+        continue;
+      }
+    }
+
+    // CRITERION 3: Header and n first items fit in current page -> write to current page, remaining to next page
+    const currentGap = currentUsedHeight > 0 ? sectionGap : 0;
+    const availableOnPage = pageCapacity - currentUsedHeight;
+    let accumulated = currentGap + estimateHeaderHeight(section, false, options);
+    let splitIdx = 0;
+
+    while (splitIdx < items.length && (accumulated + itemHeights[splitIdx] <= availableOnPage)) {
+      accumulated += itemHeights[splitIdx];
+      splitIdx++;
+    }
+
+    // If on a fresh page even 1 item exceeds capacity, force 1 item so progress is made
+    if (splitIdx === 0) {
+      splitIdx = 1;
+      accumulated += itemHeights[0];
+    }
+
+    const part1 = {
+      ...section,
+      items: items.slice(0, splitIdx),
+    };
+    addToBucket(currentPage, part1);
+    currentUsedHeight += accumulated;
+
+    let remItems = items.slice(splitIdx);
+    let remHeights = itemHeights.slice(splitIdx);
+
+    // Remaining items go to the next page(s)
+    while (remItems.length > 0) {
+      currentPage++;
+      currentUsedHeight = 0;
+      const contHeader = estimateHeaderHeight(section, true, options);
+      let contAcc = contHeader;
+      let nextIdx = 0;
+
+      while (nextIdx < remItems.length && (contAcc + remHeights[nextIdx] <= pageCapacity)) {
+        contAcc += remHeights[nextIdx];
+        nextIdx++;
       }
 
-      // Check how many items fit on currentPage
-      let accumulated = estimateHeaderHeight(section, false, options);
-      let splitIdx = 0;
-      while (splitIdx < items.length && (accumulated + itemHeights[splitIdx] <= capacity || splitIdx === 0)) {
-        accumulated += itemHeights[splitIdx];
-        splitIdx++;
+      if (nextIdx === 0) {
+        nextIdx = 1;
+        contAcc += remHeights[0];
       }
 
-      const part1 = {
+      const contPart = {
         ...section,
-        items: items.slice(0, splitIdx),
+        id: options.uniqueContinuationIds ? `${section.id}__cont_${currentPage}` : section.id,
+        originalSectionId: section.id,
+        continuationId: `${section.id}__cont_${currentPage}`,
+        isContinuation: true,
+        continuationPage: currentPage,
+        title: (options.omitContinuationHeader || options.omitContinuationTitle)
+          ? ''
+          : options.reduceContinuationHeader
+            ? `${section.title} (Cont.)`
+            : section.title,
+        items: remItems.slice(0, nextIdx),
       };
-      addToBucket(currentPage, part1);
-      currentUsedHeight = accumulated;
+      addToBucket(currentPage, contPart);
+      currentUsedHeight = contAcc;
 
-      let remItems = items.slice(splitIdx);
-      let remHeights = itemHeights.slice(splitIdx);
-
-      while (remItems.length > 0) {
-        currentPage++;
-        currentUsedHeight = 0;
-        const contHeader = estimateHeaderHeight(section, true, options);
-        let contAcc = contHeader;
-        let nextIdx = 0;
-        while (nextIdx < remItems.length && (contAcc + remHeights[nextIdx] <= capacity || nextIdx === 0)) {
-          contAcc += remHeights[nextIdx];
-          nextIdx++;
-        }
-
-        const contPart = {
-          ...section,
-          id: options.uniqueContinuationIds ? `${section.id}__cont_${currentPage}` : section.id,
-          originalSectionId: section.id,
-          continuationId: `${section.id}__cont_${currentPage}`,
-          isContinuation: true,
-          continuationPage: currentPage,
-          title: options.omitContinuationHeader || options.omitContinuationTitle
-            ? ''
-            : options.reduceContinuationHeader
-              ? `${section.title} (Cont.)`
-              : section.title,
-          items: remItems.slice(0, nextIdx),
-        };
-        addToBucket(currentPage, contPart);
-        currentUsedHeight = contAcc;
-
-        remItems = remItems.slice(nextIdx);
-        remHeights = remHeights.slice(nextIdx);
-      }
+      remItems = remItems.slice(nextIdx);
+      remHeights = remHeights.slice(nextIdx);
     }
   }
 
@@ -380,10 +473,12 @@ export function distributeSectionsToPages(cvData, options = {}) {
     pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
+    isAts,
+    isAtsMode: isAts,
     ...options,
   };
 
-  const pageHeight = mergedOptions.pageHeightPx ?? EDITOR_PAGE_HEIGHT_PX;
+  const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
   const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding);
 
@@ -392,13 +487,13 @@ export function distributeSectionsToPages(cvData, options = {}) {
   let rightBuckets = {};
 
   if (isAts) {
-    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, mergedOptions);
+    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, { ...mergedOptions, column: 'single' });
   } else {
     const leftList = sections.filter(s => s && s.column === 'left');
     const rightList = sections.filter(s => s && s.column !== 'left');
 
-    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, mergedOptions);
-    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, mergedOptions);
+    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, { ...mergedOptions, column: 'left' });
+    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, { ...mergedOptions, column: 'right' });
   }
 
   const allBucketKeys = [

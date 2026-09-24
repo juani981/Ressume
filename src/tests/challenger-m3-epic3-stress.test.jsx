@@ -58,7 +58,7 @@ describe('Empirical Challenger M3-1: Epic 3 Stress & Invariant Verification', ()
           expect(areaCv).toHaveClass('resume--ats-mode');
           expect(areaCv).toHaveClass('resume__single-column');
           expect(areaCv).not.toHaveClass('bd-grid');
-          expect(areaCv.style.background).toBe('rgb(255, 255, 255)');
+          expect(areaCv.style.background).toBe('transparent');
         } else {
           // Even iteration -> Two-column mode
           expect(stateRecord.cvData.layout.type).toBe('2-column');

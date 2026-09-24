@@ -122,7 +122,7 @@ body {
   --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
 }
 
-#area-cv.bd-grid {
+#area-cv.bd-grid:not(.has-a4-page-boxes) {
   display: grid;
   padding: 0 !important;
   gap: 0 !important;
@@ -136,15 +136,15 @@ body {
       var(--right-bg, #ffffff) 100%);
 }
 
-#area-cv.bd-grid .resume__left,
-#area-cv.bd-grid .resume__right {
+#area-cv.bd-grid:not(.has-a4-page-boxes) .resume__left,
+#area-cv.bd-grid:not(.has-a4-page-boxes) .resume__right {
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
 
 /* 3. Modo 1 Columna (ATS) - BFC Flexbox Architecture (Zero Margin Collapse) */
-#area-cv.resume__single-column {
+#area-cv.resume__single-column:not(.has-a4-page-boxes) {
   display: flex !important;
   flex-direction: column !important;
   padding: var(--page-padding, 24px);
@@ -654,8 +654,8 @@ img {
   background-color: var(--container-color-alt);
 }
 
-#area-cv .resume__left,
-#area-cv .resume__right {
+#area-cv:not(.has-a4-page-boxes) .resume__left,
+#area-cv:not(.has-a4-page-boxes) .resume__right {
   padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
 }
 
@@ -699,7 +699,7 @@ img {
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
   position: absolute;
-  z-index: 20;
+  z-index: 50;
   user-select: none;
   touch-action: none;
 }
@@ -721,6 +721,7 @@ img {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  z-index: 50;
 }
 
 .item-drag-handle {
@@ -731,6 +732,7 @@ img {
   background: rgba(255, 255, 255, 0.85);
   border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 50;
 }
 
 .editable-section-container:hover>.section-drag-handle,
@@ -1525,7 +1527,7 @@ body.ats-mode-active {
   /* Noticeably darker slate background for ATS mode */
 }
 
-.resume--ats-mode {
+.resume--ats-mode:not(.has-a4-page-boxes):not(.a4-page-box) {
   background-color: #ffffff !important;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45) !important;
   border: 1px solid #334155 !important;
@@ -1930,16 +1932,27 @@ body.ats-mode-active {
 }
 
 #area-cv.has-a4-page-boxes .resume__left,
-#area-cv.has-a4-page-boxes .resume__right,
+#area-cv.has-a4-page-boxes .resume__right {
+  padding: var(--page-padding, 0px) !important;
+  box-sizing: border-box !important;
+}
+
 #area-cv.has-a4-page-boxes .resume__single-column {
-  padding: var(--page-padding, 0px);
-  box-sizing: border-box;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.a4-page-box {
+  border: none !important;
+  outline: none !important;
 }
 
 #area-cv.has-a4-page-boxes .cv-section:first-child,
 #area-cv.has-a4-page-boxes .cv-section:first-of-type,
 #area-cv.has-a4-page-boxes .section:first-child,
-#area-cv.has-a4-page-boxes .section:first-of-type {
+#area-cv.has-a4-page-boxes .section:first-of-type,
+#area-cv.has-a4-page-boxes .cv-section:first-child > :first-child,
+#area-cv.has-a4-page-boxes .section:first-child > :first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }

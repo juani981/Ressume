@@ -360,7 +360,9 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(areaCv).toHaveClass('resume--ats-mode');
       expect(areaCv).toHaveClass('resume__single-column');
       expect(areaCv).not.toHaveClass('bd-grid');
-      expect(areaCv.style.background).toBe('rgb(255, 255, 255)');
+      expect(areaCv.style.background).toBe('transparent');
+      const pageBox = document.querySelector('.a4-page-box');
+      expect(pageBox.style.background).toBe('rgb(255, 255, 255)');
     });
 
     it('T4.2: ATS mode renders clean centered document container without 2-col resizer', () => {

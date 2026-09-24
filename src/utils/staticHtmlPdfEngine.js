@@ -1433,6 +1433,8 @@ ${activePrintStyles}
               box.style.setProperty('page-break-inside', 'avoid', 'important');
               if (isAtsOrSingle) {
                 box.style.setProperty('padding', pagePaddingVal, 'important');
+              } else {
+                box.style.setProperty('padding', '0', 'important');
               }
               if (index < pageBoxes.length - 1) {
                 box.style.setProperty('break-after', 'page', 'important');

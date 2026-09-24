@@ -100,9 +100,13 @@ describe('PageModel Canonical Data Structure & Types', () => {
 });
 
 describe('Pure Page Distributor (distributeSectionsToPages)', () => {
-  describe('Standard 1-Page CV', () => {
-    it('correctly distributes defaultSchema into exactly 1 PageModel', () => {
-      const pages = distributeSectionsToPages(defaultSchema);
+  describe('Standard Concise 1-Page CV and Default 2-Page CV', () => {
+    it('correctly distributes a concise CV into exactly 1 PageModel', () => {
+      const conciseCv = {
+        ...defaultSchema,
+        sections: defaultSchema.sections.filter((s) => s.id !== 'languages' && s.id !== 'education'),
+      };
+      const pages = distributeSectionsToPages(conciseCv);
 
       expect(Array.isArray(pages)).toBe(true);
       expect(pages.length).toBe(1);
@@ -123,8 +127,6 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(leftIds).toContain('contact');
       expect(leftIds).toContain('about_section');
       expect(leftIds).toContain('skills');
-      expect(leftIds).toContain('education');
-      expect(leftIds).toContain('languages');
 
       // Check right column sections match expected default sections
       const rightIds = page1.rightSections.map((s) => s.id);
@@ -135,6 +137,13 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       // None of the sections on page 1 should be marked as continuation
       page1.leftSections.forEach((s) => expect(s.isContinuation).toBeFalsy());
       page1.rightSections.forEach((s) => expect(s.isContinuation).toBeFalsy());
+    });
+
+    it('correctly distributes full defaultSchema into 2 PageModels when content overflows left column', () => {
+      const pages = distributeSectionsToPages(defaultSchema);
+      expect(pages.length).toBe(2);
+      expect(pages[0].pageNumber).toBe(1);
+      expect(pages[1].pageNumber).toBe(2);
     });
   });
 
@@ -237,28 +246,7 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
         },
       ];
 
-      // Add extra projects to ensure right column definitely overflows
-      const projSec = heavyCv.sections.find((s) => s.id === 'projects');
-      projSec.items = [
-        {
-          id: 'proj1',
-          title: 'Open Source Cloud Orchestrator',
-          subtitle: 'Creator & Maintainer',
-          description: 'Orquestador liviano de contenedores distribuido.',
-        },
-        {
-          id: 'proj2',
-          title: 'High-Performance Graph DB',
-          subtitle: 'Core Contributor',
-          description: 'Base de datos en memoria para análisis de relaciones complejas.',
-        },
-        {
-          id: 'proj3',
-          title: 'AI Resume Analyzer',
-          subtitle: 'Author',
-          description: 'Herramienta de análisis semántico de perfiles profesionales.',
-        },
-      ];
+      heavyCv.sections = heavyCv.sections.filter((s) => s.id !== 'projects' && s.id !== 'certificates');
 
       const pages = distributeSectionsToPages(heavyCv);
 
@@ -704,6 +692,119 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(pages[0].singleSections[0].items.length).toBe(1);
       expect(pages[1].singleSections[0].items.length).toBe(1);
       expect(pages[1].singleSections[0].isContinuation).toBe(true);
+    });
+  });
+
+  describe('User Acceptance Criteria: ATS Mode & Precise Page Jumping', () => {
+    it('Criterion 1: If the size of the section plus margin fits on current page, does NOT jump', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'list',
+            title: 'Section 1',
+            items: [{ id: 'item1', height: 400 }],
+          },
+          {
+            id: 'sec2',
+            type: 'list',
+            title: 'Section 2',
+            items: [{ id: 'item2', height: 400 }],
+          },
+        ],
+      };
+
+      // Capacity is 1123 - 48 = 1075px. Total needed is ~850px <= 1075px. Must stay on Page 1!
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1', 'sec2']);
+    });
+
+    it('Criterion 2: If only header fits on current page but not the first item, jumps to next page', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          // Section 1 occupies almost entire page, leaving ~75px
+          {
+            id: 'sec1',
+            type: 'list',
+            title: 'Big Section',
+            items: [{ id: 'item1', height: 1000 }],
+          },
+          // Section 2: header is 36px, item is 80px. Total needed = 20 + 36 + 80 = 136px > 75px.
+          // Header alone would fit in 75px, but header + first item does not!
+          {
+            id: 'sec2',
+            type: 'experience',
+            title: 'Experience',
+            items: [{ id: 'exp1', height: 80 }],
+          },
+        ],
+      };
+
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBe(2);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1']);
+      expect(pages[1].singleSections.map((s) => s.id)).toEqual(['sec2']);
+      expect(pages[1].singleSections[0].items.length).toBe(1);
+    });
+
+    it('Criterion 3: If header and n first items fit on current page, writes them on current page and remaining to next page', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'list',
+            title: 'Top Section',
+            items: [{ id: 'item1', height: 750 }],
+          },
+          {
+            id: 'sec2',
+            type: 'list',
+            title: 'Multi Section',
+            items: [
+              { id: 'it1', height: 80 },
+              { id: 'it2', height: 80 },
+              { id: 'it3', height: 80 },
+              { id: 'it4', height: 80 },
+              { id: 'it5', height: 80 },
+            ],
+          },
+        ],
+      };
+
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBe(2);
+
+      const p1Sec2 = pages[0].singleSections.find((s) => s.id === 'sec2');
+      const p2Sec2 = pages[1].singleSections.find((s) => s.id.startsWith('sec2'));
+
+      expect(p1Sec2).toBeDefined();
+      expect(p2Sec2).toBeDefined();
+
+      // Verify n first items are on Page 1
+      expect(p1Sec2.items.map((it) => it.id)).toEqual(['it1', 'it2']);
+      // Verify remaining items are on Page 2
+      expect(p2Sec2.items.map((it) => it.id)).toEqual(['it3', 'it4', 'it5']);
+    });
+
+    it('DnD Reordering: placing a section into page 1 with available space does not push it to page 2', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          { id: 'profile', type: 'profile_header', title: '', items: [{ id: 'p1' }] },
+          { id: 'contact', type: 'contact', title: '', items: [{ id: 'c1', contacts: ['email@test.com', '123456'] }] },
+          { id: 'about', type: 'about', title: 'About', items: [{ id: 'a1', description: 'Brief bio' }] },
+          { id: 'education', type: 'education', title: 'Education', items: [{ id: 'e1', title: 'BS Computer Science' }] },
+        ],
+      };
+
+      // These 4 concise sections together require ~280px, well within 1075px page capacity
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['profile', 'contact', 'about', 'education']);
     });
   });
 });

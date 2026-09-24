@@ -4,13 +4,13 @@ import { useDocumentPages } from '../hooks/useDocumentPages';
 import { defaultSchema } from '../utils/schema';
 
 describe('useDocumentPages Hook', () => {
-  it('1. returns 1 PageModel for default CV schema with correct structure', () => {
+  it('1. returns 2 PageModels for default CV schema with correct structure in editor', () => {
     const { result } = renderHook(() => useDocumentPages({ cvData: defaultSchema }));
-    expect(result.current.totalPages).toBe(1);
-    expect(result.current.pages).toHaveLength(1);
+    expect(result.current.totalPages).toBe(2);
+    expect(result.current.pages).toHaveLength(2);
     const page1 = result.current.pages[0];
     expect(page1.pageNumber).toBe(1);
-    expect(page1.totalPages).toBe(1);
+    expect(page1.totalPages).toBe(2);
     expect(page1.leftSections.length).toBeGreaterThan(0);
     expect(page1.rightSections.length).toBeGreaterThan(0);
   });
@@ -63,13 +63,13 @@ describe('useDocumentPages Hook', () => {
     const { result: r1 } = renderHook(() => useDocumentPages({ cvData: normalSchema }));
     const initialPages = r1.current.totalPages;
 
-    // Now test with scaled-up typography (e.g. fontScale: 1.6, lineHeight: 1.8)
+    // Now test with scaled-up typography (e.g. fontScale: 2.2, lineHeight: 2.0)
     const scaledSchema = {
       ...defaultSchema,
       layout: {
         ...defaultSchema.layout,
-        fontScale: 1.6,
-        lineHeight: 1.8,
+        fontScale: 2.2,
+        lineHeight: 2.0,
       },
     };
 

@@ -346,9 +346,10 @@ describe('Goal: 2-Column PDF Generation Integrity & Full-Page Left Column Extens
 
       const areaCv = container.querySelector('#area-cv');
       expect(areaCv).not.toBeNull();
-      expect(areaCv.style.display).toBe('grid');
-      expect(areaCv.style.alignItems).toBe('stretch');
-      expect(areaCv.style.minHeight).toContain('mm');
+      const pageBox = container.querySelector('.a4-page-box') || areaCv;
+      expect(pageBox.style.display).toBe('grid');
+      expect(pageBox.style.alignItems).toBe('stretch');
+      expect(pageBox.style.minHeight).toContain('mm');
 
       const colLeft = container.querySelector('#column-left');
       expect(colLeft).not.toBeNull();

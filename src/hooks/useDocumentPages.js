@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react';
 import { distributeSectionsToPages } from '../utils/pageDistributor';
-import { EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../utils/pageGeometry';
+import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../utils/pageGeometry';
 
 /**
  * Custom hook returning an array of PageModel instances for live rendering and print.
@@ -38,7 +38,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       uniqueContinuationIds: true,
 
       // Dynamic geometry and slider tokens
-      pageHeightPx: options.pageHeightPx ?? EDITOR_PAGE_HEIGHT_PX,
+      pageHeightPx: options.pageHeightPx ?? A4_PAGE_HEIGHT_PX,
       pagePaddingPx: options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING,
       fontScale: options.fontScale ?? layout.fontScale ?? 1.0,
       titleScale: options.titleScale ?? layout.titleScale ?? 1.0,
@@ -51,6 +51,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       // Mode resolution
       isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
       mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      isEditor: true,
 
       // User overrides
       ...options,
