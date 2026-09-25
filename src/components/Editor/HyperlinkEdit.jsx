@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { ExternalLink, Check, Copy, Unlink, X } from 'lucide-react';
+import { usePrintMode } from '../../context/PrintModeContext';
 
 const renderLinkIcon = (iconProp) => {
   if (!iconProp) return null;
@@ -425,8 +426,10 @@ const HyperlinkEditEditor = ({
 };
 
 const HyperlinkEdit = (props) => {
-  if (props.isPrint) {
-    return <HyperlinkPrintView {...props} />;
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
+  if (effectiveIsPrint) {
+    return <HyperlinkPrintView {...props} isPrint={true} />;
   }
   return <HyperlinkEditEditor {...props} />;
 };

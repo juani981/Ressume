@@ -36,9 +36,10 @@ export async function generateThumbnail(cvData) {
     const leftBg = layout.leftBg || '#f4f5f7';
     const rightBg = layout.rightBg || '#ffffff';
 
-    // Extract profile name & subtitle
-    const profileHeader = (cvData?.sections || []).find(
-      (s) => s.id === 'profile_header' || s.type === 'profile_header'
+    // Collect left and right sections
+    const allSections = Array.isArray(cvData?.sections) ? cvData.sections : [];
+    const profileHeader = allSections.find(
+      (s) => s && typeof s === 'object' && (s.id === 'profile_header' || s.type === 'profile_header')
     );
     const firstHeaderItem = profileHeader?.items?.[0] || {};
     const candidateName =
@@ -46,10 +47,8 @@ export async function generateThumbnail(cvData) {
     const candidateSubtitle =
       firstHeaderItem.subtitle || 'Perfil Profesional';
 
-    // Collect left and right sections
-    const allSections = Array.isArray(cvData?.sections) ? cvData.sections : [];
     const nonHeaderSections = allSections.filter(
-      (s) => s.id !== 'profile_header' && s.type !== 'profile_header'
+      (s) => s && typeof s === 'object' && s.id !== 'profile_header' && s.type !== 'profile_header'
     );
 
     let svgContent = '';

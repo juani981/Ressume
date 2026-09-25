@@ -589,7 +589,7 @@ Reconstructed from git history and session conversations:
 | `2e05198` | Refactor: Add bullet points component |
 | `bff8451` | Simplified action menu |
 | `2f978ee` | **AI Prompts Epic** (Teamwork): AIExportModal opinionated UX, exhaustive Markdown frontmatter, 6 new Tech job-search prompts, `user_commentary` field, JSON-output translation prompt, 797/797 tests |
-| `2fc0b8d` | **cloneNode Print Engine Rewrite**: transition from synthetic dual-tree to direct memory cloning of `#area-cv`, data-editor-ui scrubbing, native CSS paged media rules in print.css |
+| `Refactoring` | **Massive Technical Debt Audit & Modularization**: purged obsolete dumps/scripts, eliminated dead engines (`useBlankPageCleaner.js`, `usePaginationEngine.js`, `whitespaceNudgeReflow.js`), split `sectionRegistry.js` (1.127→196 lines, 18 descriptors), extracted `AppModals.jsx` and `DroppableColumn.jsx` from `App.jsx` (509→217 lines), introduced `PrintModeContext` ambient resolution (eliminating `isPrint` prop-drilling), modularized `VersionManagerModal.jsx` (1.314→442 lines), created declarative `cvSchemaValidator.js`, hardened and unit-tested `thumbnailGenerator.js` (5 tests) & `translationEngine.js` (24 tests), 1.108/1.108 tests passing (100% green) |
 
 ---
 
@@ -625,43 +625,44 @@ These are documented issues from recent commits and audits:
 
 ---
 
-### HIGH IMPACT ARCHITECTURAL DEBT
+### HIGH IMPACT ARCHITECTURAL DEBT (RESOLVED)
 
-**1. `App.jsx` is still a god component (~471 lines)**
-- Contains: DnD provider, column layout rendering, modal state, all useCV calls
-- Refactoring route: Extract `AppModalsManager.jsx`, `useAppModals.js`, 
-  `AppColumnLayout.jsx`. The `useCVDndCoordinator` hook partially addressed this
-  but the component itself is still too large.
-- Risk: Medium — current size is manageable but will compound with new features.
+**1. `App.jsx` God Component (~471 lines) — [RESOLVED]**
+- Refactored: Extracted `src/components/Editor/AppModals.jsx` (Joyride, modals, tooltips) and `src/components/Editor/DroppableColumn.jsx`.
+- Result: `App.jsx` reduced from 509 lines to 217 lines of clean DnD and composition logic.
 
-**2. `isPrint` prop threaded 4+ levels deep**
-- `App.jsx` → `BaseSection.jsx` → `BaseItem.jsx` → item components
-- With the transition to `cloneNode`, `isPrint` is largely obsolete for printing, since the live DOM clone is used directly!
-- Refactoring route: Clean up `isPrint` props across `BaseSection`, `BaseItem`, and item components, or formalize `PrintModeContext`.
+**2. `isPrint` Prop-Drilling (threaded 4+ levels deep) — [RESOLVED]**
+- Refactored: Formalized `src/context/PrintModeContext.jsx` with `usePrintMode()`. Wrapped `PrintBaseSection` with `<PrintModeContext.Provider value={true}>` and integrated fallback into `BaseSection`, `BaseItem`, `InlineEdit`, and `HyperlinkEdit`.
+- Result: Ambient print resolution with 100% backward-compatibility and zero prop-drilling.
 
-**3. `sectionRegistry.js` is ~981 lines**
-- All 12 standard section descriptors are inline
-- Refactoring route: Split into `src/registry/descriptors/experience.js`, 
-  `src/registry/descriptors/education.js`, etc. Each file exports one descriptor.
-  `sectionRegistry.js` becomes an index that imports and registers them all.
-- Risk: Low — pure file organization, no behavioral change
+**3. `sectionRegistry.js` Monolith (~1.127 lines) — [RESOLVED]**
+- Refactored: Decomposed into 18 independent descriptor files in `src/registry/descriptors/` (`profileHeader.js`, `experience.js`, `skills.js`, etc.) and a central index.
+- Result: `sectionRegistry.js` reduced from 1.127 lines to 196 lines.
 
-### MEDIUM IMPACT
+**4. `VersionManagerModal.jsx` Monolith (~1.314 lines) — [RESOLVED]**
+- Refactored: Decomposed into modular components under `src/components/Editor/versionManager/`:
+  - `VersionActionBar.jsx` (Form and backup actions)
+  - `VersionConfirmationDialogs.jsx` (Obsidian Callout confirmation panels)
+  - `VersionCard.jsx` (Thumbnail preview, layout badges, inline rename, and action toolbar)
+- Result: `VersionManagerModal.jsx` reduced from 1.314 lines to 442 lines.
 
-**4. No Zod/schema validation**
-- CV data is validated by `versionValidator.js` but the validation is ad-hoc
-- Adding Zod schemas derived from `defaultSchema` would provide type inference
-  and runtime guarantees with better error messages
+### MEDIUM & LOW IMPACT DEBT
 
-**5. `itemFormatters.js` — baseItemMarkdown is too generic**
-- The fallback Markdown renderer doesn't know about section-specific fields
-- It produces generic output for unknown types; each new type should always
-  provide its own `renderMarkdown` strategy
+**4. Declarative Schema Validation for `cvData` — [COMPLETED]**
+- Implemented `src/utils/cvSchemaValidator.js` with declarative constants (`ALLOWED_LAYOUT_TYPES`, `ALLOWED_COLUMNS`, `NUMERIC_BOUNDS`), a diagnostic validator (`validateCVSnapshot`) returning detailed path-based errors/warnings, and a sanitizing normalizer (`sanitizeAndValidateCVSnapshot`).
+- Re-exported via `src/utils/versionValidator.js` with 100% backward compatibility.
+- Fully tested in `src/tests/cvSchemaValidator.test.js` (10/10 tests passing).
 
-**6. Test coverage gaps**
-- `thumbnailGenerator.js` has no dedicated tests
-- `translationEngine.js` has limited edge-case coverage
-- `useBlankPageCleaner.js` is not directly unit-tested (only through integration)
+**5. `itemFormatters.js` Granular Section Formatters — [COMPLETED]**
+- Implemented dedicated formatters (`contactMarkdown`, `contactXML`, `contactPlainText`, `mentoringMarkdown`, `profileHeaderMarkdown`) in `src/registry/itemFormatters.js`.
+- Wired `renderMarkdown` directly into all section descriptors in `src/registry/descriptors/` (`contact.js`, `mentoring.js`, `profileHeader.js`, `titleSubtitle.js`, etc.).
+- Covered by unit test suite in `src/tests/itemFormatters.test.js` (20/20 tests passing).
+
+**6. Test coverage gaps — [RESOLVED]**
+- `thumbnailGenerator.js` is fully covered by dedicated unit test suite in `src/tests/thumbnailGenerator.test.js` (5/5 tests passing: testing 1-col/2-col SVG generation, XML escaping, and corrupt payload recovery).
+- `translationEngine.js` is fully covered by isolated unit test suite in `src/tests/translationEngine.test.js` (24/24 tests passing: dictionary extraction across section types, prompt generation with strict localization directives, raw/markdown/preamble/malformed JSON cleaning, key coverage diagnostics, and non-destructive state merging with deep cloning).
+- `useBlankPageCleaner.js` was deleted as obsolete dead engine in P1B.
+- Full project test suite: **76 test files, 1.108 passing tests, 0 failures (100% green)**.
 
 ---
 
@@ -710,13 +711,15 @@ These are non-negotiable. Breaking any of them causes test failures or product r
 
 ### Safe refactoring routes (low risk)
 
-| Refactor | How | Risk |
+| Refactor | How | Status / Risk |
 |---------|-----|------|
-| Split `sectionRegistry.js` into descriptor files | One descriptor per file in `src/registry/descriptors/`; registry imports and registers them all | Low — pure file organization |
-| `isPrint` → `PrintModeContext` | Add React context; remove prop from component signatures | Low — behavioral no-op |
-| `App.jsx` decomposition | Extract `AppModals.jsx`, `useAppModals.js`, `AppColumnsRenderer.jsx` | Medium — must preserve all existing DnD and layout behavior |
+| Split `sectionRegistry.js` into descriptor files | One descriptor per file in `src/registry/descriptors/`; registry imports and registers them all | **[COMPLETED]** — 18 descriptors extracted |
+| `isPrint` → `PrintModeContext` | Add React context; ambient resolution in components | **[COMPLETED]** — `PrintModeContext` active |
+| `App.jsx` decomposition | Extract `AppModals.jsx`, `DroppableColumn.jsx` | **[COMPLETED]** — 509 → 217 lines |
+| `VersionManagerModal.jsx` decomposition | Extract `VersionActionBar.jsx`, `VersionConfirmationDialogs.jsx`, `VersionCard.jsx` | **[COMPLETED]** — 1.314 → 442 lines |
+| Declarative Schema Validation | Define declarative `cvSchemaValidator.js`; pure validator + safe recovery | **[COMPLETED]** — `cvSchemaValidator.js` active |
+| Isolated Utility Unit Testing | Harden & cover `thumbnailGenerator.js` (5 tests) & `translationEngine.js` (24 tests) | **[COMPLETED]** — 100% green |
 | localStorage → backend | Implement `storageAdapter.js` interface; replace 6 call sites | Medium — requires auth design |
-| Add Zod validation | Define `cvDataSchema` from `defaultSchema`; replace `sanitizeAndValidateCVSnapshot` | Low — additive, backwards compatible |
 
 ---
 

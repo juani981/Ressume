@@ -602,7 +602,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     bulletEl.style.setProperty('break-inside', 'avoid', 'important');
     bulletEl.style.setProperty('page-break-inside', 'avoid', 'important');
     bulletEl.style.setProperty('margin-top', '0', 'important');
-    bulletEl.style.setProperty('margin-bottom', 'var(--item-gap, 6px)', 'important');
+    bulletEl.style.setProperty('margin-bottom', 'var(--item-gap, 8px)', 'important');
     bulletEl.style.setProperty('line-height', 'var(--line-height, 1.45)', 'important');
     bulletEl.style.setProperty('font-size', 'var(--list-font-size, var(--normal-font-size))', 'important');
     bulletEl.style.setProperty('padding-left', '0', 'important');
@@ -622,7 +622,12 @@ export const createSanitizedPrintClone = (areaCvElement) => {
 
 /**
  * enforceTwoColumnComponentPagination
- * Enforces strict per-component page break avoidance and column extension.
+ * 
+ * @deprecated Legacy screen-heuristic pagination algorithm.
+ * Retained strictly for backwards-compatibility with legacy unit test suites.
+ * In production (Invariants 15 & 16), page partitioning is governed deterministically
+ * by `pageDistributor.js` + `<A4PageBox>` and DOM mirroring via `createSanitizedPrintClone`.
+ * The live print execution pipeline in `printExecutionDriver.js` does NOT invoke this function.
  */
 export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = A4_PAGE_HEIGHT_PX) => {
   if (!areaCv) {

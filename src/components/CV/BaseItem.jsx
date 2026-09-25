@@ -17,6 +17,7 @@ import { Minus } from 'lucide-react';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+import { usePrintMode } from '../../context/PrintModeContext';
 
 /**
  * PrintBaseItem
@@ -173,8 +174,10 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
  * @returns {React.ReactElement}
  */
 const BaseItem = (props) => {
-  if (props.isPrint) {
-    return <PrintBaseItem {...props} />;
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
+  if (effectiveIsPrint) {
+    return <PrintBaseItem {...props} isPrint={true} />;
   }
   return <EditableBaseItem {...props} />;
 };

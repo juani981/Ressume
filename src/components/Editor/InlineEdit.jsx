@@ -10,6 +10,7 @@ import {
   hasMalformedEntities 
 } from '../../utils/richTextEngine';
 import RichTextToolbar from './RichTextToolbar';
+import { usePrintMode } from '../../context/PrintModeContext';
 
 /**
  * Enhanced InlineEdit component
@@ -578,8 +579,10 @@ const InlineEditEditor = ({
 };
 
 const InlineEdit = (props) => {
-  if (props.isPrint) {
-    return <InlineEditPrintView {...props} />;
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
+  if (effectiveIsPrint) {
+    return <InlineEditPrintView {...props} isPrint={true} />;
   }
   return <InlineEditEditor {...props} />;
 };

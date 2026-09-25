@@ -23,6 +23,7 @@ import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
 
 /**
  * Checks whether the container tag should be rendered as a list container (ul/ol).
@@ -115,33 +116,35 @@ export const PrintBaseSection = ({ section }) => {
   const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
 
   return (
-    <section 
-      className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
-      id={section.id}
-      data-section-id={section.id}
-      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
-    >
-      {descriptor.hasTitle !== false && section.title && (
-        <h2 
-          className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
-          data-section-title={section.id}
-        >
-          <InlineEdit value={section.title || ''} isPrint={true} />
-        </h2>
-      )}
+    <PrintModeContext.Provider value={true}>
+      <section 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
+        id={section.id}
+        data-section-id={section.id}
+        style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+      >
+        {descriptor.hasTitle !== false && section.title && (
+          <h2 
+            className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
+            data-section-title={section.id}
+          >
+            <InlineEdit value={section.title || ''} isPrint={true} />
+          </h2>
+        )}
 
-      <div className={wrapperClass}>
-        <SectionItemsRenderer
-          items={items}
-          sectionId={section.id}
-          sectionType={section.type}
-          descriptor={descriptor}
-          isPrint={true}
-        />
-      </div>
+        <div className={wrapperClass}>
+          <SectionItemsRenderer
+            items={items}
+            sectionId={section.id}
+            sectionType={section.type}
+            descriptor={descriptor}
+            isPrint={true}
+          />
+        </div>
 
-      <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
-    </section>
+        <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
+      </section>
+    </PrintModeContext.Provider>
   );
 };
 
@@ -325,13 +328,15 @@ const EditableBaseSection = ({ section }) => {
  * @returns {React.ReactElement|null}
  */
 const BaseSection = (props) => {
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
   const descriptor = getSectionDescriptor(props.section?.type);
   if (descriptor?.sectionComponent) {
     const CustomSection = descriptor.sectionComponent;
-    return <CustomSection {...props} />;
+    return <CustomSection {...props} isPrint={effectiveIsPrint} />;
   }
-  if (props.isPrint) {
-    return <PrintBaseSection {...props} />;
+  if (effectiveIsPrint) {
+    return <PrintBaseSection {...props} isPrint={true} />;
   }
   return <EditableBaseSection {...props} />;
 };

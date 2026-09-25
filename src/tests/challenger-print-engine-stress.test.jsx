@@ -730,7 +730,7 @@ describe('Adversarial Challenger 1: Print Engine & CSS Transfer Stress Verificat
 
     it('S5.2: itemGap fallbacks are standardized to var(--item-gap, 8px)', () => {
       // 1. In index.css
-      expect(baseStyles).toContain('.experience__bullets li {\n  margin-bottom: var(--item-gap, 8px);');
+      expect(baseStyles.replace(/\r\n/g, '\n')).toContain('.experience__bullets li {\n  margin-bottom: var(--item-gap, 8px);');
       expect(baseStyles).not.toContain('var(--item-gap, 6px)');
 
       // 2. In print.css
