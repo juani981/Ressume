@@ -6,6 +6,7 @@ import ActionMenu from "./components/Editor/ActionMenu";
 import LayoutModeToggle from "./components/Editor/LayoutModeToggle";
 import AddSectionModal from "./components/Editor/AddSectionModal";
 import SuggestionTooltip from "./components/Editor/SuggestionTooltip";
+import AITipsSidebar from "./components/Editor/AITipsSidebar";
 import ToastNotification from "./components/Editor/ToastNotification";
 import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
@@ -494,6 +495,9 @@ function App() {
                rect={activeTooltip.rect}
             />
          )}
+
+         {/* Master AI Tips Right-Hand Rail */}
+         <AITipsSidebar />
 
          {/* Ephemeral Toast Notification */}
          <ToastNotification />

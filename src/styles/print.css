@@ -91,8 +91,17 @@
     box-shadow: none !important;
   }
 
+  .a4-page-box.bd-grid {
+    display: grid !important;
+    grid-template-rows: 1fr !important;
+    align-items: stretch !important;
+  }
+
   .a4-page-box .resume__left,
   .a4-page-box .resume__right {
+    height: 100% !important;
+    min-height: 100% !important;
+    align-self: stretch !important;
     padding: var(--page-padding, 24px) !important;
     box-sizing: border-box !important;
   }
@@ -635,5 +644,30 @@
   .hyperlink-display {
     overflow-wrap: anywhere !important;
     word-break: break-word !important;
+  }
+
+  /* Typography & OCR Glyph Mapping Protection: Disable font ligatures and kerning collisions */
+  html, body, #area-cv, .resume, .a4-page-box, p, span, h1, h2, h3, h4, li, a {
+    font-variant-ligatures: none !important;
+    font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Print Vector Icons: Prevent OCR / parser from interpreting icons as checkboxes (☑) */
+  svg, .lucide {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    speak: none !important;
+  }
+
+  /* ATS Print Mode Overrides: Zero icons, zero photos, pure semantic clean text */
+  .resume--ats-mode svg,
+  .resume--ats-mode .lucide,
+  .resume--ats-mode .contact__icon,
+  .resume--ats-mode .cv-section-photo,
+  .resume--ats-mode .cv-photo-container,
+  .resume--ats-mode .cv-photo-item-edit,
+  .resume--ats-mode .photo__container {
+    display: none !important;
   }
 }

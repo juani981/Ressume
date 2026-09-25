@@ -22,12 +22,14 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 
 /** Read-only render for print/PDF. */
-const MentoringItemPrintView = ({ item, isLast = false }) => (
-  <>
-    <div className="experience__time">
-      <span className="experience__rounder" />
-      {!isLast && <span className="experience__line" />}
-    </div>
+const MentoringItemPrintView = ({ item, isLast = false }) => {
+  const showLine = !isLast || Boolean(item?.isPartialItem) || Boolean(item?.isContinuationItem);
+  return (
+    <>
+      <div className="experience__time">
+        {!item?.isContinuationItem && <span className="experience__rounder" />}
+        {showLine && <span className="experience__line" />}
+      </div>
     <div className="experience__data bd-grid" style={{ width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
         <h3 className="experience__title">
@@ -51,7 +53,8 @@ const MentoringItemPrintView = ({ item, isLast = false }) => (
       )}
     </div>
   </>
-);
+  );
+};
 
 /** Interactive editable render. */
 const MentoringItemEditView = ({ item, sectionId, isLast = false }) => (

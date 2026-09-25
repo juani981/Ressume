@@ -18,16 +18,18 @@ import {
   arrayMove, 
   sortableKeyboardCoordinates 
 } from '@dnd-kit/sortable';
+import { normalizeDateRange, sanitizeBulletText } from '../../../utils/textSanitizer';
 
 
 const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
   const bullets = item.bullets || [];
+  const showLine = !isLast || Boolean(item?.isPartialItem) || Boolean(item?.isContinuationItem);
 
   return (
     <>
       <div className="experience__time">
         {!item.isContinuationItem && <span className="experience__rounder"></span>}
-        {!isLast && <span className="experience__line"></span>}
+        {showLine && <span className="experience__line"></span>}
       </div>
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
@@ -41,7 +43,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
             </h3>
             <span className="experience__company">
               <InlineEdit 
-                value={item.date || ''} 
+                value={normalizeDateRange(item.date) || ''} 
                 isPrint={true}
               />
               {(item.subtitle || item.date) && ' | '}
@@ -75,7 +77,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
           <div className="experience__bullets-container">
             <ul className="experience__bullets" style={{ paddingLeft: 0, marginTop: item.isContinuationItem ? 0 : '0.25rem', marginBottom: 0, listStyle: 'none', listStyleType: 'none' }}>
               {bullets.map((b, idx) => {
-                const bulletText = typeof b === 'string' ? b : (b?.text || '');
+                const bulletText = sanitizeBulletText(typeof b === 'string' ? b : (b?.text || ''));
                 return (
                   <li
                     key={idx}

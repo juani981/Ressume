@@ -46,16 +46,20 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
   };
 
   const hasPageBreak = Boolean(item?.pageBreak === 'before' || item?.breakBefore || item?.isForcedBreak);
+  const isPartial = Boolean(item?.isPartialItem);
+  const isContinuation = Boolean(item?.isContinuationItem);
 
   return (
     <ItemTag 
-      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
+      data-is-partial={isPartial ? 'true' : undefined}
+      data-is-continuation={isContinuation ? 'true' : undefined}
       style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     >
       {ItemComponent && (
-        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast && !isPartial} />
       )}
     </ItemTag>
   );
@@ -116,12 +120,17 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     }
   };
 
+  const isPartial = Boolean(item?.isPartialItem);
+  const isContinuation = Boolean(item?.isContinuationItem);
+
   return (
     <ItemTag
       ref={setNodeRef}
-      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block`}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
+      data-is-partial={isPartial ? 'true' : undefined}
+      data-is-continuation={isContinuation ? 'true' : undefined}
       style={baseStyle}
       {...attributes}
       {...containerDragListeners}

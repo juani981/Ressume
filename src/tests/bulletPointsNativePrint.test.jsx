@@ -112,4 +112,42 @@ describe('Native Styled Bullet Points Suppression in PDF & Print Output', () => 
     );
     expect(editContainer.querySelector('.simple-list-circle')).toBeInTheDocument();
   });
+
+  it('B1.6: Bullet points and rows have zero artificial left padding (no tab-like indent)', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const cssPath = path.resolve(__dirname, '../index.css');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+
+    // Assert .bullet-item-row has padding-left: 0
+    expect(cssContent).toMatch(/\.bullet-item-row\s*\{[^}]*padding-left:\s*0/);
+
+    // Assert SortableBulletItem renders with zero paddingLeft
+    const { SortableBulletItem } = await import('../components/CV/SortableBulletItem');
+    const { container: bulletContainer } = render(
+      <SortableBulletItem
+        bulletId="test_bullet_zero_pad"
+        bulletText="Zero padding bullet"
+        bulletIndex={0}
+        sectionId="exp_sec"
+        itemId="item_exp"
+        bullets={['Zero padding bullet']}
+        onUpdateItem={() => {}}
+        onDeleteBullet={() => {}}
+      />
+    );
+    const li = bulletContainer.querySelector('li.bullet-item-row');
+    expect(li).toBeInTheDocument();
+    expect(['0', '0px', 0]).toContain(li.style.paddingLeft);
+
+    // Assert AddBulletPoint has zero paddingLeft
+    const AddBulletPoint = (await import('../components/Editor/AddBulletPoint')).default;
+    const { container: addBtnContainer } = render(
+      <AddBulletPoint helperText="Nueva viñeta" handleAddBullet={() => {}} />
+    );
+    const addRow = addBtnContainer.querySelector('.bullet-add-row');
+    expect(addRow).toBeInTheDocument();
+    expect(['0', '0px', 0]).toContain(addRow.style.paddingLeft);
+  });
 });
+

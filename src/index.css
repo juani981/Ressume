@@ -503,6 +503,32 @@ img {
   display: none !important;
 }
 
+/* When an item is partial (starts on page N and continues on page N+1) or continuation, ALWAYS show its connector line */
+.editable-item-container.item-is-partial .experience__line,
+.editable-item-container.item-is-partial .education__line,
+.editable-item-container.item-is-partial [class*="__line"],
+.cv-block.item-is-partial .experience__line,
+.cv-block.item-is-partial .education__line,
+.cv-block.item-is-partial [class*="__line"],
+.experience__content.item-is-partial .experience__line,
+.education__content.item-is-partial .education__line,
+.editable-item-container.item-is-continuation .experience__line,
+.editable-item-container.item-is-continuation .education__line,
+.editable-item-container.item-is-continuation [class*="__line"],
+.cv-block.item-is-continuation .experience__line,
+.cv-block.item-is-continuation .education__line,
+.cv-block.item-is-continuation [class*="__line"],
+.experience__content.item-is-continuation .experience__line,
+.education__content.item-is-continuation .education__line,
+[data-is-partial="true"] .experience__line,
+[data-is-partial="true"] .education__line,
+[data-is-partial="true"] [class*="__line"],
+[data-is-continuation="true"] .experience__line,
+[data-is-continuation="true"] .education__line,
+[data-is-continuation="true"] [class*="__line"] {
+  display: block !important;
+}
+
 .education__data,
 .experience__data {
   gap: .5rem;
@@ -1335,7 +1361,7 @@ a,
 .bullet-item-row {
   position: relative;
   padding-right: 1.5rem;
-  padding-left: 1.15rem;
+  padding-left: 0 !important;
   border-radius: 4px;
   margin-top: 0 !important;
 }
@@ -1959,7 +1985,12 @@ body.ats-mode-active {
 }
 
 #area-cv.has-a4-page-boxes .resume__left,
-#area-cv.has-a4-page-boxes .resume__right {
+#area-cv.has-a4-page-boxes .resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  height: 100% !important;
+  min-height: 100% !important;
+  align-self: stretch !important;
   padding: var(--page-padding, 24px) !important;
   box-sizing: border-box !important;
 }
@@ -1967,6 +1998,12 @@ body.ats-mode-active {
 #area-cv.has-a4-page-boxes .resume__single-column {
   padding: 0 !important;
   box-sizing: border-box !important;
+}
+
+.a4-page-box.bd-grid {
+  display: grid !important;
+  grid-template-rows: 1fr !important;
+  align-items: stretch !important;
 }
 
 .a4-page-box.bd-grid,
@@ -2278,4 +2315,28 @@ body.ats-mode-active .a4-page-fold-badge {
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+/* Typography & OCR Glyph Mapping Protection */
+#area-cv,
+.resume,
+.a4-page-box {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* ATS Mode: Omit photos and vector icons cleanly while preserving data state */
+.resume--ats-mode .cv-section-photo,
+.resume--ats-mode .cv-photo-container,
+.resume--ats-mode .cv-photo-item-edit,
+.resume--ats-mode .photo__container {
+  display: none !important;
+}
+
+.resume--ats-mode .social__link svg,
+.resume--ats-mode .contact-item-pill svg,
+.resume--ats-mode .contact__icon,
+.resume--ats-mode .home__contact svg {
+  display: none !important;
 }

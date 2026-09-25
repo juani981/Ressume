@@ -194,15 +194,6 @@ describe('Action Buttons Interactivity & Non-Draggable Target Verification', () 
       const actionsContainer = container.querySelector('.section-action-buttons');
       expect(actionsContainer).toBeTruthy();
 
-      // AI Tips button
-      const tipsBtn = container.querySelector('.section-tips-toggle-btn');
-      expect(tipsBtn).toBeTruthy();
-      expect(isNonDraggableTarget(tipsBtn)).toBe(true);
-
-      fireEvent.pointerDown(tipsBtn);
-      fireEvent.click(tipsBtn);
-      expect(mockToggleTips).toHaveBeenCalledTimes(1);
-
       // Delete Section button
       const delBtn = container.querySelector('.section-del-btn');
       expect(delBtn).toBeTruthy();

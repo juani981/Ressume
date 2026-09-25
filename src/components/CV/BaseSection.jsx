@@ -18,7 +18,7 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { Lightbulb, MoreHorizontal, Trash2, Plus } from 'lucide-react';
+import { MoreHorizontal, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
@@ -172,9 +172,7 @@ const EditableBaseSection = ({ section }) => {
     updateSectionBulletStyle,
     addSectionItem, 
     deleteSection, 
-    updateSectionProperty,
-    activeTooltip,
-    toggleTooltipForSection
+    updateSectionProperty
   } = useCV();
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
@@ -193,7 +191,6 @@ const EditableBaseSection = ({ section }) => {
     boxSizing: 'border-box'
   };
 
-  const isTooltipOpen = activeTooltip?.section?.id === section.id;
   const allowDelete = descriptor.allowDelete !== false;
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
@@ -216,28 +213,11 @@ const EditableBaseSection = ({ section }) => {
       
       {!section.isContinuation && (
         <div 
-          className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+          className={`section-action-buttons no-print ${isBulletPopoverOpen ? 'has-active-popover' : ''}`}
           data-editor-ui="true"
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button 
-            type="button"
-            className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
-            title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
-            data-testid={`btn-tips-${section.id}`}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
-              if (typeof toggleTooltipForSection === 'function') {
-                toggleTooltipForSection(section, bounding);
-              }
-            }}
-          >
-            <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
-          </button>
-
           {allowBulletCustomization && (
             <button 
               type="button"

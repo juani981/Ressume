@@ -22,6 +22,7 @@ import {
 } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
+import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';
 
 export { renderRichHTML, stripHtml };
 
@@ -303,23 +304,77 @@ export const createSanitizedPrintClone = (areaCvElement) => {
   clone.querySelectorAll('[data-editor-ui="true"], .no-print')
     .forEach((el) => el.remove());
 
-  // Sanitize photo edit containers
-  clone.querySelectorAll('.cv-photo-item-edit').forEach((photoEdit) => {
-    const img = photoEdit.querySelector('img.cv-photo-img');
-    const parent = photoEdit.parentElement;
-    if (!parent) return;
-    if (img && img.src && !img.src.endsWith('/') && img.src !== window?.location?.href) {
-      const printWrapper = document.createElement('div');
-      printWrapper.className = 'cv-photo-container cv-block';
-      printWrapper.style.cssText = 'display:flex;justify-content:center;align-items:center;width:100%;margin:0 auto 0.75rem auto;padding:4px 0;';
-      const cleanImg = img.cloneNode(true);
-      cleanImg.style.display = 'block';
-      printWrapper.appendChild(cleanImg);
-      parent.replaceChild(printWrapper, photoEdit);
-    } else {
-      parent.removeChild(photoEdit);
+  const isAtsMode = clone.classList.contains('resume--ats-mode') || Boolean(clone.querySelector?.('.resume--ats-mode'));
+
+  // Sanitize photo edit containers and photo sections
+  if (isAtsMode) {
+    clone.querySelectorAll('.cv-section-photo, .cv-photo-container, .cv-photo-item-edit, .photo__container').forEach((el) => el.remove());
+    // Strip all vector icons in ATS mode to prevent OCR from parsing them as checkboxes (☑)
+    clone.querySelectorAll('svg, .lucide, .contact__icon, .social__link svg, .contact-item-pill svg').forEach((el) => el.remove());
+  } else {
+    clone.querySelectorAll('.cv-photo-item-edit').forEach((photoEdit) => {
+      const img = photoEdit.querySelector('img.cv-photo-img');
+      const parent = photoEdit.parentElement;
+      if (!parent) return;
+      if (img && img.src && !img.src.endsWith('/') && img.src !== window?.location?.href) {
+        const printWrapper = document.createElement('div');
+        printWrapper.className = 'cv-photo-container cv-block';
+        printWrapper.style.cssText = 'display:flex;justify-content:center;align-items:center;width:100%;margin:0 auto 0.75rem auto;padding:4px 0;';
+        const cleanImg = img.cloneNode(true);
+        cleanImg.style.display = 'block';
+        printWrapper.appendChild(cleanImg);
+        parent.replaceChild(printWrapper, photoEdit);
+      } else {
+        parent.removeChild(photoEdit);
+      }
+    });
+
+    // Make vector icons in traditional print inaccessible to OCR/text extraction
+    clone.querySelectorAll('svg, .lucide').forEach((svg) => {
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('role', 'presentation');
+      svg.style.setProperty('user-select', 'none', 'important');
+      svg.style.setProperty('-webkit-user-select', 'none', 'important');
+    });
+  }
+
+  // Sanitize bullets to prevent irregular leading spaces and private-use glyphs
+  clone.querySelectorAll('ul.experience__bullets > li, .experience__bullets li, ul.simple-list-ul > li, .bullet-item-row').forEach((bulletEl) => {
+    if (bulletEl.textContent) {
+      const cleaned = sanitizeBulletText(bulletEl.textContent);
+      if (cleaned !== bulletEl.textContent) {
+        const textNodes = [];
+        const walk = (node) => {
+          if (node.nodeType === 3) textNodes.push(node);
+          else node.childNodes.forEach(walk);
+        };
+        walk(bulletEl);
+        if (textNodes.length > 0) {
+          textNodes[0].textContent = textNodes[0].textContent.replace(/^[\s\t\u00A0\uF0B7\u25E6\u2043\u2219]+/, '');
+        }
+      }
     }
   });
+
+  // Text sanitization: fix OCR math delimiters ($...$), acronyms (CI/CD, I+D), and date ranges
+  if (typeof document !== 'undefined' && typeof document.createTreeWalker === 'function') {
+    try {
+      const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT, null, false);
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        let text = textNode.nodeValue;
+        if (!text) continue;
+        let modified = sanitizeOcrMathSyntax(text);
+        if (/[\u2012\u2013\u2014\u2015]/.test(modified) || /\b(20\d\d|19\d\d|Actualidad|Present|Current|Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre)\b/i.test(modified)) {
+          modified = normalizeDateRange(modified);
+        }
+        if (modified !== text) {
+          textNode.nodeValue = modified;
+        }
+      }
+    } catch (_) {}
+  }
 
   clone.querySelectorAll('[data-is-empty="true"], .inline-edit-placeholder').forEach((el) => {
     el.remove();
@@ -550,6 +605,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     bulletEl.style.setProperty('margin-bottom', 'var(--item-gap, 6px)', 'important');
     bulletEl.style.setProperty('line-height', 'var(--line-height, 1.45)', 'important');
     bulletEl.style.setProperty('font-size', 'var(--list-font-size, var(--normal-font-size))', 'important');
+    bulletEl.style.setProperty('padding-left', '0', 'important');
   });
 
   // 6. Clean up container geometry:
@@ -833,6 +889,9 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   }
 
   const isAtsMode = layout.isAtsMode === true;
+  if (isAtsMode) {
+    sections = sections.filter(s => s.type !== 'photo' && s.id !== 'photo_section');
+  }
   const is2Col = layout.type === '2-column' && !layout.isAtsMode;
   const pagePadding = Number(layout.pagePadding ?? 24);
   const sectionGap = Number(layout.sectionGap ?? 20);

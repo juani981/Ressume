@@ -58,8 +58,8 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
     }
 
     const isLeftCol = options.column === 'left';
-    // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 14 chars
-    const isMultiLine = isLeftCol && section.title.trim().length > 14;
+    // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 18 chars
+    const isMultiLine = isLeftCol && section.title.trim().length > 18;
     const lines = isMultiLine ? 2 : 1;
     return Math.round(lines * 24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
   }
@@ -88,13 +88,13 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
     options.column === 'single'
   );
   const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 22 : (isAts ? 80 : 50);
+  const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
 
-  let h = isAts ? 38 : 42;
+  let h = isAts ? 38 : 50;
   if (item.link) h += 16;
   if (item.description) {
     const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
-    h += descLines * 18;
+    h += descLines * 20;
   }
   return Math.round(h * fontFactor) + Math.round(itemGap * 0.5);
 }
@@ -120,11 +120,11 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
     options.column === 'single'
   );
   const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 20 : (isAts ? 76 : 46);
+  const charsPerLine = isLeftCol ? 26 : (isAts ? 76 : 42);
 
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
   const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine)));
-  return Math.round((bLines * 18) * fontFactor) + Math.round(itemGap * 0.5);
+  return Math.round((bLines * 20) * fontFactor) + Math.round(itemGap * 0.75);
 }
 
 /**
@@ -184,6 +184,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
 
   switch (sectionType) {
     case 'photo': {
+      if (isAts) return 0;
       const size = Number(item.size) || 130;
       return size + itemGap;
     }
@@ -219,22 +220,22 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     }
     case 'about': {
       const text = item.description || item.text || '';
-      const charsPerLine = isLeftCol ? 32 : (isAts ? 80 : 50);
+      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
       const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-      return Math.round((lines * 18) * fontFactor) + itemGap;
+      return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'skills': {
       const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
-      const charsPerLine = isLeftCol ? 32 : (isAts ? 80 : 50);
+      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
       const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
-      return Math.round((lines * 18) * fontFactor) + itemGap;
+      return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'education': {
-      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
-      let h = isLeftCol ? 52 : (isAts ? 40 : 44);
+      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      let h = isLeftCol ? 54 : (isAts ? 40 : 46);
       if (item.description) {
         const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
-        h += lines * 18;
+        h += lines * 20;
       }
       return Math.round(h * fontFactor) + itemGap;
     }
@@ -242,29 +243,17 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'experience':
     case 'projects':
     case 'volunteering': {
-      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
-      let h = isAts ? 38 : 42;
-      if (item.link) h += 16;
-      if (item.description) {
-        const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
-        h += descLines * 18;
-      }
-      if (Array.isArray(item.bullets) && item.bullets.length > 0) {
-        for (const b of item.bullets) {
-          const bStr = typeof b === 'string' ? b : (b?.text || '');
-          const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine - 4)));
-          h += bLines * 18 + 2;
-        }
-      }
-      return Math.round(h * fontFactor) + itemGap;
+      const baseH = estimateItemBaseHeight(item, sectionType, options);
+      const bulletsH = estimateItemBulletsHeight(item.bullets, sectionType, options);
+      return baseH + bulletsH;
     }
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
+      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
       const text = item.text || item.description || item.name || '';
       const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-      const h = 20 + (lines - 1) * 18;
+      const h = 22 + (lines - 1) * 20;
       return Math.round(h * fontFactor) + itemGap;
     }
     case 'spacer': {
@@ -294,6 +283,12 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
  */
 export function estimateSectionHeight(section, options = {}) {
   if (!section || typeof section !== 'object') return 0;
+  const isAts = Boolean(
+    options.isAtsMode ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+  if (isAts && section.type === 'photo') return 0;
   if (typeof section.height === 'number' && section.height > 0) {
     return section.height;
   }
@@ -312,11 +307,16 @@ export function estimateSectionHeight(section, options = {}) {
  * @param {Object} options - Distribution options
  * @returns {Object.<number, Array<Object>>} Map from 1-based page number to array of section objects
  */
-function distributeSectionListToPageBuckets(sectionList, capacity, options) {
+function distributeSectionListToPageBuckets(sectionList, capacity, options = {}) {
   const buckets = {};
   let currentPage = 1;
   let currentUsedHeight = 0;
   const pageCapacity = Math.max(100, capacity);
+  const isAts = Boolean(
+    options?.isAtsMode ||
+    options?.mode === '1-column' ||
+    options?.column === 'single'
+  );
 
   function addToBucket(pageNum, sec) {
     if (!buckets[pageNum]) buckets[pageNum] = [];
@@ -324,6 +324,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
   }
 
   for (const rawSec of sectionList) {
+    if (isAts && rawSec.type === 'photo') {
+      continue;
+    }
+
     // Clone raw section so we never mutate cvData
     const section = {
       ...rawSec,
@@ -472,7 +476,13 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options) {
     let partialCandidate = null;
     let partialCandidateRemaining = null;
 
-    if (splitIdx < items.length) {
+    const allowGranularBullets = Boolean(
+      options.splitGranularBullets ||
+      options.isEditor ||
+      items.length === 1
+    );
+
+    if (allowGranularBullets && splitIdx < items.length) {
       const candidate = items[splitIdx];
       const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
 
@@ -634,7 +644,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
 
   const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding);
+  const safetyHeadroom = isAts ? 0 : (mergedOptions.isEditor ? 195 : 100);
+  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding - safetyHeadroom);
 
   let singleBuckets = {};
   let leftBuckets = {};

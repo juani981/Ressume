@@ -11,7 +11,7 @@ const AddBulletPoint = ({ helperText, handleAddBullet, onClick }) => {
       data-editor-ui="true"
       data-editor-add="true"
       style={{
-        paddingLeft: '1.15rem',
+        paddingLeft: 0,
         height: 0,
         lineHeight: 0,
         overflow: 'visible',

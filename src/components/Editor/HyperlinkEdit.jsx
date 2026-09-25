@@ -5,7 +5,16 @@ import { ExternalLink, Check, Copy, Unlink, X } from 'lucide-react';
 const renderLinkIcon = (iconProp) => {
   if (!iconProp) return null;
   if (React.isValidElement(iconProp)) return iconProp;
-  return <ExternalLink size={14} className="lucide lucide-external-link" />;
+  return (
+    <ExternalLink 
+      size={14} 
+      className="lucide lucide-external-link" 
+      aria-hidden="true" 
+      focusable="false" 
+      role="presentation" 
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+    />
+  );
 };
 
 const HyperlinkPrintView = ({ 

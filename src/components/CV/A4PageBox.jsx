@@ -111,7 +111,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   const effective2Col = Boolean(is2Col && !isAtsMode);
 
   // Column background gradient for 2-column mode
-  const gradientBackground = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%)`;
+  const normLeftColPercent = typeof leftColPercent === 'string' && leftColPercent.endsWith('%')
+    ? leftColPercent
+    : `${leftColPercent}%`;
+  const gradientBackground = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${normLeftColPercent}, ${rightBg} ${normLeftColPercent}, ${rightBg} 100%)`;
 
   // Grid columns template
   const effectiveGridColumns = gridTemplateColumns || 'var(--grid-template-columns, 1fr 2fr)';
@@ -143,6 +146,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
       ? {
           display: 'grid',
           gridTemplateColumns: effectiveGridColumns,
+          gridTemplateRows: '1fr',
           alignItems: 'stretch',
           background: gradientBackground,
           padding: 0,
