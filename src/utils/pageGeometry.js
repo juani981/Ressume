@@ -32,50 +32,64 @@
  */
 
 // ---------------------------------------------------------------------------
-// 1. STANDARD ISO 216 A4 PRINT CONSTANTS (Strictly 210mm x 297mm)
+// 1. STANDARD ISO 216 A4 PRINT CONSTANTS (from src/constants/ SSOT)
 // ---------------------------------------------------------------------------
-export const A4_PRINT_WIDTH_MM = 210;
-export const A4_PRINT_HEIGHT_MM = 297;
-export const A4_PRINT_WIDTH_CSS = '210mm';
-export const A4_PRINT_HEIGHT_CSS = '297mm';
+export {
+  A4_PRINT_WIDTH_MM,
+  A4_PRINT_HEIGHT_MM,
+  A4_PRINT_WIDTH_CSS,
+  A4_PRINT_HEIGHT_CSS,
+  A4_PRINT_EXACT_WIDTH_PX,
+  A4_PRINT_EXACT_HEIGHT_PX,
+  A4_PRINT_WIDTH_PX,
+  A4_PRINT_PAGE_HEIGHT_PX,
+  A4_WIDTH_MM,
+  A4_HEIGHT_MM,
+  A4_WIDTH_CSS,
+  A4_HEIGHT_CSS,
+  A4_EXACT_WIDTH_PX,
+  A4_EXACT_HEIGHT_PX,
+  A4_WIDTH_PX,
+  A4_PAGE_HEIGHT_PX,
+  A4_GAP_PX,
+  A4_DOCUMENT_SCALE,
+  EDITOR_HEIGHT_REDUCTION_MM,
+  EDITOR_PAGE_WIDTH_MM,
+  EDITOR_PAGE_HEIGHT_MM,
+  EDITOR_PAGE_WIDTH_CSS,
+  EDITOR_PAGE_HEIGHT_CSS,
+  EDITOR_PAGE_WIDTH_PX,
+  EDITOR_PAGE_HEIGHT_PX,
+  EDITOR_EXACT_HEIGHT_PX,
+} from '../constants/geometry.js';
 
-export const A4_PRINT_EXACT_WIDTH_PX = (210 * 96) / 25.4; // 793.7007874015748
-export const A4_PRINT_EXACT_HEIGHT_PX = (297 * 96) / 25.4; // 1122.51968503937
+export {
+  DEFAULT_PAGE_PADDING,
+} from '../constants/spacing.js';
 
-export const A4_PRINT_WIDTH_PX = 794;
-export const A4_PRINT_PAGE_HEIGHT_PX = 1123;
+import {
+  A4_PRINT_WIDTH_MM,
+  A4_PRINT_HEIGHT_MM,
+  A4_PRINT_WIDTH_CSS,
+  A4_PRINT_HEIGHT_CSS,
+  A4_PRINT_EXACT_WIDTH_PX,
+  A4_PRINT_EXACT_HEIGHT_PX,
+  A4_PRINT_WIDTH_PX,
+  A4_PRINT_PAGE_HEIGHT_PX,
+  A4_GAP_PX,
+  A4_DOCUMENT_SCALE,
+  EDITOR_PAGE_WIDTH_MM,
+  EDITOR_PAGE_HEIGHT_MM,
+  EDITOR_PAGE_WIDTH_CSS,
+  EDITOR_PAGE_HEIGHT_CSS,
+  EDITOR_PAGE_WIDTH_PX,
+  EDITOR_PAGE_HEIGHT_PX,
+  EDITOR_EXACT_HEIGHT_PX,
+  EDITOR_HEIGHT_REDUCTION_MM,
+} from '../constants/geometry.js';
 
-// Backward-compatible standard A4 aliases (Print standard)
-export const A4_WIDTH_MM = A4_PRINT_WIDTH_MM;
-export const A4_HEIGHT_MM = A4_PRINT_HEIGHT_MM;
-export const A4_WIDTH_CSS = A4_PRINT_WIDTH_CSS;
-export const A4_HEIGHT_CSS = A4_PRINT_HEIGHT_CSS;
+import { DEFAULT_PAGE_PADDING } from '../constants/spacing.js';
 
-export const A4_EXACT_WIDTH_PX = A4_PRINT_EXACT_WIDTH_PX;
-export const A4_EXACT_HEIGHT_PX = A4_PRINT_EXACT_HEIGHT_PX;
-
-export const A4_WIDTH_PX = A4_PRINT_WIDTH_PX;
-export const A4_PAGE_HEIGHT_PX = A4_PRINT_PAGE_HEIGHT_PX;
-export const A4_GAP_PX = 20;
-export const DEFAULT_PAGE_PADDING = 24;
-export const A4_DOCUMENT_SCALE = 1.0;
-
-// ---------------------------------------------------------------------------
-// 2. LIVE EDITOR VERTICAL TUNING KNOB (Low-Level Configurable)
-// ---------------------------------------------------------------------------
-/**
- * Height reduction in millimeters for the Live Editor container.
- * Change this single value to tune the editor's vertical page capacity.
- */
-export const EDITOR_HEIGHT_REDUCTION_MM = 0;
-
-export const EDITOR_PAGE_WIDTH_MM = A4_PRINT_WIDTH_MM;
-export const EDITOR_PAGE_HEIGHT_MM = A4_PRINT_HEIGHT_MM - EDITOR_HEIGHT_REDUCTION_MM; // 297mm
-export const EDITOR_PAGE_WIDTH_CSS = `${EDITOR_PAGE_WIDTH_MM}mm`;
-export const EDITOR_PAGE_HEIGHT_CSS = `${EDITOR_PAGE_HEIGHT_MM}mm`;
-export const EDITOR_PAGE_WIDTH_PX = A4_PRINT_WIDTH_PX; // 794px
-export const EDITOR_PAGE_HEIGHT_PX = Math.round((EDITOR_PAGE_HEIGHT_MM * 96) / 25.4); // 1123px
-export const EDITOR_EXACT_HEIGHT_PX = (EDITOR_PAGE_HEIGHT_MM * 96) / 25.4; // 1122.51968503937px
 
 /**
  * Print Canonical Page Specification Object.

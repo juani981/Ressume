@@ -664,7 +664,7 @@ img {
 
 #area-cv:not(.has-a4-page-boxes) .resume__left,
 #area-cv:not(.has-a4-page-boxes) .resume__right {
-  padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
+  padding: var(--page-padding, 24px);
 }
 
 .resume {

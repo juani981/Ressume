@@ -12,6 +12,7 @@
 
 import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from './pageGeometry.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
+import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 
 export const DEFAULT_SECTION_GAP_PX = 16;
 export const DEFAULT_ITEM_GAP_PX = 8;
@@ -161,6 +162,11 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
 
   if (typeof item.height === 'number' && item.height > 0) {
     return item.height;
+  }
+
+  const descriptor = getSectionDescriptor(sectionType);
+  if (typeof descriptor?.estimateItemHeight === 'function') {
+    return descriptor.estimateItemHeight(item, options);
   }
 
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;

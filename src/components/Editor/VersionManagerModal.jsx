@@ -93,8 +93,20 @@ export const VersionManagerModal = ({
 
   // Initialize and refresh when modal opens
   useEffect(() => {
+    let isMounted = true;
     if (isOpen) {
-      loadVersions();
+      setLoading(true);
+      getAllVersions().then((list) => {
+        if (isMounted) {
+          setVersions(list || []);
+          setLoading(false);
+        }
+      }).catch((err) => {
+        if (isMounted) {
+          console.error('Error loading versions from storage:', err);
+          setLoading(false);
+        }
+      });
       setNewVersionName(generateSuggestedName());
       setConfirmLoadVersion(null);
       setConfirmDeleteVersion(initialDeleteVersion);
@@ -104,10 +116,14 @@ export const VersionManagerModal = ({
       // Lock body scroll
       document.body.style.overflow = 'hidden';
       return () => {
+        isMounted = false;
         document.body.style.overflow = '';
       };
     }
-  }, [isOpen, loadVersions, generateSuggestedName]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, initialDeleteVersion, initialConfirmBlank, generateSuggestedName]);
 
   // Window Escape key handler (closes modal unless focused in inline edit)
   useEffect(() => {
