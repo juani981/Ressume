@@ -89,7 +89,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftColPercent = 32,
     gridTemplateColumns,
     pagePadding,
-    pageHeight = EDITOR_PAGE_HEIGHT_CSS,
+    pageHeight = A4_HEIGHT_CSS,
     leftContent,
     rightContent,
     singleColumnContent,
@@ -111,7 +111,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   const effective2Col = Boolean(is2Col && !isAtsMode);
 
   // Column background gradient for 2-column mode
-  const gradientBackground = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%)`;
+  const normLeftColPercent = typeof leftColPercent === 'string' && leftColPercent.endsWith('%')
+    ? leftColPercent
+    : `${leftColPercent}%`;
+  const gradientBackground = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${normLeftColPercent}, ${rightBg} ${normLeftColPercent}, ${rightBg} 100%)`;
 
   // Grid columns template
   const effectiveGridColumns = gridTemplateColumns || 'var(--grid-template-columns, 1fr 2fr)';
@@ -135,6 +138,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     overflow: 'hidden',
     boxSizing: 'border-box',
     position: 'relative',
+    zIndex: 1,
     margin: '0 auto 32px auto',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     gridColumn: '1 / -1',
@@ -142,9 +146,13 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
       ? {
           display: 'grid',
           gridTemplateColumns: effectiveGridColumns,
+          gridTemplateRows: '1fr',
           alignItems: 'stretch',
           background: gradientBackground,
           padding: 0,
+          gap: 0,
+          columnGap: 0,
+          rowGap: 0,
         }
       : {
           display: 'block',
@@ -189,6 +197,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              minWidth: 0,
+              maxWidth: '100%',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
               padding: effectivePadding,
               ...leftStyle,
             }}
@@ -203,6 +215,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              minWidth: 0,
+              maxWidth: '100%',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
               padding: effectivePadding,
               ...rightStyle,
             }}
@@ -229,6 +245,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 boxSizing: 'border-box',
                 display: 'flex',
                 flexDirection: 'column',
+                minWidth: 0,
+                maxWidth: '100%',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
                 padding: effectivePadding,
                 ...leftStyle,
               }}
@@ -243,6 +263,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 boxSizing: 'border-box',
                 display: 'flex',
                 flexDirection: 'column',
+                minWidth: 0,
+                maxWidth: '100%',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
                 padding: effectivePadding,
                 ...rightStyle,
               }}
@@ -263,6 +287,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              minWidth: 0,
+              maxWidth: '100%',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
               ...leftStyle,
             }}
           >
@@ -276,6 +304,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
+              minWidth: 0,
+              maxWidth: '100%',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
               ...rightStyle,
             }}
           />
@@ -293,6 +325,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
+            minWidth: 0,
+            maxWidth: '100%',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
             ...leftStyle,
           }}
         />
@@ -304,6 +340,10 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
+            minWidth: 0,
+            maxWidth: '100%',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
             ...rightStyle,
           }}
         />
@@ -385,6 +425,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
                 lineHeight: 1,
               }}
               title={`Eliminar página ${pageNumber}`}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeletePage(pageNumber);

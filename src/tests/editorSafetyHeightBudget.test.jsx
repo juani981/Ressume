@@ -52,14 +52,14 @@ describe('Editor Vertical Safety Budget & Low-Level Tuning System', () => {
     });
 
     it('defines explicit vertical height reduction for editor container', () => {
-      expect(EDITOR_HEIGHT_REDUCTION_MM).toBeGreaterThan(0);
+      expect(EDITOR_HEIGHT_REDUCTION_MM).toBeGreaterThanOrEqual(0);
       expect(EDITOR_PAGE_HEIGHT_MM).toBe(A4_PRINT_HEIGHT_MM - EDITOR_HEIGHT_REDUCTION_MM);
       expect(EDITOR_PAGE_HEIGHT_CSS).toBe(`${EDITOR_PAGE_HEIGHT_MM}mm`);
       expect(EDITOR_PAGE_HEIGHT_PX).toBe(Math.round((EDITOR_PAGE_HEIGHT_MM * 96) / 25.4));
 
-      // Editor height must be strictly less than print height
-      expect(EDITOR_PAGE_HEIGHT_MM).toBeLessThan(A4_PRINT_HEIGHT_MM);
-      expect(EDITOR_PAGE_HEIGHT_PX).toBeLessThan(A4_PRINT_PAGE_HEIGHT_PX);
+      // With 1:1 parity (0mm reduction), editor height matches print height
+      expect(EDITOR_PAGE_HEIGHT_MM).toBe(A4_PRINT_HEIGHT_MM);
+      expect(EDITOR_PAGE_HEIGHT_PX).toBe(A4_PRINT_PAGE_HEIGHT_PX);
     });
 
     it('exposes PRINT_PAGE_SIZE and EDITOR_PAGE_SIZE canonical objects', () => {
@@ -87,7 +87,7 @@ describe('Editor Vertical Safety Budget & Low-Level Tuning System', () => {
 
       expect(editorHeight).toBe(EDITOR_PAGE_HEIGHT_PX);
       expect(printHeight).toBe(A4_PRINT_PAGE_HEIGHT_PX);
-      expect(editorHeight).toBeLessThan(printHeight);
+      expect(editorHeight).toBe(printHeight);
     });
   });
 
@@ -114,19 +114,18 @@ describe('Editor Vertical Safety Budget & Low-Level Tuning System', () => {
   });
 
   describe('3. Strict Separation of Print Output (Zero Intrusion into Print PDF)', () => {
-    it('verifies print stylesheet strictly enforces 297mm and never the reduced editor height', () => {
+    it('verifies print stylesheet strictly enforces 297mm', () => {
       expect(printStyles).toContain('height: 297mm !important;');
       expect(printStyles).toContain('min-height: 297mm !important;');
       expect(printStyles).toContain('max-height: 297mm !important;');
-      expect(printStyles).not.toContain(`height: ${EDITOR_PAGE_HEIGHT_CSS} !important;`);
     });
 
-    it('guarantees safety margin: editor budget prevents print spillover', () => {
+    it('guarantees 1:1 mathematical capacity alignment between editor and print', () => {
       const verticalBufferPx = A4_PRINT_PAGE_HEIGHT_PX - EDITOR_PAGE_HEIGHT_PX;
       const verticalBufferMm = A4_PRINT_HEIGHT_MM - EDITOR_PAGE_HEIGHT_MM;
 
-      // Ensure at least 30px (~8-10mm) buffer is provided
-      expect(verticalBufferPx).toBeGreaterThanOrEqual(30);
+      expect(verticalBufferPx).toBe(0);
+      expect(verticalBufferMm).toBe(0);
       expect(verticalBufferMm).toBe(EDITOR_HEIGHT_REDUCTION_MM);
     });
   });

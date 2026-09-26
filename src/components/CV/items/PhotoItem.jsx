@@ -379,10 +379,13 @@ const PhotoItemEditView = ({ item, sectionId }) => {
   );
 };
 
-/**
- * Modular PhotoItem component adhering to BaseItem template contract.
- */
 const PhotoItem = ({ item, sectionId, isPrint = false }) => {
+  const cvContext = useCV();
+  const isAtsMode = cvContext?.cvData?.layout?.isAtsMode === true || cvContext?.cvData?.layout?.type === '1-column';
+  if (isAtsMode) {
+    return null;
+  }
+
   if (isPrint) {
     return <PhotoItemPrintView item={item} />;
   }

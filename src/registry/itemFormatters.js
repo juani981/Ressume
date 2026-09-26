@@ -200,6 +200,57 @@ export const referencesMarkdown = (item) => {
   return parts.join(' | ');
 };
 
+export const contactMarkdown = (item) => {
+  if (!item) return '';
+  const dynamicContacts = normalizeItemContacts(item);
+  const lines = [];
+  dynamicContacts.forEach(c => {
+    if (c?.value) lines.push(`- **${c.type}**: ${c.value}`);
+  });
+  return lines.join('\n');
+};
+
+export const mentoringMarkdown = (item) => {
+  if (!item) return '';
+  const lines = [];
+  const title = stripHtml(item.title || item.name || '');
+  if (title) lines.push(`### ${title}`);
+
+  const meta = [];
+  const subtitle = stripHtml(item.subtitle || item.company || item.institution || item.mentee || '');
+  if (subtitle) meta.push(`**${subtitle}**`);
+  const date = stripHtml(item.date || item.year || '');
+  if (date) meta.push(`\`${date}\``);
+  if (meta.length > 0) lines.push(meta.join(' | '));
+
+  const description = stripHtml(item.description || '')
+    .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+    .replace(/[☑☐✓✔🗹]/g, '')
+    .trim();
+  if (description) lines.push(description);
+
+  if (Array.isArray(item.bullets) && item.bullets.length > 0) {
+    item.bullets.forEach(b => {
+      const cleanB = stripHtml(b)
+        .replace(/\$([a-zA-Z0-9_\-+/]+)\$/g, '$1')
+        .replace(/[☑☐✓✔🗹]/g, '')
+        .trim();
+      if (cleanB) lines.push(`- ${cleanB}`);
+    });
+  }
+  return lines.join('\n');
+};
+
+export const profileHeaderMarkdown = (item) => {
+  if (!item) return '';
+  const name = stripHtml(item.name || item.title || '');
+  const subtitle = stripHtml(item.subtitle || '');
+  const lines = [];
+  if (name) lines.push(`# ${name}`);
+  if (subtitle) lines.push(`## ${subtitle}`);
+  return lines.join('\n');
+};
+
 // ==========================================
 // 2. XML FORMATTERS (Variant 2)
 // ==========================================
@@ -287,6 +338,24 @@ export const educationPlainText = (item) => {
 export const simpleListPlainText = (item) => {
   if (!item) return '';
   return `* ${stripHtml(item.text || '')}`;
+};
+
+export const contactPlainText = (item) => {
+  if (!item) return '';
+  const contacts = normalizeItemContacts(item);
+  return contacts.filter(c => c?.value).map(c => `* ${c.type}: ${c.value}`).join('\n');
+};
+
+export const contactXML = (item, escapeXML) => {
+  if (!item) return '';
+  const esc = escapeXML || ((s) => s || '');
+  const contacts = normalizeItemContacts(item);
+  const lines = ['      <contacts>'];
+  contacts.forEach(c => {
+    if (c?.value) lines.push(`        <contact type="${esc(c.type)}">${esc(c.value)}</contact>`);
+  });
+  lines.push('      </contacts>');
+  return lines.join('\n');
 };
 
 

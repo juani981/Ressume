@@ -163,14 +163,9 @@ describe('Friendly Drag-and-Drop Names & Component Interactivity', () => {
       const tipsBtn = container.querySelector('.section-tips-toggle-btn');
       const delBtn = container.querySelector('.section-del-btn');
 
-      expect(tipsBtn).toBeTruthy();
+      // Individual tips button is eliminated per user requirement in favor of master toggle
+      expect(tipsBtn).toBeNull();
       expect(delBtn).toBeTruthy();
-
-      // Dispatch pointerdown on tips button
-      const tipsPointerEvent = new MouseEvent('pointerdown', { bubbles: true, cancelable: true });
-      const stopTipsSpy = vi.spyOn(tipsPointerEvent, 'stopPropagation');
-      tipsBtn.dispatchEvent(tipsPointerEvent);
-      expect(stopTipsSpy).toHaveBeenCalled();
 
       // Dispatch pointerdown on section delete button
       const delPointerEvent = new MouseEvent('pointerdown', { bubbles: true, cancelable: true });

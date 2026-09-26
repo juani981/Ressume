@@ -119,6 +119,8 @@ export const CVProvider = ({ children, initialCV = null }) => {
     setActiveToolbar: layout.setActiveToolbar,
     clearActiveToolbar: layout.clearActiveToolbar,
     showAITips: layout.showAITips,
+    setShowAITips: layout.setShowAITips,
+    toggleAITips: layout.toggleAITips,
 
     // Export & Notifications
     toast: exportOps.toast,

@@ -113,6 +113,26 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(leftCol.style.height).toBe('100%');
       expect(rightCol.style.height).toBe('100%');
     });
+
+    it('enforces gap: 0 and columnGap: 0 on CSS grid to prevent right column displacement and zero-margin clipping', () => {
+      const { container } = render(
+        <A4PageBox
+          is2Col={true}
+          pagePadding="24px"
+          leftContent={<div>Left</div>}
+          rightContent={<div>Right</div>}
+        />
+      );
+      const pageBox = container.querySelector('.a4-page-box');
+      const rightCol = container.querySelector('.resume__right');
+      const leftCol = container.querySelector('.resume__left');
+
+      expect(['0', '0px', '0 0']).toContain(pageBox.style.gap);
+      expect(['0', '0px']).toContain(pageBox.style.columnGap);
+      expect(['0', '0px']).toContain(pageBox.style.rowGap);
+      expect(rightCol.style.padding).toBe('24px');
+      expect(leftCol.style.padding).toBe('24px');
+    });
   });
 
   describe('3. Single-Column / ATS Mode (isAtsMode)', () => {
@@ -166,6 +186,7 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(printStyles).toContain('box-sizing: border-box !important;');
       expect(printStyles).toContain('margin: 0 !important;');
       expect(printStyles).toContain('box-shadow: none !important;');
+      expect(printStyles).toContain('gap: 0 !important;');
     });
 
     it('enforces break-after: auto on .a4-page-box:last-child to prevent trailing blank page', () => {

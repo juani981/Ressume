@@ -30,6 +30,9 @@
     box-sizing: border-box !important;
     margin: 0 !important;
     box-shadow: none !important;
+    gap: 0 !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
   }
 
   .a4-page-box:last-child {
@@ -88,9 +91,18 @@
     box-shadow: none !important;
   }
 
+  .a4-page-box.bd-grid {
+    display: grid !important;
+    grid-template-rows: 1fr !important;
+    align-items: stretch !important;
+  }
+
   .a4-page-box .resume__left,
   .a4-page-box .resume__right {
-    padding: var(--page-padding, 0px) !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    align-self: stretch !important;
+    padding: var(--page-padding, 24px) !important;
     box-sizing: border-box !important;
   }
 
@@ -127,6 +139,11 @@
     height: 100% !important;
     align-self: stretch !important;
     box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     -webkit-box-decoration-break: clone !important;
@@ -591,5 +608,66 @@
   ul.simple-list-ul li span.inline-edit-display {
     display: inline !important;
     margin: 0 !important;
+  }
+
+  /* Universal word-wrap and horizontal containment in print */
+  .resume__left *,
+  .resume__right *,
+  .cv-section,
+  .cv-block,
+  .editable-section-container,
+  .editable-item-container,
+  .section-title,
+  .experience__title,
+  .experience__company,
+  .experience__description,
+  .education__title,
+  .education__studies,
+  .education__year,
+  .profile__description,
+  .bullet-item-row,
+  .simple-list-item,
+  .skills__name,
+  .languages__name,
+  .inline-edit-display {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  .resume__left a,
+  .resume__right a,
+  .social__link,
+  .hyperlink-display {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  /* Typography & OCR Glyph Mapping Protection: Disable font ligatures and kerning collisions */
+  html, body, #area-cv, .resume, .a4-page-box, p, span, h1, h2, h3, h4, li, a {
+    font-variant-ligatures: none !important;
+    font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Print Vector Icons: Prevent OCR / parser from interpreting icons as checkboxes (☑) */
+  svg, .lucide {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    speak: none !important;
+  }
+
+  /* ATS Print Mode Overrides: Zero icons, zero photos, pure semantic clean text */
+  .resume--ats-mode svg,
+  .resume--ats-mode .lucide,
+  .resume--ats-mode .contact__icon,
+  .resume--ats-mode .cv-section-photo,
+  .resume--ats-mode .cv-photo-container,
+  .resume--ats-mode .cv-photo-item-edit,
+  .resume--ats-mode .photo__container {
+    display: none !important;
   }
 }

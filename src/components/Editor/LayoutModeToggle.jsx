@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCV } from '../../context/CVContext';
-import { Columns, FileText } from 'lucide-react';
+import { Columns, FileText, Lightbulb } from 'lucide-react';
 
 /**
  * LayoutModeToggle
@@ -10,10 +10,11 @@ import { Columns, FileText } from 'lucide-react';
  * - Left: "Diseño Tradicional" (2 Columnas)
  * - Center: Large interactive tactile toggle switch (ON / OFF)
  * - Right: "Optimizado ATS" (1 Columna)
+ * - Sibling: Global master toggle for AI suggestions rail ("Consejos IA")
  * Triggers a noticeable darker background when transitioning to ATS mode.
  */
 const LayoutModeToggle = () => {
-  const { cvData, updateLayout } = useCV();
+  const { cvData, updateLayout, showAITips, toggleAITips } = useCV();
 
   const isAtsMode = cvData.layout?.isAtsMode === true || cvData.layout?.type === '1-column';
 
@@ -178,22 +179,57 @@ const LayoutModeToggle = () => {
         >
           <FileText size={17} strokeWidth={isAtsMode ? 2.5 : 1.75} color={isAtsMode ? '#10b981' : '#94a3b8'} />
           <span style={{ color: isAtsMode ? '#34d399' : (isAtsMode ? '#e2e8f0' : '#64748b') }}>Optimizado ATS</span>
-          {/* <span
-            style={{
-              fontSize: '0.68rem',
-              fontWeight: 700,
-              padding: '2px 7px',
-              borderRadius: '999px',
-              background: isAtsMode ? '#10b981' : 'rgba(148, 163, 184, 0.2)',
-              color: isAtsMode ? '#ffffff' : '#64748b',
-              letterSpacing: '0.02em',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            1 Col
-          </span> */}
         </button>
       </div>
+
+      {/* Global Master AI Tips Toggle */}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={Boolean(showAITips)}
+        data-testid="master-tips-toggle"
+        onClick={() => toggleAITips && toggleAITips()}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.65rem',
+          padding: '0.5rem 1.15rem',
+          borderRadius: '9999px',
+          backgroundColor: showAITips
+            ? (isAtsMode ? 'rgba(234, 179, 8, 0.22)' : 'rgba(254, 240, 138, 0.45)')
+            : (isAtsMode ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255, 255, 255, 0.95)'),
+          border: showAITips
+            ? (isAtsMode ? '1px solid rgba(234, 179, 8, 0.5)' : '1px solid rgba(234, 179, 8, 0.65)')
+            : (isAtsMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)'),
+          color: showAITips ? (isAtsMode ? '#fde047' : '#854d0e') : (isAtsMode ? '#94a3b8' : '#64748b'),
+          cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: isAtsMode
+            ? '0 10px 30px rgba(0, 0, 0, 0.5)'
+            : '0 10px 30px rgba(0, 0, 0, 0.06)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+        title={showAITips ? 'Ocultar todos los consejos IA' : 'Mostrar todos los consejos IA'}
+      >
+        <Lightbulb size={17} color={showAITips ? '#eab308' : '#94a3b8'} strokeWidth={2.3} />
+        <span>Consejos IA</span>
+        <span
+          style={{
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: '999px',
+            backgroundColor: showAITips ? '#eab308' : (isAtsMode ? 'rgba(148, 163, 184, 0.25)' : 'rgba(148, 163, 184, 0.2)'),
+            color: showAITips ? '#ffffff' : (isAtsMode ? '#cbd5e1' : '#64748b'),
+            transition: 'all 0.25s ease'
+          }}
+        >
+          {showAITips ? 'ON' : 'OFF'}
+        </span>
+      </button>
     </div>
   );
 };

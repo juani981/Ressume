@@ -139,11 +139,12 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       page1.rightSections.forEach((s) => expect(s.isContinuation).toBeFalsy());
     });
 
-    it('correctly distributes full defaultSchema into 2 PageModels when content overflows left column', () => {
+    it('correctly distributes defaultSchema into exactly 1 PageModel when content fits on one page', () => {
       const pages = distributeSectionsToPages(defaultSchema);
-      expect(pages.length).toBe(2);
+      expect(pages.length).toBe(1);
       expect(pages[0].pageNumber).toBe(1);
-      expect(pages[1].pageNumber).toBe(2);
+      expect(pages[0].leftSections.length).toBeGreaterThan(0);
+      expect(pages[0].rightSections.length).toBeGreaterThan(0);
     });
   });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
+import { normalizeDateRange } from '../../../utils/textSanitizer';
 
 const EducationItem = ({ item, sectionId, onUpdateItem, isPrint = false, isLast = false }) => {
   return (
@@ -25,7 +26,7 @@ const EducationItem = ({ item, sectionId, onUpdateItem, isPrint = false, isLast 
         </span>
         <span className="education__year">
           <InlineEdit 
-            value={item.date || ''} 
+            value={isPrint ? (normalizeDateRange(item.date) || '') : (item.date || '')} 
             isPrint={isPrint}
             onSave={(val) => onUpdateItem?.(sectionId, item.id, 'date', val)} 
           />

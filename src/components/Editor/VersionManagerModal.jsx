@@ -10,26 +10,17 @@ import {
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
 import { blankSchema } from '../../utils/schema';
+import { History, X, Layers } from 'lucide-react';
 import {
-  History,
-  X,
-  Plus,
-  CheckCircle2,
-  Copy,
-  Edit3,
-  Trash2,
-  TriangleAlert,
-  OctagonAlert,
-  Layers,
-  Calendar,
-  Download,
-  Upload,
-  FilePlus
-} from 'lucide-react';
+  VersionActionBar,
+  VersionConfirmationDialogs,
+  VersionCard
+} from './versionManager';
 
 /**
  * Full-screen Version Manager Hub modal dialog.
  * Allows users to save, restore, duplicate, rename, and delete named CV snapshots.
+ * Modularized into VersionActionBar, VersionConfirmationDialogs, and VersionCard.
  *
  * @param {object} props
  * @param {boolean} props.isOpen - Whether modal is visible.
@@ -93,8 +84,20 @@ export const VersionManagerModal = ({
 
   // Initialize and refresh when modal opens
   useEffect(() => {
+    let isMounted = true;
     if (isOpen) {
-      loadVersions();
+      setLoading(true);
+      getAllVersions().then((list) => {
+        if (isMounted) {
+          setVersions(list || []);
+          setLoading(false);
+        }
+      }).catch((err) => {
+        if (isMounted) {
+          console.error('Error loading versions from storage:', err);
+          setLoading(false);
+        }
+      });
       setNewVersionName(generateSuggestedName());
       setConfirmLoadVersion(null);
       setConfirmDeleteVersion(initialDeleteVersion);
@@ -104,10 +107,14 @@ export const VersionManagerModal = ({
       // Lock body scroll
       document.body.style.overflow = 'hidden';
       return () => {
+        isMounted = false;
         document.body.style.overflow = '';
       };
     }
-  }, [isOpen, loadVersions, generateSuggestedName]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, initialDeleteVersion, initialConfirmBlank, generateSuggestedName]);
 
   // Window Escape key handler (closes modal unless focused in inline edit)
   useEffect(() => {
@@ -518,419 +525,32 @@ export const VersionManagerModal = ({
         {/* =====================================================================
             2. Action Bar: Save Version & JSON Transfer
             ===================================================================== */}
-        <div
-          style={{
-            padding: '1rem 1.5rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}
-        >
-          {/* Row 1: Save current version form */}
-          <form
-            onSubmit={handleSaveCurrent}
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
-            <div style={{ position: 'relative', flex: 1 }}>
-              <input
-                type="text"
-                data-testid="input-new-version-name"
-                placeholder="Nombre de la nueva versión (ej: CV Tech Lead 2026)"
-                value={newVersionName}
-                onChange={(e) => setNewVersionName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.6rem 0.85rem',
-                  fontSize: '0.9rem',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  outline: 'none',
-                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              data-testid="btn-save-version"
-              disabled={isSaving}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.6rem 1.25rem',
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                fontSize: '0.88rem',
-                cursor: isSaving ? 'not-allowed' : 'pointer',
-                opacity: isSaving ? 0.7 : 1,
-                transition: 'background-color 0.15s ease',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <Plus size={16} />
-              {isSaving ? 'Guardando...' : 'Guardar Versión Actual'}
-            </button>
-          </form>
-
-          {/* Row 2: JSON Backup & Transfer Actions */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingTop: '0.5rem',
-              borderTop: '1px dashed #e2e8f0',
-              gap: '0.75rem',
-              flexWrap: 'wrap',
-            }}
-          >
-            <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Layers size={14} color="#64748b" />
-              <span>Plantillas, respaldo e importación</span>
-            </span>
-
-            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={handleImportFile}
-                style={{ display: 'none' }}
-                data-testid="input-import-json-file"
-              />
-
-              {/* Botón Empezar CV en Blanco */}
-              <button
-                type="button"
-                data-testid="btn-start-blank-cv"
-                onClick={() => setConfirmBlankCV(true)}
-                title="Empezar un nuevo CV desde cero con datos placeholders"
-                aria-label="Empezar CV en Blanco"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '0.45rem 0.9rem',
-                  backgroundColor: '#ffffff',
-                  color: '#4f46e5',
-                  border: '1px solid #c7d2fe',
-                  borderRadius: '7px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <FilePlus size={14} color="#4f46e5" />
-                <span>Empezar CV en Blanco</span>
-              </button>
-
-              {/* Botón Importar JSON */}
-              <button
-                type="button"
-                data-testid="btn-import-json"
-                onClick={() => fileInputRef.current?.click()}
-                title="Importar un archivo de CV en formato JSON"
-                aria-label="Importar archivo JSON"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '0.45rem 0.9rem',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '7px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Upload size={14} color="#2563eb" />
-                <span>Importar JSON</span>
-              </button>
-
-              {/* Botón Descargar JSON Actual */}
-              <button
-                type="button"
-                data-testid="btn-export-active-json"
-                onClick={handleDownloadActiveJSON}
-                title="Descargar el estado actual del CV como archivo JSON"
-                aria-label="Descargar CV actual como JSON"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '0.45rem 0.9rem',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '7px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Download size={14} color="#10b981" />
-                <span>Descargar como JSON</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <VersionActionBar
+          newVersionName={newVersionName}
+          setNewVersionName={setNewVersionName}
+          isSaving={isSaving}
+          onSaveCurrent={handleSaveCurrent}
+          onStartBlank={() => setConfirmBlankCV(true)}
+          onImportClick={() => fileInputRef.current?.click()}
+          fileInputRef={fileInputRef}
+          onImportFile={handleImportFile}
+          onDownloadActiveJSON={handleDownloadActiveJSON}
+        />
 
         {/* =====================================================================
             3. Obsidian Callout Confirmation Dialogs (Warning / Danger)
             ===================================================================== */}
-        {confirmBlankCV && (
-          <div
-            className="obsidian-callout"
-            data-testid="callout-confirm-blank"
-            style={{
-              background: 'rgba(219, 139, 0, 0.1)',
-              borderLeft: '4px solid rgba(219, 139, 0, 1)',
-              borderRadius: '8px',
-              padding: '1.25rem',
-              margin: '1.25rem 1.5rem 0',
-              fontSize: '0.9rem',
-            }}
-          >
-            <div
-              className="callout-title"
-              style={{
-                display: 'flex',
-                gap: '8px',
-                fontWeight: 600,
-                color: 'rgba(219, 139, 0, 1)',
-                marginBottom: '8px',
-                alignItems: 'center',
-                fontSize: '1rem',
-              }}
-            >
-              <TriangleAlert size={18} /> Empezar CV en Blanco
-            </div>
-            <div
-              className="callout-content"
-              style={{
-                color: '#334155',
-                fontSize: '0.85rem',
-                lineHeight: 1.5,
-              }}
-            >
-              Esta acción inicializará el editor con una plantilla limpia y datos placeholders listos para rellenar. El CV actual en pantalla será reemplazado (puedes deshacer con Ctrl+Z). ¿Deseas continuar?
-            </div>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button
-                type="button"
-                data-testid="btn-cancel-blank"
-                onClick={() => setConfirmBlankCV(false)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#475569',
-                  fontWeight: 500,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                data-testid="btn-confirm-blank"
-                onClick={handleConfirmBlankCV}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: 'rgba(219, 139, 0, 1)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Sí, Empezar en Blanco
-              </button>
-            </div>
-          </div>
-        )}
-
-        {confirmLoadVersion && (
-          <div
-            className="obsidian-callout"
-            style={{
-              background: 'rgba(219, 139, 0, 0.1)',
-              borderLeft: '4px solid rgba(219, 139, 0, 1)',
-              borderRadius: '8px',
-              padding: '1.25rem',
-              margin: '1.25rem 1.5rem 0',
-              fontSize: '0.9rem',
-            }}
-          >
-            <div
-              className="callout-title"
-              style={{
-                display: 'flex',
-                gap: '8px',
-                fontWeight: 600,
-                color: 'rgba(219, 139, 0, 1)',
-                marginBottom: '8px',
-                alignItems: 'center',
-                fontSize: '1rem',
-              }}
-            >
-              <TriangleAlert size={18} /> Cargar Versión
-            </div>
-            <div
-              className="callout-content"
-              style={{
-                color: '#334155',
-                fontSize: '0.85rem',
-                lineHeight: 1.5,
-              }}
-            >
-              Cargar esta versión reemplazará el CV actual en el editor. ¿Deseas continuar?
-              <div style={{ marginTop: '0.4rem', fontWeight: 600, color: '#0f172a' }}>
-                Versión seleccionada: {confirmLoadVersion.name}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button
-                type="button"
-                data-testid="btn-cancel-load"
-                onClick={() => setConfirmLoadVersion(null)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#475569',
-                  fontWeight: 500,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                data-testid="btn-confirm-load"
-                onClick={() => handleConfirmLoad(confirmLoadVersion)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: 'rgba(219, 139, 0, 1)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Confirmar y Reemplazar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {confirmDeleteVersion && (
-          <div
-            className="obsidian-callout"
-            style={{
-              background: 'rgba(233, 49, 71, 0.1)',
-              borderLeft: '4px solid rgba(233, 49, 71, 1)',
-              borderRadius: '8px',
-              padding: '1.25rem',
-              margin: '1.25rem 1.5rem 0',
-              fontSize: '0.9rem',
-            }}
-          >
-            <div
-              className="callout-title"
-              style={{
-                display: 'flex',
-                gap: '8px',
-                fontWeight: 600,
-                color: 'rgba(233, 49, 71, 1)',
-                marginBottom: '8px',
-                alignItems: 'center',
-                fontSize: '1rem',
-              }}
-            >
-              <OctagonAlert size={18} /> Eliminar Versión
-            </div>
-            <div
-              className="callout-content"
-              style={{
-                color: '#334155',
-                fontSize: '0.85rem',
-                lineHeight: 1.5,
-              }}
-            >
-              ¿Estás seguro de que deseas eliminar permanentemente esta versión?
-              <div style={{ marginTop: '0.4rem', fontWeight: 600, color: '#0f172a' }}>
-                Versión: {confirmDeleteVersion.name}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button
-                type="button"
-                data-testid="btn-cancel-delete"
-                onClick={() => setConfirmDeleteVersion(null)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  background: '#ffffff',
-                  color: '#475569',
-                  fontWeight: 500,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                data-testid="btn-confirm-delete"
-                onClick={() => handleConfirmDelete(confirmDeleteVersion.id)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: 'none',
-                  borderRadius: '6px',
-                  background: 'rgba(233, 49, 71, 1)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Eliminar Definitivamente
-              </button>
-            </div>
-          </div>
-        )}
+        <VersionConfirmationDialogs
+          confirmBlankCV={confirmBlankCV}
+          onCancelBlank={() => setConfirmBlankCV(false)}
+          onConfirmBlank={handleConfirmBlankCV}
+          confirmLoadVersion={confirmLoadVersion}
+          onCancelLoad={() => setConfirmLoadVersion(null)}
+          onConfirmLoad={handleConfirmLoad}
+          confirmDeleteVersion={confirmDeleteVersion}
+          onCancelDelete={() => setConfirmDeleteVersion(null)}
+          onConfirmDelete={handleConfirmDelete}
+        />
 
         {/* =====================================================================
             4. Responsive Card Grid
@@ -994,299 +614,23 @@ export const VersionManagerModal = ({
               </p>
             </div>
           ) : (
-            versions.map((version) => {
-              const isAts = Boolean(
-                version.cvData?.layout?.isAtsMode || version.cvData?.layout?.type === '1-column'
-              );
-              const formattedDate = version.createdAt
-                ? new Date(version.createdAt).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'Fecha no disponible';
-
-              const isEditing = editingVersionId === version.id;
-
-              return (
-                <div
-                  key={version.id}
-                  className="version-card"
-                  style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                  }}
-                >
-                  {/* Miniature Visual Thumbnail Preview */}
-                  <div
-                    style={{
-                      height: '180px',
-                      backgroundColor: '#f1f5f9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      borderBottom: '1px solid #e2e8f0',
-                    }}
-                  >
-                    {version.thumbnail ? (
-                      <img
-                        src={version.thumbnail}
-                        alt={version.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                        }}
-                      />
-                    ) : (
-                      <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Sin vista previa</div>
-                    )}
-
-                    {/* Layout Badge */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '8px',
-                        right: '8px',
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        fontSize: '0.7rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.03em',
-                        backgroundColor: isAts ? '#e0f2fe' : '#ede9fe',
-                        color: isAts ? '#0369a1' : '#6b21a8',
-                        border: `1px solid ${isAts ? '#bae6fd' : '#ddd6fe'}`,
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      {isAts ? 'ATS 1-Col' : '2-Col'}
-                    </div>
-                  </div>
-
-                  {/* Card Content */}
-                  <div
-                    style={{
-                      padding: '1rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      flex: 1,
-                    }}
-                  >
-                    {/* Version Title or Inline Rename Input */}
-                    <div style={{ marginBottom: '0.5rem', minHeight: '28px', display: 'flex', alignItems: 'center' }}>
-                      {isEditing ? (
-                        <input
-                          ref={renameInputRef}
-                          data-testid="input-rename-version"
-                          type="text"
-                          value={renameText}
-                          onChange={(e) => setRenameText(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Escape') {
-                              e.stopPropagation();
-                              cancelRename();
-                            } else if (e.key === 'Enter') {
-                              e.preventDefault();
-                              commitRename(version.id);
-                            }
-                          }}
-                          onBlur={() => commitRename(version.id)}
-                          style={{
-                            width: '100%',
-                            padding: '3px 6px',
-                            fontSize: '0.92rem',
-                            fontWeight: 600,
-                            border: '1px solid #3b82f6',
-                            borderRadius: '4px',
-                            outline: 'none',
-                            backgroundColor: '#eff6ff',
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            width: '100%',
-                          }}
-                        >
-                          <h4
-                            onDoubleClick={() => startRename(version)}
-                            title="Doble clic para renombrar"
-                            style={{
-                              margin: 0,
-                              fontSize: '0.92rem',
-                              fontWeight: 600,
-                              color: '#0f172a',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {version.name}
-                          </h4>
-                          <button
-                            type="button"
-                            data-testid="btn-rename-version"
-                            aria-label="Renombrar versión"
-                            title="Renombrar"
-                            onClick={() => startRename(version)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#94a3b8',
-                              padding: '2px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Edit3 size={14} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metadata: Created Date */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        fontSize: '0.75rem',
-                        color: '#64748b',
-                        marginBottom: '1rem',
-                      }}
-                    >
-                      <Calendar size={13} />
-                      <span>{formattedDate}</span>
-                    </div>
-
-                    {/* Action Buttons Toolbar */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        marginTop: 'auto',
-                        paddingTop: '0.75rem',
-                        borderTop: '1px solid #f1f5f9',
-                      }}
-                    >
-                      {/* Cargar */}
-                      <button
-                        type="button"
-                        data-testid="btn-load-version"
-                        onClick={() => setConfirmLoadVersion(version)}
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '5px',
-                          padding: '0.45rem 0.75rem',
-                          backgroundColor: '#eff6ff',
-                          color: '#2563eb',
-                          border: '1px solid #bfdbfe',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s ease',
-                        }}
-                      >
-                        <CheckCircle2 size={14} />
-                        Cargar
-                      </button>
-
-                      {/* Duplicar */}
-                      <button
-                        type="button"
-                        data-testid="btn-duplicate-version"
-                        aria-label="Duplicar versión"
-                        title="Duplicar"
-                        onClick={() => handleDuplicate(version.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '4px',
-                          padding: '0.45rem 0.65rem',
-                          backgroundColor: '#f8fafc',
-                          color: '#475569',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <Copy size={14} />
-                        <span style={{ fontSize: '0.75rem' }}>Duplicar</span>
-                      </button>
-
-                      {/* Descargar JSON */}
-                      <button
-                        type="button"
-                        data-testid="btn-download-version-json"
-                        aria-label="Descargar esta versión como JSON"
-                        title="Descargar esta versión como JSON"
-                        onClick={() => handleDownloadVersionJSON(version)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0.45rem',
-                          backgroundColor: '#f8fafc',
-                          color: '#475569',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <Download size={14} />
-                      </button>
-
-                      {/* Eliminar */}
-                      <button
-                        type="button"
-                        data-testid="btn-delete-version"
-                        aria-label="Eliminar versión"
-                        title="Eliminar"
-                        onClick={() => setConfirmDeleteVersion(version)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0.45rem',
-                          backgroundColor: '#fff1f2',
-                          color: '#e11d48',
-                          border: '1px solid #fecdd3',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+            versions.map((version) => (
+              <VersionCard
+                key={version.id}
+                version={version}
+                isEditing={editingVersionId === version.id}
+                renameText={renameText}
+                renameInputRef={renameInputRef}
+                onStartRename={startRename}
+                onCancelRename={cancelRename}
+                onCommitRename={commitRename}
+                onChangeRenameText={setRenameText}
+                onConfirmLoad={setConfirmLoadVersion}
+                onDuplicate={handleDuplicate}
+                onDownloadJSON={handleDownloadVersionJSON}
+                onConfirmDelete={setConfirmDeleteVersion}
+              />
+            ))
           )}
         </div>
       </div>
