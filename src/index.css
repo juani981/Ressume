@@ -2340,3 +2340,12 @@ body.ats-mode-active .a4-page-fold-badge {
 .resume--ats-mode .home__contact svg {
   display: none !important;
 }
+
+/* AI Tips Active Section Highlight */
+.ai-tip-highlighted-section {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 4px !important;
+  border-radius: 6px !important;
+  transition: outline 0.15s ease-out, box-shadow 0.15s ease-out !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
+}

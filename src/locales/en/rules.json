@@ -1,82 +1,62 @@
 [
   {
-    "id": "ats_crit_en_001",
-    "target_section": "skills",
+    "id": "rule_en_global_001",
+    "target_section": "global",
     "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Cluster Skills: Prioritize Backend & DevOps",
-    "suggestion_body": "Organize your stack into strategic clusters: Backend & Languages, Databases & Storage, DevOps & Cloud, and Frontend & UI. Placing Backend and DevOps first ensures automated ATS screeners immediately detect your technical domain.",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "1 Page Maximum",
+    "suggestion_body": "Keep your resume to 1 page; recruiters scan it in 6 seconds.",
     "severity": "critical"
   },
   {
-    "id": "ats_crit_en_002",
+    "id": "rule_en_global_002",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Purge Personal Pronouns",
+    "suggestion_body": "Delete 'I' and 'my'. Start every bullet directly with strong action verbs.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_global_003",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Zero Rating Bars",
+    "suggestion_body": "Remove progress bars and rating meters; recruiters ignore arbitrary skill percentages.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_global_ats_flow",
     "target_section": "global",
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "1-Column Format: Zero Column Tags or Splitting",
-    "suggestion_body": "In 1-column ATS mode, remove any left/right tags or layout divisions. ATS parsers read in a single vertical stream; divided elements trigger severe parsing penalties due to text scrambling risk.",
+    "suggestion_title": "1-Column Vertical Flow",
+    "suggestion_body": "Use a single vertical stream; column splits scramble automated ATS parsers.",
     "severity": "critical"
   },
   {
-    "id": "ats_crit_en_003",
-    "target_section": "skills",
-    "target_layout": "ATS_1_col",
-    "target_industry": "tech",
-    "trigger_context": "format_scan",
-    "suggestion_title": "Canonical ATS Hierarchy: Skills Directly After Summary",
-    "suggestion_body": "In 1-column ATS-optimized resumes, place Technical Skills before Work Experience to capture 80% of vacancy keyword matches within the first 200 tokens.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_en_004",
-    "target_section": "experience",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Google XYZ Formula: Action Verb + Measurable Impact",
-    "suggestion_body": "Structure each achievement as 'Accomplished [X], measured by [Y], by doing [Z]' (e.g. 'Optimized database query performance via execution plan profiling and indexing'). Avoid passive duty lists.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_en_005",
-    "target_section": "projects",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Clean Repository Links & Explicit Tech Stack",
-    "suggestion_body": "Include verifiable links to GitHub repositories or live demos with their explicit tech stack (e.g. React, Laravel, REST APIs). Technical screeners prioritize verifiable code.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_en_006",
-    "target_section": "education",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Standardized Degree Equivalency for ATS Filters",
-    "suggestion_body": "Clarify international degree equivalencies (e.g., 'Associate Degree in Computer Programming' or 'B.S. in Computer Science & Engineering') with explicit graduation status to pass automated education filters.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_en_007",
-    "target_section": "profile",
-    "target_layout": "both",
+    "id": "rule_en_global_2col_contrast",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Direct Plain-Text Contact Information",
-    "suggestion_body": "Present Email, Phone, Location, and LinkedIn/GitHub URLs in selectable plain text without graphic icons or tables that block ATS OCR extraction.",
-    "severity": "critical"
+    "suggestion_title": "2-Column Visual Balance",
+    "suggestion_body": "Place contact and skills on the left; achievements on the right.",
+    "severity": "info"
   },
   {
     "id": "ats_crit_en_dollar_syntax",
     "target_section": "global",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "ATS Technical Syntax: Avoid Dollar Symbols ($N+1, $CI/CD)",
-    "suggestion_body": "Do not use dollar symbols ($) to enclose technical terms or expressions (e.g. '$N+1$', '$CI/CD$'). ATS parsers (Workday, Taleo, Greenhouse) interpret '$' signs as compensation figures or broken regex variables, failing keyword matching.",
+    "suggestion_title": "Zero Dollar Signs ($)",
+    "suggestion_body": "Do not wrap text in dollar symbols; they trigger ATS parsing errors.",
     "severity": "critical"
   },
   {
@@ -85,28 +65,228 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "URL Integrity: Eliminate Spaces and Temporary Preview Builds",
-    "suggestion_body": "Ensure no URLs contain accidental whitespace, and always point to canonical domains or production repositories rather than temporary deploy preview URLs ('deploy-preview-4...'). ATS crawlers reject links broken by whitespace.",
+    "suggestion_title": "Clean Links Without Spaces",
+    "suggestion_body": "Verify URLs contain no accidental spaces and point to live repositories.",
     "severity": "critical"
   },
   {
     "id": "ats_warn_en_glyph_overload",
     "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Suppress Checkboxes and Glyphs",
+    "suggestion_body": "Strip checkboxes and custom symbols; they export as broken, unreadable characters.",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_en_global_004",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Consistent Dates & Periods",
+    "suggestion_body": "Use identical date patterns and punctuation throughout every single section.",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_en_profile_001",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Magnetic Job Title",
+    "suggestion_body": "State your exact target role and core specialty instead of buzzwords.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_profile_002",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "No Full Street Address",
+    "suggestion_body": "Omit street address; list only City, Country, Phone, Email, and LinkedIn.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_profile_003",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Kill the 'Career Objective'",
+    "suggestion_body": "Replace objectives with a 2-line executive summary focused on results.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_profile_004",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Clean LinkedIn Handle",
+    "suggestion_body": "Customize your LinkedIn link by removing trailing random letters and digits.",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_en_experience_001",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Google XYZ Formula",
+    "suggestion_body": "Format: 'Accomplished [X], measured by [Y], by doing [Z]'. Laszlo Bock.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_experience_002",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Kill 'Responsible for'",
+    "suggestion_body": "Delete 'responsible for'; lead every bullet with a decisive action verb.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_experience_003",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mandatory Metrics",
+    "suggestion_body": "Quantify accomplishments with numbers, percentages, or dollars on every bullet.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_experience_004",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "1 to 2 Lines Max",
+    "suggestion_body": "Trim long bullets; keep each achievement within 2 scannable lines.",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_en_experience_ats_recency",
+    "target_section": "experience",
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Glyph Overload: Eliminate Checkboxes (☑) and Non-Standard Symbols",
-    "suggestion_body": "Suppress checkboxes (☑, ☐), decorative checkmarks (✓), or non-standard bullet symbols. ATS OCR and text layer extractors convert these into replacement characters ('?', '\\uFFFD') or drop the entire bullet row.",
+    "suggestion_title": "ATS Reverse Chronology",
+    "suggestion_body": "Position your current role first using standardized month/year dates.",
     "severity": "warning"
+  },
+  {
+    "id": "rule_en_experience_2col_visual",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Focus on Recent Roles",
+    "suggestion_body": "Dedicate 3-4 bullets to recent positions and condense older jobs.",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_en_skills_001",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Cluster Skills Logically",
+    "suggestion_body": "Group into categories: Languages, Databases, Cloud. Remove percentage ratings.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_skills_002",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Purge Cliché Soft Skills",
+    "suggestion_body": "Delete 'team player'; prove leadership through quantifiable metrics in experience.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_skills_ats_keywords",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Frontload ATS Keywords",
+    "suggestion_body": "Place skills near the top to maximize ATS keyword search hits.",
+    "severity": "critical"
   },
   {
     "id": "ats_info_en_technology_casing",
     "target_section": "skills",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Skills Taxonomy: Canonical Technology Casing (JavaScript, MySQL)",
-    "suggestion_body": "Format technologies with canonical industry casing (e.g., 'JavaScript' instead of 'Javascript', 'MySQL' instead of 'mysql', 'PostgreSQL', 'Docker'). ATS taxonomy ontologies (Lightcast, O*NET) match canonical casing for scoring.",
+    "suggestion_title": "Canonical Tech Casing",
+    "suggestion_body": "Write canonical names: 'TypeScript', 'PostgreSQL', 'Docker' instead of lowercased tags.",
     "severity": "info"
+  },
+  {
+    "id": "rule_en_projects_001",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Problem + Solution + Impact",
+    "suggestion_body": "Highlight the problem solved, architecture used, and quantifiable outcome achieved.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_projects_002",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "tech",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Verifiable GitHub Links",
+    "suggestion_body": "Link directly to public GitHub repositories or live deployed production demos.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_education_001",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Degree, School & Year",
+    "suggestion_body": "State official degree title, university name, and graduation year cleanly.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_education_002",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Drop High School",
+    "suggestion_body": "Delete secondary school completely once you have college education or experience.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_certificates_001",
+    "target_section": "certificates",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Only Recognized Credentials",
+    "suggestion_body": "Feature verified industry exams (AWS, GCP, PMP, Scrum). Drop attendance webinars.",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_en_languages_001",
+    "target_section": "languages",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Standard Language Proficiency",
+    "suggestion_body": "Use CEFR levels (B2, C1) or formal tiers. No arbitrary percentages.",
+    "severity": "critical"
   }
 ]
