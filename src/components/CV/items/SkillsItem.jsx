@@ -16,7 +16,7 @@ const SkillsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           backgroundColor: 'var(--circle-color, var(--text-color))' 
         }}
       />
-      <span style={{ flex: 1 }}>
+      <span style={{ flex: 1, minWidth: 0, maxWidth: '100%' }}>
         <b>
           <InlineEdit 
             value={item.title || ''} 

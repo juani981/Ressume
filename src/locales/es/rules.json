@@ -1,82 +1,62 @@
 [
   {
-    "id": "ats_crit_es_001",
-    "target_section": "skills",
+    "id": "rule_es_global_001",
+    "target_section": "global",
     "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Agrupar Habilidades: Backend y DevOps Primero",
-    "suggestion_body": "Clasifica tus tecnologías en categorías estratégicas: Backend & Lenguajes, Bases de Datos & Almacenamiento, DevOps & Cloud, y Frontend & UI. Priorizar Backend y DevOps primero garantiza que los filtros automáticos ATS identifiquen tu especialidad técnica en los primeros milisegundos.",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Máximo 1 Página",
+    "suggestion_body": "Limita tu CV a 1 página. Ej: \"1 página concisa\" (no \"2 páginas con relleno\").",
     "severity": "critical"
   },
   {
-    "id": "ats_crit_es_002",
+    "id": "rule_es_global_002",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Elimina Pronombres Personales",
+    "suggestion_body": "Elimina el \"yo\" y posesivos. Ej: \"Diseñé API REST\" (no \"Yo diseñé mi propia API\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_global_003",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Sin Barras de Nivel",
+    "suggestion_body": "Elimina barras y porcentajes de nivel. Ej: \"Java, Docker\" (no \"Python 80%\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_global_ats_flow",
     "target_section": "global",
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Formato 1 Columna: Cero Residuos de División",
-    "suggestion_body": "En modo de 1 columna para ATS, elimina cualquier etiqueta o división izquierda/derecha. Los parsers ATS leen en un único flujo vertical; etiquetas divididas generan penalizaciones severas por riesgo de mezcla de texto.",
+    "suggestion_title": "Flujo Vertical 1 Columna",
+    "suggestion_body": "Usa formato vertical de 1 columna. Ej: \"Flujo vertical continuo\" (no \"Tablas o columnas\").",
     "severity": "critical"
   },
   {
-    "id": "ats_crit_es_003",
-    "target_section": "skills",
-    "target_layout": "ATS_1_col",
-    "target_industry": "tech",
-    "trigger_context": "format_scan",
-    "suggestion_title": "Orden Canónico ATS: Skills Inmediatamente tras Resumen",
-    "suggestion_body": "En CVs de 1 columna optimizados para ATS, ubica las Habilidades Técnicas antes de la Experiencia Laboral para capturar el 80% de las palabras clave de la vacante en los primeros 200 tokens.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_es_004",
-    "target_section": "experience",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Fórmula Google XYZ: Verbo de Acción + Impacto",
-    "suggestion_body": "Redacta cada viñeta siguiendo 'Logré [X], medido por [Y], haciendo [Z]' (ej: 'Optimizo el rendimiento de BD mediante planes de ejecución e índices'). Evita listas de responsabilidades pasivas sin contexto de logro.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_es_005",
-    "target_section": "projects",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Enlaces Limpios a Repositorios & Stack Explícito",
-    "suggestion_body": "Incluye enlaces accesibles a repositorios GitHub o demos en vivo con su stack tecnológico explícito (ej: React, Laravel, REST APIs). Los parsers ATS y reclutadores técnicos validan código real de forma prioritaria.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_es_006",
-    "target_section": "education",
-    "target_layout": "both",
-    "target_industry": "tech",
-    "trigger_context": "on_edit_description",
-    "suggestion_title": "Equivalencia Internacional de Títulos Universitarios",
-    "suggestion_body": "Clarifica títulos académicos regionales (ej: 'Programador Universitario' con su equivalencia 'Associate Degree in Computer Programming') y estado claro ('Graduado' o 'En etapa de tesis final') para superar filtros automáticos de titulación.",
-    "severity": "critical"
-  },
-  {
-    "id": "ats_crit_es_007",
-    "target_section": "profile",
-    "target_layout": "both",
+    "id": "rule_es_global_2col_contrast",
+    "target_section": "global",
+    "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Contactabilidad Directa en Texto Plano",
-    "suggestion_body": "Presenta Email, Teléfono, Ubicación y perfiles de LinkedIn/GitHub en texto seleccionable directo sin iconos gráficos ni tablas que bloqueen la extracción OCR del ATS.",
-    "severity": "critical"
+    "suggestion_title": "Equilibrio Visual en 2 Col",
+    "suggestion_body": "Distribuye habilidades izquierda y logros derecha. Ej: \"Izq: Skills; Der: Experiencia\".",
+    "severity": "info"
   },
   {
     "id": "ats_crit_es_dollar_syntax",
     "target_section": "global",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Sintaxis Técnica ATS: Evitar Símbolos de Dólar ($N+1$, $CI/CD$)",
-    "suggestion_body": "No utilices símbolos de dólar ($) para encerrar términos técnicos o fórmulas (ej: '$N+1$', '$CI/CD$'). Los parsers ATS (Workday, Taleo, Greenhouse) interpretan los signos '$' como campos salariales o variables de regex rotas, lo que provoca que las palabras clave no se indexen o se rechace el documento.",
+    "suggestion_title": "Cero Signos de Dólar ($)",
+    "suggestion_body": "Evita $, / o &. Ej: \"Problema N+1 y CI/CD\" (no \"+1$\").",
     "severity": "critical"
   },
   {
@@ -85,28 +65,228 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Integridad de URLs: Evitar Espacios y Enlaces Temporales de Preview",
-    "suggestion_body": "Verifica que ninguna URL contenga espacios en blanco accidentales y apunta siempre a dominios canónicos o repositorios definitivos en lugar de builds temporales (ej: 'deploy-preview-4...'). Los bots ATS validan la sintaxis de los enlaces y descartan URLs truncadas por espacios.",
+    "suggestion_title": "Enlaces Limpios sin Espacios",
+    "suggestion_body": "URLs canónicas, vivas y limpias. Ej: \"github.com/usuario/repo\" (no previews rotas).",
     "severity": "critical"
   },
   {
     "id": "ats_warn_es_glyph_overload",
     "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Sin Casillas ni Íconos Raros",
+    "suggestion_body": "Usa viñetas estándar sin emojis. Ej: \"• Punto simple\" (no \"☑ Casillas o emojis\").",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_es_global_004",
+    "target_section": "global",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Consistencia en Fechas",
+    "suggestion_body": "Usa siempre mes y año. Ej: \"03/2023 – Presente\" (no \"2 años\").",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_es_profile_001",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Titular Profesional Específico",
+    "suggestion_body": "Define tu rol técnico y especialidad. Ej: \"Frontend Engineer | React\" (no adjetivos vacíos).",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_profile_002",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Sin Dirección Postal Completa",
+    "suggestion_body": "Incluye únicamente ciudad y país. Ej: \"Buenos Aires, Argentina\" (no \"Calle 123\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_profile_003",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mata el 'Objetivo Profesional'",
+    "suggestion_body": "Reemplázalo por resumen con resultados. Ej: \"5 años escalando microservicios\" (no objetivo).",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_profile_004",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "URL Limpia de LinkedIn",
+    "suggestion_body": "Personaliza y limpia el enlace. Ej: \"linkedin.com/in/juanperez\" (no números aleatorios).",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_es_experience_001",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Fórmula Google XYZ",
+    "suggestion_body": "Fórmula Google XYZ de Laszlo Bock. Ej: \"Reduje latencia 30% optimizando consultas SQL.\"",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_experience_002",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Mata el 'Responsable de'",
+    "suggestion_body": "Abre siempre con acción directa. Ej: \"Lideré la migración...\" (no \"Fui el encargado de...\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_experience_003",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Métricas Obligatorias",
+    "suggestion_body": "Cuantifica con números reales. Ej: \"Aumenté cobertura al 92% con pruebas unitarias.\"",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_experience_004",
+    "target_section": "experience",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Viñetas de 1 a 2 Líneas",
+    "suggestion_body": "Escribe máximo 2 líneas por viñeta. Ej: \"2 líneas concisas\" (no párrafos largos).",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_es_experience_ats_recency",
+    "target_section": "experience",
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Sobrecarga de Glifos: Suprimir Checkboxes (☑) y Símbolos No Estándar",
-    "suggestion_body": "Suprime checkboxes (☑, ☐), tildes decorativas (✓) o caracteres gráficos en tus viñetas. Los motores de extracción de texto de los ATS transforman estos glifos en caracteres corruptos ('?', '\\uFFFD') o descartan la línea completa, perdiendo los logros asociados.",
+    "suggestion_title": "Cronología Inversa ATS",
+    "suggestion_body": "Presente hoy, pasado ayer. Ej: \"Mantengo servidores...\" (actual); \"Desarrollé microservicios...\" (previo).",
     "severity": "warning"
+  },
+  {
+    "id": "rule_es_experience_2col_visual",
+    "target_section": "experience",
+    "target_layout": "Human_2_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Prioriza Roles Recientes",
+    "suggestion_body": "Detalla empleos recientes y sintetiza previos. Ej: \"3-4 viñetas en trabajo actual\".",
+    "severity": "warning"
+  },
+  {
+    "id": "rule_es_skills_001",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Agrupa Habilidades por Tipo",
+    "suggestion_body": "Organiza tecnologías por categorías lógicas. Ej: \"Backend: Node.js; Cloud: AWS\".",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_skills_002",
+    "target_section": "skills",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Elimina Soft Skills Cliché",
+    "suggestion_body": "Reemplaza adjetivos por hechos. Ej: \"Coordiné 4 desarrolladores\" (no \"Gran líder proactivo\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_skills_ats_keywords",
+    "target_section": "skills",
+    "target_layout": "ATS_1_col",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Keywords Técnicas en ATS",
+    "suggestion_body": "Ubica tecnologías en el tercio superior. Ej: \"Skills visibles antes de experiencia\".",
+    "severity": "critical"
   },
   {
     "id": "ats_info_es_technology_casing",
     "target_section": "skills",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Taxonomía de Habilidades: Casing Canónico (JavaScript, MySQL)",
-    "suggestion_body": "Escribe las tecnologías respetando su capitalización estándar de la industria (ej: 'JavaScript' en vez de 'Javascript', 'MySQL' en vez de 'mysql', 'PostgreSQL', 'Docker'). Las taxonomías de habilidades de los ATS (Lightcast, O*NET) utilizan concordancia canónica para calcular el score de afinidad técnica.",
+    "suggestion_title": "Casing Oficial de Tecnologías",
+    "suggestion_body": "Respeta la marca oficial. Ej: \"TypeScript, PostgreSQL, Docker\" (no \"Typescript, postgresql\").",
     "severity": "info"
+  },
+  {
+    "id": "rule_es_projects_001",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Problema + Solución + Impacto",
+    "suggestion_body": "Trátalos con la misma estructura. Ej: \"Monitor IoT: Creador | Stack: C++, MQTT.\"",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_projects_002",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Links a GitHub o Demo",
+    "suggestion_body": "Enlaza siempre a repositorios públicos. Ej: \"github.com/usuario/app\" (no sin enlace).",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_education_001",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Título, Institución y Año",
+    "suggestion_body": "Escribe la carrera completa y equivalencia. Ej: \"Programador Universitario (Associate Degree in Programming)\".",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_education_002",
+    "target_section": "education",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "format_scan",
+    "suggestion_title": "Borra la Escuela Secundaria",
+    "suggestion_body": "Elimina secundaria si tienes estudios superiores. Ej: \"Lic. en Informática\" (no \"Secundaria\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_certificates_001",
+    "target_section": "certificates",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Solo Certificaciones Oficiales",
+    "suggestion_body": "Prioriza exámenes avalados por la industria. Ej: \"AWS Solutions Architect\" (no \"Webinars\").",
+    "severity": "critical"
+  },
+  {
+    "id": "rule_es_languages_001",
+    "target_section": "languages",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Nivel de Idioma Estándar",
+    "suggestion_body": "Usa marco internacional estandarizado. Ej: \"Inglés: C1 (Avanzado)\" (no \"Inglés 85%\").",
+    "severity": "critical"
   }
 ]

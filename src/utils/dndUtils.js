@@ -11,7 +11,11 @@
  * @param {EventTarget|null} target
  * @returns {boolean} true if drag should be prevented, false if drag is allowed
  */
-export const isNonDraggableTarget = (target) => {
+export const isNonDraggableTarget = (rawTarget) => {
+  if (!rawTarget) return false;
+
+  // Normalize text node (nodeType === 3) or non-element to its parent element
+  const target = rawTarget.nodeType === 1 ? rawTarget : rawTarget.parentElement;
   if (!target || typeof target.closest !== 'function') return false;
 
   // 1. If clicking explicitly on any drag handle icon, ALWAYS allow drag
@@ -48,6 +52,7 @@ export const isNonDraggableTarget = (target) => {
     '.section-del-btn',
     '.item-del-btn',
     '.contact-del-btn',
+    '.page-delete-btn',
     '.column-resizer',
     '.column-resizer-bar',
     '.column-resizer-handle',
@@ -57,7 +62,8 @@ export const isNonDraggableTarget = (target) => {
     '.popover',
     '.suggestion-tooltip',
     '.obsidian-callout',
-    '.contact-type-picker'
+    '.contact-type-picker',
+    '.cv-photo-controls-floating'
   ].join(', '));
 
   if (isInteractive) {

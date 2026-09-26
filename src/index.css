@@ -54,10 +54,10 @@
 
   /*========== Live Editor Vertical Tuned Dimensions ==========*/
   --editor-page-width: 210mm;
-  --editor-page-height: 272mm;
+  --editor-page-height: 297mm;
   --editor-page-width-px: 794px;
-  --editor-page-height-px: 1028px;
-  --editor-height-reduction-mm: 25mm;
+  --editor-page-height-px: 1123px;
+  --editor-height-reduction-mm: 0mm;
 }
 
 /*========== BASE ==========*/
@@ -85,6 +85,13 @@ body {
   font-size: var(--normal-font-size);
   background-color: var(--body-color);
   color: var(--text-color);
+  position: relative;
+  z-index: 0;
+}
+
+.l-main {
+  position: relative;
+  z-index: 0;
 }
 
 #area-cv {
@@ -97,6 +104,7 @@ body {
   color: var(--text-color);
   box-sizing: border-box;
   position: relative;
+  z-index: 1;
   box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
   border-radius: 4px;
   overflow-wrap: break-word;
@@ -495,6 +503,32 @@ img {
   display: none !important;
 }
 
+/* When an item is partial (starts on page N and continues on page N+1) or continuation, ALWAYS show its connector line */
+.editable-item-container.item-is-partial .experience__line,
+.editable-item-container.item-is-partial .education__line,
+.editable-item-container.item-is-partial [class*="__line"],
+.cv-block.item-is-partial .experience__line,
+.cv-block.item-is-partial .education__line,
+.cv-block.item-is-partial [class*="__line"],
+.experience__content.item-is-partial .experience__line,
+.education__content.item-is-partial .education__line,
+.editable-item-container.item-is-continuation .experience__line,
+.editable-item-container.item-is-continuation .education__line,
+.editable-item-container.item-is-continuation [class*="__line"],
+.cv-block.item-is-continuation .experience__line,
+.cv-block.item-is-continuation .education__line,
+.cv-block.item-is-continuation [class*="__line"],
+.experience__content.item-is-continuation .experience__line,
+.education__content.item-is-continuation .education__line,
+[data-is-partial="true"] .experience__line,
+[data-is-partial="true"] .education__line,
+[data-is-partial="true"] [class*="__line"],
+[data-is-continuation="true"] .experience__line,
+[data-is-continuation="true"] .education__line,
+[data-is-continuation="true"] [class*="__line"] {
+  display: block !important;
+}
+
 .education__data,
 .experience__data {
   gap: .5rem;
@@ -656,7 +690,7 @@ img {
 
 #area-cv:not(.has-a4-page-boxes) .resume__left,
 #area-cv:not(.has-a4-page-boxes) .resume__right {
-  padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
+  padding: var(--page-padding, 24px);
 }
 
 .resume {
@@ -1053,7 +1087,7 @@ a,
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
   transition: transform 0.15s ease, opacity 0.2s ease, visibility 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1064,6 +1098,7 @@ a,
   background: #dc2626;
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
   opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .section-del-btn {
@@ -1071,10 +1106,11 @@ a,
   right: 0.35rem;
 }
 
-.editable-section-container:hover>.section-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover>.section-del-btn,
+.section-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* ==========================================================
@@ -1093,20 +1129,22 @@ a,
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  cursor: default;
   transform: translateY(-2px);
   transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Hover: Make all buttons in the group float into view together */
 .editable-section-container:hover>.section-action-buttons,
-.editable-section-container:hover .section-action-buttons {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover .section-action-buttons,
+.section-action-buttons:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   transform: translateY(0);
 }
 
@@ -1134,10 +1172,19 @@ a,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: pointer !important;
   padding: 0;
   flex-shrink: 0;
   transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Ensure inner SVG icons do not intercept pointer events from the button */
+.section-action-buttons button svg,
+.round-btn-del svg,
+.round-btn-add svg,
+.add-bullet-btn svg,
+.add-contact-btn svg {
+  pointer-events: none;
 }
 
 /* 1. TOOLTIPS Button inside action buttons */
@@ -1211,7 +1258,7 @@ a,
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1236,10 +1283,11 @@ a,
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
 }
 
-.editable-section-container:hover>.section-tips-toggle-btn {
-  opacity: 0.95;
-  visibility: visible;
-  pointer-events: auto;
+.editable-section-container:hover>.section-tips-toggle-btn,
+.section-tips-toggle-btn:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .section-tips-toggle-btn:hover {
@@ -1277,10 +1325,11 @@ a,
   height: 20px;
 }
 
-.editable-item-container:hover>.item-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editable-item-container:hover>.item-del-btn,
+.item-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* Section add item button container (Positioned directly on bottom border: 50% in, 50% out) */
@@ -1312,7 +1361,7 @@ a,
 .bullet-item-row {
   position: relative;
   padding-right: 1.5rem;
-  padding-left: 1.15rem;
+  padding-left: 0 !important;
   border-radius: 4px;
   margin-top: 0 !important;
 }
@@ -1330,14 +1379,15 @@ a,
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
 }
 
-.bullet-item-row:hover .bullet-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.bullet-item-row:hover .bullet-del-btn,
+.bullet-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .bullet-item-row .bullet-del-btn:hover {
-  opacity: 1;
+  opacity: 1 !important;
   transform: scale(1.15);
 }
 
@@ -1910,6 +1960,7 @@ body.ats-mode-active {
   overflow: hidden;
   box-sizing: border-box;
   position: relative;
+  z-index: 1;
   margin: 0 auto 32px auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
@@ -1929,11 +1980,18 @@ body.ats-mode-active {
   padding: 0 !important;
   border: none !important;
   min-height: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 #area-cv.has-a4-page-boxes .resume__left,
-#area-cv.has-a4-page-boxes .resume__right {
-  padding: var(--page-padding, 0px) !important;
+#area-cv.has-a4-page-boxes .resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  height: 100% !important;
+  min-height: 100% !important;
+  align-self: stretch !important;
+  padding: var(--page-padding, 24px) !important;
   box-sizing: border-box !important;
 }
 
@@ -1942,9 +2000,19 @@ body.ats-mode-active {
   box-sizing: border-box !important;
 }
 
+.a4-page-box.bd-grid {
+  display: grid !important;
+  grid-template-rows: 1fr !important;
+  align-items: stretch !important;
+}
+
+.a4-page-box.bd-grid,
 .a4-page-box {
   border: none !important;
   outline: none !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
 }
 
 #area-cv.has-a4-page-boxes .cv-section:first-child,
@@ -2091,4 +2159,193 @@ body.ats-mode-active .a4-page-fold-badge {
 .spacer-resize-handle:focus-visible > div {
   background: #3874ff !important;
   box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.4);
+}
+
+/* ==========================================================
+   2-COLUMN MODE & UNIVERSAL WORD-WRAP CONTAINMENT
+   Guarantees that all content (titles, bullets, descriptions,
+   contacts, skills, links) wraps properly within column boundaries
+   without horizontal overflow or truncation.
+   ========================================================== */
+
+.resume__left,
+.resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left *,
+.resume__right *,
+.a4-page-box .resume__left *,
+.a4-page-box .resume__right * {
+  box-sizing: border-box;
+}
+
+.resume__left .cv-section,
+.resume__right .cv-section,
+.resume__left .editable-section-container,
+.resume__right .editable-section-container,
+.resume__left .cv-block,
+.resume__right .cv-block,
+.resume__left .editable-item-container,
+.resume__right .editable-item-container,
+.a4-page-box .cv-section,
+.a4-page-box .cv-block,
+.a4-page-box .editable-section-container,
+.a4-page-box .editable-item-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left .section-title,
+.resume__right .section-title,
+.a4-page-box .section-title,
+.a4-page-box .home__title,
+.a4-page-box .home__subtitle,
+.a4-page-box .home__profession,
+.a4-page-box .experience__title,
+.a4-page-box .experience__company,
+.a4-page-box .experience__description,
+.a4-page-box .education__title,
+.a4-page-box .education__studies,
+.a4-page-box .education__year,
+.a4-page-box .profile__description,
+.a4-page-box .bullet-item-row,
+.a4-page-box .simple-list-item,
+.a4-page-box .skills__name,
+.a4-page-box .languages__name,
+.a4-page-box p,
+.a4-page-box h1,
+.a4-page-box h2,
+.a4-page-box h3,
+.a4-page-box h4,
+.a4-page-box span,
+.a4-page-box li,
+.a4-page-box a {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  max-width: 100%;
+}
+
+/* Ensure hyperlinks and URLs break properly anywhere even without whitespace */
+.resume__left a,
+.resume__right a,
+.resume__left .social__link,
+.resume__right .social__link,
+.resume__left .hyperlink-display,
+.resume__right .hyperlink-display,
+.a4-page-box a,
+.a4-page-box .social__link,
+.a4-page-box .hyperlink-display {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* InlineEdit bounding */
+.inline-edit-display {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.inline-input {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Container adaptations for 2-column sidebar mode: prevent multiple max-content columns from overflowing */
+.resume__left .social__container,
+.resume__right .social__container,
+.has-a4-page-boxes .social__container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  grid-template-columns: none !important;
+  gap: 8px 12px !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .skills__content {
+  grid-template-columns: 1fr !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .languages__content {
+  grid-template-columns: 1fr !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .interests__container {
+  grid-template-columns: repeat(2, 1fr) !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Bullet item row horizontal containment */
+.bullet-item-row {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.bullet-item-row span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Typography & OCR Glyph Mapping Protection */
+#area-cv,
+.resume,
+.a4-page-box {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* ATS Mode: Omit photos and vector icons cleanly while preserving data state */
+.resume--ats-mode .cv-section-photo,
+.resume--ats-mode .cv-photo-container,
+.resume--ats-mode .cv-photo-item-edit,
+.resume--ats-mode .photo__container {
+  display: none !important;
+}
+
+.resume--ats-mode .social__link svg,
+.resume--ats-mode .contact-item-pill svg,
+.resume--ats-mode .contact__icon,
+.resume--ats-mode .home__contact svg {
+  display: none !important;
+}
+
+/* AI Tips Active Section Highlight */
+.ai-tip-highlighted-section {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 4px !important;
+  border-radius: 6px !important;
+  transition: outline 0.15s ease-out, box-shadow 0.15s ease-out !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
 }

@@ -1,11 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { ExternalLink, Check, Copy, Unlink, X } from 'lucide-react';
+import { usePrintMode } from '../../context/PrintModeContext';
 
 const renderLinkIcon = (iconProp) => {
   if (!iconProp) return null;
   if (React.isValidElement(iconProp)) return iconProp;
-  return <ExternalLink size={14} className="lucide lucide-external-link" />;
+  return (
+    <ExternalLink 
+      size={14} 
+      className="lucide lucide-external-link" 
+      aria-hidden="true" 
+      focusable="false" 
+      role="presentation" 
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+    />
+  );
 };
 
 const HyperlinkPrintView = ({ 
@@ -416,8 +426,10 @@ const HyperlinkEditEditor = ({
 };
 
 const HyperlinkEdit = (props) => {
-  if (props.isPrint) {
-    return <HyperlinkPrintView {...props} />;
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
+  if (effectiveIsPrint) {
+    return <HyperlinkPrintView {...props} isPrint={true} />;
   }
   return <HyperlinkEditEditor {...props} />;
 };

@@ -18,11 +18,12 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { Lightbulb, MoreHorizontal, Trash2, Plus } from 'lucide-react';
+import { MoreHorizontal, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
 
 /**
  * Checks whether the container tag should be rendered as a list container (ul/ol).
@@ -115,33 +116,35 @@ export const PrintBaseSection = ({ section }) => {
   const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
 
   return (
-    <section 
-      className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
-      id={section.id}
-      data-section-id={section.id}
-      style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
-    >
-      {descriptor.hasTitle !== false && section.title && (
-        <h2 
-          className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
-          data-section-title={section.id}
-        >
-          <InlineEdit value={section.title || ''} isPrint={true} />
-        </h2>
-      )}
+    <PrintModeContext.Provider value={true}>
+      <section 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
+        id={section.id}
+        data-section-id={section.id}
+        style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+      >
+        {descriptor.hasTitle !== false && section.title && (
+          <h2 
+            className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
+            data-section-title={section.id}
+          >
+            <InlineEdit value={section.title || ''} isPrint={true} />
+          </h2>
+        )}
 
-      <div className={wrapperClass}>
-        <SectionItemsRenderer
-          items={items}
-          sectionId={section.id}
-          sectionType={section.type}
-          descriptor={descriptor}
-          isPrint={true}
-        />
-      </div>
+        <div className={wrapperClass}>
+          <SectionItemsRenderer
+            items={items}
+            sectionId={section.id}
+            sectionType={section.type}
+            descriptor={descriptor}
+            isPrint={true}
+          />
+        </div>
 
-      <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
-    </section>
+        <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
+      </section>
+    </PrintModeContext.Provider>
   );
 };
 
@@ -172,9 +175,7 @@ const EditableBaseSection = ({ section }) => {
     updateSectionBulletStyle,
     addSectionItem, 
     deleteSection, 
-    updateSectionProperty,
-    activeTooltip,
-    toggleTooltipForSection
+    updateSectionProperty
   } = useCV();
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
@@ -186,10 +187,13 @@ const EditableBaseSection = ({ section }) => {
     position: 'relative',
     opacity: isDragging ? 0.4 : 1,
     marginBottom: 'var(--section-gap, 20px)',
-    color: 'var(--text-color)'
+    color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box'
   };
 
-  const isTooltipOpen = activeTooltip?.section?.id === section.id;
   const allowDelete = descriptor.allowDelete !== false;
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
@@ -212,27 +216,11 @@ const EditableBaseSection = ({ section }) => {
       
       {!section.isContinuation && (
         <div 
-          className={`section-action-buttons no-print ${isTooltipOpen || isBulletPopoverOpen ? 'has-active-popover' : ''}`}
+          className={`section-action-buttons no-print ${isBulletPopoverOpen ? 'has-active-popover' : ''}`}
           data-editor-ui="true"
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button 
-            type="button"
-            className={`section-tips-toggle-btn ${isTooltipOpen ? 'active' : ''}`}
-            title={isTooltipOpen ? 'Ocultar consejos IA' : 'Ver consejos IA para esta sección'}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              const bounding = e.currentTarget.closest('.cv-section')?.getBoundingClientRect();
-              if (typeof toggleTooltipForSection === 'function') {
-                toggleTooltipForSection(section, bounding);
-              }
-            }}
-          >
-            <Lightbulb size={13} color={isTooltipOpen ? '#ffffff' : '#eab308'} />
-          </button>
-
           {allowBulletCustomization && (
             <button 
               type="button"
@@ -256,6 +244,7 @@ const EditableBaseSection = ({ section }) => {
               type="button"
               className="round-btn-del section-del-btn"
               title={`Eliminar sección ${section.title || section.id}`}
+              data-testid={`btn-delete-section-${section.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
@@ -274,7 +263,7 @@ const EditableBaseSection = ({ section }) => {
         </h2>
       )}
       
-      <div className={wrapperClass}>
+      <div className={wrapperClass} style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
           <SectionItemsRenderer
             items={section.items || []}
@@ -339,13 +328,15 @@ const EditableBaseSection = ({ section }) => {
  * @returns {React.ReactElement|null}
  */
 const BaseSection = (props) => {
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
   const descriptor = getSectionDescriptor(props.section?.type);
   if (descriptor?.sectionComponent) {
     const CustomSection = descriptor.sectionComponent;
-    return <CustomSection {...props} />;
+    return <CustomSection {...props} isPrint={effectiveIsPrint} />;
   }
-  if (props.isPrint) {
-    return <PrintBaseSection {...props} />;
+  if (effectiveIsPrint) {
+    return <PrintBaseSection {...props} isPrint={true} />;
   }
   return <EditableBaseSection {...props} />;
 };

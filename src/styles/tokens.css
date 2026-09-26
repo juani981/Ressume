@@ -1,0 +1,35 @@
+/**
+ * tokens.css
+ * Canonical CSS custom property definitions derived from src/constants/.
+ */
+
+:root {
+  /* A4 Geometry */
+  --a4-page-width: 210mm;
+  --a4-page-height: 297mm;
+  --a4-page-width-px: 794px;
+  --a4-page-height-px: 1123px;
+  --a4-page-gap: 20px;
+  --a4-page-scale: 1.0;
+
+  /* Spacing defaults */
+  --page-padding: 24px;
+  --section-gap: 20px;
+  --item-gap: 8px;
+  --line-height: 1.45;
+
+  /* Typography defaults */
+  --body-font: 'Poppins', sans-serif;
+  --font-scale: 1;
+  --title-scale: 1;
+  --body-scale: 1;
+  --list-scale: 1;
+
+  /* Colors */
+  --title-color: #0f172a;
+  --text-color: #334155;
+  --text-color-light: #64748b;
+  --container-color: #ffffff;
+  --container-color-alt: #f3f4f6;
+  --body-color: #ffffff;
+}

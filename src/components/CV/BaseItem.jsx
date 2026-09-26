@@ -17,6 +17,7 @@ import { Minus } from 'lucide-react';
 import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
+import { usePrintMode } from '../../context/PrintModeContext';
 
 /**
  * PrintBaseItem
@@ -38,20 +39,28 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
     display: descriptor.itemStyle?.display || 'flex',
     position: 'relative',
     color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
     ...(descriptor.itemStyle || {})
   };
 
   const hasPageBreak = Boolean(item?.pageBreak === 'before' || item?.breakBefore || item?.isForcedBreak);
+  const isPartial = Boolean(item?.isPartialItem);
+  const isContinuation = Boolean(item?.isContinuationItem);
 
   return (
     <ItemTag 
-      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
-      style={style}
+      data-is-partial={isPartial ? 'true' : undefined}
+      data-is-continuation={isContinuation ? 'true' : undefined}
+      style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     >
       {ItemComponent && (
-        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast} />
+        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast && !isPartial} />
       )}
     </ItemTag>
   );
@@ -90,6 +99,10 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
     color: 'var(--text-color)',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
     ...(descriptor.itemStyle || {})
   };
 
@@ -108,22 +121,28 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     }
   };
 
+  const isPartial = Boolean(item?.isPartialItem);
+  const isContinuation = Boolean(item?.isContinuationItem);
+
   return (
     <ItemTag
       ref={setNodeRef}
-      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block`}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
       data-item-id={item?.id || sectionType}
       data-section-id={sectionId}
+      data-is-partial={isPartial ? 'true' : undefined}
+      data-is-continuation={isContinuation ? 'true' : undefined}
       style={baseStyle}
       {...attributes}
       {...containerDragListeners}
     >
-      {hasItemDrag && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
-      {allowDelete && (
+      {hasItemDrag && !item?.isContinuationItem && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
+      {allowDelete && !item?.isContinuationItem && (
         <button
           type="button"
           className="round-btn-del item-del-btn no-print"
           data-editor-ui="true"
+          data-testid={`btn-delete-item-${item?.id || sectionType}`}
           title="Eliminar este elemento"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={handleDelete}
@@ -135,7 +154,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         <ItemComponent 
           item={item} 
           sectionId={sectionId} 
-          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, itemId, key, val)} 
+          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
         />
       )}
     </ItemTag>
@@ -155,8 +174,10 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
  * @returns {React.ReactElement}
  */
 const BaseItem = (props) => {
-  if (props.isPrint) {
-    return <PrintBaseItem {...props} />;
+  const contextIsPrint = usePrintMode();
+  const effectiveIsPrint = props.isPrint ?? contextIsPrint;
+  if (effectiveIsPrint) {
+    return <PrintBaseItem {...props} isPrint={true} />;
   }
   return <EditableBaseItem {...props} />;
 };

@@ -20,6 +20,16 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     return localStorage.getItem('cv_show_ai_tips') !== 'false';
   });
 
+  const toggleAITips = useCallback(() => {
+    setShowAITips(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('cv_show_ai_tips', String(next));
+      } catch (_) {}
+      return next;
+    });
+  }, []);
+
   // Physical A4 Page Metrics (Standard A4 is 297mm height; ~1123px at 96 DPI)
   const [pageHeightPx, setPageHeightPx] = useState(() => {
     if (typeof document !== 'undefined') {
@@ -181,7 +191,7 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
   }, [applyStateWithHistory]);
 
   return {
-    showAITips, setShowAITips,
+    showAITips, setShowAITips, toggleAITips,
     pageHeightPx, setPageHeightPx,
     pageGapPx,
     totalPages, setTotalPages,

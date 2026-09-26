@@ -20,59 +20,66 @@ export const SUPPORTED_LANGUAGES = [
  * or fallbacks to the standard content.json structure.
  */
 export const extractDictionaryFromCV = (cvData) => {
-  if (!cvData) return {};
+  if (!cvData || typeof cvData !== 'object') return {};
 
   const dict = {};
+  const sections = Array.isArray(cvData.sections) ? cvData.sections : [];
   
   // Profile
-  const profileSec = cvData.sections?.find(s => s.type === 'profile_header');
-  const profItem = profileSec?.items?.[0] || {};
+  const profileSec = sections.find(s => s?.type === 'profile_header');
+  const profItem = Array.isArray(profileSec?.items) ? profileSec.items[0] || {} : {};
   dict['profile_title'] = profItem.name || cvData.profile?.name || '';
   dict['profile_subtitle'] = profItem.subtitle || '';
   dict['profile_location'] = profItem.location || '';
   dict['section_social'] = 'Contacto';
 
   // About
-  const aboutSec = cvData.sections?.find(s => s.type === 'about');
-  const aboutItem = aboutSec?.items?.[0] || {};
+  const aboutSec = sections.find(s => s?.type === 'about');
+  const aboutItem = Array.isArray(aboutSec?.items) ? aboutSec.items[0] || {} : {};
   dict['section_profile'] = aboutSec?.title || 'Perfil Profesional';
   dict['profile_desc'] = aboutItem.description || '';
 
   // Experience
-  const expSec = cvData.sections?.find(s => s.id === 'experience' || s.type === 'list');
+  const expSec = sections.find(s => s?.id === 'experience' || s?.type === 'list');
   if (expSec) {
     dict['section_experience'] = expSec.title || 'Experiencia Laboral';
-    (expSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(expSec.items) ? expSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`exp${idx}_title`] = item.title || '';
       dict[`exp${idx}_company`] = item.subtitle ? `${item.subtitle} | ${item.date || ''}` : item.date || '';
       if (item.link) dict[`exp${idx}_link`] = item.link;
       if (item.description) {
         dict[`exp${idx}_desc`] = item.description;
-      } else if (item.bullets && item.bullets.length > 0) {
+      } else if (Array.isArray(item.bullets) && item.bullets.length > 0) {
         dict[`exp${idx}_desc`] = item.bullets.join('\n');
       }
     });
   }
 
   // Projects
-  const projSec = cvData.sections?.find(s => s.id === 'projects');
+  const projSec = sections.find(s => s?.id === 'projects');
   if (projSec) {
     dict['section_projects'] = projSec.title || 'Proyectos Destacados';
-    (projSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(projSec.items) ? projSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`proj${idx}_title`] = item.title || '';
       dict[`proj${idx}_company`] = item.subtitle ? `${item.subtitle} | ${item.date || ''}` : item.date || '';
       if (item.link) dict[`proj${idx}_link`] = item.link;
-      dict[`proj${idx}_desc`] = item.description || (item.bullets ? item.bullets.join('\n') : '');
+      dict[`proj${idx}_desc`] = item.description || (Array.isArray(item.bullets) ? item.bullets.join('\n') : '');
     });
   }
 
   // Skills
-  const skillsSec = cvData.sections?.find(s => s.type === 'skills');
+  const skillsSec = sections.find(s => s?.type === 'skills');
   if (skillsSec) {
     dict['section_skills'] = skillsSec.title || 'Habilidades Técnicas';
-    (skillsSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(skillsSec.items) ? skillsSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`skill${idx}_category`] = item.title || '';
       dict[`skill${idx}_content`] = item.description || '';
@@ -80,10 +87,12 @@ export const extractDictionaryFromCV = (cvData) => {
   }
 
   // Education
-  const eduSec = cvData.sections?.find(s => s.type === 'education');
+  const eduSec = sections.find(s => s?.type === 'education');
   if (eduSec) {
     dict['section_education'] = eduSec.title || 'Educación';
-    (eduSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(eduSec.items) ? eduSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`edu${idx}_title`] = item.title || '';
       dict[`edu${idx}_study`] = item.subtitle || '';
@@ -92,20 +101,24 @@ export const extractDictionaryFromCV = (cvData) => {
   }
 
   // Certificates
-  const certSec = cvData.sections?.find(s => s.id === 'certificates');
+  const certSec = sections.find(s => s?.id === 'certificates');
   if (certSec) {
     dict['section_certificates'] = certSec.title || 'Certificaciones';
-    (certSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(certSec.items) ? certSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`cert${idx}_title`] = item.text || item.title || '';
     });
   }
 
   // Languages
-  const langSec = cvData.sections?.find(s => s.id === 'languages');
+  const langSec = sections.find(s => s?.id === 'languages');
   if (langSec) {
     dict['section_languages'] = langSec.title || 'Idiomas';
-    (langSec.items || []).forEach((item, index) => {
+    const items = Array.isArray(langSec.items) ? langSec.items : [];
+    items.forEach((item, index) => {
+      if (!item) return;
       const idx = index + 1;
       dict[`lang${idx}`] = item.text || '';
     });
@@ -119,6 +132,7 @@ export const extractDictionaryFromCV = (cvData) => {
  * ensuring 100% parseable JSON output with specific technical localization rules.
  */
 export const buildTranslationPrompt = (sourceDict, targetLangCode = 'en', sourceLangCode = 'es', customGuidelines = '') => {
+  const safeDict = (sourceDict && typeof sourceDict === 'object' && !Array.isArray(sourceDict)) ? sourceDict : {};
   const targetLangObj = SUPPORTED_LANGUAGES.find(l => l.code === targetLangCode) || { name: targetLangCode, code: targetLangCode };
   const sourceLangObj = SUPPORTED_LANGUAGES.find(l => l.code === sourceLangCode) || { name: sourceLangCode, code: sourceLangCode };
 
@@ -164,7 +178,7 @@ export const buildTranslationPrompt = (sourceDict, targetLangCode = 'en', source
   prompt.push('');
 
   prompt.push(`[SOURCE CONTENT DICTIONARY (${sourceLangCode.toUpperCase()})]`);
-  prompt.push(JSON.stringify({ [sourceLangCode]: sourceDict }, null, 2));
+  prompt.push(JSON.stringify({ [sourceLangCode]: safeDict }, null, 2));
 
   return prompt.join('\n');
 };
@@ -215,11 +229,19 @@ export const sanitizeAndParseAIResponse = (rawText, expectedLangCode = 'en') => 
     }
   }
 
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return {
+      success: false,
+      error: 'La respuesta parseada no es un objeto JSON válido.',
+      rawCleaned: cleaned
+    };
+  }
+
   // 5. Normalize root structure (handles {"en": {...}} or direct {...})
   let targetDict = null;
   let resolvedLang = expectedLangCode;
 
-  if (parsed[expectedLangCode] && typeof parsed[expectedLangCode] === 'object') {
+  if (parsed[expectedLangCode] && typeof parsed[expectedLangCode] === 'object' && !Array.isArray(parsed[expectedLangCode])) {
     targetDict = parsed[expectedLangCode];
     resolvedLang = expectedLangCode;
   } else {
@@ -235,7 +257,7 @@ export const sanitizeAndParseAIResponse = (rawText, expectedLangCode = 'en') => 
     }
   }
 
-  if (!targetDict || typeof targetDict !== 'object' || Object.keys(targetDict).length === 0) {
+  if (!targetDict || typeof targetDict !== 'object' || Array.isArray(targetDict) || Object.keys(targetDict).length === 0) {
     return {
       success: false,
       error: 'No se encontró un diccionario de claves válido en la respuesta procesada.'
@@ -251,18 +273,26 @@ export const sanitizeAndParseAIResponse = (rawText, expectedLangCode = 'en') => 
 };
 
 /**
+ * Backward-compatible alias for sanitizeAndParseAIResponse
+ */
+export const cleanAndParseAIResponse = sanitizeAndParseAIResponse;
+
+/**
  * Validates key coverage comparing target dictionary against source dictionary
  */
 export const validateKeyCoverage = (sourceDict = {}, targetDict = {}) => {
-  const sourceKeys = Object.keys(sourceDict);
-  const targetKeys = Object.keys(targetDict);
+  const safeSource = (sourceDict && typeof sourceDict === 'object' && !Array.isArray(sourceDict)) ? sourceDict : {};
+  const safeTarget = (targetDict && typeof targetDict === 'object' && !Array.isArray(targetDict)) ? targetDict : {};
+
+  const sourceKeys = Object.keys(safeSource);
+  const targetKeys = Object.keys(safeTarget);
 
   const matchedKeys = [];
   const missingKeys = [];
   const extraKeys = [];
 
   sourceKeys.forEach(key => {
-    if (key in targetDict && targetDict[key] !== null && String(targetDict[key]).trim() !== '') {
+    if (key in safeTarget && safeTarget[key] !== null && String(safeTarget[key]).trim() !== '') {
       matchedKeys.push(key);
     } else {
       missingKeys.push(key);
@@ -270,7 +300,7 @@ export const validateKeyCoverage = (sourceDict = {}, targetDict = {}) => {
   });
 
   targetKeys.forEach(key => {
-    if (!(key in sourceDict)) {
+    if (!(key in safeSource)) {
       extraKeys.push(key);
     }
   });
@@ -294,19 +324,33 @@ export const validateKeyCoverage = (sourceDict = {}, targetDict = {}) => {
  * preserving exact drag-and-drop ordering, column layouts, IDs, and custom colors.
  */
 export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
-  if (!cvData || !translatedDict) return cvData;
+  if (!cvData || typeof cvData !== 'object' || !translatedDict || typeof translatedDict !== 'object' || Array.isArray(translatedDict)) {
+    return cvData;
+  }
 
-  const newCvData = JSON.parse(JSON.stringify(cvData));
+  let newCvData;
+  try {
+    newCvData = JSON.parse(JSON.stringify(cvData));
+  } catch (e) {
+    return cvData;
+  }
 
   // Profile
   if (translatedDict['profile_title']) {
     newCvData.profile = { ...(newCvData.profile || {}), name: translatedDict['profile_title'] };
   }
 
+  if (!Array.isArray(newCvData.sections)) {
+    return newCvData;
+  }
+
   // Iterate and update sections
-  newCvData.sections = (newCvData.sections || []).map(sec => {
+  newCvData.sections = newCvData.sections.map(sec => {
+    if (!sec || typeof sec !== 'object') return sec;
+
     if (sec.type === 'profile_header') {
-      sec.items = (sec.items || []).map(item => ({
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map(item => ({
         ...item,
         name: translatedDict['profile_title'] || item.name,
         subtitle: translatedDict['profile_subtitle'] || item.subtitle,
@@ -314,7 +358,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       }));
     } else if (sec.type === 'about') {
       if (translatedDict['section_profile']) sec.title = translatedDict['section_profile'];
-      sec.items = (sec.items || []).map(item => ({
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map(item => ({
         ...item,
         description: translatedDict['profile_desc'] || item.description
       }));
@@ -322,7 +367,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       if (sec.id === 'experience' && translatedDict['section_experience']) {
         sec.title = translatedDict['section_experience'];
       }
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newTitle = translatedDict[`exp${num}_title`];
         const newCompany = translatedDict[`exp${num}_company`];
@@ -352,7 +398,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       });
     } else if (sec.id === 'projects') {
       if (translatedDict['section_projects']) sec.title = translatedDict['section_projects'];
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newTitle = translatedDict[`proj${num}_title`];
         const newCompany = translatedDict[`proj${num}_company`];
@@ -366,7 +413,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       });
     } else if (sec.type === 'skills') {
       if (translatedDict['section_skills']) sec.title = translatedDict['section_skills'];
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newCat = translatedDict[`skill${num}_category`];
         const newContent = translatedDict[`skill${num}_content`];
@@ -378,7 +426,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       });
     } else if (sec.type === 'education') {
       if (translatedDict['section_education']) sec.title = translatedDict['section_education'];
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newTitle = translatedDict[`edu${num}_title`];
         const newStudy = translatedDict[`edu${num}_study`];
@@ -392,7 +441,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       });
     } else if (sec.id === 'certificates') {
       if (translatedDict['section_certificates']) sec.title = translatedDict['section_certificates'];
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newTitle = translatedDict[`cert${num}_title`];
         return {
@@ -402,7 +452,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
       });
     } else if (sec.id === 'languages') {
       if (translatedDict['section_languages']) sec.title = translatedDict['section_languages'];
-      sec.items = (sec.items || []).map((item, idx) => {
+      const items = Array.isArray(sec.items) ? sec.items : [];
+      sec.items = items.map((item, idx) => {
         const num = idx + 1;
         const newText = translatedDict[`lang${num}`];
         return {

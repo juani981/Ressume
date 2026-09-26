@@ -41,7 +41,7 @@ import {
   executePaginationAlgorithm,
 } from '../utils/paginationEngine';
 
-import { usePaginationEngine } from '../hooks/usePaginationEngine';
+import { useDocumentPages } from '../hooks/useDocumentPages';
 import { useCVDndCoordinator } from '../hooks/useCVDndCoordinator';
 import { useColumnResizer } from '../hooks/useColumnResizer';
 
@@ -305,25 +305,18 @@ describe('Milestone M2: Modularization and Utility Deduplication', () => {
       });
     });
 
-    describe('usePaginationEngine', () => {
-      it('initializes pageCount at 1 and exposes recalculation functions', () => {
-        const areaCvRef = { current: document.createElement('div') };
+    describe('useDocumentPages', () => {
+      it('initializes pages and exposes totalPages for document partition', () => {
         const cvData = { layout: { type: '2-column' }, sections: [] };
-        const setContextTotalPages = vi.fn();
 
         const { result } = renderHook(() =>
-          usePaginationEngine({
-            areaCvRef,
+          useDocumentPages({
             cvData,
-            setContextTotalPages,
           })
         );
 
-        expect(result.current.totalPages).toBe(1);
-        expect(result.current.pageCount).toBe(1);
-        expect(Array.isArray(result.current.pageBreaks)).toBe(true);
-        expect(typeof result.current.recalculatePages).toBe('function');
-        expect(typeof result.current.recalculatePagination).toBe('function');
+        expect(result.current.totalPages).toBeGreaterThanOrEqual(1);
+        expect(Array.isArray(result.current.pages)).toBe(true);
       });
     });
   });

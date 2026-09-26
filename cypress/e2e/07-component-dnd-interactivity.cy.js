@@ -157,4 +157,46 @@ describe('Fase 7: Paridad de Drag and Drop, Nombres Amigables e Interactividad d
       }
     });
   });
+
+  it('7. Título y Subtítulo: hovering y clic en acciones no entra en modo drag y permite clic en botones', () => {
+    // 1. Verify default profile_header section action bar and AI tips button
+    cy.get('#profile_header').should('be.visible').as('profileHeaderSec');
+
+    cy.get('@profileHeaderSec')
+      .find('.section-action-buttons')
+      .should('exist')
+      .then(($bar) => {
+        const zIndex = parseInt($bar.css('z-index'), 10);
+        expect(zIndex).to.be.at.least(100);
+      });
+
+    // Click AI tips toggle button directly on profile_header
+    cy.get('@profileHeaderSec').find('.section-tips-toggle-btn').click({ force: true });
+    cy.get('.suggestion-tooltip, .obsidian-callout').should('be.visible');
+
+    // Click again to close tooltip
+    cy.get('@profileHeaderSec').find('.section-tips-toggle-btn').click({ force: true });
+    cy.get('.suggestion-tooltip, .obsidian-callout').should('not.exist');
+
+    // 2. Add title_subtitle from modal and verify it can be deleted via its delete button without drag
+    cy.get('.add-section-btn').first().click();
+    cy.get('[data-testid="add-section-card-title_subtitle"]').click();
+
+    // Verify added title_subtitle section exists (it has class .home and data-section-id starting with sec_)
+    cy.get('#area-cv .home[data-section-id^="sec_"]').should('exist').as('newTitleSub');
+
+    cy.get('@newTitleSub')
+      .find('.section-action-buttons')
+      .should('exist')
+      .then(($bar) => {
+        const zIndex = parseInt($bar.css('z-index'), 10);
+        expect(zIndex).to.be.at.least(100);
+      });
+
+    // Click delete button on the added title_subtitle section
+    cy.get('@newTitleSub').find('.section-del-btn').click({ force: true });
+
+    // Verify section was deleted
+    cy.get('#area-cv .home[data-section-id^="sec_"]').should('not.exist');
+  });
 });

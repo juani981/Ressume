@@ -6,3 +6,9 @@ cypress/videos/
 cypress/screenshots/
 cypress/downloads/
 
+# Test and debugging artifacts
+*_dump.html
+temp_*
+*.patch
+public/__*
+test_headless.pdf

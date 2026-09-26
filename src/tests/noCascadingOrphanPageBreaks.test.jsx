@@ -24,14 +24,14 @@ describe('Anti-Cascade Page Breaks and WYSIWYG Print Safety Budget', () => {
     }
   });
 
-  it('1. Editor page height is configured with a 25mm safety buffer against standard A4 print', () => {
-    expect(EDITOR_HEIGHT_REDUCTION_MM).toBe(25);
-    expect(EDITOR_PAGE_HEIGHT_MM).toBe(272);
+  it('1. Editor page height is configured with exact mathematical 1:1 parity (297mm / 1123px) against standard A4 print', () => {
+    expect(EDITOR_HEIGHT_REDUCTION_MM).toBe(0);
+    expect(EDITOR_PAGE_HEIGHT_MM).toBe(297);
     expect(A4_PRINT_HEIGHT_MM).toBe(297);
 
-    // Buffer in pixels at 96 DPI: 1123px - 1028px = 95px
+    // Buffer in pixels at 96 DPI: 0px buffer for full page utilization
     const bufferPx = A4_PRINT_PAGE_HEIGHT_PX - EDITOR_PAGE_HEIGHT_PX;
-    expect(bufferPx).toBeGreaterThanOrEqual(90);
+    expect(bufferPx).toBe(0);
   });
 
   it('2. print.css strictly forbids [data-editor-break-forced="true"] from triggering break-before: page', () => {

@@ -4,6 +4,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { CVProvider } from '../context/CVContext';
 import { defaultSchema } from '../utils/schema';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../utils/itemAdapter';
+import { registerSectionType } from '../registry/sectionRegistry';
+import { estimateItemHeight } from '../utils/pageDistributor';
 
 describe('R3: Extensible Component & Section Registry (Inheritance Pattern)', () => {
   beforeEach(() => {
@@ -150,6 +152,16 @@ describe('R3: Extensible Component & Section Registry (Inheritance Pattern)', ()
       const adaptedSkill = adaptItemToSectionType(emptySource, 'skills');
       expect(adaptedSkill.title).toBeDefined();
       expect(adaptedSkill.description).toBeDefined();
+    });
+
+    it('T2.6: Section descriptor estimateItemHeight delegates cleanly from pageDistributor (OCP)', () => {
+      registerSectionType({
+        type: 'test_ocp_section',
+        label: 'Test OCP',
+        estimateItemHeight: (item) => 77,
+      });
+      const height = estimateItemHeight({}, 'test_ocp_section');
+      expect(height).toBe(77);
     });
   });
 });

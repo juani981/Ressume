@@ -7,15 +7,18 @@
 
 import { A4_PAGE_SIZE } from './pageGeometry';
 
-export const FONT_FAMILIES = {
-  Poppins: "'Poppins', sans-serif",
-  Inter: "'Inter', sans-serif",
-  Roboto: "'Roboto', sans-serif",
-  Merriweather: "'Merriweather', serif",
-  'JetBrains Mono': "'JetBrains Mono', monospace",
-};
+export {
+  FONT_FAMILIES,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_FAMILY_NAME,
+  SUPPORTED_FONT_NAMES,
+  TYPOGRAPHY_SCALE_LIMITS,
+} from '../constants/typography.js';
 
-export const DEFAULT_FONT_FAMILY = "'Poppins', sans-serif";
+import {
+  FONT_FAMILIES,
+  DEFAULT_FONT_FAMILY,
+} from '../constants/typography.js';
 
 /**
  * Returns the CSS font-family stack corresponding to a font name.

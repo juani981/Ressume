@@ -5,8 +5,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "F-Pattern Scanning",
-    "suggestion_body": "Recruiters scan in an F-pattern. Ensure your most critical information (name, current title) is at the top left.",
+    "suggestion_title": "Patrón de Lectura en F",
+    "suggestion_body": "Ubica datos críticos arriba a la izquierda. Ej: \"Nombre y rol en esquina superior\".",
     "severity": "critical"
   },
   {
@@ -15,8 +15,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "color_select",
-    "suggestion_title": "60-30-10 Color Rule",
-    "suggestion_body": "Use 60% neutral background, 30% secondary text color, and 10% accent color for headers or icons to maintain professional harmony.",
+    "suggestion_title": "Regla de Color 60-30-10",
+    "suggestion_body": "Mantén armonía cromática con 3 tonos. Ej: \"60% fondo, 30% texto, 10% acento\".",
     "severity": "info"
   },
   {
@@ -25,8 +25,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "White Space Balance",
-    "suggestion_body": "Avoid crowding the narrow column. Leave at least 0.5 inches of margin on all sides to give the eyes resting space.",
+    "suggestion_title": "Equilibrio de Espacios",
+    "suggestion_body": "Deja márgenes para evitar saturación visual. Ej: \"Márgenes laterales de al menos 12mm\".",
     "severity": "warning"
   },
   {
@@ -35,8 +35,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Bullet Length Limit",
-    "suggestion_body": "Keep experience bullets to a maximum of 2 lines. Dense blocks of text are skipped by human eyes.",
+    "suggestion_title": "Longitud de Viñetas",
+    "suggestion_body": "Escribe máximo 2 líneas por viñeta. Ej: \"1 o 2 líneas concisas\" (no párrafos).",
     "severity": "warning"
   },
   {
@@ -45,8 +45,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Avoid Progress Bars",
-    "suggestion_body": "Do not use visual progress bars for skills. They create cognitive load and recruiters find subjective ratings confusing.",
+    "suggestion_title": "Sin Barras de Nivel",
+    "suggestion_body": "Elimina barras y porcentajes subjetivos. Ej: \"Java, Docker, AWS\" (no barras).",
     "severity": "critical"
   },
   {
@@ -55,8 +55,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Job Title Prominence",
-    "suggestion_body": "Make your Job Title more visually prominent (bold/larger) than the Company Name. Recruiters look for role alignment first.",
+    "suggestion_title": "Jerarquía del Cargo",
+    "suggestion_body": "Destaca el cargo sobre la empresa. Ej: \"Senior Developer en negrita mayor\".",
     "severity": "info"
   },
   {
@@ -65,8 +65,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Right-Aligned Dates",
-    "suggestion_body": "Align dates to the right margin of the main column. This creates a clean Z-pattern flow for the reader.",
+    "suggestion_title": "Alineación de Fechas",
+    "suggestion_body": "Alinea fechas al margen derecho. Ej: \"03/2023 – Presente a la derecha\".",
     "severity": "info"
   },
   {
@@ -75,8 +75,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Sans-Serif Fonts",
-    "suggestion_body": "Use clean, sans-serif fonts (like Arial, Roboto, or Calibri) which render better on screens and are easier to skim quickly.",
+    "suggestion_title": "Fuentes Sans-Serif Limpias",
+    "suggestion_body": "Usa tipografías limpias y legibles. Ej: \"Inter, Roboto o Arial\" (no fuentes góticas).",
     "severity": "info"
   },
   {
@@ -85,8 +85,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Concise Summary",
-    "suggestion_body": "Limit your professional summary to 3-4 lines. Long paragraphs at the top disrupt the 7-second initial scan.",
+    "suggestion_title": "Resumen Ejecutivo Conciso",
+    "suggestion_body": "Limita el resumen a 3 líneas. Ej: \"Perfil directo con años de experiencia\".",
     "severity": "warning"
   },
   {
@@ -95,8 +95,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Visual Metrics",
-    "suggestion_body": "Bold quantifiable numbers in your bullets (e.g., 'increased by **20%**'). Numbers act as anchor points for human eyes.",
+    "suggestion_title": "Métricas Visuales",
+    "suggestion_body": "Cuantifica con números reales. Ej: \"Aumenté cobertura al 92% con pruebas unitarias.\"",
     "severity": "info"
   },
   {
@@ -105,8 +105,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "color_select",
-    "suggestion_title": "Avoid Dark Themes",
-    "suggestion_body": "Avoid dark background resumes unless applying to specific design roles. They strain the eyes and print poorly.",
+    "suggestion_title": "Fondo Claro Profesional",
+    "suggestion_body": "Usa fondos blancos o neutros claros. Ej: \"Fondo blanco apto para imprimir\".",
     "severity": "critical"
   },
   {
@@ -115,8 +115,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Two-Column Proportion",
-    "suggestion_body": "Ensure a 1/3 to 2/3 column split. A 50/50 split confuses visual hierarchy and reading direction.",
+    "suggestion_title": "Proporción de Columnas",
+    "suggestion_body": "Distribuye habilidades izquierda y logros derecha. Ej: \"Columna 1/3 izq, columna 2/3 der\".",
     "severity": "warning"
   },
   {
@@ -125,8 +125,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Skill Categorization",
-    "suggestion_body": "Group skills into categories (e.g., 'Languages', 'Frameworks'). A massive unstructured list causes visual fatigue.",
+    "suggestion_title": "Categorización de Habilidades",
+    "suggestion_body": "Organiza tecnologías por categorías lógicas. Ej: \"Frontend, Backend, Bases de Datos\".",
     "severity": "info"
   },
   {
@@ -135,8 +135,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Optimal Bullet Count",
-    "suggestion_body": "Aim for 3-5 bullets per recent role. Older roles should have fewer (1-2) to maintain scan velocity.",
+    "suggestion_title": "Cantidad Óptima de Viñetas",
+    "suggestion_body": "Detalla empleos recientes y sintetiza previos. Ej: \"3-4 viñetas en trabajo actual\".",
     "severity": "warning"
   },
   {
@@ -145,8 +145,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Education Placement",
-    "suggestion_body": "If you have >3 years experience, move Education to the narrow column or the bottom. Experience matters more.",
+    "suggestion_title": "Ubicación de Educación",
+    "suggestion_body": "Prioriza experiencia laboral sobre estudios. Ej: \"Educación abajo si tienes +3 años\".",
     "severity": "info"
   },
   {
@@ -155,8 +155,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Consistent Spacing",
-    "suggestion_body": "Use consistent vertical spacing between sections. Inconsistent spacing signals lack of attention to detail.",
+    "suggestion_title": "Espaciado Consistente",
+    "suggestion_body": "Mantén márgenes y saltos uniformes. Ej: \"Espacio vertical idéntico entre secciones\".",
     "severity": "warning"
   },
   {
@@ -165,8 +165,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "color_select",
-    "suggestion_title": "Accessible Contrast",
-    "suggestion_body": "Ensure text contrast meets WCAG standards (at least 4.5:1). Light gray text on white is a common readability killer.",
+    "suggestion_title": "Contraste Accesible",
+    "suggestion_body": "Garantiza contraste alto texto y fondo. Ej: \"Texto oscuro sobre fondo blanco\".",
     "severity": "critical"
   },
   {
@@ -175,8 +175,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Action Verbs Front-Loaded",
-    "suggestion_body": "Start every bullet point with a strong action verb. Recruiters skim down the left edge of bullet lists.",
+    "suggestion_title": "Verbo Inicial al Frente",
+    "suggestion_body": "Abre siempre con acción. Ej: \"Lideré la migración...\" (no \"Fui encargado\").",
     "severity": "info"
   },
   {
@@ -185,8 +185,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Project Impact",
-    "suggestion_body": "Format projects exactly like jobs: Title, tech stack used, and bulleted outcomes. Avoid narrative paragraphs.",
+    "suggestion_title": "Impacto en Proyectos",
+    "suggestion_body": "Trátalos con la misma estructura. Ej: \"Monitor IoT: Creador | Stack: C++, MQTT.\"",
     "severity": "info"
   },
   {
@@ -195,8 +195,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Limit to 2 Fonts",
-    "suggestion_body": "Use a maximum of two font families (one for headers, one for body). Too many fonts destroy visual cohesion.",
+    "suggestion_title": "Máximo 2 Familias Tipográficas",
+    "suggestion_body": "Usa máximo dos tipografías compatibles. Ej: \"Una para títulos, otra para cuerpo\".",
     "severity": "warning"
   },
   {
@@ -205,8 +205,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Avoid Orphans",
-    "suggestion_body": "Watch for single words spilling onto a new line at the end of bullets (orphans). It wastes valuable vertical space.",
+    "suggestion_title": "Evita Palabras Huérfanas",
+    "suggestion_body": "Ajusta texto para evitar palabras sueltas. Ej: \"Líneas equilibradas sin palabras huérfanas\".",
     "severity": "info"
   },
   {
@@ -215,8 +215,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Line Height",
-    "suggestion_body": "Set line height to 1.15 or 1.2. Single spacing (1.0) looks too cramped for humans to read comfortably.",
+    "suggestion_title": "Interlineado Legible",
+    "suggestion_body": "Configura interlineado entre 1.2 y 1.4. Ej: \"Interlineado confortable para lectura\".",
     "severity": "warning"
   },
   {
@@ -225,8 +225,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Clear Section Headers",
-    "suggestion_body": "Make section headers at least 2-4 points larger than body text and consider all-caps or distinct color to anchor the F-pattern.",
+    "suggestion_title": "Encabezados Claros",
+    "suggestion_body": "Usa nombres universales. Ej: \"Experiencia laboral\", \"Educación\", \"Habilidades\" (no \"Mi viaje\").",
     "severity": "critical"
   },
   {
@@ -235,8 +235,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Skill Keyword Highlighting",
-    "suggestion_body": "Bold your 3 strongest skills if they are in a comma-separated list. It directs the recruiter's eye immediately.",
+    "suggestion_title": "Resaltado de Habilidades Core",
+    "suggestion_body": "Destaca tus tecnologías más fuertes. Ej: \"TypeScript, React en primer lugar\".",
     "severity": "info"
   },
   {
@@ -245,8 +245,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Consistent Bullet Icons",
-    "suggestion_body": "Use standard round or square bullets. Novelty icons distract from the content.",
+    "suggestion_title": "Viñetas Uniformes",
+    "suggestion_body": "Usa viñetas estándar sin emojis. Ej: \"• Punto simple\" (no íconos variados).",
     "severity": "warning"
   },
   {
@@ -255,8 +255,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Degree Prominence",
-    "suggestion_body": "Bold the degree name (e.g., B.S. Computer Science) rather than the university name, unless the university is highly prestigious.",
+    "suggestion_title": "Jerarquía de Titulación",
+    "suggestion_body": "Escribe la carrera completa y equivalencia. Ej: \"Programador Universitario (Associate Degree in Programming)\".",
     "severity": "info"
   },
   {
@@ -265,8 +265,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Strategic Narrow Column",
-    "suggestion_body": "Put easily scannable lists (Skills, Contact, Languages) in the narrow column. Keep the wide column for narrative (Experience).",
+    "suggestion_title": "Columna Lateral Estratégica",
+    "suggestion_body": "Reserva columna estrecha para datos rápidos. Ej: \"Contacto, Habilidades e Idiomas a la izq\".",
     "severity": "critical"
   },
   {
@@ -275,8 +275,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "color_select",
-    "suggestion_title": "Hyperlink Colors",
-    "suggestion_body": "Make hyperlinks a distinct but professional color (like subtle blue) and remove underlines to reduce visual clutter.",
+    "suggestion_title": "Color de Hipervínculos",
+    "suggestion_body": "Usa color sutil en enlaces. Ej: \"Azul profesional sin subrayado ruidoso\".",
     "severity": "info"
   },
   {
@@ -285,8 +285,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Remove Filler Words",
-    "suggestion_body": "Remove words like 'Responsible for' or 'Tasked with'. Jump straight to the action to respect the recruiter's time.",
+    "suggestion_title": "Mata Palabras de Relleno",
+    "suggestion_body": "Abre siempre con acción. Ej: \"Desarrollé pipeline\" (no \"Responsable de compilar\").",
     "severity": "warning"
   },
   {
@@ -295,8 +295,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Link to Repos",
-    "suggestion_body": "Include a direct, clickable link to the live project or GitHub repo right next to the project title.",
+    "suggestion_title": "Enlaces a Repositorios",
+    "suggestion_body": "URLs canónicas y limpias. Ej: \"github.com/usuario/repo\" (no enlaces rotos).",
     "severity": "info"
   },
   {
@@ -305,8 +305,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Visual Dividers",
-    "suggestion_body": "Use subtle horizontal lines beneath section headers. It visually sections the document and aids the scanning process.",
+    "suggestion_title": "Divisores Visuales Sutiles",
+    "suggestion_body": "Usa líneas finas para separar secciones. Ej: \"Línea gris clara bajo encabezados\".",
     "severity": "info"
   },
   {
@@ -315,8 +315,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Omit High School",
-    "suggestion_body": "Do not include high school education if you have a university degree. It clutters the visual hierarchy.",
+    "suggestion_title": "Borra la Secundaria",
+    "suggestion_body": "Elimina secundaria si tienes estudios superiores. Ej: \"Lic. en Informática\" (no \"Secundaria\").",
     "severity": "warning"
   },
   {
@@ -325,8 +325,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Use Month and Year",
-    "suggestion_body": "Format dates as 'MMM YYYY' (e.g., Oct 2021). Just using years can hide employment gaps and look visually unbalanced.",
+    "suggestion_title": "Mes y Año en Fechas",
+    "suggestion_body": "Usa siempre mes y año. Ej: \"03/2023 – Presente\" (no \"2 años\").",
     "severity": "info"
   },
   {
@@ -335,8 +335,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Limit Skill Count",
-    "suggestion_body": "Keep total listed skills under 15. Listing 30+ skills makes them blend together and dilutes your core competencies.",
+    "suggestion_title": "Límite de Habilidades Listadas",
+    "suggestion_body": "Selecciona tus 12-15 tecnologías principales. Ej: \"Stack core bien enfocado\" (no 40 skills).",
     "severity": "warning"
   },
   {
@@ -345,8 +345,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Avoid Buzzwords",
-    "suggestion_body": "Remove words like 'Synergy', 'Go-getter', or 'Ninja'. Human readers find them cliché and they waste space.",
+    "suggestion_title": "Sin Palabras Vacías",
+    "suggestion_body": "Reemplaza adjetivos por hechos. Ej: \"Coordiné 4 desarrolladores\" (no \"Ninja proactivo\").",
     "severity": "info"
   },
   {
@@ -355,8 +355,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Page Length Limit",
-    "suggestion_body": "Keep to 1 page unless you have 10+ years of experience. A 2-column layout gets visually exhausting over multiple pages.",
+    "suggestion_title": "Máximo 1 Página",
+    "suggestion_body": "Limita tu CV a 1 página. Ej: \"1 página concisa\" (no \"2 páginas con relleno\").",
     "severity": "critical"
   },
   {
@@ -365,8 +365,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Italics for Context",
-    "suggestion_body": "Use italics sparingly, such as for a one-line company description beneath the company name, to establish context visually.",
+    "suggestion_title": "Cursiva Solo para Contexto",
+    "suggestion_body": "Usa cursiva únicamente en subtítulos breves. Ej: \"Empresa de logística | Remoto\".",
     "severity": "info"
   },
   {
@@ -375,8 +375,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Hide Old Dates",
-    "suggestion_body": "If you graduated over 10 years ago, omit the graduation year to prevent age bias and reduce visual clutter.",
+    "suggestion_title": "Omite Fechas de Graduación Antiguas",
+    "suggestion_body": "Omite año si egresaste hace +10 años. Ej: \"Licenciatura en Sistemas\" (sin año).",
     "severity": "warning"
   },
   {
@@ -385,8 +385,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "color_select",
-    "suggestion_title": "Subtle Section Backgrounds",
-    "suggestion_body": "If tinting the narrow column, use a very light gray or pastel. Heavy colors make text hard to read and waste printer ink.",
+    "suggestion_title": "Fondos de Sección Sutiles",
+    "suggestion_body": "Usa tonos tenues para fondos laterales. Ej: \"Gris pastel al 5% de opacidad\".",
     "severity": "warning"
   },
   {
@@ -395,8 +395,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Limit Project Count",
-    "suggestion_body": "List only top 2-3 most relevant projects. More than that dilutes impact in a 2-column layout.",
+    "suggestion_title": "Top 2 a 3 Proyectos",
+    "suggestion_body": "Muestra solo tus mejores 3 proyectos. Ej: \"Proyectos con mayor impacto y código vivo\".",
     "severity": "warning"
   },
   {
@@ -405,8 +405,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Present Tense for Current",
-    "suggestion_body": "Ensure current role uses present tense and past roles use past tense. Consistency aids cognitive processing.",
+    "suggestion_title": "Tiempos Verbales Coherentes",
+    "suggestion_body": "Presente hoy, pasado ayer. Ej: \"Mantengo servidores...\" (actual); \"Desarrollé microservicios...\" (previo).",
     "severity": "info"
   },
   {
@@ -415,8 +415,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Avoid All Caps",
-    "suggestion_body": "Avoid using ALL CAPS for anything longer than 2 words (like a section header). It slows down reading speed.",
+    "suggestion_title": "Evita Mayúsculas Sostenidas",
+    "suggestion_body": "Usa mayúsculas solo en títulos cortos. Ej: \"EXPERIENCIA\" (no párrafos completos).",
     "severity": "warning"
   },
   {
@@ -425,8 +425,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Iconography",
-    "suggestion_body": "If using icons for skills or contact info, keep them minimalist, monotone, and small so they do not overpower text.",
+    "suggestion_title": "Iconografía Monocromática",
+    "suggestion_body": "Usa íconos minimalistas de un solo color. Ej: \"Íconos pequeños de contacto en gris\".",
     "severity": "info"
   },
   {
@@ -435,8 +435,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Stacked vs Inline",
-    "suggestion_body": "Keep Job Title and Company stacked rather than inline. It allows the eyes to quickly parse role vs employer.",
+    "suggestion_title": "Cargo y Empresa en Líneas Separadas",
+    "suggestion_body": "Separa el cargo de la empresa. Ej: \"Cargo arriba, empresa abajo\".",
     "severity": "info"
   },
   {
@@ -445,8 +445,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "on_edit_title",
-    "suggestion_title": "Headline Alignment",
-    "suggestion_body": "Include a headline under your name (e.g., 'Senior Frontend Engineer') to instantly tell the recruiter your level and domain.",
+    "suggestion_title": "Titular Profesional Específico",
+    "suggestion_body": "Define tu rol técnico y especialidad. Ej: \"Senior Frontend Engineer | React, TypeScript\".",
     "severity": "critical"
   },
   {
@@ -455,8 +455,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Left Align Text",
-    "suggestion_body": "Always left-align body text. Center or justified text creates uneven whitespace and is harder to track.",
+    "suggestion_title": "Alineación a la Izquierda",
+    "suggestion_body": "Alinea siempre textos a la izquierda. Ej: \"Alineación izquierda\" (no texto justificado).",
     "severity": "warning"
   },
   {
@@ -465,8 +465,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Contextualize Promotions",
-    "suggestion_body": "If promoted, stack the job titles under one company header to show growth visually without cluttering.",
+    "suggestion_title": "Promociones en Misma Empresa",
+    "suggestion_body": "Agrupa ascensos bajo la misma empresa. Ej: \"Líder Técnico (2024), Dev (2022)\".",
     "severity": "info"
   },
   {
@@ -475,8 +475,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Remove Soft Skills",
-    "suggestion_body": "Do not list generic soft skills (e.g., 'Hard Worker'). Show these through experience bullets instead. They waste space here.",
+    "suggestion_title": "Sin Soft Skills Cliché",
+    "suggestion_body": "Reemplaza adjetivos por hechos. Ej: \"Coordiné 4 desarrolladores\" (no \"Trabajador duro\").",
     "severity": "warning"
   },
   {
@@ -485,8 +485,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "layout_select",
-    "suggestion_title": "Sufficient Font Size",
-    "suggestion_body": "Body text must be at least 10pt (ideally 11pt). Anything smaller is illegible for older recruiters or on small screens.",
+    "suggestion_title": "Tamaño de Fuente Mínimo 10pt",
+    "suggestion_body": "Usa tamaño legible para lectura cómoda. Ej: \"Cuerpo en 10pt u 11pt\" (no 8pt).",
     "severity": "critical"
   },
   {
@@ -495,8 +495,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "text_length_scan",
-    "suggestion_title": "Include Honors Sparingly",
-    "suggestion_body": "Only include honors (e.g., Cum Laude) if you are a recent grad. Otherwise, it detracts from professional achievements.",
+    "suggestion_title": "Menciones de Honor Pertinentes",
+    "suggestion_body": "Incluye honores académicos solo si sumas. Ej: \"Graduado con Honores\" (solo egresados recientes).",
     "severity": "info"
   }
 ]

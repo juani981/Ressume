@@ -61,10 +61,14 @@ export const SortableBulletItem = ({
     marginTop: 0,
     marginBottom,
     paddingRight: 0,
-    paddingLeft: '1.15rem',
+    paddingLeft: 0,
     color: 'inherit',
     lineHeight: 'var(--line-height, 1.45)',
-    fontSize: 'var(--list-font-size, var(--normal-font-size))'
+    fontSize: 'var(--list-font-size, var(--normal-font-size))',
+    minWidth: 0,
+    maxWidth: '100%',
+    width: '100%',
+    boxSizing: 'border-box'
   };
 
   const containerDragListeners = createContainerDragListeners(listeners, true);
@@ -92,7 +96,9 @@ export const SortableBulletItem = ({
         type="button"
         className="round-btn-del bullet-del-btn no-print"
         data-editor-ui="true"
+        data-testid={`btn-delete-bullet-${itemId}-${bulletIndex}`}
         title="Eliminar esta viñeta"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onDeleteBullet(bulletIndex);

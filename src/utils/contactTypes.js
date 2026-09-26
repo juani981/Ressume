@@ -85,7 +85,10 @@ export const ContactIcon = ({ name, size = 14, className = '', style = {}, ...pr
   return React.createElement(IconComponent, {
     size,
     className: `lucide ${className}`.trim(),
-    style,
+    style: { userSelect: 'none', WebkitUserSelect: 'none', ...style },
+    'aria-hidden': 'true',
+    focusable: 'false',
+    role: 'presentation',
     ...props
   });
 };
