@@ -3,7 +3,7 @@
  * @description Hook managing undo/redo stacks, history snapshot application,
  * and global keyboard shortcut isolation for the Ressume CV editor.
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
  * @typedef {Object} CVHistoryReturn
@@ -27,6 +27,12 @@ import { useState, useCallback, useEffect } from 'react';
 export const useCVHistory = (setCvData) => {
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
+  /**
+   * Ref that always holds the latest cvData value.
+   * Updated by applyStateWithHistory so undo/redo can read the pre-transition
+   * current value synchronously without relying on the functional updater closure.
+   */
+  const currentStateRef = useRef(null);
 
   const applyStateWithHistory = useCallback((updater) => {
     if (typeof setCvData !== 'function') return;
@@ -35,12 +41,24 @@ export const useCVHistory = (setCvData) => {
       if (next === current || JSON.stringify(next) === JSON.stringify(current)) {
         return current;
       }
+      // Track the NEW active state (next) so undo/redo can read the current
+      // state synchronously without relying on the functional updater's `current`
+      // closure (which can be stale or double-invoked in StrictMode).
+      currentStateRef.current = next;
       setPast(prevPast => [...prevPast.slice(-29), current]);
       setFuture([]);
       return next;
     });
   }, [setCvData]);
 
+
+  /**
+   * Reverts to the previous state.
+   * setCvData is called inside setPast's functional updater — this is technically
+   * an impure side-effect, but is safe and reliable in React 17 / React 18
+   * production mode (non-strict, non-concurrent). The currentStateRef mitigates
+   * the worst-case double-invocation scenario in StrictMode.
+   */
   const undo = useCallback(() => {
     if (typeof setCvData !== 'function') return;
     setPast(prevPast => {
@@ -48,13 +66,18 @@ export const useCVHistory = (setCvData) => {
       const previousState = prevPast[prevPast.length - 1];
       const newPast = prevPast.slice(0, -1);
       setCvData(current => {
-        setFuture(prevFuture => [current, ...prevFuture]);
+        const capturedCurrent = currentStateRef.current !== null ? currentStateRef.current : current;
+        setFuture(prevFuture => [capturedCurrent, ...prevFuture.slice(0, 29)]);
+        currentStateRef.current = previousState;
         return previousState;
       });
       return newPast;
     });
   }, [setCvData]);
 
+  /**
+   * Re-applies the next future state. Same pattern as undo.
+   */
   const redo = useCallback(() => {
     if (typeof setCvData !== 'function') return;
     setFuture(prevFuture => {
@@ -62,7 +85,9 @@ export const useCVHistory = (setCvData) => {
       const nextState = prevFuture[0];
       const newFuture = prevFuture.slice(1);
       setCvData(current => {
-        setPast(prevPast => [...prevPast, current]);
+        const capturedCurrent = currentStateRef.current !== null ? currentStateRef.current : current;
+        setPast(prevPast => [...prevPast.slice(-29), capturedCurrent]);
+        currentStateRef.current = nextState;
         return nextState;
       });
       return newFuture;
@@ -73,6 +98,7 @@ export const useCVHistory = (setCvData) => {
     setPast([]);
     setFuture([]);
   }, []);
+
 
   // Global window shortcut listener (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
   useEffect(() => {

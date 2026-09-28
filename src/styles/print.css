@@ -276,20 +276,29 @@
     margin-top: 0 !important;
   }
 
-  /* Quiebre de página completa antes del elemento en 1 columna / modo ATS */
+
+  /* Salto de pagina forzado en modo ATS / 1 columna unicamente.
+   * Regla: No usar break-before:page en 2 columnas (CSS Grid).
+   * Ver AGENTS.md §5, §7 y audit bug #2.1 */
   .resume__single-column .break-page-before:not(:first-child),
   .resume__single-column .force-page-break-before:not(:first-child),
   .resume__single-column [data-page-break="before"]:not(:first-child),
-  .resume__single-column [data-page-break-before="true"]:not(:first-child),
-  .break-page-before:not(:first-child),
-  .force-page-break-before:not(:first-child),
-  [data-page-break="before"]:not(:first-child),
-  [data-page-break-before="true"]:not(:first-child) {
+  .resume__single-column [data-page-break-before="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
     padding-top: var(--page-padding, 24px) !important;
     margin-top: 0 !important;
   }
+
+  /* Protección anti-fragmentación del grid en layouts de 2 columnas:
+   * las secciones dentro de columnas no deben romperse por el motor de paginación. */
+  .resume__left > .section,
+  .resume__right > .section,
+  .resume__left > .cv-section,
+  .resume__right > .cv-section {
+    break-inside: avoid-page;
+  }
+
 
   /* Protección contra quiebres en cascada: los cortes automáticos del editor NUNCA fuerzan salto en impresión */
   [data-editor-break-forced="true"] {

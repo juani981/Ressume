@@ -1,51 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getRules } from '../../locales/index';
 import { Lightbulb, OctagonAlert, TriangleAlert, Info, X } from 'lucide-react';
 
-const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
+const SuggestionTooltip = ({ section, isHovered, layoutType, rect, anchorRef }) => {
   const cvContext = useCV();
   const activeLanguage = cvContext?.activeLanguage || 'es';
   const closeTooltip = cvContext?.closeTooltip;
   const [suggestions, setSuggestions] = useState([]);
   const [stylePos, setStylePos] = useState({ top: 100, left: 200, width: 300, maxHeight: 'calc(100vh - 120px)' });
 
+  /**
+   * Computes tooltip position from a DOMRect object.
+   * Follows AGENTS.md §3: position adjacent to element (rect.right + 20px),
+   * flip to rect.left - 320px when approaching viewport boundary,
+   * clamp vertically to prevent escaping window.innerHeight.
+   */
+  const computePosition = useCallback((r) => {
+    if (!r) return;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    const TOOLTIP_WIDTH = 300;
+
+    let left = Math.round(r.right + 20);
+    if (left + TOOLTIP_WIDTH > vw) {
+      left = Math.round(r.left - 320);
+    }
+    if (left < 20) left = 20;
+
+    let top = Math.round(r.top);
+    if (top + 400 > vh) top = vh - 420;
+    if (top < 20) top = 20;
+
+    setStylePos({
+      top,
+      left,
+      width: TOOLTIP_WIDTH,
+      maxWidth: `calc(100vw - 24px)`,
+      maxHeight: `calc(100vh - ${top + 20}px)`
+    });
+  }, []);
+
   useEffect(() => {
     if (isHovered && rect) {
-      const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
-      const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
-      const TOOLTIP_WIDTH = 300;
-      const TOOLTIP_ESTIMATED_HEIGHT = 360;
-
-      // 1. Horizontal position: adjacent to element (rect.right + 20px)
-      let left = Math.round(rect.right + 20);
-
-      // Flip to opposite side (rect.left - 320px) when approaching viewport boundary (window.innerWidth)
-      if (left + TOOLTIP_WIDTH > vw) {
-        left = Math.round(rect.left - 320);
-      }
-      if (left < 20) {
-        left = 20;
-      }
-
-      // 2. Vertical position: anchored directly to hovered element (rect.top)
-      let top = Math.round(rect.top);
-
-      // Clamp vertically to prevent escaping window.innerHeight
-      if (top + 400 > vh) {
-        top = vh - 420;
-      }
-      if (top < 20) {
-        top = 20;
-      }
-
-      setStylePos({
-        top,
-        left,
-        width: TOOLTIP_WIDTH,
-        maxWidth: `calc(100vw - 24px)`,
-        maxHeight: `calc(100vh - ${top + 20}px)`
-      });
+      computePosition(rect);
 
       // Map section type & id to target_section in our rules
       let targetSection = 'global';
@@ -112,7 +110,31 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect }) => {
       // Pick top 2-3 to avoid overwhelming
       setSuggestions(scoredMatches.slice(0, 3).map(sm => sm.rule));
     }
-  }, [isHovered, section, layoutType, rect, activeLanguage]);
+  }, [isHovered, section, layoutType, rect, activeLanguage, computePosition]);
+
+  /**
+   * Keep tooltip position live on scroll and resize (AGENTS.md §3).
+   * When anchorRef is provided, recompute from getBoundingClientRect().
+   * Otherwise fall back to the last known rect prop.
+   */
+  useEffect(() => {
+    if (!isHovered) return;
+
+    const updatePosition = () => {
+      if (anchorRef?.current) {
+        computePosition(anchorRef.current.getBoundingClientRect());
+      } else if (rect) {
+        computePosition(rect);
+      }
+    };
+
+    window.addEventListener('scroll', updatePosition, { passive: true, capture: true });
+    window.addEventListener('resize', updatePosition, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', updatePosition, { capture: true });
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isHovered, anchorRef, rect, computePosition]);
 
   if (!isHovered || !rect || suggestions.length === 0) return null;
 

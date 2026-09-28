@@ -248,7 +248,7 @@ const EditableBaseSection = ({ section }) => {
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                deleteSection(section.id);
+                deleteSection(section.originalSectionId || section.id);
               }}
             >
               <Trash2 size={13} />
@@ -259,7 +259,7 @@ const EditableBaseSection = ({ section }) => {
 
       {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
         <h2 className="section-title" data-section-title={section.id}>
-          <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.id, val)} />
+          <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.originalSectionId || section.id, val)} />
         </h2>
       )}
       

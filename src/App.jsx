@@ -48,6 +48,7 @@ function App() {
       handleDragStart,
       handleDragOver,
       handleDragEnd,
+      handleDragCancel,
       activeDragItem,
       activeDragSection,
    } = useCVDndCoordinator({
@@ -119,7 +120,8 @@ function App() {
             collisionDetection={collisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}>
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}>
             <main
                className="l-main bd-container"
                style={{
