@@ -84,7 +84,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   const is1Col = isAtsMode;
   const layoutType = is1Col ? '1-column' : '2-column';
 
-  const profileSection = cvData.sections?.find(s => s.type === 'profile_header');
+  const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
@@ -438,7 +438,7 @@ export const exportToAIXML = (cvData) => {
   const layout = cvData.layout || { type: '1-column' };
   const is1Col = layout.type === '1-column';
 
-  const profileSection = cvData.sections?.find(s => s.type === 'profile_header');
+  const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
@@ -532,7 +532,7 @@ export const exportToAIXML = (cvData) => {
  */
 export const exportToATSPlainText = (cvData) => {
   if (!cvData) return '';
-  const profileSection = cvData.sections?.find(s => s.type === 'profile_header');
+  const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};

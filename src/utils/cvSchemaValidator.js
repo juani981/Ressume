@@ -127,7 +127,7 @@ export function validateCVSnapshot(candidate) {
         errors.push({ path: `${secPath}.type`, message: 'Section requires a non-empty type identifier', code: 'MISSING_SECTION_TYPE' });
       }
 
-      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+      if (sec.id === 'profile_header' || sec.type === 'profile_header' || sec.type === 'title_subtitle') {
         hasHeader = true;
       }
 
@@ -270,7 +270,7 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
       });
 
     // Ensure profile_header section exists
-    const hasHeader = sanitizedSections.some((s) => s.id === 'profile_header' || s.type === 'profile_header');
+    const hasHeader = sanitizedSections.some((s) => s.id === 'profile_header' || s.type === 'profile_header' || s.type === 'title_subtitle');
     let finalSections = sanitizedSections;
 
     if (!hasHeader && defaultSchema.sections && defaultSchema.sections[0]) {

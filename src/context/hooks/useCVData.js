@@ -25,8 +25,8 @@ export const ensureProfileHeader = (data) => {
   if (!data || !Array.isArray(data.sections)) return defaultSchema;
   let sections = [...data.sections];
 
-  // 1. Ensure profile_header section exists
-  const hasProfileHeader = sections.some(s => s.id === 'profile_header' || s.type === 'profile_header');
+  // 1. Ensure profile_header or title_subtitle section exists
+  const hasProfileHeader = sections.some(s => s.id === 'profile_header' || s.type === 'profile_header' || s.type === 'title_subtitle');
   if (!hasProfileHeader) {
     sections = [defaultSchema.sections[0], ...sections];
   }
@@ -165,7 +165,7 @@ export const useCVData = ({
     applyStateWithHistory(prev => {
       const target = prev.sections.find(s => s.id === sectionId);
       if (target && (target.id === 'profile_header' || target.type === 'profile_header')) return prev;
-      return { ...prev, sections: prev.sections.filter(s => s.id !== sectionId && s.id !== 'profile_header' && s.type !== 'profile_header') };
+      return { ...prev, sections: prev.sections.filter(s => s.id !== sectionId) };
     });
   }, [applyStateWithHistory]);
   const reorderSections = useCallback((newSections) => {
@@ -204,7 +204,7 @@ export const useCVData = ({
   }, [applyStateWithHistory]);
   const deleteSectionItem = useCallback((sectionId, itemId) => {
     applyStateWithHistory(prev => ({
-      ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
+      ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' || s.type === 'title_subtitle' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
     }));
   }, [applyStateWithHistory]);
   const updateSectionItem = useCallback((sectionId, itemId, key, value) => {

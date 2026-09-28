@@ -863,7 +863,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let sections = rawSections;
   if (data.profile) {
     sections = rawSections.map((sec) => {
-      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+      if (sec.id === 'profile_header' || sec.type === 'profile_header' || sec.type === 'title_subtitle') {
         const firstItem = (sec.items && sec.items[0]) ? { ...sec.items[0] } : {};
         const mergedItem = {
           ...firstItem,
