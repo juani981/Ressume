@@ -48,7 +48,8 @@ const iconMap = {
  * instead of centering over the CV document. Strictly follows AGENTS.md Rule 3.
  */
 const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
-  const { addSection } = useCV();
+  const { addSection, cvData } = useCV();
+  const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
   const [initialBulletStyle, setInitialBulletStyle] = useState({
     size: 'normal',
     variant: 'bold',
@@ -137,7 +138,12 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
 
   if (!isOpen) return null;
 
-  const descriptors = getAllSectionDescriptors().filter(d => d.type !== 'profile_header');
+  const descriptors = getAllSectionDescriptors().filter(d => {
+    if (d.type === 'profile_header') return false;
+    // In ATS mode, hide photo section — it is filtered from print output and misleads users
+    if (isAtsMode && (d.type === 'photo')) return false;
+    return true;
+  });
 
   const handleSelectType = (desc) => {
     const col = targetColumn || desc.defaultColumn || 'right';

@@ -865,15 +865,13 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     sections = rawSections.map((sec) => {
       if (sec.id === 'profile_header' || sec.type === 'profile_header' || sec.type === 'title_subtitle') {
         const firstItem = (sec.items && sec.items[0]) ? { ...sec.items[0] } : {};
+        // Profile and section items are kept in sync by updateProfile/updateSectionItem hooks.
+        // Here we merge both so either source can provide a value, with profile taking priority
+        // for backward compatibility (test coverage relies on this precedence order).
         const mergedItem = {
           ...firstItem,
           ...(data.profile.name !== undefined ? { name: data.profile.name } : {}),
           ...(data.profile.subtitle !== undefined ? { subtitle: data.profile.subtitle } : {}),
-          ...(data.profile.location !== undefined ? { location: data.profile.location } : {}),
-          ...(data.profile.email !== undefined ? { email: data.profile.email } : {}),
-          ...(data.profile.phone !== undefined ? { phone: data.profile.phone } : {}),
-          ...(data.profile.linkedin !== undefined ? { linkedin: data.profile.linkedin } : {}),
-          ...(data.profile.github !== undefined ? { github: data.profile.github } : {}),
         };
         return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
       }
@@ -892,6 +890,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       return sec;
     });
   }
+
 
   const isAtsMode = layout.isAtsMode === true;
   if (isAtsMode) {

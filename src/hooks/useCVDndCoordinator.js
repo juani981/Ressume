@@ -113,7 +113,12 @@ export function useCVDndCoordinator({
           (s) => s.column === overData.column,
         );
         if (colSections.length > 0) {
+          // Drop onto last section in the column
           targetSectionId = colSections[colSections.length - 1].id;
+        } else {
+          // Empty column: we can't move an item to an empty column cross-section.
+          // Fall through without a targetSectionId — the item stays in place.
+          // (Only sections can be moved to empty columns via the section drag path.)
         }
       } else {
         // Find which section contains over.id
@@ -197,12 +202,24 @@ export function useCVDndCoordinator({
     }
   };
 
+  /**
+   * Clears active drag state on cancel (Escape key, drop outside valid area, etc.).
+   * Without this, @dnd-kit does NOT call onDragEnd — it calls onDragCancel instead.
+   * Omitting this handler leaves activeDragItem/activeDragSection stale, rendering
+   * the CVDragOverlay ghost frozen on screen and items with permanent reduced opacity.
+   */
+  const handleDragCancel = () => {
+    setActiveDragItem(null);
+    setActiveDragSection(null);
+  };
+
   return {
     sensors,
     collisionDetection: closestCorners,
     handleDragStart,
     handleDragOver,
     handleDragEnd,
+    handleDragCancel,
     activeDragItem,
     activeDragSection,
   };

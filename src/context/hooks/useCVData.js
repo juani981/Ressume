@@ -154,8 +154,34 @@ export const useCVData = ({
     catch (e) { console.warn('Error extracting dictionary on cvData update', e); }
   }, [cvData, activeLanguage]);
 
+  /**
+   * Updates cvData.profile AND propagates the change into the corresponding
+   * section item (profile_header / title_subtitle for name/subtitle,
+   * contact for contact fields). Keeps both representations in sync so the
+   * print engine never overwrites user-edited values with stale profile defaults.
+   */
   const updateProfile = useCallback((key, value) => {
-    applyStateWithHistory(prev => ({ ...prev, profile: { ...prev.profile, [key]: value } }));
+    applyStateWithHistory(prev => {
+      const updatedProfile = { ...prev.profile, [key]: value };
+      const titleKeys = ['name', 'subtitle'];
+      const contactKeys = ['location', 'email', 'phone', 'linkedin', 'github'];
+
+      const updatedSections = prev.sections.map(sec => {
+        if ((sec.type === 'profile_header' || sec.type === 'title_subtitle') && titleKeys.includes(key)) {
+          const firstItem = { ...(sec.items?.[0] || {}), [key]: value };
+          return { ...sec, items: [firstItem, ...(sec.items?.slice(1) || [])] };
+        }
+        if (sec.type === 'contact' && contactKeys.includes(key)) {
+          const firstItem = { ...(sec.items?.[0] || {}), [key]: value };
+          const existingContacts = Array.isArray(firstItem.contacts) ? firstItem.contacts : [];
+          const updatedContacts = existingContacts.map(c => c.type === key ? { ...c, value } : c);
+          return { ...sec, items: [{ ...firstItem, contacts: updatedContacts }, ...(sec.items?.slice(1) || [])] };
+        }
+        return sec;
+      });
+
+      return { ...prev, profile: updatedProfile, sections: updatedSections };
+    });
   }, [applyStateWithHistory]);
   const addSection = useCallback((column = 'right', type = 'list', title = 'NUEVA SECCIÓN', bulletStyle = undefined) => {
     applyStateWithHistory(prev => ({ ...prev, sections: [...prev.sections, createDefaultSection(column, type, title, bulletStyle)] }));
@@ -207,13 +233,47 @@ export const useCVData = ({
       ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' || s.type === 'title_subtitle' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
     }));
   }, [applyStateWithHistory]);
+  /**
+   * Updates a section item and, for profile_header/title_subtitle/contact sections,
+   * also propagates the relevant fields back into cvData.profile so the print
+   * engine always receives consistent data.
+   */
   const updateSectionItem = useCallback((sectionId, itemId, key, value) => {
-    applyStateWithHistory(prev => ({
-      ...prev,
-      sections: prev.sections.map(sec => sec.id !== sectionId ? sec : {
-        ...sec, items: (sec.items || []).map(i => i.id === itemId ? { ...i, ...(typeof key === 'object' && key !== null ? key : { [key]: value }) } : i)
-      })
-    }));
+    applyStateWithHistory(prev => {
+      const targetSec = prev.sections.find(s => s.id === sectionId);
+      const isProfileSec = targetSec && (
+        targetSec.type === 'profile_header' ||
+        targetSec.type === 'title_subtitle' ||
+        targetSec.type === 'contact'
+      );
+
+      const updatedSections = prev.sections.map(sec => sec.id !== sectionId ? sec : {
+        ...sec, items: (sec.items || []).map(i => i.id === itemId
+          ? { ...i, ...(typeof key === 'object' && key !== null ? key : { [key]: value }) }
+          : i)
+      });
+
+      // Propagate back to profile if editing a header/contact section
+      if (isProfileSec) {
+        const updates = typeof key === 'object' && key !== null ? key : { [key]: value };
+        const titleKeys = ['name', 'subtitle'];
+        const contactKeys = ['location', 'email', 'phone', 'linkedin', 'github'];
+        const profileUpdates = {};
+        Object.entries(updates).forEach(([k, v]) => {
+          if (targetSec.type !== 'contact' && titleKeys.includes(k)) profileUpdates[k] = v;
+          if (targetSec.type === 'contact' && contactKeys.includes(k)) profileUpdates[k] = v;
+        });
+        if (Object.keys(profileUpdates).length > 0) {
+          return {
+            ...prev,
+            sections: updatedSections,
+            profile: { ...prev.profile, ...profileUpdates }
+          };
+        }
+      }
+
+      return { ...prev, sections: updatedSections };
+    });
   }, [applyStateWithHistory]);
   const reorderSectionItems = useCallback((sectionId, newItems) => {
     applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: newItems } : s) }));
@@ -290,10 +350,24 @@ export const useCVData = ({
   const resetToDefault = useCallback(() => (
     applyStateWithHistory(() => ({ ...defaultSchema, versionName: null, activeVersionName: null, activeVersionId: null }))
   ), [applyStateWithHistory]);
+  /**
+   * Restores the default contact section if it is absent from the current CV.
+   * Previously this incorrectly inserted profile_header (sections[0]) and stripped
+   * the existing profile_header — now it idempotently appends the contact section only
+   * when missing, preserving all other sections intact.
+   */
   const restoreContactSection = useCallback(() => (
-    applyStateWithHistory(prev => ({
-      ...prev, sections: [defaultSchema.sections[0], ...prev.sections.filter(s => s.id !== 'profile_header' && s.type !== 'profile_header')]
-    }))
+    applyStateWithHistory(prev => {
+      const hasContact = prev.sections.some(s => s.id === 'contact' || s.type === 'contact');
+      if (hasContact) return prev; // already present, nothing to do
+      const defaultContact = defaultSchema.sections.find(s => s.type === 'contact') || defaultSchema.sections[1];
+      // Insert after profile_header if found, otherwise append at the end
+      const profileHeaderIdx = prev.sections.findIndex(s => s.id === 'profile_header' || s.type === 'profile_header');
+      const insertAt = profileHeaderIdx !== -1 ? profileHeaderIdx + 1 : prev.sections.length;
+      const newSections = [...prev.sections];
+      newSections.splice(insertAt, 0, JSON.parse(JSON.stringify(defaultContact)));
+      return { ...prev, sections: newSections };
+    })
   ), [applyStateWithHistory]);
 
   const switchLanguage = useCallback((langCode) => {

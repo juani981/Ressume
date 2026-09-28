@@ -23,7 +23,13 @@ const AddBulletPoint = ({ helperText, handleAddBullet, onClick }) => {
         className="add-bullet-btn no-print"
         data-editor-ui="true"
         data-editor-add="true"
-        onClick={handleClick}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (typeof handleClick === 'function') {
+            handleClick(e);
+          }
+        }}
         title={typeof helperText === 'string' ? helperText : 'Agregar nueva viñeta'}
       >
         <ListPlus size={14} />
