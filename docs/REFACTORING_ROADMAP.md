@@ -80,25 +80,27 @@ Tras la auditoría exhaustiva y la purga de documentación obsoleta, el estado d
 
 ---
 
-### FASE 3: Endurecimiento de Contratos de Interfaz entre Módulos
-- **Meta**: Establecer interfaces explícitas y tipadas mediante JSDoc `@typedef` para blindar la comunicación entre subsistemas.
-- **Acciones Específicas**:
-  1. **Contrato de Modelo de Página (`PageModel`)**:
-     ```javascript
-     /**
-      * @typedef {Object} PageModel
-      * @property {number} pageNumber - Número 1-indexado de la página A4
-      * @property {Array<Section>} leftSections - Secciones asignadas a columna izquierda
-      * @property {Array<Section>} rightSections - Secciones asignadas a columna derecha / única
-      * @property {number} estimatedHeightLeft - Altura calculada en píxeles para columna izquierda
-      * @property {number} estimatedHeightRight - Altura calculada en píxeles para columna derecha
-      */
-     ```
-  2. **Contrato de Servicio de Impresión (`PrintServiceContract`)**:
-     - Separar claramente la entrada del clon del DOM (`#area-cv`) y la entrada de configuración de diseño.
-     - Garantizar que `printExecutionDriver.js` reciba un objeto inmutable `{ htmlContent, title, lang }` sin dependencias del estado de React.
-  3. **Hooks de Selección Granular en `CVContext`**:
-     - Ofrecer sub-hooks de conveniencia para componentes que solo leen configuración de diseño (`useCVLayoutSettings()`) o que solo disparan exportación (`useCVExportActions()`), evitando re-renders innecesarios provocados por mutaciones de texto en el documento.
+### FASE 3: Endurecimiento de Contratos de Interfaz entre Módulos [COMPLETADA]
+- **Estado**: **100% COMPLETADA**.
+- **Resultados Alcanzados**:
+  1. **Contratos de Dominio Documentados (`src/utils/pageModelTypes.js`)**:
+     - Definidos contratos JSDoc `@typedef` completos y canónicos para `CVItem`, `CVSection`, `CVProfile`, `CVLayout`, `CVSnapshot` y `PageModel`.
+     - Validaciones de inmutabilidad estricta (`createPageModel`, `isValidPageModel`, `deepFreeze`) con verificación de claves fijas (`PAGE_MODEL_KEYS`).
+  2. **Contrato de Servicio de Impresión (`src/services/print/printExecutionDriver.js`)**:
+     - Definidos `@typedef EditorSnapshot` y función `validateSnapshotContract(candidate)` para garantizar que snapshots externos o manuales normalicen `totalPages >= 1` y preserven la integridad de los metadatos sin fallos en tiempo de ejecución.
+     - Documentada la firma completa de `executeCleanPrint(cvData, lang, customSnapshot)`.
+  3. **Selectores de Contexto Granulares (`src/context/CVContext.jsx` y `src/context/index.js`)**:
+     - Implementados selectores desacoplados para modularizar el consumo de estado:
+       - `useCVLayoutState()`: acceso a propiedades de grid y actualización de layout.
+       - `useCVExportActions()`: funciones de exportación (PDF/JSON) y control de alertas/toasts.
+       - `useCVPagesState()`: métricas de paginación A4 discreta y eliminación de páginas.
+       - `useCVHistoryState()`: flags y handlers de undo / redo.
+       - `useCVDataActions()`: operaciones CRUD sobre secciones e ítems.
+     - `useCV()` se mantiene intacto para 100% de compatibilidad hacia atrás.
+  4. **Verificación Anti-Regresión**:
+     - Creada suite dedicada [`src/tests/interface-contracts-and-selectors.test.jsx`](file:///C:/Users/usuariodgc/Documents/Ressume/src/tests/interface-contracts-and-selectors.test.jsx) (11 tests unitarios específicos).
+     - **Vitest**: **78 suites de prueba, 1,143 tests pasando al 100% en verde** (0 fallos).
+     - **Vite Build**: Compilación para producción exitosa en **3.87 segundos**.
 
 ---
 

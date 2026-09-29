@@ -139,5 +139,80 @@ export const CVProvider = ({ children, initialCV = null }) => {
   );
 };
 
+// ---------------------------------------------------------------------------
+// Granular Domain Selectors (Phase 3 Interface Contract Hardening)
+// ---------------------------------------------------------------------------
+
+/**
+ * Granular selector hook for layout mode and grid properties.
+ */
+export const useCVLayoutState = () => {
+  const { cvData, updateLayout, updateSectionColumn, moveSectionToColumnAndIndex } = useCV();
+  return { layout: cvData?.layout || {}, updateLayout, updateSectionColumn, moveSectionToColumnAndIndex };
+};
+
+/**
+ * Granular selector hook for export actions (PDF, JSON) and toast alerts.
+ */
+export const useCVExportActions = () => {
+  const { exportCleanPDF, exportJSON, isExporting, toast, showToast, hideToast } = useCV();
+  return { exportCleanPDF, exportJSON, isExporting, toast, showToast, hideToast };
+};
+
+/**
+ * Granular selector hook for discrete A4 pages state and pagination metrics.
+ */
+export const useCVPagesState = () => {
+  const { totalPages, setTotalPages, pageHeightPx, setPageHeightPx, pageGapPx, getPageBounds, getElementPageInfo, deletePage } = useCV();
+  return { totalPages, setTotalPages, pageHeightPx, setPageHeightPx, pageGapPx, getPageBounds, getElementPageInfo, deletePage };
+};
+
+/**
+ * Granular selector hook for history undo/redo actions.
+ */
+export const useCVHistoryState = () => {
+  const { undo, redo, canUndo, canRedo } = useCV();
+  return { undo, redo, canUndo, canRedo };
+};
+
+/**
+ * Granular selector hook for section and item content CRUD operations.
+ */
+export const useCVDataActions = () => {
+  const {
+    updateProfile,
+    addSection,
+    deleteSection,
+    reorderSections,
+    updateSectionTitle,
+    updateSectionBulletStyle,
+    updateSectionProperty,
+    addSectionItem,
+    deleteSectionItem,
+    updateSectionItem,
+    reorderSectionItems,
+    moveItemBetweenSections,
+    resetToDefault,
+    restoreContactSection,
+  } = useCV();
+  return {
+    updateProfile,
+    addSection,
+    deleteSection,
+    reorderSections,
+    updateSectionTitle,
+    updateSectionBulletStyle,
+    updateSectionProperty,
+    addSectionItem,
+    deleteSectionItem,
+    updateSectionItem,
+    reorderSectionItems,
+    moveItemBetweenSections,
+    resetToDefault,
+    restoreContactSection,
+  };
+};
+
 export { CVContext };
 export default CVContext;
+

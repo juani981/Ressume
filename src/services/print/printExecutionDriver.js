@@ -20,19 +20,46 @@ import {
 import { verifyModelPdfParity } from '../../utils/parityChecker';
 
 /**
+ * @typedef {Object} EditorSnapshot
+ * @property {number} [width] - Editor measured container width in pixels
+ * @property {number} [totalPages] - Total page count calculated by editor/distributor
+ * @property {Array<import('../../utils/pageModelTypes').PageModel>} [pages] - Discrete PageModels
+ * @property {Object} [layout] - Snapshot layout configuration
+ * @property {Array<any>} [breaks] - Snapshot break points
+ */
+
+/**
+ * Validates and normalizes a candidate editor snapshot for print execution.
+ *
+ * @param {any} candidate - Potential snapshot object
+ * @returns {EditorSnapshot|null} Validated snapshot or null
+ */
+export function validateSnapshotContract(candidate) {
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+  return {
+    ...candidate,
+    totalPages: typeof candidate.totalPages === 'number' && candidate.totalPages > 0 ? candidate.totalPages : 1,
+  };
+}
+
+/**
  * Executes a clean native PDF print by generating an offscreen iframe,
  * writing the clean document markup, and calling iframe.contentWindow.print().
  *
- * @param {Object} cvData 
- * @param {string} lang 
- * @param {Object|null} customSnapshot 
- * @returns {Promise<void>}
+ * @param {import('../../utils/pageModelTypes').CVSnapshot|Object} cvData - Canonical CV data model
+ * @param {string} [lang='es'] - Active document language code
+ * @param {EditorSnapshot|null} [customSnapshot=undefined] - Optional pre-captured editor snapshot
+ * @returns {Promise<void>} Resolves when printing setup has finished
  */
 export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefined) => {
   return new Promise((resolve) => {
     const dynamicDocumentTitle = getDynamicPdfTitle(cvData);
     const liveAreaCv = typeof document !== 'undefined' ? document.getElementById('area-cv') : null;
-    const snapshot = customSnapshot !== undefined ? customSnapshot : (liveAreaCv ? captureEditorSnapshot() : null);
+    const snapshot = customSnapshot !== undefined
+      ? validateSnapshotContract(customSnapshot)
+      : (liveAreaCv ? captureEditorSnapshot() : null);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
