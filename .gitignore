@@ -12,3 +12,4 @@ temp_*
 *.patch
 public/__*
 test_headless.pdf
+.agents/

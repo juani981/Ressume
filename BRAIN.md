@@ -122,7 +122,7 @@ The system follows a layered architecture with strict unidirectional data flow:
 | **Strategy** | `descriptor.itemComponent` | Each section type has its own rendering strategy; BaseItem is the context |
 | **Template Method** | `BaseSection.jsx`, `BaseItem.jsx` | Fixed structure; variable steps delegated to descriptors |
 | **Facade** | `CVContext.jsx` | Hides 4 internal hooks behind a single `useCV()` hook |
-| **Observer** | `ResizeObserver` in `usePaginationEngine` | Reacts to DOM dimension changes without polling |
+| **Pure Distribution** | `useDocumentPages.js` / `pageDistributor.js` | Deterministically maps CV data to discrete A4 page models |
 | **Command** | `useCVHistory` undo/redo stack | Applies state mutations via `applyStateWithHistory` |
 
 ---
@@ -259,46 +259,29 @@ This is intentional and must not be removed.
 
 ---
 
-## 7. The Pagination Engine
+## 7. The Discrete Page Distribution & A4 Layout Architecture (Invariants 15 & 16)
 
-The pagination engine solves the core product problem: **how to show clean A4
-page breaks in an HTML editor without native browser pagination**.
+The pagination architecture solves the core product problem: **guaranteeing 1:1 pixel parity between editor and PDF print output without heuristic in-flight DOM mutations**.
+
+Following **Rule 15** and **Rule 16** of `AGENTS.md`:
+- **Editor-Native Discrete A4 Boxes**: The editor (`#area-cv`) is composed of a list of discrete, closed `<A4PageBox pageNumber={N}>` containers (`210mm x 297mm`, `overflow: hidden`). Continuous canvas layouts and simulated dotted fold lines are strictly forbidden.
+- **Fixed Structure Carved in Stone**: Page assignment is calculated deterministically at the React state level by `pageDistributor.js`. If a block does not fit in Page 1, it belongs to the Page 2 container. The print engine never performs dynamic reflow or heuristic cuts. WYSIWYG absolute.
 
 ### Key files
 
-- `src/utils/pageGeometry.js` — Constants (A4_PAGE_HEIGHT_PX = 1123), ruler measurement, forbidden zone math
-- `src/utils/paginationEngine.js` — Multi-pass break calculation algorithm
-- `src/hooks/usePaginationEngine.js` — React hook: ResizeObserver, RAF scheduling, cooldown
-- `src/hooks/useBlankPageCleaner.js` — Reactive blank page elimination
+- `src/constants/geometry.js` / `src/utils/pageGeometry.js` — Dimensions (`A4_WIDTH_PX = 794`, `A4_PAGE_HEIGHT_PX = 1123`, `EDITOR_HEIGHT_REDUCTION_MM = 25`, `EDITOR_PAGE_HEIGHT_MM = 272`).
+- `src/utils/pageDistributor.js` — Pure deterministic algorithm partitioning sections and items into discrete pages based on content height budgets.
+- `src/hooks/useDocumentPages.js` — React hook wrapping `pageDistributor.js` with reactive updates based on `cvData`.
+- `src/components/CV/A4PageBox.jsx` — Visual and physical A4 container component rendering individual pages with independent column layouts and background extensions.
+- `src/services/print/` — Modular print suite: `pdfTitleService.js`, `cleanHtmlGenerator.js`, `printExecutionDriver.js`.
 
 ### How it works
 
-1. **Ruler measurement**: A hidden `<div style="height: 297mm">` is inserted and
-   measured with `offsetHeight`. At 96 DPI this is 1123px. This guarantees
-   accuracy across OS DPI scaling.
+1. **Standard ISO 216 Geometry**: Dimensions are centralized in `src/constants/geometry.js`. In print: 210mm x 297mm (794px x 1123px at 96 DPI). In the editor: 272mm content budget (`EDITOR_HEIGHT_REDUCTION_MM = 25`) to prevent false-fit overflow.
+2. **Deterministic Partitioning (`pageDistributor.js`)**: Calculates the height of sections and items based on typography and line-height tokens, placing items sequentially across discrete page models.
+3. **Discrete Page Rendering (`<A4PageBox>`)**: Rendered directly in `App.jsx` (`pages.map(pageModel => <A4PageBox ...>)`). In 2-column mode, left and right columns run independently inside each box.
+4. **Zero Reflow on Print**: The print engine projects the exact discrete DOM tree produced by the editor.
 
-2. **Breakable elements**: The engine selects elements matching `.section-title,
-   .cv-block, .experience__content, ...` as candidates for page-break pushing.
-
-3. **Forbidden boundary zones**: Each page fold has a "forbidden zone" of
-   `[foldTop - pagePadding, foldBottom + pagePadding]`. No breakable element
-   can span this zone.
-
-4. **Multi-pass push algorithm**: Up to 6 passes. In each pass, elements
-   violating forbidden zones are pushed down via `margin-top: Npx !important`
-   with `data-editor-break-forced="true"` markers.
-
-5. **Orphan title prevention**: A `section-title` element is treated as an orphan
-   if its next sibling would be cut by the fold. It is pushed to the next page.
-
-6. **Blank page cleaner**: After pagination, `useBlankPageCleaner` measures the
-   content height on the last page. If it's less than 80px (just padding),
-   it trims the nearest spacer or section `bottomSpacing` to collapse the empty page.
-
-### Why not CSS `page-break-after`?
-
-Browser implementations are inconsistent. Some break mid-element. The JS engine
-gives us full control and enables live preview, which is the core product feature.
 
 ---
 
@@ -314,8 +297,19 @@ re-rendered the CV from state using `renderToStaticMarkup(React.createElement(Pr
 and string concatenation. This caused inevitable discrepancies (different bullet DOM structures,
 regex mutations of layout classes like `.editable-section-container`, and arbitrary `body.style.zoom`).
 
-In commit `2fc0b8d` on branch `Re-do-total-de-impresion-PDF`, the engine transitioned to
-a **DOM Mirroring / cloneNode architecture**:
+### 8.1 Modular Decomposition (`src/services/print/`)
+
+The print pipeline is cleanly decomposed into specialized single-responsibility services:
+
+```
+src/services/print/
+├── index.js                    # Public API façade (executeCleanPrint, generateCleanPrintHTML, etc.)
+├── pdfTitleService.js          # Dynamic file naming from CV profile (e.g. CV_Juan_Perez_Senior_Engineer.pdf)
+├── cleanHtmlGenerator.js       # Sanitized DOM clone builder, CSS variable generator, and static HTML fallback
+└── printExecutionDriver.js     # Hidden <iframe> orchestration, font readiness, and native window.print()
+```
+
+### 8.2 The DOM Mirroring (`cloneNode`) Pipeline
 
 ```
 User clicks "Export PDF" / ActionMenu
@@ -326,8 +320,7 @@ User clicks "Export PDF" / ActionMenu
       2. UI Scrubber: Removes [data-editor-ui="true"] and .no-print elements
       3. Placeholder Scrubber: Removes [data-is-empty="true"] and .inline-edit-placeholder
       4. Focus/Editable Scrubber: Cleans contenteditable and .inline-edit-active outlines
-      5. Break Scrubber: Normalizes editor gap push margins ([data-editor-break-forced="true"])
-      6. Geometry Scrubber: Removes min-height/height overrides from #area-cv and columns
+      5. Geometry Scrubber: Preserves exact discrete .a4-page-box boxes with overflow: hidden
   → Writes clean HTML to offscreen <iframe> with:
       - cv-base-styles (index.css)
       - cv-print-styles (print.css with @media print rules)
@@ -336,25 +329,25 @@ User clicks "Export PDF" / ActionMenu
   → iframe.contentWindow.print()
 ```
 
-### 8.2 The `data-editor-ui="true"` Standard
+### 8.3 The `data-editor-ui="true"` Standard
 
 All editor-only controls (handles, resize bars, action buttons, popovers, guides) now carry
 `data-editor-ui="true"`. The `createSanitizedPrintClone` utility automatically purges any element
 with `[data-editor-ui="true"]` or `.no-print`.
 
-### 8.3 Print Stylesheet Philosophy (`src/styles/print.css`)
+### 8.4 Print Stylesheet Philosophy (`src/styles/print.css`)
 
 - Uses native CSS Paged Media:
   - `@page { size: A4; margin: 0; }`
   - `print-color-adjust: exact !important;`
-  - `html, body, #area-cv, .resume, .resume__left, .resume__right` set to `height: auto !important; min-height: 0 !important;`
+  - `.a4-page-box` maintains strict `210mm x 297mm`, `page-break-after: always;` / `break-after: page;`
   - Base rule: `break-before: auto` by default across sections and blocks.
   - Avoid rule: First children of columns/containers have `break-before: avoid !important;` to prevent leading blank pages.
   - Section-level: `.cv-section` has `break-inside: auto` to allow multi-item sections to paginate naturally.
   - Block-level: `.cv-block, .experience__content, .education__content, ...` have `break-inside: avoid !important;` to prevent awkward splitting of atomic items.
   - Terminal margin suppression: `.cv-section:last-child { margin-bottom: 0 !important; }` prevents trailing whitespace from spawning empty trailing pages.
 
-### 8.4 Fallback Path (Headless / JSDOM)
+### 8.5 Fallback Path (Headless / JSDOM)
 
 When `document.getElementById('area-cv')` is not available (e.g. headless tests or SSR),
 `executeCleanPrint` falls back to `generateCleanPrintHTML(cvData, lang)` to construct
@@ -707,7 +700,7 @@ These are non-negotiable. Breaking any of them causes test failures or product r
 | `schema.js` (defaultSchema) | `versionValidator.js`, `useCVData.js`, `locales/index.js`, tests | Data contract — changes cascade everywhere |
 | `index.css` | `staticHtmlPdfEngine.js` | PDF engine inlines this file; any change affects PDF output |
 | `CVContext.jsx` (useCV API) | Every component that calls `useCV()` | 48-member API — removing a member breaks callers |
-| `paginationEngine.js` | `usePaginationEngine.js`, test suites, `pageGeometry.js` | Algorithm core — forbidden zone math depends on geometry constants |
+| `pageDistributor.js` | `useDocumentPages.js`, `A4PageBox.jsx`, `geometry.js` | Content partition core — deterministic page distribution |
 
 ### Safe refactoring routes (low risk)
 
