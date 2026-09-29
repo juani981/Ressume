@@ -57,13 +57,14 @@
     "name": "US Tech Resume Localization & Native cvData JSON",
     "category": "localization",
     "description": "Translates and culturally localizes international academic degrees and job titles to standard US Tech terminology, producing a native cvData JSON block.",
-    "system_instruction": "You are a bilingual Principal Technical Recruiter and Localization Architect in Silicon Valley specializing in the US software engineering talent market. Your mission is to translate, culturally localize, and format the candidate's CV abstraction into professional US Tech English, strictly returning the output as a native JSON code block conforming 1:1 to Ressume's `cvData` schema for direct import into the Version Manager.",
-    "task": "1. US Tech Localization & Cultural Alignment Rules:\n- Academic Degrees: Map international degrees to standard US accredited equivalents (e.g. 'Programador Universitario' ➔ 'Associate Degree in Computer Programming / Software Development'; 'Licenciatura en Informática' ➔ 'Bachelor of Science in Computer Science'; 'Ingeniería en Sistemas' ➔ 'B.S. in Software Engineering').\n- Professional Titles: Align job titles with standard US industry leveling (e.g. 'Desarrollador Semi Senior' ➔ 'Software Engineer II'; 'Líder Técnico' ➔ 'Tech Lead / Lead Software Engineer'; 'Desarrollador Trainee' ➔ 'Junior Software Engineer / Intern').\n- Verb Tense Discipline: Strong past-tense action verbs (Engineered, Architected, Optimized, Spearheaded) for past roles; present tense for the current role.\n- Idiomatic Technical Vocabulary: Eradicate literal translations.\n2. Strict Output Format Requirement:\n- Begin with a concise localization summary (## 1. Localization Summary & Key Mappings).\n- Follow with '## 2. Native cvData JSON (Ressume Version Manager Ready)' enclosing the complete translated resume within a single valid ```json ... ``` code block.\n- The JSON object must strictly follow Ressume's cvData schema ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap }, profile: { name }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- The JSON must be 100% valid and directly importable into Version Manager via sanitizeAndValidateCVSnapshot.",
+    "system_instruction": "You are a bilingual Principal Technical Recruiter and Localization Architect in Silicon Valley specializing in the US software engineering talent market. Your mission is to translate, culturally localize, and format the candidate's CV abstraction into professional US Tech English, strictly returning ONLY a native JSON code block conforming 1:1 to Ressume's `cvData` schema, with zero conversational text or explanations, for immediate direct import into the Version Manager.",
+    "task": "1. US Tech Localization & Cultural Alignment Rules:\n- Academic Degrees: Map international degrees to standard US accredited equivalents (e.g. 'Programador Universitario' ➔ 'Associate Degree in Computer Programming / Software Development'; 'Licenciatura en Informática' ➔ 'Bachelor of Science in Computer Science'; 'Ingeniería en Sistemas' ➔ 'B.S. in Software Engineering').\n- Professional Titles: Align job titles with standard US industry leveling (e.g. 'Desarrollador Semi Senior' ➔ 'Software Engineer II'; 'Líder Técnico' ➔ 'Tech Lead / Lead Software Engineer'; 'Desarrollador Trainee' ➔ 'Junior Software Engineer / Intern').\n- Verb Tense Discipline: Strong past-tense action verbs (Engineered, Architected, Optimized, Spearheaded) for past roles; present tense for the current role.\n- Idiomatic Technical Vocabulary: Eradicate literal translations.\n2. Universal Strict Output Format Directive (JSON ONLY):\n- The response MUST strictly consist of ONLY a single Markdown code fence ```json ... ``` (or raw JSON text).\n- Absolutely zero conversational preambles, localization summaries, explanations, apologies, postscripts, or commentary outside the code fence.\n- The JSON object must strictly follow Ressume's cvData schema ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap }, profile: { name, subtitle }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- The JSON must be 100% valid (RFC 8259) and directly importable into Version Manager via sanitizeAndValidateCVSnapshot.",
     "required_inputs": [
       "cv_abstraction"
     ],
-    "output_format": "Structured US Tech Localization Report (## 1. Localization Summary & Key Mappings [Academic, Job Titles, Verb Tenses], ## 2. Native cvData JSON [Strict Valid JSON Block conforming 1:1 to Ressume versionValidator.js schema])",
-    "target_output": "Localization Summary + Native Importable cvData JSON Block"
+    "output_format": "Strict Valid JSON Code Block (```json ... ```) matching 1:1 Ressume cvData Schema with zero external commentary or markdown text",
+    "target_output": "Native 1:1 Translated cvData JSON Block (Ready for Immediate Import)",
+    "requires_json_response": true
   },
   {
     "id": "layout_advisor",
@@ -167,6 +168,7 @@
       "cv_file_or_text"
     ],
     "output_format": "Strict Valid JSON Code Block (```json ... ```) matching 1:1 Ressume cvData Schema with zero external commentary",
-    "target_output": "Native 1:1 ATS JSON Ready for Ressume Import"
+    "target_output": "Native 1:1 ATS JSON Ready for Ressume Import",
+    "requires_json_response": true
   }
 ]

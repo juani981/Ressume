@@ -7,6 +7,8 @@ import { getDynamicTextColors } from './colorUtils.js';
 import { sanitizeAndValidateCVSnapshot } from './versionValidator.js';
 import { stripHtml } from './richTextEngine.js';
 import { generateCVLivePdfAbstraction, exportToAIJson as exportToAIJsonFull } from './cvJsonAbstraction.js';
+import { getLanguageLegend } from './translationEngine.js';
+import { getAtsGoldenSchemaTemplate } from './atsSchemaTemplate.js';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -705,9 +707,11 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     ? 'Below is the candidate resume structured in Markdown format with comprehensive Frontmatter metadata. Analyze only the information contained within the following block:'
     : 'A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:';
 
-  payload.push(introHeader);
-  payload.push(introText);
-  payload.push(cvFormatted);
+  if (promptId !== 'bring_your_own_cv') {
+    payload.push(introHeader);
+    payload.push(introText);
+    payload.push(cvFormatted);
+  }
 
   // For translation and localization prompts, inject the compact native cvData JSON schema
   if (promptId === 'translate_english' || promptDef?.category === 'localization') {
@@ -717,8 +721,8 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
       ? '# COMPACT NATIVE JSON SCHEMA (cvData)'
       : '# SCHEMA JSON NATIVO COMPACTO (cvData)';
     const schemaInstruction = isEn
-      ? 'To allow direct import of the translation into the Ressume Version Manager, the current native JSON structure of the CV is provided below. Your response MUST strictly be a single ```json ... ``` code block preserving this exact schema structure translated and adapted to the US Tech ecosystem:'
-      : 'Para que la traducción pueda ser importada directamente en el Gestor de Versiones de Ressume, a continuación se proporciona la estructura JSON nativa actual del CV. Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` con esta misma estructura traducida y adaptada al ecosistema Tech de EE.UU.:';
+      ? 'CRITICAL MANDATORY UNIVERSAL DIRECTIVE: To allow direct import of the translation into the Ressume editor and Version Manager, the current native JSON structure of the CV is provided below. Your response MUST strictly be ONLY a single valid ```json ... ``` code block (or raw JSON) preserving this exact schema structure translated and localized. DO NOT include any introductory text, localization summaries, explanations, or commentary outside the JSON block:'
+      : 'DIRECTIVA ESTRICTA UNIVERSAL: Para que la traducción pueda ser importada directamente en el editor y Gestor de Versiones de Ressume, a continuación se proporciona la estructura JSON nativa actual del CV. Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` (o texto JSON puro) con esta misma estructura traducida y adaptada. QUEDA TERMINANTEMENTE PROHIBIDO incluir introducciones, resúmenes de localización, explicaciones o notas fuera del bloque JSON:';
 
     payload.push(schemaTitle);
     payload.push(schemaInstruction);
@@ -728,7 +732,6 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
   }
 
   // For 'bring_your_own_cv' (Bring Your Own CV Converter), provide explicit upload & paste instructions
-  // along with the golden target JSON schema template
   if (promptId === 'bring_your_own_cv') {
     payload.push('');
     payload.push('---');
@@ -742,190 +745,9 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     payload.push(inputInstructions);
     payload.push('');
     payload.push(userCommentary && userCommentary.trim() ? userCommentary.trim() : (isEn ? '[PASTE YOUR CV TEXT HERE OR ATTACH PDF TO CHAT]' : '[PEGA AQUÍ EL TEXTO DE TU CV O ADJUNTA EL ARCHIVO PDF AL CHAT]'));
-    payload.push('');
-    payload.push('---');
-    payload.push(isEn ? '# REFERENCE TARGET ATS JSON SCHEMA (1:1 RESSUME SPEC)' : '# ESQUEMA JSON ATS OBJETIVO DE REFERENCIA (ESPECIFICACIÓN 1:1 RESSUME)');
-    payload.push(isEn ? 'Your output MUST strictly be a single ```json ... ``` code block conforming 1:1 to this structure:' : 'Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` conforme 1:1 con esta estructura:');
-    payload.push('```json');
-    payload.push(JSON.stringify(getAtsGoldenSchemaTemplate(lang), null, 2));
-    payload.push('```');
   }
 
   return payload.join('\n');
 };
 
-/**
- * Returns a complete, canonical 1-column ATS cvData schema template
- * for LLM guidance in bring_your_own_cv.
- */
-export const getAtsGoldenSchemaTemplate = (lang = 'es') => {
-  const isEn = lang === 'en';
-  return {
-    layout: {
-      type: '1-column',
-      isAtsMode: true,
-      fontFamily: 'Inter',
-      fontScale: 1.0,
-      titleScale: 1.0,
-      bodyScale: 1.0,
-      listScale: 1.0,
-      lineHeight: 1.45,
-      pagePadding: 24,
-      sectionGap: 20,
-      itemGap: 8
-    },
-    profile: {
-      name: isEn ? 'CANDIDATE FULL NAME' : 'NOMBRE DEL CANDIDATO',
-      subtitle: isEn ? 'Senior Software Engineer | Cloud & Distributed Systems' : 'Ingeniero de Software Senior | Cloud & Sistemas Distribuidos'
-    },
-    sections: [
-      {
-        id: 'profile_header',
-        type: 'profile_header',
-        title: '',
-        column: 'left',
-        items: [
-          {
-            id: 'prof_header_item',
-            name: isEn ? 'CANDIDATE FULL NAME' : 'NOMBRE DEL CANDIDATO',
-            subtitle: isEn ? 'Senior Software Engineer | Cloud & Distributed Systems' : 'Ingeniero de Software Senior | Cloud & Sistemas Distribuidos',
-            contacts: [
-              { id: 'c1', type: 'email', value: 'candidate@email.com' },
-              { id: 'c2', type: 'phone', value: '+54 9 11 1234 5678' },
-              { id: 'c3', type: 'location', value: isEn ? 'City, Country (Remote)' : 'Ciudad, País (Remoto)' },
-              { id: 'c4', type: 'linkedin', value: 'https://linkedin.com/in/username' },
-              { id: 'c5', type: 'github', value: 'https://github.com/username' }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'about_section',
-        type: 'about',
-        title: isEn ? 'PROFESSIONAL SUMMARY' : 'PERFIL PROFESIONAL',
-        column: 'left',
-        items: [
-          {
-            id: 'about_item',
-            description: isEn
-              ? 'Results-driven Senior Software Engineer with 7+ years of experience designing and operating distributed systems, high-throughput microservices, and event-driven architectures in Tier-1 tech environments.'
-              : 'Ingeniero de Software Senior con más de 7 años de experiencia diseñando y operando sistemas distribuidos, microservicios de alta concurrencia y arquitecturas reactivas en entornos tecnológicos competitivos.'
-          }
-        ]
-      },
-      {
-        id: 'skills',
-        type: 'skills',
-        title: isEn ? 'TECHNICAL SKILLS' : 'HABILIDADES TÉCNICAS',
-        column: 'left',
-        items: [
-          {
-            id: 'skill_backend',
-            title: isEn ? 'Languages & Backend' : 'Lenguajes & Backend',
-            description: 'Java, Python, TypeScript, Node.js, Go'
-          },
-          {
-            id: 'skill_databases',
-            title: isEn ? 'Databases & In-Memory' : 'Bases de Datos & Caché',
-            description: 'PostgreSQL, MongoDB, Redis, PL/SQL'
-          },
-          {
-            id: 'skill_cloud',
-            title: isEn ? 'Cloud & DevOps' : 'Cloud, DevOps & Infraestructura',
-            description: 'AWS (ECS, S3, RDS), Docker, Kubernetes, CI/CD GitHub Actions'
-          }
-        ]
-      },
-      {
-        id: 'experience',
-        type: 'list',
-        title: isEn ? 'WORK EXPERIENCE' : 'EXPERIENCIA LABORAL',
-        column: 'right',
-        items: [
-          {
-            id: 'exp_1',
-            title: isEn ? 'Senior Backend Engineer' : 'Ingeniero Backend Senior',
-            subtitle: 'Tech Global Corp',
-            date: isEn ? 'Jan 2022 – Present' : 'Enero 2022 – Presente',
-            location: isEn ? 'Remote' : 'Remoto',
-            description: isEn ? 'Architectural leadership for distributed payment processing services.' : 'Liderazgo técnico en la arquitectura de microservicios de procesamiento de pagos.',
-            bullets: [
-              isEn
-                ? 'Architected real-time event pipeline using Kafka and Go, reducing p99 API latency by 38% under 25,000 QPS.'
-                : 'Diseñé e implementé pipeline de eventos en tiempo real con Kafka y Go, reduciendo la latencia p99 en un 38% bajo 25,000 QPS.',
-              isEn
-                ? 'Optimized relational queries and introduced multi-tier caching with Redis, saving $45,000/year in cloud database infrastructure.'
-                : 'Optimicé consultas relacionales e introduje caché multi-capa con Redis, generando un ahorro de $45,000 anuales en infraestructura cloud.'
-            ]
-          }
-        ]
-      },
-      {
-        id: 'projects',
-        type: 'list',
-        title: isEn ? 'FEATURED PROJECTS' : 'PROYECTOS DESTACADOS',
-        column: 'right',
-        items: [
-          {
-            id: 'proj_1',
-            title: isEn ? 'High-Throughput Distributed Rate Limiter' : 'Limitador de Tasa Distribuido de Alto Throughput',
-            subtitle: 'Go, Redis, Docker, gRPC',
-            date: '2023',
-            link: 'https://github.com/username/rate-limiter',
-            description: isEn ? 'Open-source distributed sliding-window token bucket implementation.' : 'Implementación open-source de token bucket con ventana deslizante.',
-            bullets: [
-              isEn
-                ? 'Engineered lock-free atomic Redis Lua scripts handling 50,000 requests/sec with zero race conditions.'
-                : 'Desarrollé scripts atómicos en Lua para Redis soportando 50,000 req/s con cero condiciones de carrera.'
-            ]
-          }
-        ]
-      },
-      {
-        id: 'education',
-        type: 'education',
-        title: isEn ? 'EDUCATION' : 'EDUCACIÓN',
-        column: 'right',
-        items: [
-          {
-            id: 'edu_1',
-            title: isEn ? 'B.S. in Computer Science / Software Engineering' : 'Licenciatura en Ciencias de la Computación / Ingeniería de Sistemas',
-            subtitle: 'University of Buenos Aires',
-            date: '2016 – 2021',
-            location: 'Buenos Aires, Argentina'
-          }
-        ]
-      },
-      {
-        id: 'certificates',
-        type: 'simple_list',
-        title: isEn ? 'CERTIFICATIONS' : 'CERTIFICACIONES',
-        column: 'right',
-        items: [
-          {
-            id: 'cert_1',
-            text: 'AWS Certified Solutions Architect – Associate (2023)'
-          }
-        ]
-      },
-      {
-        id: 'languages',
-        type: 'simple_list',
-        title: isEn ? 'LANGUAGES' : 'IDIOMAS',
-        column: 'left',
-        items: [
-          {
-            id: 'lang_1',
-            text: isEn ? 'Spanish: Native' : 'Español: Nativo'
-          },
-          {
-            id: 'lang_2',
-            text: isEn ? 'English: C1 Professional / Advanced' : 'Inglés: C1 Profesional / Avanzado'
-          }
-        ]
-      }
-    ]
-  };
-};
-
-export { prompts };
+export { prompts, getLanguageLegend, getAtsGoldenSchemaTemplate };

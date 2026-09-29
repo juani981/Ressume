@@ -397,7 +397,7 @@ export const useCVData = ({
   }, [cvData, applyStateWithHistory]);
 
   return {
-    cvData, setCvData, languagePacks, activeLanguage,
+    cvData, setCvData, languagePacks, activeLanguage, setActiveLanguage,
     updateProfile, addSection, deleteSection, reorderSections,
     updateSectionTitle, updateSectionBulletStyle, updateSectionProperty,
     addSectionItem, deleteSectionItem, updateSectionItem, reorderSectionItems,

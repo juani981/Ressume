@@ -84,6 +84,7 @@ export const CVProvider = ({ children, initialCV = null }) => {
     restoreContactSection: data.restoreContactSection,
     languagePacks: data.languagePacks,
     activeLanguage: data.activeLanguage,
+    setActiveLanguage: data.setActiveLanguage,
     switchLanguage: data.switchLanguage,
     importLanguagePack: data.importLanguagePack,
     getActiveDictionary: data.getActiveDictionary,

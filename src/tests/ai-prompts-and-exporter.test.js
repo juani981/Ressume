@@ -326,17 +326,18 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(enPayload).toContain('# COMPACT NATIVE JSON SCHEMA (cvData)');
     });
 
-    it('T2.7: bring_your_own_cv injects upload/paste directives and canonical golden ATS JSON schema', () => {
+    it('T2.7: bring_your_own_cv injects upload/paste directives and omits active CV payload', () => {
       const esPayload = buildAIPromptPayload(mockCv, 'bring_your_own_cv', { lang: 'es' });
       expect(esPayload).toContain('# INSTRUCCIONES PARA ADJUNTAR TU CV (ARCHIVO PDF O TEXTO)');
-      expect(esPayload).toContain('# ESQUEMA JSON ATS OBJETIVO DE REFERENCIA (ESPECIFICACIÓN 1:1 RESSUME)');
-      expect(esPayload).toContain('```json');
+      expect(esPayload).not.toContain('# DATOS DE ENTRADA DEL CURRÍCULUM VITAE');
+      expect(esPayload).not.toContain('Margaret Hamilton');
 
       const enPayload = buildAIPromptPayload(mockCv, 'bring_your_own_cv', { lang: 'en' });
       expect(enPayload).toContain('# INSTRUCTIONS FOR PROVIDING YOUR CV (PDF ATTACHMENT OR TEXT)');
-      expect(enPayload).toContain('# REFERENCE TARGET ATS JSON SCHEMA (1:1 RESSUME SPEC)');
+      expect(enPayload).not.toContain('# CANDIDATE RESUME INPUT DATA');
+      expect(enPayload).not.toContain('Margaret Hamilton');
 
-      // Extract and verify golden schema template directly
+      // Extract and verify golden schema template directly from dedicated module / export
       const goldenEs = getAtsGoldenSchemaTemplate('es');
       expect(goldenEs.layout.isAtsMode).toBe(true);
       expect(goldenEs.layout.type).toBe('1-column');

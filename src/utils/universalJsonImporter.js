@@ -593,11 +593,11 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
 
 export const importUniversalCV = normalizeAnyJSONToCVSnapshot;
 
-export {
-  cleanAndParseRawJSON,
-  unwrapRootObject,
-  normalizeAnyJSONToCVSnapshot
-};
+// export {
+//   cleanAndParseRawJSON,
+//   unwrapRootObject,
+//   normalizeAnyJSONToCVSnapshot
+// };
 
 export default {
   cleanAndParseRawJSON,
