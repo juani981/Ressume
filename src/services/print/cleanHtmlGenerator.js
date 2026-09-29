@@ -268,7 +268,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     .drag-handle, .section-drag-handle, .item-drag-handle,
     .column-resizer, .column-resizer-bar, .column-resizer-handle,
     .spacer-resize-handle, .spacer-controls-bar,
-    .obsidian-callout, .suggestion-tooltip, .rich-toolbar, .floating-rich-toolbar,
+    .obsidian-callout, .suggestion-tooltip, .rich-toolbar, .floating-rich-toolbar, .rich-text-toolbar,
     .action-menu, .action-menu-btn-wrap, .add-section-modal, .add-section-backdrop, .l-navbar,
     .a4-page-fold-guide, .a4-page-inset, .section-action-buttons
   `);
@@ -948,17 +948,17 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     bodyContent = `
       <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; gap: 0; column-gap: 0; row-gap: 0; ${twoColWidthStyle} min-height: 297mm; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
         <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
-          ${leftSectionsCol.map(renderSectionHTML).join('')}
+          ${leftSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
         <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
-          ${rightSectionsCol.map(renderSectionHTML).join('')}
+          ${rightSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
       <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm !important; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
-        ${sections.map(renderSectionHTML).join('')}
+        ${sections.map(renderSectionHTML).join('\n\n')}
       </div>
     `;
   }
@@ -968,7 +968,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let activeBaseStyles = baseStyles;
   let activePrintStyles = printStyles;
 
-  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
+  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active|rich-text-toolbar)/gi;
   activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
   activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
 

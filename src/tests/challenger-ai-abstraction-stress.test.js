@@ -750,10 +750,11 @@ describe('Empirical Challenger: CV Abstraction Engine, YAML Frontmatter & Prompt
       'behavioral_leadership_prep',
       'career_upskilling_roadmap',
       'cold_outreach_generator',
-      'salary_negotiation_advisor'
+      'salary_negotiation_advisor',
+      'bring_your_own_cv'
     ];
 
-    it('CHAL-4.1: Deterministic ordering invariant holds across all 12 prompt IDs in Spanish and English', () => {
+    it('CHAL-4.1: Deterministic ordering invariant holds across all 13 prompt IDs in Spanish and English', () => {
       ['es', 'en'].forEach(lang => {
         allPromptIds.forEach(promptId => {
           const payload = buildAIPromptPayload(baseCv, promptId, {

@@ -7,9 +7,14 @@ import {
   exportToAIJson, 
   exportToAIXML, 
   exportToATSPlainText, 
-  buildAIPromptPayload 
+  buildAIPromptPayload,
+  getAtsGoldenSchemaTemplate
 } from '../utils/aiExporter.js';
-import { sanitizeAndValidateCVSnapshot } from '../utils/versionValidator.js';
+import { 
+  sanitizeAndValidateCVSnapshot,
+  validateCVSnapshot 
+} from '../utils/versionValidator.js';
+import { importUniversalCV } from '../utils/universalJsonImporter.js';
 
 describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
 
@@ -18,14 +23,14 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
   // =========================================================================
   describe('Suite 1: Prompt Catalogs Schema Conformity & Bilingual Parity', () => {
 
-    it('T1.1: all three prompt catalog files contain exactly 12 prompts', () => {
+    it('T1.1: all three prompt catalog files contain exactly 13 prompts', () => {
       expect(esPrompts).toBeInstanceOf(Array);
       expect(enPrompts).toBeInstanceOf(Array);
       expect(aiKnowledgePrompts).toBeInstanceOf(Array);
 
-      expect(esPrompts.length).toBe(12);
-      expect(enPrompts.length).toBe(12);
-      expect(aiKnowledgePrompts.length).toBe(12);
+      expect(esPrompts.length).toBe(13);
+      expect(enPrompts.length).toBe(13);
+      expect(aiKnowledgePrompts.length).toBe(13);
     });
 
     it('T1.2: exact 1:1 ID parity exists across ES, EN, and AI-Knowledge catalogs', () => {
@@ -38,6 +43,7 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
 
       const expectedIds = [
         'behavioral_leadership_prep',
+        'bring_your_own_cv',
         'career_upskilling_roadmap',
         'cold_outreach_generator',
         'job_matcher',
@@ -125,9 +131,13 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
           expect(typeof prompt.target_output, `${name}: ${prompt.id} should have target_output`).toBe('string');
           expect(prompt.target_output.trim().length).toBeGreaterThan(0);
 
-          // required_inputs must be an array containing at least cv_abstraction
+          // required_inputs must be an array containing appropriate inputs
           expect(Array.isArray(prompt.required_inputs), `${name}: ${prompt.id} required_inputs must be array`).toBe(true);
-          expect(prompt.required_inputs).toContain('cv_abstraction');
+          if (prompt.id === 'bring_your_own_cv') {
+            expect(prompt.required_inputs).toContain('cv_file_or_text');
+          } else {
+            expect(prompt.required_inputs).toContain('cv_abstraction');
+          }
         });
       });
     });
@@ -314,6 +324,34 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       const enPayload = buildAIPromptPayload(mockCv, 'translate_english', { lang: 'en' });
       expect(enPayload).toContain('# CANDIDATE RESUME INPUT DATA (MARKDOWN)');
       expect(enPayload).toContain('# COMPACT NATIVE JSON SCHEMA (cvData)');
+    });
+
+    it('T2.7: bring_your_own_cv injects upload/paste directives and canonical golden ATS JSON schema', () => {
+      const esPayload = buildAIPromptPayload(mockCv, 'bring_your_own_cv', { lang: 'es' });
+      expect(esPayload).toContain('# INSTRUCCIONES PARA ADJUNTAR TU CV (ARCHIVO PDF O TEXTO)');
+      expect(esPayload).toContain('# ESQUEMA JSON ATS OBJETIVO DE REFERENCIA (ESPECIFICACIÓN 1:1 RESSUME)');
+      expect(esPayload).toContain('```json');
+
+      const enPayload = buildAIPromptPayload(mockCv, 'bring_your_own_cv', { lang: 'en' });
+      expect(enPayload).toContain('# INSTRUCTIONS FOR PROVIDING YOUR CV (PDF ATTACHMENT OR TEXT)');
+      expect(enPayload).toContain('# REFERENCE TARGET ATS JSON SCHEMA (1:1 RESSUME SPEC)');
+
+      // Extract and verify golden schema template directly
+      const goldenEs = getAtsGoldenSchemaTemplate('es');
+      expect(goldenEs.layout.isAtsMode).toBe(true);
+      expect(goldenEs.layout.type).toBe('1-column');
+      expect(goldenEs.profile).toBeDefined();
+      expect(Array.isArray(goldenEs.sections)).toBe(true);
+
+      // Verify golden template passes universalJsonImporter cleanly
+      const imported = importUniversalCV(goldenEs);
+      expect(imported).toBeDefined();
+      expect(imported.layout.isAtsMode).toBe(true);
+
+      // Verify imported cvData passes validateCVSnapshot
+      const validation = validateCVSnapshot(imported);
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toEqual([]);
     });
   });
 

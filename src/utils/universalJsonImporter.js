@@ -534,11 +534,17 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
       if (mappedConfig.id === 'profile_header') return;
       if (mappedConfig.id === 'about_section' && profileData.summary) return;
 
+      let secTitle = sec.display_title || sec.title;
+      if (secTitle && (/^sec_[a-zA-Z0-9_-]+$/i.test(secTitle) || /^[0-9a-f-]{36}$/i.test(secTitle))) {
+        secTitle = mappedConfig.defaultTitle;
+      }
+      const finalTitle = secTitle || mappedConfig.defaultTitle;
+
       appendSection(
         {
           id: mappedConfig.id,
           type: mappedConfig.type,
-          defaultTitle: sec.display_title || sec.title || mappedConfig.defaultTitle
+          defaultTitle: finalTitle
         },
         Array.isArray(sec.items) ? sec.items : [],
         sec.display_column || sec.column || 'left'
@@ -585,8 +591,17 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
   return sanitizeAndValidateCVSnapshot(candidateSnapshot);
 };
 
-export default {
+export const importUniversalCV = normalizeAnyJSONToCVSnapshot;
+
+export {
   cleanAndParseRawJSON,
   unwrapRootObject,
   normalizeAnyJSONToCVSnapshot
+};
+
+export default {
+  cleanAndParseRawJSON,
+  unwrapRootObject,
+  normalizeAnyJSONToCVSnapshot,
+  importUniversalCV: normalizeAnyJSONToCVSnapshot
 };

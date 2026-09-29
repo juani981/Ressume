@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProfileHeaderItem from '../components/CV/items/ProfileHeaderItem';
+import ContactItem from '../components/CV/items/ContactItem';
 import ContactTypePicker from '../components/Editor/ContactTypePicker';
 import { 
   CONTACT_TYPES, 
@@ -224,6 +225,80 @@ describe('Dynamic Contact System & ContactTypePicker', () => {
           phone: ''
         })
       );
+    });
+
+    it('opens RichTextToolbar popup with all options when entering text edit mode on contact item', () => {
+      const item = {
+        id: 'contact_sec_item',
+        contacts: [
+          { id: 'c_email', type: 'email', value: 'developer@example.com' },
+          { id: 'c_phone', type: 'phone', value: '+54 9 11 1234' }
+        ]
+      };
+
+      render(
+        <div className="resume--ats-mode">
+          <ContactItem
+            item={item}
+            sectionId="contact_section"
+            onUpdateItem={vi.fn()}
+          />
+        </div>
+      );
+
+      // Initially toolbar is not open
+      expect(screen.queryByTestId('rich-text-toolbar')).not.toBeInTheDocument();
+
+      // Click on contact value display to trigger text edit mode
+      const emailPillText = screen.getByText('developer@example.com');
+      fireEvent.click(emailPillText);
+
+      // RichTextToolbar must mount portaled to document.body and be visible
+      const toolbar = screen.getByTestId('rich-text-toolbar');
+      expect(toolbar).toBeInTheDocument();
+      expect(toolbar.parentElement).toBe(document.body);
+
+      // All 8 formatting buttons must be present with options intact
+      expect(screen.getByTestId('btn-format-bold')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-italic')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-align-left')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-align-center')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-align-right')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-align-justify')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-undo')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-format-redo')).toBeInTheDocument();
+
+      // Ensure SVGs are rendered inside the toolbar buttons (not blank)
+      const boldSvg = screen.getByTestId('btn-format-bold').querySelector('svg');
+      expect(boldSvg).toBeInTheDocument();
+      expect(boldSvg.getAttribute('class')).toContain('lucide-bold');
+    });
+
+    it('opens ContactTypePicker portaled to document.body with all categories and options', () => {
+      const item = {
+        id: 'contact_sec_item',
+        contacts: []
+      };
+
+      render(
+        <ContactItem
+          item={item}
+          sectionId="contact_section"
+          onUpdateItem={vi.fn()}
+        />
+      );
+
+      const addBtn = screen.getByRole('button', { name: /agregar dato de contacto/i });
+      fireEvent.click(addBtn);
+
+      const picker = screen.getByTestId('contact-type-picker');
+      expect(picker).toBeInTheDocument();
+      expect(picker.parentElement).toBe(document.body);
+
+      // Options must be visible and selectable
+      expect(screen.getByTestId('contact-type-opt-email')).toBeInTheDocument();
+      expect(screen.getByTestId('contact-type-opt-linkedin')).toBeInTheDocument();
+      expect(screen.getByTestId('contact-type-opt-github')).toBeInTheDocument();
     });
   });
 

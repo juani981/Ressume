@@ -17,6 +17,7 @@ import {
   generateCleanPrintHTML,
   captureEditorSnapshot,
 } from './cleanHtmlGenerator';
+import { verifyModelPdfParity } from '../../utils/parityChecker';
 
 /**
  * Executes a clean native PDF print by generating an offscreen iframe,
@@ -99,6 +100,14 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
       const parsedAreaCv = parsedDoc.getElementById('area-cv');
       bodyMarkup = parsedAreaCv ? parsedAreaCv.outerHTML : '';
     }
+
+    try {
+      const parityReport = verifyModelPdfParity(cvData, bodyMarkup);
+      if (!parityReport.isParityValid && typeof window !== 'undefined') {
+        console.warn('Model ↔ PDF Parity Warning:', parityReport.summary, parityReport.missingItems);
+        window.dispatchEvent(new CustomEvent('cv-parity-warning', { detail: parityReport }));
+      }
+    } catch (_) {}
 
     let activeBaseStyles = baseStyles;
     let activePrintStyles = printStyles;

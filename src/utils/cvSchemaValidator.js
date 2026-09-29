@@ -266,7 +266,31 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
 
         const column = sec.column === 'right' ? 'right' : 'left';
         const type = typeof sec.type === 'string' && sec.type.trim() ? sec.type.trim() : 'list';
-        const title = typeof sec.title === 'string' ? sec.title : '';
+        let title = typeof sec.title === 'string' ? sec.title.trim() : '';
+        const isInternalIdTitle = /^sec_[a-zA-Z0-9_-]+$/i.test(title) ||
+                                  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(title) ||
+                                  title === secId;
+        if (isInternalIdTitle || !title) {
+          const canonicalMap = {
+            profile_header: 'Cabecera de Perfil',
+            title_subtitle: 'Nombre y Perfil',
+            about: 'Perfil Profesional',
+            contact: 'Información de Contacto',
+            skills: 'Habilidades',
+            experience: 'Experiencia Laboral',
+            projects: 'Proyectos',
+            education: 'Educación',
+            certificates: 'Certificaciones',
+            languages: 'Idiomas',
+            awards: 'Premios y Logros',
+            publications: 'Publicaciones',
+            references: 'Referencias',
+            mentoring: 'Mentoría',
+            volunteering: 'Voluntariado',
+            simple_list: 'Información Adicional'
+          };
+          title = canonicalMap[type] || (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Sección');
+        }
 
         const rawItems = Array.isArray(sec.items) ? sec.items : [];
         const sanitizedItems = rawItems
@@ -331,6 +355,40 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
         return sec;
       });
     }
+
+    // Deduplicate contact sections (RF-05, CA-05)
+    let seenContactSection = false;
+    const deduplicatedSections = [];
+    finalSections.forEach((sec) => {
+      const isContactSec = sec.type === 'contact' || sec.id === 'contact';
+      if (isContactSec) {
+        if (!seenContactSection) {
+          seenContactSection = true;
+          deduplicatedSections.push(sec);
+        } else {
+          // Merge items into primary contact section
+          const primaryContact = deduplicatedSections.find(s => s.type === 'contact' || s.id === 'contact');
+          if (primaryContact && Array.isArray(sec.items) && sec.items.length > 0) {
+            const existingItems = Array.isArray(primaryContact.items) ? primaryContact.items : [];
+            const primaryItem = existingItems[0] || {};
+            const secondaryItem = sec.items[0] || {};
+            const primaryContacts = Array.isArray(primaryItem.contacts) ? primaryItem.contacts : [];
+            const secondaryContacts = Array.isArray(secondaryItem.contacts) ? secondaryItem.contacts : [];
+            const mergedContacts = [...primaryContacts];
+            secondaryContacts.forEach(c => {
+              if (c && c.value && !mergedContacts.some(mc => mc.value === c.value)) {
+                mergedContacts.push(c);
+              }
+            });
+            primaryItem.contacts = mergedContacts;
+            primaryContact.items = [primaryItem, ...existingItems.slice(1)];
+          }
+        }
+      } else {
+        deduplicatedSections.push(sec);
+      }
+    });
+    finalSections = deduplicatedSections;
 
     return {
       ...safeSnapshot,
