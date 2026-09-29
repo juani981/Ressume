@@ -3,36 +3,12 @@
  *
  * Pure mathematical and DOM geometry utilities for A4 document simulation,
  * 297mm ruler measurement, relative bounding boxes, and forbidden boundary zone auditing.
- */
-
-/**
- * =========================================================================
- * LOW-LEVEL TUNING CONFIGURATION: EDITOR VS PRINT PAGE GEOMETRY
- * =========================================================================
  *
- * PRINT GEOMETRY (Standard ISO 216 A4 - 210mm x 297mm):
- * - The authoritative standard for browser @page and PDF rendering.
- * - Invariant: width = 210mm (794px), height = 297mm (1123px).
- *
- * EDITOR GEOMETRY (Vertical Safety Shrunk Container):
- * - To prevent screen-to-print rasterization discrepancies, line wrap differences,
- *   and accidental overflow of trailing elements into unwanted extra pages in PDF,
- *   the live editor container is slightly shrunk vertically compared to print.
- *
- * HOW TO TWEAK AT LOW LEVEL:
- * 1. To change the vertical height of the editor, simply adjust:
- *      EDITOR_HEIGHT_REDUCTION_MM: number (in millimeters, e.g. 15, 12, 0)
- *    - Setting to 0: Gives exact 1:1 mathematical height parity (297mm / 1123px).
- *    - Setting to 15 (default): Gives a safe ~5% buffer (282mm / 1066px).
- *    - Setting to 20: Gives an aggressive safety buffer (277mm / 1047px).
- *
- * All related editor constants (EDITOR_PAGE_HEIGHT_MM, EDITOR_PAGE_HEIGHT_PX,
- * EDITOR_PAGE_HEIGHT_CSS, ruler calculations, guide markers, and CSS variables)
- * are derived automatically and deterministically from this single source of truth.
+ * Canonical dimensions and specifications are re-exported from src/constants/ SSOT.
  */
 
 // ---------------------------------------------------------------------------
-// 1. STANDARD ISO 216 A4 PRINT CONSTANTS (from src/constants/ SSOT)
+// 1. RE-EXPORTS FROM CANONICAL SSOT (src/constants/) FOR BACKWARD COMPATIBILITY
 // ---------------------------------------------------------------------------
 export {
   A4_PRINT_WIDTH_MM,
@@ -61,94 +37,39 @@ export {
   EDITOR_PAGE_WIDTH_PX,
   EDITOR_PAGE_HEIGHT_PX,
   EDITOR_EXACT_HEIGHT_PX,
+  PRINT_PAGE_SIZE,
+  EDITOR_PAGE_SIZE,
+  A4_PAGE_SIZE,
+  A4_GEOMETRY,
 } from '../constants/geometry.js';
 
 export {
   DEFAULT_PAGE_PADDING,
+  DEFAULT_PAGE_PADDING_PX,
+  DEFAULT_SECTION_GAP,
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP,
+  DEFAULT_ITEM_GAP_PX,
+  DEFAULT_LINE_HEIGHT,
+  SPACING_TOKENS,
 } from '../constants/spacing.js';
 
 import {
-  A4_PRINT_WIDTH_MM,
-  A4_PRINT_HEIGHT_MM,
-  A4_PRINT_WIDTH_CSS,
   A4_PRINT_HEIGHT_CSS,
-  A4_PRINT_EXACT_WIDTH_PX,
-  A4_PRINT_EXACT_HEIGHT_PX,
-  A4_PRINT_WIDTH_PX,
   A4_PRINT_PAGE_HEIGHT_PX,
+  A4_PAGE_HEIGHT_PX,
   A4_GAP_PX,
-  A4_DOCUMENT_SCALE,
-  EDITOR_PAGE_WIDTH_MM,
-  EDITOR_PAGE_HEIGHT_MM,
-  EDITOR_PAGE_WIDTH_CSS,
   EDITOR_PAGE_HEIGHT_CSS,
-  EDITOR_PAGE_WIDTH_PX,
   EDITOR_PAGE_HEIGHT_PX,
-  EDITOR_EXACT_HEIGHT_PX,
-  EDITOR_HEIGHT_REDUCTION_MM,
+  PRINT_PAGE_SIZE,
+  EDITOR_PAGE_SIZE,
 } from '../constants/geometry.js';
 
 import { DEFAULT_PAGE_PADDING } from '../constants/spacing.js';
 
-
-/**
- * Print Canonical Page Specification Object.
- */
-export const PRINT_PAGE_SIZE = Object.freeze({
-  widthMm: A4_PRINT_WIDTH_MM,
-  heightMm: A4_PRINT_HEIGHT_MM,
-  widthCss: A4_PRINT_WIDTH_CSS,
-  heightCss: A4_PRINT_HEIGHT_CSS,
-  exactWidthPx: A4_PRINT_EXACT_WIDTH_PX,
-  exactHeightPx: A4_PRINT_EXACT_HEIGHT_PX,
-  widthPx: A4_PRINT_WIDTH_PX,
-  heightPx: A4_PRINT_PAGE_HEIGHT_PX,
-  gapPx: A4_GAP_PX,
-  paddingPx: DEFAULT_PAGE_PADDING,
-  scale: A4_DOCUMENT_SCALE,
-  cssVariables: Object.freeze({
-    '--a4-page-width': A4_PRINT_WIDTH_CSS,
-    '--a4-page-height': A4_PRINT_HEIGHT_CSS,
-    '--a4-page-width-px': `${A4_PRINT_WIDTH_PX}px`,
-    '--a4-page-height-px': `${A4_PRINT_PAGE_HEIGHT_PX}px`,
-    '--a4-page-gap': `${A4_GAP_PX}px`,
-    '--a4-page-scale': `${A4_DOCUMENT_SCALE}`,
-  }),
-});
-
-/**
- * Editor Tuned Page Specification Object.
- */
-export const EDITOR_PAGE_SIZE = Object.freeze({
-  widthMm: EDITOR_PAGE_WIDTH_MM,
-  heightMm: EDITOR_PAGE_HEIGHT_MM,
-  widthCss: EDITOR_PAGE_WIDTH_CSS,
-  heightCss: EDITOR_PAGE_HEIGHT_CSS,
-  exactWidthPx: A4_PRINT_EXACT_WIDTH_PX,
-  exactHeightPx: EDITOR_EXACT_HEIGHT_PX,
-  widthPx: EDITOR_PAGE_WIDTH_PX,
-  heightPx: EDITOR_PAGE_HEIGHT_PX,
-  gapPx: A4_GAP_PX,
-  paddingPx: DEFAULT_PAGE_PADDING,
-  scale: A4_DOCUMENT_SCALE,
-  heightReductionMm: EDITOR_HEIGHT_REDUCTION_MM,
-  cssVariables: Object.freeze({
-    '--editor-page-width': EDITOR_PAGE_WIDTH_CSS,
-    '--editor-page-height': EDITOR_PAGE_HEIGHT_CSS,
-    '--editor-page-width-px': `${EDITOR_PAGE_WIDTH_PX}px`,
-    '--editor-page-height-px': `${EDITOR_PAGE_HEIGHT_PX}px`,
-    '--editor-height-reduction-mm': `${EDITOR_HEIGHT_REDUCTION_MM}mm`,
-    '--a4-page-width': A4_PRINT_WIDTH_CSS,
-    '--a4-page-height': A4_PRINT_HEIGHT_CSS,
-    '--a4-page-width-px': `${A4_PRINT_WIDTH_PX}px`,
-    '--a4-page-height-px': `${A4_PRINT_PAGE_HEIGHT_PX}px`,
-    '--a4-page-gap': `${A4_GAP_PX}px`,
-    '--a4-page-scale': `${A4_DOCUMENT_SCALE}`,
-  }),
-});
-
-// A4_PAGE_SIZE is kept as alias of PRINT_PAGE_SIZE for backwards compatibility
-export const A4_PAGE_SIZE = PRINT_PAGE_SIZE;
+// ---------------------------------------------------------------------------
+// 2. RUNTIME GEOMETRY GETTERS
+// ---------------------------------------------------------------------------
 
 /**
  * Returns the unified canonical dimensions of the editor page.

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { EDITOR_PAGE_HEIGHT_MM, A4_GAP_PX } from '../../utils/pageGeometry';
+import { EDITOR_PAGE_HEIGHT_MM, A4_GAP_PX } from '../../constants';
 
 /**
  * Visual indicators for A4 sheet boundaries and content margins in the live editor.

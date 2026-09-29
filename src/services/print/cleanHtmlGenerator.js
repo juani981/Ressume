@@ -18,8 +18,8 @@ import {
   A4_WIDTH_CSS,
   A4_HEIGHT_CSS,
   A4_DOCUMENT_SCALE,
-  getRulerHeightPx,
-} from '../../utils/pageGeometry';
+} from '../../constants';
+import { getRulerHeightPx } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
 import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';

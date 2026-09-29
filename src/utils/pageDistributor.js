@@ -10,7 +10,7 @@
  * Invariant 16: Zero Dynamic Reflow on Print
  */
 
-import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from './pageGeometry.js';
+import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 

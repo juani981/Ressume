@@ -27,7 +27,7 @@ import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { sanitizeAndValidateCVSnapshot } from './cvSchemaValidator.js';
 import { stripHtml } from './richTextEngine.js';
 import ALL_RULES from '../ai-knowledge/index.js';
-import { A4_PRINT_WIDTH_PX, A4_PAGE_HEIGHT_PX } from './pageGeometry.js';
+import { A4_PRINT_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../constants';
 
 /**
  * Canonical ATS Section Ordering for strictly linear reading flow

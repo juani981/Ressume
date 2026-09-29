@@ -5,7 +5,8 @@
  * destroying all DOM elements belonging to that page and reordering the rest.
  */
 
-import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING, getRulerHeightPx } from './pageGeometry';
+import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING } from '../constants';
+import { getRulerHeightPx } from './pageGeometry';
 
 /**
  * Resets all forced page-break artifacts previously injected into #area-cv.

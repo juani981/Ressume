@@ -5,7 +5,7 @@
  * and invocation of window.print().
  */
 
-import { A4_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../../utils/pageGeometry';
+import { A4_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../../constants';
 import { getFontFamilyStack, computeTypographyTokens } from '../../utils/typographyUtils';
 import { baseStyles, printStyles } from '../../styles/bundle';
 import { getDynamicPdfTitle } from './pdfTitleService';

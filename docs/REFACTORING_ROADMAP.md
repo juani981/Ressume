@@ -70,16 +70,13 @@ Tras la auditoría exhaustiva y la purga de documentación obsoleta, el estado d
 
 ---
 
-### FASE 2: Consolidación Directa del SSOT de Constantes
-- **Meta**: Unificar todos los puntos de consumo de tokens y dimensiones métricas directamente en `src/constants/`.
-- **Acciones Específicas**:
-  1. Revisar componentes en `src/components/CV/`, `src/components/Editor/` y servicios en `src/services/print/`.
-  2. Sustituir importaciones indirectas desde `src/utils/pageGeometry.js` por importaciones directas desde:
-     - `src/constants/geometry.js`
-     - `src/constants/spacing.js`
-     - `src/constants/typography.js`
-     - `src/constants/colors.js`
-  3. Dejar en `src/utils/pageGeometry.js` únicamente funciones de medición de DOM en tiempo de ejecución (como `getRulerHeightPx` y `getRelativeBounds`).
+### FASE 2: Consolidación Directa del SSOT de Constantes [COMPLETADA]
+- **Estado**: **100% COMPLETADA**.
+- **Resultados Alcanzados**:
+  1. Incorporados los objetos de especificación canónicos (`PRINT_PAGE_SIZE`, `EDITOR_PAGE_SIZE`, `A4_PAGE_SIZE`, y `A4_GEOMETRY.cssVariables`) directamente en `src/constants/geometry.js` como Single Source of Truth unificado.
+  2. Migradas todas las importaciones de componentes y servicios en producción (`src/App.jsx`, `src/components/CV/A4PageBox.jsx`, `src/components/Editor/A4PageGuides.jsx`, `src/hooks/useDocumentPages.js`, `src/services/print/cleanHtmlGenerator.js`, `src/services/print/printExecutionDriver.js`, `src/utils/cvJsonAbstraction.js`, `src/utils/pageDeletionEngine.js`, `src/utils/pageDistributor.js`, `src/utils/typographyUtils.js`) para consumir constantes directamente desde `src/constants/`.
+  3. `src/utils/pageGeometry.js` depurado y delimitado a funciones puras de medición de DOM y cálculo en tiempo de ejecución (`getRulerHeightPx`, `getRelativeBounds`, `getForbiddenZone`, `isInForbiddenBoundaryZone`), conservando re-exportaciones de compatibilidad hacia atrás sin duplicidad de datos.
+  4. **Verificación Anti-Regresión**: 77 suites de prueba, 1,132 tests pasando al 100% en verde; build de producción exitoso en 3.69s.
 
 ---
 

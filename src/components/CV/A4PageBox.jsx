@@ -13,7 +13,7 @@
  */
 
 import React from 'react';
-import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../utils/pageGeometry';
+import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../constants';
 
 const flattenChildren = (children) => {
   const result = [];
