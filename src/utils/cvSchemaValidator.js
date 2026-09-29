@@ -10,6 +10,7 @@
  */
 
 import { defaultSchema } from './schema.js';
+import { normalizeAnyJSONToCVSnapshot } from './universalJsonImporter.js';
 
 export const ALLOWED_LAYOUT_TYPES = Object.freeze(['1-column', '2-column']);
 export const ALLOWED_COLUMNS = Object.freeze(['left', 'right']);
@@ -172,6 +173,30 @@ export function validateCVSnapshot(candidate) {
  * @returns {object} - Sanitized, guaranteed-valid CV data object.
  */
 export function sanitizeAndValidateCVSnapshot(snapshot) {
+  // If already normalized internally, bypass re-normalization
+  if (snapshot && snapshot._isNormalizedInternal) {
+    // Proceed directly to sanitization
+  } else if (
+    typeof snapshot === 'string' ||
+    Boolean(
+      snapshot &&
+      typeof snapshot === 'object' &&
+      !Array.isArray(snapshot) &&
+      (
+        snapshot.candidate_profile ||
+        snapshot.normalized_sections ||
+        snapshot.document_context ||
+        snapshot.cvData ||
+        snapshot.cv_data ||
+        snapshot.resume ||
+        snapshot.basics ||
+        (!snapshot.sections && (snapshot.work_experience || snapshot.experience || snapshot.skills))
+      )
+    )
+  ) {
+    return normalizeAnyJSONToCVSnapshot(snapshot);
+  }
+
   const safeSnapshot = (snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot))
     ? snapshot
     : {};
@@ -233,7 +258,7 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
     const sanitizedSections = rawSections
       .filter((sec) => sec && typeof sec === 'object' && !Array.isArray(sec))
       .map((sec, secIndex) => {
-        let secId = typeof sec.id === 'string' && sec.id.trim() ? sec.id.trim() : `sec_${secIndex}_${Date.now()}`;
+        let secId = typeof sec.id === 'string' && sec.id.trim() ? sec.id.trim() : `sec_${secIndex}`;
         if (seenSectionIds.has(secId)) {
           secId = `${secId}_${secIndex}`;
         }
@@ -249,7 +274,10 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
           .map((item, itemIndex) => {
             let itemId = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : '';
             if (!itemId || seenItemIds.has(itemId)) {
-              itemId = `${secId}_item_${itemIndex}_${Math.random().toString(36).substring(2, 7)}`;
+              itemId = `${secId}_item_${itemIndex}`;
+              if (seenItemIds.has(itemId)) {
+                itemId = `${secId}_item_${itemIndex}_${seenItemIds.size}`;
+              }
             }
             seenItemIds.add(itemId);
 
@@ -316,4 +344,5 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
   }
 }
 
+export { normalizeAnyJSONToCVSnapshot };
 export default sanitizeAndValidateCVSnapshot;

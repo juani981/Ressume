@@ -6,6 +6,7 @@ import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { getDynamicTextColors } from './colorUtils.js';
 import { sanitizeAndValidateCVSnapshot } from './versionValidator.js';
 import { stripHtml } from './richTextEngine.js';
+import { generateCVLivePdfAbstraction, exportToAIJson as exportToAIJsonFull } from './cvJsonAbstraction.js';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -619,45 +620,16 @@ export const exportToATSPlainText = (cvData) => {
 };
 
 /**
- * Produces a clean, compact JSON representation of cvData matching the native schema,
- * directly valid under sanitizeAndValidateCVSnapshot for import into Version Manager.
+ * Produces the standardized, hyper-detailed 1:1 Live Preview PDF Abstraction JSON,
+ * embedding the full printToPDF translation layer, ATS audit, AI knowledge rules,
+ * normalized semantic sections, and backward-compatible root fields.
  */
 export const exportToAIJson = (cvData, options = {}) => {
-  if (!cvData) return '{}';
-  const validated = sanitizeAndValidateCVSnapshot(cvData);
-
-  const compact = {
-    profile: {
-      name: validated.profile?.name || ''
-    },
-    layout: {
-      type: validated.layout?.type || '1-column',
-      isAtsMode: Boolean(validated.layout?.isAtsMode),
-      fontFamily: validated.layout?.fontFamily || 'Poppins',
-      fontScale: validated.layout?.fontScale ?? 1.0,
-      titleScale: validated.layout?.titleScale ?? 1.0,
-      bodyScale: validated.layout?.bodyScale ?? 1.0,
-      listScale: validated.layout?.listScale ?? 1.0,
-      lineHeight: validated.layout?.lineHeight ?? 1.45,
-      pagePadding: validated.layout?.pagePadding ?? 24,
-      sectionGap: validated.layout?.sectionGap ?? 20,
-      itemGap: validated.layout?.itemGap ?? 8,
-      leftBg: validated.layout?.leftBg || '',
-      rightBg: validated.layout?.rightBg || '',
-      leftColumnWidth: validated.layout?.leftColumnWidth || null
-    },
-    sections: (validated.sections || []).map(sec => ({
-      id: sec.id,
-      column: sec.column || 'left',
-      type: sec.type || 'list',
-      title: sec.title || '',
-      ...(sec.bulletStyle ? { bulletStyle: sec.bulletStyle } : {}),
-      items: (sec.items || []).map(item => ({ ...item }))
-    }))
-  };
-
-  return JSON.stringify(compact, null, 2);
+  return exportToAIJsonFull(cvData, options);
 };
+
+export const exportToRichAIJson = exportToAIJson;
+export { generateCVLivePdfAbstraction };
 
 export const exportToAIText = exportToATSPlainText;
 
