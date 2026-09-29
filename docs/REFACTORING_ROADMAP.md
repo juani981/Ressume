@@ -59,15 +59,14 @@ Tras la auditoría exhaustiva y la purga de documentación obsoleta, el estado d
 
 ---
 
-### FASE 1: Retiro de Código Muerto de Paginación Heurística
-- **Meta**: Eliminar más de 750 líneas de heurísticas obsoletas de la base de código.
-- **Acciones Específicas**:
-  1. Identificar que `src/utils/pageDeletionEngine.js` únicamente requiere la función auxiliar de saneamiento DOM `resetForcedPageBreaks`.
-  2. Mover la función `resetForcedPageBreaks` directamente a `pageDeletionEngine.js` o a un módulo de saneamiento DOM ligero.
-  3. Eliminar `src/utils/paginationEngine.js`.
-  4. Retirar `enforceTwoColumnComponentPagination` de `src/services/print/cleanHtmlGenerator.js` y de `src/services/print/index.js`.
-  5. Ajustar las aserciones de `src/tests/architecture-solid-invariants.test.jsx` que verificaban la existencia de `enforceTwoColumnComponentPagination`.
-- **Garantía Anti-Regresión**: Ejecutar `npm test` para asegurar que los 79 archivos de test sigan pasando al 100%.
+### FASE 1: Retiro de Código Muerto de Paginación Heurística [COMPLETADA]
+- **Estado**: **100% COMPLETADA**.
+- **Resultados Alcanzados**:
+  1. `resetForcedPageBreaks` extraído y consolidado directamente en `src/utils/pageDeletionEngine.js`.
+  2. Eliminado `src/utils/paginationEngine.js` (-544 líneas de heurísticas obsoletas).
+  3. Eliminado `enforceTwoColumnComponentPagination` de `src/services/print/cleanHtmlGenerator.js` (-230 líneas).
+  4. Purgadas suites de prueba legacy (`m3-parity-and-forbidden-zones.test.jsx`, `m5-pagination-forbidden-zones-adversarial.test.jsx`) y desacoplados los tests de `m2-modularization-utilities.test.jsx`, `architecture-solid-invariants.test.jsx` y `bulletPaginationFlowParity.test.jsx`.
+  5. **Verificación Anti-Regresión**: 77 archivos de test, 1,132 tests pasando al 100% en verde, build de producción exitoso en 4.08s.
 
 ---
 
