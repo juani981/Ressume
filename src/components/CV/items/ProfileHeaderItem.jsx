@@ -24,7 +24,7 @@ const ProfileHeaderPrintView = (props) => {
     <>
       <ProfileTitlePrintView {...props} />
       {hasContacts && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '3px' }}>
           <ContactPrintView {...props} />
         </div>
       )}
@@ -43,7 +43,7 @@ const ProfileHeaderItemEditView = (props) => {
     <>
       <ProfileTitleEditView {...props} />
       {hasContacts && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '3px' }}>
           <ContactEditView {...props} />
         </div>
       )}

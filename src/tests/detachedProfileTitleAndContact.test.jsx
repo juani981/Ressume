@@ -68,6 +68,12 @@ describe('Split Profile Header: ProfileTitleItem and ContactItem', () => {
       expect(h2).toBeTruthy();
       expect(h2.textContent).toBe('Mathematician & Cryptanalyst');
 
+      const homeData = container.querySelector('.home__data');
+      expect(homeData).toBeTruthy();
+      expect(homeData.style.gap).toBe('1px');
+      expect(h1.style.margin).toBe('0px');
+      expect(h2.style.margin).toBe('0px');
+
       // No editor inputs or buttons
       expect(container.querySelector('button')).toBeNull();
       expect(container.querySelector('.social__container')).toBeNull();
@@ -101,6 +107,10 @@ describe('Split Profile Header: ProfileTitleItem and ContactItem', () => {
       const addBtn = screen.getByRole('button', { name: /agregar dato de contacto/i });
       expect(addBtn).toBeInTheDocument();
 
+      // Standard separators exist between contact items in edit mode
+      const separators = screen.getAllByText('|');
+      expect(separators.length).toBe(1);
+
       // Asserts zero title/subtitle headings exist in Contact component
       expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
       expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
@@ -125,6 +135,9 @@ describe('Split Profile Header: ProfileTitleItem and ContactItem', () => {
 
       expect(container.textContent).toContain('+44 20 7946 0991');
       expect(container.textContent).toContain('London, UK');
+
+      // Standard separator exists in print
+      expect(container.querySelectorAll('.contact-separator').length).toBe(1);
 
       // Zero interactive buttons in print
       expect(container.querySelector('button')).toBeNull();
