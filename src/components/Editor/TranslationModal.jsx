@@ -5,8 +5,11 @@ import {
   extractDictionaryFromCV,
   buildTranslationPrompt,
   sanitizeAndParseAIResponse,
-  validateKeyCoverage
+  validateKeyCoverage,
+  getLanguageLegend
 } from '../../utils/translationEngine';
+import { saveVersion } from '../../utils/versionStorage';
+import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { 
   Globe, 
   Upload, 
@@ -83,9 +86,26 @@ const TranslationModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleApplyImportedLanguage = () => {
+  const handleApplyImportedLanguage = async () => {
     if (!parseResult || !parseResult.success) return;
     const langToSave = parseResult.languageCode || effectiveTargetLang;
+
+    // Save backup of current CV with source language legend (e.g. "ESPAÑOL")
+    try {
+      const candidateName = cvData?.profile?.name || 'CV';
+      const sourceLegend = getLanguageLegend(activeLanguage);
+      const backupTitle = `${candidateName} - ${sourceLegend}`;
+      const snapshot = {
+        ...cvData,
+        versionName: backupTitle,
+        activeVersionName: backupTitle
+      };
+      const thumb = await generateThumbnail(snapshot);
+      await saveVersion(backupTitle, snapshot, thumb);
+    } catch (err) {
+      console.warn('Could not save pre-translation snapshot in TranslationModal:', err);
+    }
+
     importLanguagePack(langToSave, parseResult.dictionary, true);
     setImportSuccessMsg(`¡Idioma "${langToSave.toUpperCase()}" importado y aplicado con éxito al CV!`);
     setTimeout(() => {

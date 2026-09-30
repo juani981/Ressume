@@ -2334,11 +2334,22 @@ body.ats-mode-active .a4-page-fold-badge {
   display: none !important;
 }
 
-.resume--ats-mode .social__link svg,
-.resume--ats-mode .contact-item-pill svg,
+.resume--ats-mode .social__link > svg,
+.resume--ats-mode .contact-item-pill > svg,
+.resume--ats-mode .social__link > .lucide,
+.resume--ats-mode .contact-item-pill > .lucide,
 .resume--ats-mode .contact__icon,
-.resume--ats-mode .home__contact svg {
+.resume--ats-mode .home__contact > svg {
   display: none !important;
+}
+
+/* Guard: Ensure editor popups & rich text toolbar icons are NEVER hidden by ATS mode */
+.rich-text-toolbar svg,
+.contact-type-picker-popover svg,
+.section-bullet-style-popover svg,
+.contact-del-btn svg,
+.add-contact-btn svg {
+  display: inline-block !important;
 }
 
 /* AI Tips Active Section Highlight */

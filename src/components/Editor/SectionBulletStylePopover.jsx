@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { BULLET_SIZES, BULLET_VARIANTS, DEFAULT_BULLET_STYLE } from '../../utils/bulletStyles';
 import { X, Check } from 'lucide-react';
 
@@ -13,7 +14,8 @@ const SectionBulletStylePopover = ({
   onClose, 
   bulletStyle, 
   onUpdateStyle, 
-  triggerRect 
+  triggerRect,
+  portalTarget
 }) => {
   const popoverRef = useRef(null);
 
@@ -77,7 +79,7 @@ const SectionBulletStylePopover = ({
 
   const positionStyle = calculatePosition();
 
-  return (
+  const popoverContent = (
     <div
       ref={popoverRef}
       className="section-bullet-style-popover no-print"
@@ -86,10 +88,11 @@ const SectionBulletStylePopover = ({
         position: 'fixed',
         ...positionStyle,
         width: '260px',
-        backgroundColor: 'var(--container-color, #ffffff)',
+        backgroundColor: '#ffffff',
+        color: '#0f172a',
         borderRadius: '10px',
         boxShadow: '0 10px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
-        zIndex: 1000,
+        zIndex: 99999,
         padding: '0.75rem 0.85rem',
         display: 'flex',
         flexDirection: 'column',
@@ -250,6 +253,15 @@ const SectionBulletStylePopover = ({
       </div>
     </div>
   );
+
+  const target = portalTarget !== undefined 
+    ? portalTarget 
+    : (triggerRect && typeof document !== 'undefined' ? document.body : null);
+
+  if (target) {
+    return ReactDOM.createPortal(popoverContent, target);
+  }
+  return popoverContent;
 };
 
 export default SectionBulletStylePopover;

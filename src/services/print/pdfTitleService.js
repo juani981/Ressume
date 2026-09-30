@@ -46,12 +46,12 @@ export const getDynamicPdfTitle = (cvData) => {
   // 2. Default: "CV_${profileName}_${profileSubtitle}"
   const rawProfileName = (
     cvData.profile?.name ||
-    cvData.sections?.find((s) => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.name ||
+    cvData.sections?.find((s) => s.id === 'profile_header' || s.type === 'profile_header' || s.type === 'title_subtitle')?.items?.[0]?.name ||
     ''
   );
   const rawProfileSubtitle = (
     cvData.profile?.subtitle ||
-    cvData.sections?.find((s) => s.id === 'profile_header' || s.type === 'profile_header')?.items?.[0]?.subtitle ||
+    cvData.sections?.find((s) => s.id === 'profile_header' || s.type === 'profile_header' || s.type === 'title_subtitle')?.items?.[0]?.subtitle ||
     ''
   );
 

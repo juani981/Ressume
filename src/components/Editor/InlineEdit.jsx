@@ -418,7 +418,7 @@ const InlineEditEditor = ({
       }
 
       const finalValue = cleanInner ? applyAlignment(cleanInner, currentAlignment) : '';
-      if (finalValue !== value) {
+      if (finalValue !== value && typeof onSave === 'function') {
         onSave(finalValue);
       }
     }, 150);

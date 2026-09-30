@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { CONTACT_TYPES, CONTACT_CATEGORIES, ContactIcon } from '../../utils/contactTypes';
 import { Search, X, Plus } from 'lucide-react';
 
@@ -10,7 +11,7 @@ import { Search, X, Plus } from 'lucide-react';
  * Adheres to AGENTS.md Rule 3: dynamically positions adjacent to trigger element,
  * clamps within viewport boundaries, and closes on click-outside or ESC.
  */
-const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
+const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect, portalTarget }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const popoverRef = useRef(null);
@@ -99,7 +100,7 @@ const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
     return matchesCat && matchesSearch;
   });
 
-  return (
+  const popoverContent = (
     <div
       ref={popoverRef}
       className="contact-type-picker-popover no-print"
@@ -108,10 +109,11 @@ const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
         ...positionStyle,
         width: '320px',
         maxHeight: '400px',
-        backgroundColor: 'var(--container-color, #ffffff)',
+        backgroundColor: '#ffffff',
+        color: '#1e293b',
         borderRadius: '12px',
         boxShadow: '0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
-        zIndex: 1000,
+        zIndex: 99999,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -305,6 +307,15 @@ const ContactTypePicker = ({ isOpen, onClose, onSelectType, triggerRect }) => {
       </div>
     </div>
   );
+
+  const target = portalTarget !== undefined 
+    ? portalTarget 
+    : (triggerRect && typeof document !== 'undefined' ? document.body : null);
+
+  if (target) {
+    return ReactDOM.createPortal(popoverContent, target);
+  }
+  return popoverContent;
 };
 
 export default ContactTypePicker;

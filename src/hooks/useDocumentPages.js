@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react';
 import { distributeSectionsToPages } from '../utils/pageDistributor';
-import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../utils/pageGeometry';
+import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants';
 
 /**
  * Custom hook returning an array of PageModel instances for live rendering and print.

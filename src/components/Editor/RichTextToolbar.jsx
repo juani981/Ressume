@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { useCV } from '../../context/CVContext';
 import { 
   Bold, 
@@ -141,7 +142,7 @@ const RichTextToolbar = (props) => {
     margin: '0 3px'
   };
 
-  return (
+  const toolbarContent = (
     <div
       ref={toolbarRef}
       role="toolbar"
@@ -302,6 +303,15 @@ const RichTextToolbar = (props) => {
       </button>
     </div>
   );
+
+  const target = props.portalTarget !== undefined
+    ? props.portalTarget
+    : ((activeElement || propRect) && typeof document !== 'undefined' ? document.body : null);
+
+  if (target) {
+    return ReactDOM.createPortal(toolbarContent, target);
+  }
+  return toolbarContent;
 };
 
 export default RichTextToolbar;

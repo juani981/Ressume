@@ -5,8 +5,45 @@
  * destroying all DOM elements belonging to that page and reordering the rest.
  */
 
-import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING, getRulerHeightPx } from './pageGeometry';
-import { resetForcedPageBreaks } from './paginationEngine';
+import { A4_PAGE_HEIGHT_PX, A4_GAP_PX, DEFAULT_PAGE_PADDING } from '../constants';
+import { getRulerHeightPx } from './pageGeometry';
+
+/**
+ * Resets all forced page-break artifacts previously injected into #area-cv.
+ *
+ * @param {HTMLElement} areaCv - Root CV document element
+ */
+export function resetForcedPageBreaks(areaCv) {
+  if (!areaCv) return;
+
+  const previouslyBroken = areaCv.querySelectorAll(
+    '[data-editor-break-forced="true"]',
+  );
+  previouslyBroken.forEach((el) => {
+    el.style.removeProperty('margin-top');
+    el.removeAttribute('data-editor-break-forced');
+    el.removeAttribute('data-editor-break-fold');
+  });
+
+  const offsetButtons = areaCv.querySelectorAll(
+    '.section-action-buttons[style*="top"]',
+  );
+  offsetButtons.forEach((b) => b.style.removeProperty('top'));
+
+  const offsetHandles = areaCv.querySelectorAll('.drag-handle[style*="top"]');
+  offsetHandles.forEach((h) => h.style.removeProperty('top'));
+
+  const splitElements = areaCv.querySelectorAll(
+    '.has-split-break, [data-section-split], [data-item-split]',
+  );
+  splitElements.forEach((el) => {
+    el.classList.remove('has-split-break', 'has-split-break--page2-only');
+    el.removeAttribute('data-section-split');
+    el.removeAttribute('data-item-split');
+    el.style.removeProperty('--split-part1-height');
+    el.style.removeProperty('--split-part2-top');
+  });
+}
 
 /**
  * Destroys all elements on the specified page from both the DOM and React CV state,

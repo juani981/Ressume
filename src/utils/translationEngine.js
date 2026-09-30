@@ -16,6 +16,27 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 /**
+ * Returns uppercase language legend name for a given language code (e.g. 'es' -> 'ESPAÑOL', 'en' -> 'ENGLISH').
+ * @param {string} langCode
+ * @returns {string}
+ */
+export const getLanguageLegend = (langCode) => {
+  if (!langCode) return 'ESPAÑOL';
+  const code = String(langCode).toLowerCase().trim();
+  const legendMap = {
+    es: 'ESPAÑOL',
+    en: 'ENGLISH',
+    pt: 'PORTUGUÊS',
+    de: 'DEUTSCH',
+    fr: 'FRANÇAIS',
+    it: 'ITALIANO',
+    zh: 'CHINESE',
+    ja: 'JAPANESE'
+  };
+  return legendMap[code] || code.toUpperCase();
+};
+
+/**
  * Extracts a clean, translatable dictionary of text keys from the active cvData state
  * or fallbacks to the standard content.json structure.
  */

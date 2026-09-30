@@ -8,7 +8,8 @@ import {
   duplicateVersion
 } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
-import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
+import { sanitizeAndValidateCVSnapshot, normalizeAnyJSONToCVSnapshot } from '../../utils/versionValidator';
+import { cleanAndParseRawJSON } from '../../utils/universalJsonImporter';
 import { blankSchema } from '../../utils/schema';
 import { History, X, Layers } from 'lucide-react';
 import {
@@ -360,16 +361,13 @@ export const VersionManagerModal = ({
 
     try {
       const fileText = await file.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(fileText);
-      } catch (parseErr) {
+      let parsed = cleanAndParseRawJSON(fileText);
+      if (!parsed) {
         throw new Error('El archivo seleccionado no contiene un JSON válido.');
       }
 
-      // Handle raw cvData or snapshot structure ({ cvData: ... } or { sections: ... })
-      const rawData = parsed.cvData || parsed;
-      const validated = sanitizeAndValidateCVSnapshot(rawData);
+      // Handle raw cvData, rich live-preview abstraction, or snapshot structure
+      const validated = normalizeAnyJSONToCVSnapshot(parsed);
       if (!validated) {
         throw new Error('La estructura del archivo JSON no coincide con un CV válido.');
       }

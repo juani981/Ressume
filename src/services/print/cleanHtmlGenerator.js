@@ -18,8 +18,8 @@ import {
   A4_WIDTH_CSS,
   A4_HEIGHT_CSS,
   A4_DOCUMENT_SCALE,
-  getRulerHeightPx,
-} from '../../utils/pageGeometry';
+} from '../../constants';
+import { getRulerHeightPx } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
 import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';
@@ -268,7 +268,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     .drag-handle, .section-drag-handle, .item-drag-handle,
     .column-resizer, .column-resizer-bar, .column-resizer-handle,
     .spacer-resize-handle, .spacer-controls-bar,
-    .obsidian-callout, .suggestion-tooltip, .rich-toolbar, .floating-rich-toolbar,
+    .obsidian-callout, .suggestion-tooltip, .rich-toolbar, .floating-rich-toolbar, .rich-text-toolbar,
     .action-menu, .action-menu-btn-wrap, .add-section-modal, .add-section-backdrop, .l-navbar,
     .a4-page-fold-guide, .a4-page-inset, .section-action-buttons
   `);
@@ -621,236 +621,6 @@ export const createSanitizedPrintClone = (areaCvElement) => {
 };
 
 /**
- * enforceTwoColumnComponentPagination
- * 
- * @deprecated Legacy screen-heuristic pagination algorithm.
- * Retained strictly for backwards-compatibility with legacy unit test suites.
- * In production (Invariants 15 & 16), page partitioning is governed deterministically
- * by `pageDistributor.js` + `<A4PageBox>` and DOM mirroring via `createSanitizedPrintClone`.
- * The live print execution pipeline in `printExecutionDriver.js` does NOT invoke this function.
- */
-export const enforceTwoColumnComponentPagination = (doc, areaCv, pageHeightPx = A4_PAGE_HEIGHT_PX) => {
-  if (!areaCv) {
-    return { totalPages: 1, targetHeightMm: 297, breaksApplied: [] };
-  }
-
-  const leftCol = areaCv.querySelector?.('.resume__left');
-  const rightCol = areaCv.querySelector?.('.resume__right');
-
-  if (!leftCol || !rightCol) {
-    const rawH = Math.max(areaCv.scrollHeight || 0, pageHeightPx);
-    const pages = Math.max(1, Math.ceil(rawH / pageHeightPx));
-    const targetMm = pages * 297;
-    if (areaCv.style) {
-      areaCv.style.minHeight = `${targetMm}mm`;
-    }
-    return { totalPages: pages, targetHeightMm: targetMm, breaksApplied: [] };
-  }
-
-  const getRelativeBounds = (el) => {
-    if (typeof el.getBoundingClientRect === 'function' && typeof areaCv.getBoundingClientRect === 'function') {
-      const elRect = el.getBoundingClientRect();
-      const areaRect = areaCv.getBoundingClientRect();
-      return {
-        top: elRect.top - areaRect.top,
-        bottom: elRect.bottom - areaRect.top,
-        height: elRect.height || (el.offsetHeight || 0),
-      };
-    }
-    const top = el.offsetTop || 0;
-    const height = el.offsetHeight || 0;
-    return { top, bottom: top + height, height };
-  };
-
-  const getBreakableComponents = (columnEl) => {
-    const selector = '.section-title, .cv-block, .experience__content, .education__content, .skills__name, .profile__description, .home__data, .simple-list-item, li.cv-block, .contact__item';
-    const rawList = Array.from(columnEl.querySelectorAll(selector));
-    const filtered = rawList.filter((item, idx, arr) => {
-      if (item.classList.contains('section-title')) return true;
-      const hasParentInList = arr.some((other) => other !== item && other.contains(item) && !other.classList.contains('section-title'));
-      return !hasParentInList;
-    });
-    return filtered;
-  };
-
-  const breaksApplied = [];
-  let passes = 0;
-  let hasChanges = true;
-
-  while (hasChanges && passes < 6) {
-    passes++;
-    hasChanges = false;
-
-    const currentHeight = Math.max(
-      leftCol.scrollHeight || 0,
-      rightCol.scrollHeight || 0,
-      areaCv.scrollHeight || 0,
-      pageHeightPx
-    );
-    const estimatedPages = Math.max(1, Math.ceil(currentHeight / pageHeightPx));
-
-    for (let pageNum = 1; pageNum <= estimatedPages; pageNum++) {
-      const foldY = pageNum * pageHeightPx;
-
-      const colDefs = [
-        { name: 'left', el: leftCol, items: getBreakableComponents(leftCol) },
-        { name: 'right', el: rightCol, items: getBreakableComponents(rightCol) },
-      ];
-
-      for (const col of colDefs) {
-        for (const item of col.items) {
-          if (item.getAttribute('data-page-break-forced') === 'true') {
-            continue;
-          }
-
-          if (item.querySelector?.(`[data-page-break-forced="true"][data-page-break-fold="${pageNum}"]`)) {
-            continue;
-          }
-
-          const { top, bottom, height } = getRelativeBounds(item);
-
-          if (height <= 0) continue;
-
-          if (top >= foldY) {
-            continue;
-          }
-
-          let isOrphanTitle = false;
-          if (item.classList.contains('section-title') || item.hasAttribute('data-section-title')) {
-            const itemIdx = col.items.indexOf(item);
-            const nextItem = itemIdx !== -1 && itemIdx + 1 < col.items.length ? col.items[itemIdx + 1] : null;
-            if (nextItem && !nextItem.classList.contains('section-title')) {
-              const nextBullets = Array.from(
-                nextItem.querySelectorAll(
-                  'ul.experience__bullets > li, ul.simple-list-ul > li, .bullet-item-row, li.cv-block'
-                )
-              );
-              if (nextBullets.length > 0) {
-                const firstBulletBounds = getRelativeBounds(nextBullets[0]);
-                if (firstBulletBounds && firstBulletBounds.bottom > foldY - 4) {
-                  isOrphanTitle = true;
-                }
-              } else {
-                const nextBounds = getRelativeBounds(nextItem);
-                if (nextBounds && nextBounds.bottom > foldY - 4) {
-                  isOrphanTitle = true;
-                }
-              }
-            } else if (
-              (!nextItem || nextItem.classList.contains('section-title') || (top < foldY && bottom > foldY - 60)) &&
-              top < foldY &&
-              bottom > foldY - 80
-            ) {
-              isOrphanTitle = true;
-            }
-          }
-
-          if (!isOrphanTitle && bottom <= foldY - 4) {
-            continue;
-          }
-
-          const isStraddling = (top < foldY && bottom > foldY - 8);
-
-          if (isStraddling || isOrphanTitle) {
-            let targetBreakElement = item;
-            let skipItemBreak = false;
-
-            if (!isOrphanTitle && !item.classList.contains('section-title')) {
-              const bullets = Array.from(
-                item.querySelectorAll(
-                  'ul.experience__bullets > li, ul.simple-list-ul > li, .bullet-item-row, li.cv-block'
-                )
-              );
-              if (bullets.length > 1) {
-                const firstBulletBounds = getRelativeBounds(bullets[0]);
-                if (firstBulletBounds && firstBulletBounds.bottom <= foldY - 4) {
-                  const overflowingBullet = bullets.find((b) => {
-                    const bBounds = getRelativeBounds(b);
-                    return bBounds && bBounds.top < foldY && bBounds.bottom > foldY - 4;
-                  });
-                  if (overflowingBullet) {
-                    targetBreakElement = overflowingBullet;
-                    const parentId = item.getAttribute('data-item-id') || item.id || 'item';
-                    const bIdx = bullets.indexOf(targetBreakElement);
-                    targetBreakElement.setAttribute('data-item-id', `${parentId}_bullet_${bIdx}`);
-                  } else {
-                    skipItemBreak = true;
-                  }
-                }
-              }
-            }
-
-            if (skipItemBreak) {
-              continue;
-            }
-
-            targetBreakElement.style.setProperty('break-before', 'page');
-            targetBreakElement.style.setProperty('page-break-before', 'always');
-            targetBreakElement.classList.add('force-page-break-before', 'break-page-before');
-            targetBreakElement.setAttribute('data-page-break', 'before');
-            targetBreakElement.setAttribute('data-page-break-before', 'true');
-            targetBreakElement.setAttribute('data-page-break-forced', 'true');
-            targetBreakElement.setAttribute('data-page-break-column', col.name);
-            targetBreakElement.setAttribute('data-page-break-fold', String(pageNum));
-
-            let parent = targetBreakElement.parentElement;
-            while (parent && parent !== areaCv && parent !== doc?.body) {
-              if (parent.classList.contains('experience__content') ||
-                  parent.classList.contains('experience__data') ||
-                  parent.classList.contains('experience__bullets-container') ||
-                  parent.classList.contains('experience__bullets')) {
-                parent.style.setProperty('break-inside', 'auto', 'important');
-                parent.style.setProperty('page-break-inside', 'auto', 'important');
-              }
-              parent = parent.parentElement;
-            }
-
-            breaksApplied.push({
-              column: col.name,
-              element: targetBreakElement,
-              tagName: targetBreakElement.tagName,
-              className: targetBreakElement.className,
-              fold: foldY,
-              pageNum,
-            });
-
-            hasChanges = true;
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  const finalMaxHeight = Math.max(
-    leftCol.scrollHeight || 0,
-    rightCol.scrollHeight || 0,
-    areaCv.scrollHeight || 0,
-    pageHeightPx
-  );
-  const totalPages = Math.max(1, Math.ceil(finalMaxHeight / pageHeightPx));
-  const targetHeightMm = totalPages * 297;
-
-  areaCv.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  areaCv.style.setProperty('--print-target-height-mm', `${targetHeightMm}mm`);
-  areaCv.style.setProperty('--print-total-pages', String(totalPages));
-  areaCv.style.alignItems = 'stretch';
-
-  leftCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  leftCol.style.setProperty('height', '100%', 'important');
-  leftCol.style.setProperty('align-self', 'stretch', 'important');
-  leftCol.style.setProperty('flex', '1', 'important');
-  leftCol.style.setProperty('box-sizing', 'border-box', 'important');
-
-  rightCol.style.setProperty('min-height', `${targetHeightMm}mm`, 'important');
-  rightCol.style.setProperty('height', '100%', 'important');
-  rightCol.style.setProperty('align-self', 'stretch', 'important');
-  rightCol.style.setProperty('box-sizing', 'border-box', 'important');
-
-  return { totalPages, targetHeightMm, breaksApplied };
-};
-
-/**
  * Generates standalone clean static HTML for printing and PDF rendering.
  */
 export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = undefined) => {
@@ -863,17 +633,15 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let sections = rawSections;
   if (data.profile) {
     sections = rawSections.map((sec) => {
-      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+      if (sec.id === 'profile_header' || sec.type === 'profile_header' || sec.type === 'title_subtitle') {
         const firstItem = (sec.items && sec.items[0]) ? { ...sec.items[0] } : {};
+        // Profile and section items are kept in sync by updateProfile/updateSectionItem hooks.
+        // Here we merge both so either source can provide a value, with profile taking priority
+        // for backward compatibility (test coverage relies on this precedence order).
         const mergedItem = {
           ...firstItem,
           ...(data.profile.name !== undefined ? { name: data.profile.name } : {}),
           ...(data.profile.subtitle !== undefined ? { subtitle: data.profile.subtitle } : {}),
-          ...(data.profile.location !== undefined ? { location: data.profile.location } : {}),
-          ...(data.profile.email !== undefined ? { email: data.profile.email } : {}),
-          ...(data.profile.phone !== undefined ? { phone: data.profile.phone } : {}),
-          ...(data.profile.linkedin !== undefined ? { linkedin: data.profile.linkedin } : {}),
-          ...(data.profile.github !== undefined ? { github: data.profile.github } : {}),
         };
         return { ...sec, items: [mergedItem, ...(sec.items ? sec.items.slice(1) : [])] };
       }
@@ -892,6 +660,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       return sec;
     });
   }
+
 
   const isAtsMode = layout.isAtsMode === true;
   if (isAtsMode) {
@@ -949,17 +718,17 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     bodyContent = `
       <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; gap: 0; column-gap: 0; row-gap: 0; ${twoColWidthStyle} min-height: 297mm; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
         <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
-          ${leftSectionsCol.map(renderSectionHTML).join('')}
+          ${leftSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
         <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
-          ${rightSectionsCol.map(renderSectionHTML).join('')}
+          ${rightSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
       <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm !important; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
-        ${sections.map(renderSectionHTML).join('')}
+        ${sections.map(renderSectionHTML).join('\n\n')}
       </div>
     `;
   }
@@ -969,7 +738,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   let activeBaseStyles = baseStyles;
   let activePrintStyles = printStyles;
 
-  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active)/gi;
+  const editorArtifactsPattern = /(?:section-drag-handle|item-drag-handle|drag-handle|round-btn-del|round-btn-add|suggestion-tooltip|obsidian-callout|column-resizer|l-navbar|action-menu|no-print|add-contact-btn|contact-del-btn|spacer-resize-handle|spacer-controls-bar|spacer-del-btn|section-del-btn|item-del-btn|section-add-container|editable-section-container|editable-item-container|inline-input|inline-edit-active|rich-text-toolbar)/gi;
   activeBaseStyles = activeBaseStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
   activePrintStyles = activePrintStyles.replace(editorArtifactsPattern, 'editor-control-stripped');
 

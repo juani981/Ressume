@@ -119,7 +119,6 @@ describe('Architecture & SOLID Invariants Automated Guard', () => {
       expect(typeof printServices.sanitizeFileName).toBe('function');
       expect(typeof printServices.generateCleanPrintHTML).toBe('function');
       expect(typeof printServices.createSanitizedPrintClone).toBe('function');
-      expect(typeof printServices.enforceTwoColumnComponentPagination).toBe('function');
       expect(typeof printServices.executeCleanPrint).toBe('function');
       expect(typeof printServices.downloadPDF).toBe('function');
     });

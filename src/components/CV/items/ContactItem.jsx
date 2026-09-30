@@ -12,27 +12,32 @@
 import React, { useState } from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import ContactTypePicker from '../../Editor/ContactTypePicker';
-import { normalizeItemContacts, getContactConfig, syncFlatContactFields, ContactIcon } from '../../../utils/contactTypes';
+import { normalizeItemContacts, getContactConfig, syncFlatContactFields, ContactIcon, normalizePhoneNumber } from '../../../utils/contactTypes';
 import { Minus, Plus } from 'lucide-react';
 
 /**
  * Print View: Pure semantic contact links and icons without interactive controls.
+ * Guarantees explicit ' | ' separators in text layer and normalized international phone format (RF-23, CA-02).
  */
 const ContactPrintView = ({ item }) => {
   const contacts = normalizeItemContacts(item);
+  const validContacts = contacts.filter(c => c && c.value && String(c.value).trim() !== '');
 
   return (
     <div 
       className="social__container bd-grid" 
-      style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}
+      style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}
     >
-      {contacts
-        .filter(c => c && c.value && String(c.value).trim() !== '')
-        .map((contact, idx) => {
-          const config = getContactConfig(contact.type);
-          return (
+      {validContacts.map((contact, idx) => {
+        const config = getContactConfig(contact.type);
+        const formattedValue = (contact.type === 'phone' || contact.type === 'whatsapp')
+          ? normalizePhoneNumber(contact.value)
+          : contact.value;
+        const isLast = idx === validContacts.length - 1;
+
+        return (
+          <React.Fragment key={contact.id || `contact_${idx}`}>
             <span 
-              key={contact.id || `contact_${idx}`} 
               className="social__link contact-item-pill"
               style={{
                 position: 'relative',
@@ -43,12 +48,27 @@ const ContactPrintView = ({ item }) => {
             >
               <ContactIcon name={config.icon} size={14} />{' '}
               <InlineEdit 
-                value={contact.value || ''} 
+                value={formattedValue || ''} 
                 isPrint={true}
               />
             </span>
-          );
-        })}
+            {!isLast && (
+              <span 
+                className="contact-separator" 
+                aria-hidden="false"
+                style={{ 
+                  color: 'var(--text-color-light)', 
+                  userSelect: 'text', 
+                  WebkitUserSelect: 'text',
+                  margin: '0 2px' 
+                }}
+              >
+                |
+              </span>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

@@ -10,6 +10,7 @@
  */
 
 import { defaultSchema } from './schema.js';
+import { normalizeAnyJSONToCVSnapshot } from './universalJsonImporter.js';
 
 export const ALLOWED_LAYOUT_TYPES = Object.freeze(['1-column', '2-column']);
 export const ALLOWED_COLUMNS = Object.freeze(['left', 'right']);
@@ -127,7 +128,7 @@ export function validateCVSnapshot(candidate) {
         errors.push({ path: `${secPath}.type`, message: 'Section requires a non-empty type identifier', code: 'MISSING_SECTION_TYPE' });
       }
 
-      if (sec.id === 'profile_header' || sec.type === 'profile_header') {
+      if (sec.id === 'profile_header' || sec.type === 'profile_header' || sec.type === 'title_subtitle') {
         hasHeader = true;
       }
 
@@ -172,6 +173,30 @@ export function validateCVSnapshot(candidate) {
  * @returns {object} - Sanitized, guaranteed-valid CV data object.
  */
 export function sanitizeAndValidateCVSnapshot(snapshot) {
+  // If already normalized internally, bypass re-normalization
+  if (snapshot && snapshot._isNormalizedInternal) {
+    // Proceed directly to sanitization
+  } else if (
+    typeof snapshot === 'string' ||
+    Boolean(
+      snapshot &&
+      typeof snapshot === 'object' &&
+      !Array.isArray(snapshot) &&
+      (
+        snapshot.candidate_profile ||
+        snapshot.normalized_sections ||
+        snapshot.document_context ||
+        snapshot.cvData ||
+        snapshot.cv_data ||
+        snapshot.resume ||
+        snapshot.basics ||
+        (!snapshot.sections && (snapshot.work_experience || snapshot.experience || snapshot.skills))
+      )
+    )
+  ) {
+    return normalizeAnyJSONToCVSnapshot(snapshot);
+  }
+
   const safeSnapshot = (snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot))
     ? snapshot
     : {};
@@ -233,7 +258,7 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
     const sanitizedSections = rawSections
       .filter((sec) => sec && typeof sec === 'object' && !Array.isArray(sec))
       .map((sec, secIndex) => {
-        let secId = typeof sec.id === 'string' && sec.id.trim() ? sec.id.trim() : `sec_${secIndex}_${Date.now()}`;
+        let secId = typeof sec.id === 'string' && sec.id.trim() ? sec.id.trim() : `sec_${secIndex}`;
         if (seenSectionIds.has(secId)) {
           secId = `${secId}_${secIndex}`;
         }
@@ -241,7 +266,31 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
 
         const column = sec.column === 'right' ? 'right' : 'left';
         const type = typeof sec.type === 'string' && sec.type.trim() ? sec.type.trim() : 'list';
-        const title = typeof sec.title === 'string' ? sec.title : '';
+        let title = typeof sec.title === 'string' ? sec.title.trim() : '';
+        const isInternalIdTitle = /^sec_[a-zA-Z0-9_-]+$/i.test(title) ||
+                                  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(title) ||
+                                  title === secId;
+        if (isInternalIdTitle || !title) {
+          const canonicalMap = {
+            profile_header: 'Cabecera de Perfil',
+            title_subtitle: 'Nombre y Perfil',
+            about: 'Perfil Profesional',
+            contact: 'Información de Contacto',
+            skills: 'Habilidades',
+            experience: 'Experiencia Laboral',
+            projects: 'Proyectos',
+            education: 'Educación',
+            certificates: 'Certificaciones',
+            languages: 'Idiomas',
+            awards: 'Premios y Logros',
+            publications: 'Publicaciones',
+            references: 'Referencias',
+            mentoring: 'Mentoría',
+            volunteering: 'Voluntariado',
+            simple_list: 'Información Adicional'
+          };
+          title = canonicalMap[type] || (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Sección');
+        }
 
         const rawItems = Array.isArray(sec.items) ? sec.items : [];
         const sanitizedItems = rawItems
@@ -249,7 +298,10 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
           .map((item, itemIndex) => {
             let itemId = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : '';
             if (!itemId || seenItemIds.has(itemId)) {
-              itemId = `${secId}_item_${itemIndex}_${Math.random().toString(36).substring(2, 7)}`;
+              itemId = `${secId}_item_${itemIndex}`;
+              if (seenItemIds.has(itemId)) {
+                itemId = `${secId}_item_${itemIndex}_${seenItemIds.size}`;
+              }
             }
             seenItemIds.add(itemId);
 
@@ -270,7 +322,7 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
       });
 
     // Ensure profile_header section exists
-    const hasHeader = sanitizedSections.some((s) => s.id === 'profile_header' || s.type === 'profile_header');
+    const hasHeader = sanitizedSections.some((s) => s.id === 'profile_header' || s.type === 'profile_header' || s.type === 'title_subtitle');
     let finalSections = sanitizedSections;
 
     if (!hasHeader && defaultSchema.sections && defaultSchema.sections[0]) {
@@ -304,6 +356,40 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
       });
     }
 
+    // Deduplicate contact sections (RF-05, CA-05)
+    let seenContactSection = false;
+    const deduplicatedSections = [];
+    finalSections.forEach((sec) => {
+      const isContactSec = sec.type === 'contact' || sec.id === 'contact';
+      if (isContactSec) {
+        if (!seenContactSection) {
+          seenContactSection = true;
+          deduplicatedSections.push(sec);
+        } else {
+          // Merge items into primary contact section
+          const primaryContact = deduplicatedSections.find(s => s.type === 'contact' || s.id === 'contact');
+          if (primaryContact && Array.isArray(sec.items) && sec.items.length > 0) {
+            const existingItems = Array.isArray(primaryContact.items) ? primaryContact.items : [];
+            const primaryItem = existingItems[0] || {};
+            const secondaryItem = sec.items[0] || {};
+            const primaryContacts = Array.isArray(primaryItem.contacts) ? primaryItem.contacts : [];
+            const secondaryContacts = Array.isArray(secondaryItem.contacts) ? secondaryItem.contacts : [];
+            const mergedContacts = [...primaryContacts];
+            secondaryContacts.forEach(c => {
+              if (c && c.value && !mergedContacts.some(mc => mc.value === c.value)) {
+                mergedContacts.push(c);
+              }
+            });
+            primaryItem.contacts = mergedContacts;
+            primaryContact.items = [primaryItem, ...existingItems.slice(1)];
+          }
+        }
+      } else {
+        deduplicatedSections.push(sec);
+      }
+    });
+    finalSections = deduplicatedSections;
+
     return {
       ...safeSnapshot,
       profile,
@@ -316,4 +402,5 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
   }
 }
 
+export { normalizeAnyJSONToCVSnapshot };
 export default sanitizeAndValidateCVSnapshot;

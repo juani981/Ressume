@@ -292,7 +292,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
   // 5. Prompt Selection & Schema Injections
   // =========================================================================
   describe('5. Prompt Selection & Schema Injections', () => {
-    it('T5.1: populates select dropdown with all 12 prompts (existing + tech suite)', () => {
+    it('T5.1: populates select dropdown with all 13 prompts (existing + tech suite + bring_your_own_cv)', () => {
       render(
         <CVProvider initialCV={baseMockCV}>
           <AIExportModal isOpen={true} onClose={vi.fn()} />
@@ -301,7 +301,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
 
       const promptSelect = screen.getByTestId('ai-prompt-select');
       const options = promptSelect.querySelectorAll('option');
-      expect(options.length).toBe(12);
+      expect(options.length).toBe(13);
 
       const promptIds = Array.from(options).map(o => o.value);
       expect(promptIds).toContain('recruiter_audit');
@@ -316,6 +316,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
       expect(promptIds).toContain('career_upskilling_roadmap');
       expect(promptIds).toContain('cold_outreach_generator');
       expect(promptIds).toContain('salary_negotiation_advisor');
+      expect(promptIds).toContain('bring_your_own_cv');
     });
 
     it('T5.2: selecting translate_english updates live preview with native cvData JSON schema block', () => {

@@ -750,10 +750,11 @@ describe('Empirical Challenger: CV Abstraction Engine, YAML Frontmatter & Prompt
       'behavioral_leadership_prep',
       'career_upskilling_roadmap',
       'cold_outreach_generator',
-      'salary_negotiation_advisor'
+      'salary_negotiation_advisor',
+      'bring_your_own_cv'
     ];
 
-    it('CHAL-4.1: Deterministic ordering invariant holds across all 12 prompt IDs in Spanish and English', () => {
+    it('CHAL-4.1: Deterministic ordering invariant holds across all 13 prompt IDs in Spanish and English', () => {
       ['es', 'en'].forEach(lang => {
         allPromptIds.forEach(promptId => {
           const payload = buildAIPromptPayload(baseCv, promptId, {
@@ -792,14 +793,25 @@ describe('Empirical Challenger: CV Abstraction Engine, YAML Frontmatter & Prompt
           const secondDelimiter = payload.indexOf('---', commentIdx);
           expect(secondDelimiter, `${lang} ${promptId}: second delimiter --- should follow metadata`).toBeGreaterThan(commentIdx);
 
-          // 8. Candidate Resume Header
-          const headerPattern = lang === 'en' ? '# CANDIDATE RESUME INPUT DATA' : '# DATOS DE ENTRADA DEL CURRÍCULUM VITAE';
-          const headerIdx = payload.indexOf(headerPattern);
-          expect(headerIdx, `${lang} ${promptId}: header should follow second delimiter`).toBeGreaterThan(secondDelimiter);
+          if (promptId === 'bring_your_own_cv') {
+            // bring_your_own_cv MUST omit active CV data to avoid prompt contamination
+            const headerPattern = lang === 'en' ? '# CANDIDATE RESUME INPUT DATA' : '# DATOS DE ENTRADA DEL CURRÍCULUM VITAE';
+            expect(payload).not.toContain(headerPattern);
+            expect(payload).not.toContain('Claude Shannon');
+            const instructionsPattern = lang === 'en'
+              ? '# INSTRUCTIONS FOR PROVIDING YOUR CV (PDF ATTACHMENT OR TEXT)'
+              : '# INSTRUCCIONES PARA ADJUNTAR TU CV (ARCHIVO PDF O TEXTO)';
+            expect(payload).toContain(instructionsPattern);
+          } else {
+            // 8. Candidate Resume Header
+            const headerPattern = lang === 'en' ? '# CANDIDATE RESUME INPUT DATA' : '# DATOS DE ENTRADA DEL CURRÍCULUM VITAE';
+            const headerIdx = payload.indexOf(headerPattern);
+            expect(headerIdx, `${lang} ${promptId}: header should follow second delimiter`).toBeGreaterThan(secondDelimiter);
 
-          // 9. Formatted CV text
-          const cvNameIdx = payload.indexOf('Claude Shannon', headerIdx);
-          expect(cvNameIdx, `${lang} ${promptId}: CV name should appear after header`).toBeGreaterThan(headerIdx);
+            // 9. Formatted CV text
+            const cvNameIdx = payload.indexOf('Claude Shannon', headerIdx);
+            expect(cvNameIdx, `${lang} ${promptId}: CV name should appear after header`).toBeGreaterThan(headerIdx);
+          }
         });
       });
     });
