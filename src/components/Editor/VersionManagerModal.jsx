@@ -558,6 +558,8 @@ export const VersionManagerModal = ({
           style={{
             flex: 1,
             overflowY: 'auto',
+            maxHeight: 'calc(90vh - 150px)',
+            minHeight: '200px',
             padding: '1.5rem',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',

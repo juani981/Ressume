@@ -70,16 +70,14 @@ export const SectionItemsRenderer = ({
     : descriptor?.containerStyle || {};
 
   const renderedItems = items.map((item, index) => (
-    <React.Fragment key={item.id || index}>
-      <BaseItem
-        item={item}
-        sectionId={sectionId}
-        sectionType={sectionType}
-        isPrint={isPrint}
-        isLast={index === items.length - 1}
-      />
-      {isPrint && '\n'}
-    </React.Fragment>
+    <BaseItem
+      key={item.id || index}
+      item={item}
+      sectionId={sectionId}
+      sectionType={sectionType}
+      isPrint={isPrint}
+      isLast={index === items.length - 1}
+    />
   ));
 
   if (isList && ContainerTag) {

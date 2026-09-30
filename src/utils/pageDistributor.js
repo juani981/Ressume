@@ -311,7 +311,8 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
         }
       }
       if (item.description) {
-        const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+        const paragraphs = String(item.description).split('\n');
+        const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
         h += lines * 20;
       }
       return Math.round(h * fontFactor) + itemGap;
@@ -329,7 +330,8 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'languages': {
       const charsPerLine = calculateCharsPerLine(options, false);
       const text = item.text || item.description || item.name || '';
-      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      const paragraphs = String(text).split('\n');
+      const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
       const h = 22 + (lines - 1) * 20;
       return Math.round(h * fontFactor) + itemGap;
     }
@@ -572,7 +574,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         if (accumulated + baseH + firstBulletH <= availableOnPage) {
           let bAcc = baseH;
           let bIdx = 0;
-          while (bIdx < candidate.bullets.length && (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)) {
+          while (
+            bIdx < candidate.bullets.length &&
+            (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)
+          ) {
             bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
             bIdx++;
           }
@@ -607,10 +612,92 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       }
     }
 
-    // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
+    // If on a page with prior content nothing could fit, advance to a fresh page instead of overflowing
     if (splitIdx === 0 && !partialCandidate) {
-      splitIdx = 1;
-      accumulated += itemHeights[0];
+      if (currentUsedHeight > 0) {
+        currentPage++;
+        currentUsedHeight = 0;
+
+        const freshTotalHeight = headerHeight + totalItemsHeight;
+        if (freshTotalHeight <= pageCapacity) {
+          addToBucket(currentPage, section);
+          currentUsedHeight = freshTotalHeight;
+          continue;
+        }
+
+        const freshAvailable = pageCapacity;
+        let freshAccumulated = headerHeight;
+        let freshSplitIdx = 0;
+
+        while (freshSplitIdx < items.length && (freshAccumulated + itemHeights[freshSplitIdx] <= freshAvailable)) {
+          freshAccumulated += itemHeights[freshSplitIdx];
+          freshSplitIdx++;
+        }
+
+        let freshPartial = null;
+        let freshPartialRemaining = null;
+
+        if (allowGranularBullets && freshSplitIdx < items.length) {
+          const candidate = items[freshSplitIdx];
+          const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
+
+          if (hasBullets) {
+            const baseH = estimateItemBaseHeight(candidate, section.type, options);
+            const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+
+            if (freshAccumulated + baseH + firstBulletH <= freshAvailable) {
+              let bAcc = baseH;
+              let bIdx = 0;
+              while (
+                bIdx < candidate.bullets.length &&
+                (freshAccumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= freshAvailable)
+              ) {
+                bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+                bIdx++;
+              }
+
+              if (bIdx > 0 && bIdx < candidate.bullets.length) {
+                freshPartial = {
+                  ...candidate,
+                  bullets: candidate.bullets.slice(0, bIdx),
+                  originalBullets: candidate.bullets,
+                  bulletStartIndex: 0,
+                  isPartialItem: true,
+                };
+                freshPartialRemaining = {
+                  ...candidate,
+                  id: `${candidate.id}__cont_${currentPage + 1}`,
+                  originalItemId: candidate.id,
+                  title: '',
+                  subtitle: '',
+                  date: '',
+                  link: '',
+                  description: '',
+                  bullets: candidate.bullets.slice(bIdx),
+                  originalBullets: candidate.bullets,
+                  bulletStartIndex: bIdx,
+                  isContinuationItem: true,
+                };
+                freshAccumulated += bAcc;
+              }
+            }
+          }
+        }
+
+        if (freshSplitIdx === 0 && !freshPartial) {
+          freshSplitIdx = 1;
+          freshAccumulated += itemHeights[0];
+        }
+
+        splitIdx = freshSplitIdx;
+        accumulated = freshAccumulated;
+        partialCandidate = freshPartial;
+        partialCandidateRemaining = freshPartialRemaining;
+      } else {
+        // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
+        splitIdx = 1;
+        accumulated += itemHeights[0];
+      }
     }
 
     const page1Items = items.slice(0, splitIdx);

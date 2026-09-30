@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import {
   CheckCircle2,
   Copy,
@@ -6,16 +7,19 @@ import {
   Trash2,
   Calendar,
   Download,
+  Eye,
+  X,
 } from 'lucide-react';
 
 /**
  * VersionCard
  * Renders an individual CV version snapshot card in the Version Manager grid:
- * - Miniature visual thumbnail preview
+ * - Miniature visual thumbnail preview with fixed height (never shrinks)
  * - ATS / 2-Col layout badge
+ * - High-resolution preview lightbox modal on explicit click
  * - Version title or inline rename input
  * - Created date metadata
- * - Action buttons toolbar: Cargar, Duplicar, Descargar JSON, Eliminar
+ * - Action buttons toolbar: Cargar, Previsualizar, Duplicar, Descargar JSON, Eliminar (always visible)
  */
 export const VersionCard = ({
   version,
@@ -31,6 +35,8 @@ export const VersionCard = ({
   onDownloadJSON,
   onConfirmDelete,
 }) => {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   const isAts = Boolean(
     version.cvData?.layout?.isAtsMode || version.cvData?.layout?.type === '1-column'
   );
@@ -58,12 +64,18 @@ export const VersionCard = ({
         flexDirection: 'column',
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        flexShrink: 0,
+        position: 'relative',
       }}
     >
-      {/* Miniature Visual Thumbnail Preview */}
+      {/* Miniature Visual Thumbnail Preview (Fixed size, never shrinks) */}
       <div
+        className="version-thumbnail-container"
         style={{
-          height: '180px',
+          height: '190px',
+          minHeight: '190px',
+          maxHeight: '190px',
+          flexShrink: 0,
           backgroundColor: '#f1f5f9',
           display: 'flex',
           alignItems: 'center',
@@ -71,6 +83,10 @@ export const VersionCard = ({
           overflow: 'hidden',
           position: 'relative',
           borderBottom: '1px solid #e2e8f0',
+          cursor: version.thumbnail ? 'pointer' : 'default',
+        }}
+        onClick={() => {
+          if (version.thumbnail) setIsPreviewOpen(true);
         }}
       >
         {version.thumbnail ? (
@@ -81,6 +97,7 @@ export const VersionCard = ({
               width: '100%',
               height: '100%',
               objectFit: 'contain',
+              display: 'block',
             }}
           />
         ) : (
@@ -108,6 +125,127 @@ export const VersionCard = ({
           {isAts ? 'ATS 1-Col' : '2-Col'}
         </div>
       </div>
+
+      {/* High-Resolution Preview Lightbox Modal (Triggered explicitly by preview button or thumbnail click) */}
+      {isPreviewOpen && version.thumbnail && typeof document !== 'undefined' && ReactDOM.createPortal(
+        <div
+          className="version-large-preview-overlay"
+          data-testid="version-large-preview"
+          onClick={() => setIsPreviewOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            zIndex: 2000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            animation: 'fadeIn 0.15s ease-out',
+            cursor: 'zoom-out',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              maxWidth: '92vw',
+              maxHeight: '94vh',
+              cursor: 'default',
+            }}
+          >
+            {/* Header info badge with Close Button */}
+            <div
+              style={{
+                marginBottom: '10px',
+                padding: '6px 16px',
+                backgroundColor: '#ffffff',
+                borderRadius: '30px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
+                {version.name}
+              </span>
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  backgroundColor: isAts ? '#e0f2fe' : '#ede9fe',
+                  color: isAts ? '#0369a1' : '#6b21a8',
+                  border: `1px solid ${isAts ? '#bae6fd' : '#ddd6fe'}`,
+                }}
+              >
+                {isAts ? 'ATS 1-Col' : '2-Col'}
+              </span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                {formattedDate}
+              </span>
+              <button
+                type="button"
+                data-testid="btn-close-large-preview"
+                aria-label="Cerrar vista previa"
+                onClick={() => setIsPreviewOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  marginLeft: '4px',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* High-Resolution Content Preview Image */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                maxHeight: '82vh',
+                maxWidth: '88vw',
+              }}
+            >
+              <img
+                src={version.thumbnail}
+                alt={`Vista previa ampliada de ${version.name}`}
+                style={{
+                  maxHeight: '82vh',
+                  maxWidth: '88vw',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Card Content */}
       <div
@@ -246,6 +384,33 @@ export const VersionCard = ({
           >
             <CheckCircle2 size={14} />
             Cargar
+          </button>
+
+          {/* Previsualizar */}
+          <button
+            type="button"
+            data-testid="btn-preview-version"
+            aria-label="Previsualizar versión"
+            title="Previsualizar versión"
+            disabled={!version.thumbnail}
+            onClick={() => setIsPreviewOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              padding: '0.45rem 0.65rem',
+              backgroundColor: '#f8fafc',
+              color: version.thumbnail ? '#334155' : '#94a3b8',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              cursor: version.thumbnail ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <Eye size={14} />
+            <span style={{ fontSize: '0.75rem' }}>Ver</span>
           </button>
 
           {/* Duplicar */}
