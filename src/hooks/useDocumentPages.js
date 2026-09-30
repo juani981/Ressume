@@ -37,7 +37,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       omitContinuationTitle: true,
       uniqueContinuationIds: true,
 
-      // Dynamic geometry and slider tokens
+      // Dynamic geometry, typography, and slider tokens
       pageHeightPx: options.pageHeightPx ?? A4_PAGE_HEIGHT_PX,
       pagePaddingPx: options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING,
       fontScale: options.fontScale ?? layout.fontScale ?? 1.0,
@@ -47,6 +47,9 @@ export function useDocumentPages({ cvData, options = {} }) {
       lineHeight: options.lineHeight ?? layout.lineHeight ?? 1.45,
       sectionGapPx: options.sectionGapPx ?? layout.sectionGap ?? 20,
       itemGapPx: options.itemGapPx ?? layout.itemGap ?? 8,
+      leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth ?? 32,
+      fontFamily: options.fontFamily ?? layout.fontFamily ?? 'Inter',
+      photoSize: options.photoSize ?? layout.photoSize,
 
       // Mode resolution
       isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
@@ -72,6 +75,8 @@ export function useDocumentPages({ cvData, options = {} }) {
     layout.sectionGap,
     layout.itemGap,
     layout.leftColumnWidth,
+    layout.fontFamily,
+    layout.photoSize,
     options,
   ]);
 

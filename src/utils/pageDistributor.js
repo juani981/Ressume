@@ -20,6 +20,55 @@ export const DEFAULT_HEADER_HEIGHT_PX = 36;
 export const CONTINUATION_HEADER_HEIGHT_PX = 20;
 
 /**
+ * Calculates effective characters per line based on column width, font family, and scale.
+ * Calibrated against standard 2-column (32%/68%) and ATS layouts for 100% backward compatibility.
+ *
+ * @param {Object} [options={}] - Distribution options
+ * @param {boolean} [forBullets=false] - Whether calculating for indented bullet point lines
+ * @returns {number} Effective characters per line
+ */
+export function calculateCharsPerLine(options = {}, forBullets = false) {
+  const isAts = Boolean(
+    options.isAts ||
+    options.isAtsMode ||
+    options.mode === 'ats' ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+
+  const isLeftCol = !isAts && options.column === 'left';
+  const isRightCol = !isAts && options.column === 'right';
+
+  // Base calibrated characters per line (standard Inter font at 32% left / 68% right)
+  let baseChars = isAts
+    ? (forBullets ? 76 : 80)
+    : (isLeftCol ? (forBullets ? 26 : 28) : (forBullets ? 42 : 44));
+
+  // 1. Column Width Scaling (leftColumnWidth slider: 20% to 45%, default 32%)
+  if (!isAts && typeof options.leftColumnWidth === 'number' && options.leftColumnWidth > 0) {
+    const leftPercent = options.leftColumnWidth;
+    if (isLeftCol && leftPercent !== 32) {
+      baseChars = Math.round(baseChars * (leftPercent / 32));
+    } else if (isRightCol && leftPercent !== 32) {
+      baseChars = Math.round(baseChars * ((100 - leftPercent) / 68));
+    }
+  }
+
+  // 2. Font Family Width Factor
+  const font = String(options.fontFamily || '').toLowerCase();
+  let fontWidthFactor = 1.0;
+  if (font.includes('mono')) {
+    fontWidthFactor = 1.35; // JetBrains Mono / monospace
+  }
+
+  if (fontWidthFactor !== 1.0) {
+    baseChars = Math.round(baseChars / fontWidthFactor);
+  }
+
+  return Math.max(10, baseChars);
+}
+
+/**
  * Estimates the height of a section header in pixels.
  *
  * @param {Object} section - Section configuration
@@ -58,8 +107,10 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
     }
 
     const isLeftCol = options.column === 'left';
-    // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 18 chars
-    const isMultiLine = isLeftCol && section.title.trim().length > 18;
+    const charsPerLine = calculateCharsPerLine({ ...options, column: options.column }, false);
+    // In narrow left column, uppercase titles with letter-spacing (.35rem) wrap to 2 lines if longer than threshold
+    const titleThreshold = isLeftCol ? Math.min(18, Math.round(charsPerLine * 0.65)) : charsPerLine;
+    const isMultiLine = isLeftCol && section.title.trim().length > titleThreshold;
     const lines = isMultiLine ? 2 : 1;
     return Math.round(lines * 24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
   }
@@ -87,13 +138,26 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
     options.mode === '1-column' ||
     options.column === 'single'
   );
-  const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+  const charsPerLine = calculateCharsPerLine(options, false);
 
   let h = isAts ? 38 : 50;
-  if (item.link) h += 16;
-  if (item.description) {
-    const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+  if (item?.title && typeof item.title === 'string') {
+    const titleLines = Math.max(1, Math.ceil(item.title.length / charsPerLine));
+    if (titleLines > 1) {
+      h += (titleLines - 1) * 20;
+    }
+  }
+  if (item?.subtitle && typeof item.subtitle === 'string') {
+    const subLines = Math.max(1, Math.ceil(item.subtitle.length / charsPerLine));
+    if (subLines > 1) {
+      h += (subLines - 1) * 18;
+    }
+  }
+  if (item?.link) h += 16;
+  if (item?.description) {
+    const str = String(item.description);
+    const nlCount = (str.match(/\n/g) || []).length;
+    const descLines = Math.max(nlCount + 1, Math.ceil(str.length / charsPerLine));
     h += descLines * 20;
   }
   return Math.round(h * fontFactor) + Math.round(itemGap * 0.5);
@@ -112,15 +176,7 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
   const fontScale = options.fontScale ?? (options.listScale ?? 1.0);
   const lineHeight = options.lineHeight ?? 1.45;
   const fontFactor = fontScale * (lineHeight / 1.45);
-  const isAts = Boolean(
-    options.isAts ||
-    options.isAtsMode ||
-    options.mode === 'ats' ||
-    options.mode === '1-column' ||
-    options.column === 'single'
-  );
-  const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 26 : (isAts ? 76 : 42);
+  const charsPerLine = calculateCharsPerLine(options, true);
 
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
   const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine)));
@@ -209,30 +265,51 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     }
     case 'contact': {
       if (Array.isArray(item.contacts) && item.contacts.length > 0) {
+        const charsPerLine = calculateCharsPerLine(options, false);
         if (isAts) {
           const rows = Math.ceil(item.contacts.length / 4);
           return Math.round((10 + rows * 18) * fontFactor) + itemGap;
         }
-        const rows = isLeftCol ? item.contacts.length : Math.ceil(item.contacts.length / 2);
+        let totalRows = 0;
+        item.contacts.forEach((c) => {
+          const text = typeof c === 'string' ? c : (c?.value || c?.text || '');
+          const rowsForEntry = Math.max(1, Math.ceil(text.length / charsPerLine));
+          totalRows += rowsForEntry;
+        });
+        const rows = isLeftCol ? totalRows : Math.ceil(totalRows / 2);
         return Math.round((rows * 20) * fontFactor) + itemGap;
       }
       return Math.round(32 * fontFactor) + itemGap;
     }
     case 'about': {
-      const text = item.description || item.text || '';
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
-      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      const text = String(item.description || item.text || '');
+      const charsPerLine = calculateCharsPerLine(options, false);
+      const nlCount = (text.match(/\n/g) || []).length;
+      const lines = Math.max(nlCount + 1, Math.ceil(text.length / charsPerLine));
       return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'skills': {
       const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = calculateCharsPerLine(options, false);
       const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
       return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'education': {
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = calculateCharsPerLine(options, false);
+      const smallCharsPerLine = Math.round(charsPerLine * 1.25);
       let h = isLeftCol ? 54 : (isAts ? 40 : 46);
+      if (item.title && typeof item.title === 'string') {
+        const titleLines = Math.max(1, Math.ceil(item.title.length / smallCharsPerLine));
+        if (titleLines > 1) {
+          h += (titleLines - 1) * 18;
+        }
+      }
+      if (item.subtitle && typeof item.subtitle === 'string') {
+        const subLines = Math.max(1, Math.ceil(item.subtitle.length / smallCharsPerLine));
+        if (subLines > 1) {
+          h += (subLines - 1) * 16;
+        }
+      }
       if (item.description) {
         const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
         h += lines * 20;
@@ -250,7 +327,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = calculateCharsPerLine(options, false);
       const text = item.text || item.description || item.name || '';
       const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
       const h = 22 + (lines - 1) * 20;
@@ -263,7 +340,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
       let h = 36;
       if (item.description || item.text) {
         const str = String(item.description || item.text);
-        const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
+        const charsPerLine = calculateCharsPerLine(options, false);
         h += Math.max(1, Math.ceil(str.length / charsPerLine)) * 18;
       }
       if (Array.isArray(item.bullets)) {
@@ -296,7 +373,8 @@ export function estimateSectionHeight(section, options = {}) {
   const items = Array.isArray(section.items) ? section.items : [];
   const itemsHeight = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
   const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
-  return header + itemsHeight + sectionGap;
+  const bottomSpacing = (typeof section.bottomSpacing === 'number' && section.bottomSpacing > 0) ? section.bottomSpacing : 0;
+  return header + itemsHeight + sectionGap + bottomSpacing;
 }
 
 /**
@@ -414,12 +492,13 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     // 2. If only the header of the section fits in the current page, but not the first item of the section, then jump it to the next page.
     // 3. If the header of the section and n first items of the section fit in the current page, write that in the current page, and the remaining items to the next page.
 
+    const bottomSpacing = (typeof section.bottomSpacing === 'number' && section.bottomSpacing > 0) ? section.bottomSpacing : 0;
     const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
     const gapBefore = currentUsedHeight > 0 ? sectionGap : 0;
     const headerHeight = estimateHeaderHeight(section, false, options);
     const itemHeights = items.map(it => estimateItemHeight(it, section.type, options));
     const totalItemsHeight = itemHeights.reduce((acc, h) => acc + h, 0);
-    const totalSectionHeight = gapBefore + headerHeight + (items.length > 0 ? totalItemsHeight : (section.height || 0));
+    const totalSectionHeight = gapBefore + headerHeight + (items.length > 0 ? totalItemsHeight : (section.height || 0)) + bottomSpacing;
 
     // CRITERION 1: Fits still in the current page -> DO NOT JUMP
     if (currentUsedHeight + totalSectionHeight <= pageCapacity) {
@@ -453,7 +532,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       currentUsedHeight = 0;
 
       // On the fresh page, if the whole section fits now, place it directly
-      const freshTotalHeight = headerHeight + totalItemsHeight;
+      const freshTotalHeight = headerHeight + totalItemsHeight + bottomSpacing;
       if (freshTotalHeight <= pageCapacity) {
         addToBucket(currentPage, section);
         currentUsedHeight = freshTotalHeight;
@@ -510,6 +589,8 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
               ...candidate,
               id: `${candidate.id}__cont_${currentPage + 1}`,
               originalItemId: candidate.id,
+              originalTitle: candidate.title,
+              originalSubtitle: candidate.subtitle,
               title: '',
               subtitle: '',
               date: '',
@@ -637,6 +718,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
     pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
+    leftColumnWidth: layout.leftColumnWidth ?? 32,
+    fontFamily: layout.fontFamily ?? 'Inter',
     isAts,
     isAtsMode: isAts,
     ...options,
@@ -644,7 +727,9 @@ export function distributeSectionsToPages(cvData, options = {}) {
 
   const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  const safetyHeadroom = isAts ? 0 : (mergedOptions.isEditor ? 195 : 100);
+  const safetyHeadroom = isAts 
+    ? (options.atsEditorHeadroom ?? 0) 
+    : (mergedOptions.isEditor ? (options.editorHeadroom ?? 195) : 100);
   const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding - safetyHeadroom);
 
   let singleBuckets = {};

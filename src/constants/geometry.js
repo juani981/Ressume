@@ -8,20 +8,90 @@
 
 import { DEFAULT_PAGE_PADDING } from './spacing.js';
 
+// ---------------------------------------------------------------------------
+// 1. Unified Page Geometry Factory & Format Registry (SSOT)
+// ---------------------------------------------------------------------------
+export const CSS_DPI = 96;
+export const MM_PER_INCH = 25.4;
+
+/**
+ * Creates a complete, mathematically unified page geometry specification.
+ * Automatically computes exact subpixel values, rounded integer pixels for layout,
+ * CSS millimeter strings, and CSS custom property dictionaries.
+ *
+ * @param {Object} params
+ * @param {number} params.widthMm - Physical width in millimeters
+ * @param {number} params.heightMm - Physical height in millimeters
+ * @param {number} [params.dpi=96] - Screen CSS DPI standard
+ * @param {number} [params.gapPx=20] - Separation gap between discrete pages in editor
+ * @param {number} [params.paddingPx=24] - Default page margin/padding
+ * @param {number} [params.scale=1.0] - Document scale
+ * @returns {Readonly<Object>}
+ */
+export function createPageGeometry({
+  widthMm,
+  heightMm,
+  dpi = CSS_DPI,
+  gapPx = 20,
+  paddingPx = DEFAULT_PAGE_PADDING,
+  scale = 1.0,
+}) {
+  const widthCss = `${widthMm}mm`;
+  const heightCss = `${heightMm}mm`;
+  const exactWidthPx = (widthMm * dpi) / MM_PER_INCH;
+  const exactHeightPx = (heightMm * dpi) / MM_PER_INCH;
+  const widthPx = Math.round(exactWidthPx);
+  const heightPx = Math.round(exactHeightPx);
+
+  const cssVariables = Object.freeze({
+    '--a4-page-width': widthCss,
+    '--a4-page-height': heightCss,
+    '--a4-page-width-px': `${widthPx}px`,
+    '--a4-page-height-px': `${heightPx}px`,
+    '--a4-page-gap': `${gapPx}px`,
+    '--a4-page-scale': `${scale}`,
+  });
+
+  return Object.freeze({
+    widthMm,
+    heightMm,
+    widthCss,
+    heightCss,
+    exactWidthPx,
+    exactHeightPx,
+    widthPx,
+    heightPx,
+    gapPx,
+    paddingPx,
+    scale,
+    cssVariables,
+  });
+}
+
+/** Standard Paper Format Specifications */
+export const PAGE_FORMATS = Object.freeze({
+  A4: createPageGeometry({ widthMm: 210, heightMm: 297 }),
+  LETTER: createPageGeometry({ widthMm: 215.9, heightMm: 279.4 }),
+  LEGAL: createPageGeometry({ widthMm: 215.9, heightMm: 355.6 }),
+});
+
+// Canonical A4 Specification Instance
+const CANONICAL_A4 = PAGE_FORMATS.A4;
+
 // 1. Standard ISO 216 A4 Print Dimensions (Strictly 210mm x 297mm)
-export const A4_WIDTH_MM = 210;
-export const A4_HEIGHT_MM = 297;
-export const A4_WIDTH_CSS = '210mm';
-export const A4_HEIGHT_CSS = '297mm';
+export const A4_WIDTH_MM = CANONICAL_A4.widthMm;
+export const A4_HEIGHT_MM = CANONICAL_A4.heightMm;
+export const A4_WIDTH_CSS = CANONICAL_A4.widthCss;
+export const A4_HEIGHT_CSS = CANONICAL_A4.heightCss;
 
 // 96 DPI CSS Pixel conversions (1 inch = 25.4mm, 96px / 25.4mm)
-export const A4_EXACT_WIDTH_PX = (210 * 96) / 25.4; // ~793.70px
-export const A4_EXACT_HEIGHT_PX = (297 * 96) / 25.4; // ~1122.52px
+export const A4_EXACT_WIDTH_PX = CANONICAL_A4.exactWidthPx; // ~793.70px
+export const A4_EXACT_HEIGHT_PX = CANONICAL_A4.exactHeightPx; // ~1122.52px
 
-export const A4_WIDTH_PX = 794;
-export const A4_PAGE_HEIGHT_PX = 1123;
-export const A4_GAP_PX = 20;
-export const A4_DOCUMENT_SCALE = 1.0;
+export const A4_WIDTH_PX = CANONICAL_A4.widthPx; // 794
+export const A4_PAGE_HEIGHT_PX = CANONICAL_A4.heightPx; // 1123
+export const A4_GAP_PX = CANONICAL_A4.gapPx; // 20
+export const A4_DOCUMENT_SCALE = CANONICAL_A4.scale; // 1.0
 
 // Aliases for print-specific notation
 export const A4_PRINT_WIDTH_MM = A4_WIDTH_MM;

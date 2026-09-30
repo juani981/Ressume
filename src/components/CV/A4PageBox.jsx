@@ -12,7 +12,7 @@
  *   rendering .resume__single-column.
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../constants';
 
 const flattenChildren = (children) => {
@@ -103,10 +103,58 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftStyle = {},
     rightStyle = {},
     singleColumnStyle = {},
+    isOverflowed,
     ...restProps
   },
   ref
 ) {
+  const boxRef = useRef(null);
+  const [internalOverflow, setInternalOverflow] = useState(false);
+  const effectiveOverflow = Boolean(isOverflowed ?? internalOverflow);
+
+  // Sync ref with boxRef
+  const setRefs = useCallback(
+    (node) => {
+      boxRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    },
+    [ref]
+  );
+
+  useEffect(() => {
+    if (!showBadge) return;
+    const checkOverflow = () => {
+      const node = boxRef.current;
+      if (!node) return;
+      const boxOverflow = node.scrollHeight > node.clientHeight + 4;
+      const leftCol = node.querySelector('.resume__left');
+      const rightCol = node.querySelector('.resume__right');
+      const singleCol = node.querySelector('.resume__single-column');
+      const leftOverflow = leftCol ? leftCol.scrollHeight > leftCol.clientHeight + 4 : false;
+      const rightOverflow = rightCol ? rightCol.scrollHeight > rightCol.clientHeight + 4 : false;
+      const singleOverflow = singleCol ? singleCol.scrollHeight > singleCol.clientHeight + 4 : false;
+
+      setInternalOverflow(boxOverflow || leftOverflow || rightOverflow || singleOverflow);
+    };
+
+    checkOverflow();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(checkOverflow) : null;
+    if (ro && boxRef.current) {
+      ro.observe(boxRef.current);
+      const leftCol = boxRef.current.querySelector('.resume__left');
+      const rightCol = boxRef.current.querySelector('.resume__right');
+      const singleCol = boxRef.current.querySelector('.resume__single-column');
+      if (leftCol) ro.observe(leftCol);
+      if (rightCol) ro.observe(rightCol);
+      if (singleCol) ro.observe(singleCol);
+    }
+    return () => ro?.disconnect();
+  }, [showBadge, children, leftContent, rightContent, singleColumnContent]);
+
   // Effective mode: if isAtsMode is true, it forces 1-column layout
   const effective2Col = Boolean(is2Col && !isAtsMode);
 
@@ -141,6 +189,8 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     zIndex: 1,
     margin: '0 auto 32px auto',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    outline: (showBadge && effectiveOverflow) ? '2px dashed rgba(233, 49, 71, 0.85)' : undefined,
+    outlineOffset: '-2px',
     gridColumn: '1 / -1',
     ...(effective2Col
       ? {
@@ -386,7 +436,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
 
   return (
     <div
-      ref={ref}
+      ref={setRefs}
       className={classNames}
       data-page-number={pageNumber}
       data-total-pages={totalPages}
@@ -434,6 +484,35 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               ✕
             </button>
           )}
+        </div>
+      )}
+
+      {showBadge && effectiveOverflow && (
+        <div
+          className="obsidian-callout obsidian-callout-danger no-print a4-overflow-warning"
+          data-testid={`a4-page-overflow-warning-${pageNumber}`}
+          data-editor-ui="true"
+          role="alert"
+          style={{
+            position: 'absolute',
+            bottom: '8px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            background: 'rgba(233, 49, 71, 0.95)',
+            borderLeft: '4px solid rgba(233, 49, 71, 1)',
+            borderRadius: '4px',
+            padding: '6px 14px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+            color: '#ffffff',
+            pointerEvents: 'none',
+            maxWidth: '90%',
+          }}
+        >
+          <div className="callout-title" style={{ display: 'flex', gap: '8px', fontWeight: 600, alignItems: 'center' }}>
+            <span>🛑</span>
+            <span>Desbordamiento de página {pageNumber}: El contenido excede los 297mm físicos.</span>
+          </div>
         </div>
       )}
     </div>
