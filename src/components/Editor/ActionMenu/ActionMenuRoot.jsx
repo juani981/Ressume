@@ -14,6 +14,8 @@ import {
   History,
   BotMessageSquare,
   FileX,
+  Globe,
+  FileUp,
 } from 'lucide-react';
 
 export const ActionMenuRoot = () => {
@@ -31,6 +33,8 @@ export const ActionMenuRoot = () => {
 
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiModalPromptId, setAiModalPromptId] = useState('recruiter_audit');
+  const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
@@ -190,13 +194,17 @@ export const ActionMenuRoot = () => {
           </span>
         </div>
 
-        {/* Generar Prompts de IA */}
+        {/* Generar Prompts de IA (Unidireccional: Auditoría ATS, Entrevistas, STAR) */}
         <div className="action-menu-btn-wrap">
           <button
             type="button"
             className="action-menu-btn"
             id="ia-prompts-item"
-            onClick={() => setIsAIModalOpen(true)}
+            onClick={() => {
+              setAiModalPromptId('recruiter_audit');
+              setIsUnidirectionalOnly(true);
+              setIsAIModalOpen(true);
+            }}
             style={{ color: '#BE00F7' }}
             aria-label="Generar Prompts de IA"
             title="Generar Prompts de IA"
@@ -204,6 +212,46 @@ export const ActionMenuRoot = () => {
             <BotMessageSquare />
           </button>
           <span className="action-menu-tooltip">Generar Prompts para análisis</span>
+        </div>
+
+        {/* Traducir CV a Inglés US Tech (Modo Bidireccional Independiente 1) */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="translation-hub-btn action-menu-hub-btn"
+            id="translation-action-item"
+            data-testid="btn-open-translation"
+            onClick={() => {
+              setAiModalPromptId('translate_english');
+              setIsUnidirectionalOnly(false);
+              setIsAIModalOpen(true);
+            }}
+            aria-label="Traducir CV (Inglés US Tech)"
+            title="Traducir CV a Inglés (US Tech) u otros idiomas"
+          >
+            <Globe size={20} color="#10b981" />
+          </button>
+          <span className="action-menu-tooltip">Traducir CV (Inglés US Tech)</span>
+        </div>
+
+        {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="byo-cv-hub-btn action-menu-hub-btn"
+            id="byo-cv-action-item"
+            data-testid="btn-open-byo-cv"
+            onClick={() => {
+              setAiModalPromptId('bring_your_own_cv');
+              setIsUnidirectionalOnly(false);
+              setIsAIModalOpen(true);
+            }}
+            aria-label="Trae tu propio CV (PDF a ATS 1:1)"
+            title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
+          >
+            <FileUp size={20} color="#f59e0b" />
+          </button>
+          <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
         </div>
 
         <hr
@@ -282,7 +330,12 @@ export const ActionMenuRoot = () => {
       />
 
       {/* Modales */}
-      <AIExportModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
+      <AIExportModal 
+        isOpen={isAIModalOpen} 
+        onClose={() => setIsAIModalOpen(false)} 
+        initialPromptId={aiModalPromptId}
+        unidirectionalOnly={isUnidirectionalOnly}
+      />
       <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
     </>

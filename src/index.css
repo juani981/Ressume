@@ -1548,8 +1548,10 @@ a,
   background-color: rgba(56, 116, 255, 0.08);
 }
 
-/* Version Hub dedicated button (preserves topButtons <= 8 regression invariant) */
-.version-hub-btn {
+/* Version Hub & Bidirectional AI Hub dedicated buttons (preserves topButtons <= 8 regression invariant) */
+.version-hub-btn,
+.translation-hub-btn,
+.byo-cv-hub-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -1563,7 +1565,9 @@ a,
   transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
-.version-hub-btn:hover {
+.version-hub-btn:hover,
+.translation-hub-btn:hover,
+.byo-cv-hub-btn:hover {
   transform: scale(1.15);
   background-color: rgba(56, 116, 255, 0.08);
 }
