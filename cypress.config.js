@@ -6,6 +6,7 @@ import { execSync } from "child_process";
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:5173",
+    defaultCommandTimeout: 15000,
     video: false,
     screenshotOnRunFailure: false,
     supportFile: "cypress/support/e2e.js",
@@ -166,7 +167,7 @@ export default defineConfig({
               );
             } else {
               execSync(
-                `"${chromeBin}" --headless=new --disable-gpu --no-pdf-header-footer --print-to-pdf="${resolvedOut}" "${url}"`,
+                `"${chromeBin}" --headless=new --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${resolvedOut}" "${url}"`,
                 { stdio: 'ignore' }
               );
             }

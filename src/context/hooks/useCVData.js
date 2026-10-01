@@ -195,7 +195,17 @@ export const useCVData = ({
     });
   }, [applyStateWithHistory]);
   const reorderSections = useCallback((newSections) => {
-    applyStateWithHistory(prev => ({ ...prev, sections: newSections }));
+    applyStateWithHistory(prev => ({
+      ...prev,
+      sections: newSections.map(s => {
+        const clean = { ...s };
+        delete clean.targetPage;
+        delete clean.page;
+        delete clean.breakBefore;
+        delete clean.pageBreak;
+        return clean;
+      })
+    }));
   }, [applyStateWithHistory]);
   const updateSectionTitle = useCallback((sectionId, title) => {
     applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, title } : s) }));
@@ -276,7 +286,20 @@ export const useCVData = ({
     });
   }, [applyStateWithHistory]);
   const reorderSectionItems = useCallback((sectionId, newItems) => {
-    applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: newItems } : s) }));
+    applyStateWithHistory(prev => ({
+      ...prev,
+      sections: prev.sections.map(s => s.id === sectionId ? {
+        ...s,
+        items: newItems.map(it => {
+          const clean = { ...it };
+          delete clean.targetPage;
+          delete clean.page;
+          delete clean.breakBefore;
+          delete clean.pageBreak;
+          return clean;
+        })
+      } : s)
+    }));
   }, [applyStateWithHistory]);
 
   const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId, position = null) => {
@@ -307,21 +330,32 @@ export const useCVData = ({
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
           const updatedItems = [...sourceSec.items];
           const [moved] = updatedItems.splice(oldIndex, 1);
-          updatedItems.splice(newIndex, 0, moved);
+          const cleanMoved = { ...moved };
+          delete cleanMoved.breakBefore;
+          delete cleanMoved.pageBreak;
+          delete cleanMoved.targetPage;
+          delete cleanMoved.page;
+          updatedItems.splice(newIndex, 0, cleanMoved);
           return { ...prev, sections: prev.sections.map(s => s.id === activeSectionId ? { ...s, items: updatedItems } : s) };
         }
         return prev;
       }
 
       const adaptedItem = adaptItemToSectionType(sourceItem, targetSec.type);
+      const cleanAdaptedItem = { ...adaptedItem };
+      delete cleanAdaptedItem.breakBefore;
+      delete cleanAdaptedItem.pageBreak;
+      delete cleanAdaptedItem.targetPage;
+      delete cleanAdaptedItem.page;
+
       const newSourceItems = sourceSec.items.filter(i => i.id !== activeItemId);
       const newTargetItems = [...(targetSec.items || [])];
       const insertIndex = newTargetItems.findIndex(i => i.id === overItemId);
       if (insertIndex === -1) {
-        newTargetItems.push(adaptedItem);
+        newTargetItems.push(cleanAdaptedItem);
       } else {
         const finalInsertIndex = (position === 'below' || position === 'after') ? insertIndex + 1 : insertIndex;
-        newTargetItems.splice(finalInsertIndex, 0, adaptedItem);
+        newTargetItems.splice(finalInsertIndex, 0, cleanAdaptedItem);
       }
 
       return {

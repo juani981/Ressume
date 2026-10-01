@@ -228,5 +228,5 @@ En cualquier campo interactivo (`InlineEdit.jsx`), el editor responde a atajos e
 
 - [Arquitectura del Editor](arquitectura.md): Estructura general y orquestación de componentes.
 - [Guía de Extensibilidad de Secciones](guia-extensibilidad-secciones.md): Tutorial para agregar nuevas secciones con sus iconos Lucide.
-- [Motor de Impresión PDF](motor-impresion-pdf.md): Purga de elementos de UI interactiva durante la exportación.
+- [Invariantes de Impresión PDF](../FRACASO_SALTOS_DE_PAGINA.md): Directivas obligatorias de impresión sin reflow dinámico y cajas A4.
 - [Manual de Desarrollo](DEVELOPMENT_MANUAL.md): Guía de desarrollo y estándares de contribución.

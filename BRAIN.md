@@ -269,18 +269,20 @@ Following **Rule 15** and **Rule 16** of `AGENTS.md`:
 
 ### Key files
 
-- `src/constants/geometry.js` / `src/utils/pageGeometry.js` — Dimensions (`A4_WIDTH_PX = 794`, `A4_PAGE_HEIGHT_PX = 1123`, `EDITOR_HEIGHT_REDUCTION_MM = 25`, `EDITOR_PAGE_HEIGHT_MM = 272`).
-- `src/utils/pageDistributor.js` — Pure deterministic algorithm partitioning sections and items into discrete pages based on content height budgets.
-- `src/hooks/useDocumentPages.js` — React hook wrapping `pageDistributor.js` with reactive updates based on `cvData`.
-- `src/components/CV/A4PageBox.jsx` — Visual and physical A4 container component rendering individual pages with independent column layouts and background extensions.
-- `src/services/print/` — Modular print suite: `pdfTitleService.js`, `cleanHtmlGenerator.js`, `printExecutionDriver.js`.
+- `src/constants/geometry.js` / `src/utils/pageGeometry.js` — Dimensions (`A4_WIDTH_PX = 794`, `A4_PAGE_HEIGHT_PX = 1123`, `EDITOR_HEIGHT_REDUCTION_MM = 0`, `EDITOR_PAGE_HEIGHT_MM = 297`).
+- `src/utils/pageDistributor.js` — Pure deterministic algorithm partitioning sections and items into discrete pages based on content height budgets, with bullet-level splitting and DOM measurement overrides.
+- `src/hooks/useDocumentPages.js` — React hook wrapping `pageDistributor.js` with an empirical `ResizeObserver` DOM geometry calibration loop and zero-headroom configuration (`editorHeadroom = 0`).
+- `src/components/CV/A4PageBox.jsx` — Visual and physical A4 container component (`210mm x 297mm`, `overflow: hidden`) rendering individual pages with independent column layouts, background extensions, and Obsidian danger overflow callouts.
+- `src/services/print/` — Modular print suite: `pdfTitleService.js`, `cleanHtmlGenerator.js`, `printExecutionDriver.js` (`createSanitizedPrintClone` WYSIWYG DOM mirroring).
 
 ### How it works
 
-1. **Standard ISO 216 Geometry**: Dimensions are centralized in `src/constants/geometry.js`. In print: 210mm x 297mm (794px x 1123px at 96 DPI). In the editor: 272mm content budget (`EDITOR_HEIGHT_REDUCTION_MM = 25`) to prevent false-fit overflow.
-2. **Deterministic Partitioning (`pageDistributor.js`)**: Calculates the height of sections and items based on typography and line-height tokens, placing items sequentially across discrete page models.
-3. **Discrete Page Rendering (`<A4PageBox>`)**: Rendered directly in `App.jsx` (`pages.map(pageModel => <A4PageBox ...>)`). In 2-column mode, left and right columns run independently inside each box.
-4. **Zero Reflow on Print**: The print engine projects the exact discrete DOM tree produced by the editor.
+1. **Unified ISO 216 Geometry (1:1 Fixed Canvas)**: Dimensions are centralized in `src/constants/geometry.js`. In both editor and print: strictly 210mm x 297mm (794px x 1123px at 96 DPI, `EDITOR_HEIGHT_REDUCTION_MM = 0`). No artificial reductions or continuous scroll canvases with fake fold lines.
+2. **Deterministic Partitioning (`pageDistributor.js`)**: Calculates the height of sections and items based on typography and line-height tokens, placing items sequentially across discrete page models. Granular splitting is supported down to individual bullet points (`isContinuationItem`).
+3. **Empirical DOM Calibration Loop (`useDocumentPages.js`)**: A debounced `ResizeObserver` observes `#area-cv`, captures the actual rendered heights of sections and items (`measuredHeights`, `measuredItemHeights`), and feeds them into the distributor to eliminate discrepancies caused by font rendering or multi-line text wraps.
+4. **Discrete Page Rendering (`<A4PageBox>`)**: Rendered directly in `App.jsx` (`pages.map(pageModel => <A4PageBox ...>)`). In 2-column mode, left and right columns run independently inside each box.
+5. **Zero Reflow on Print**: The print engine (`printExecutionDriver.js`) clones the sanitized live DOM tree of `.a4-page-box` elements without executing dynamic reflow, maintaining absolute WYSIWYG parity.
+6. **Architectural Boundary Note**: Document flow operates at the section, item, and bullet level. Monolithic single-paragraph blocks (e.g. `about`) do not perform intra-paragraph word-level page splitting; edits commit to React state on `onBlur` via `InlineEdit.jsx`.
 
 
 ---

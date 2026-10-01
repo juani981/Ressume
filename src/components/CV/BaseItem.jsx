@@ -60,7 +60,14 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
       style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     >
       {ItemComponent && (
-        <ItemComponent item={item} sectionId={sectionId} isPrint={true} isLast={isLast && !isPartial} />
+        <ItemComponent 
+          item={item} 
+          sectionId={sectionId} 
+          isPrint={true} 
+          isLast={isLast && !isPartial} 
+          isPartial={isPartial}
+          isContinuation={isContinuation}
+        />
       )}
     </ItemTag>
   );
@@ -154,6 +161,8 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         <ItemComponent 
           item={item} 
           sectionId={sectionId} 
+          isPartial={isPartial}
+          isContinuation={isContinuation}
           onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
         />
       )}

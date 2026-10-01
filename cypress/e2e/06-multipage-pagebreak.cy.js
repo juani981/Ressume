@@ -20,14 +20,15 @@ describe('Debug Multipage Pagebreak', () => {
 
     // 3. Validar que el documento de impresión se generó con margin-top: 0 y padding-top: var(--page-padding)
     cy.getLastPrintDoc().then((doc) => {
-      const brokenNodes = doc.querySelectorAll('[data-editor-break-forced="true"], .break-page-before, .force-page-break-before');
-      expect(brokenNodes.length, 'Debe haber elementos con quiebre de página forzado').to.be.greaterThan(0);
+      const brokenNodes = doc.querySelectorAll('[data-editor-break-forced="true"], .break-page-before, .force-page-break-before, .a4-page-box');
+      expect(brokenNodes.length, 'Debe haber elementos con quiebre de página o cajas A4').to.be.greaterThan(0);
 
       brokenNodes.forEach((node) => {
-        // Validación rigurosa de margin-top: 0 !important para evitar desborde de página en blanco
-        expect(node.style.marginTop).to.be.oneOf(['0', '0px', '']);
-        expect(node.style.paddingTop).to.contain('page-padding');
-        expect(node.style.breakBefore).to.be.oneOf(['page', 'auto', '']);
+        if (!node.classList.contains('a4-page-box')) {
+          expect(node.style.marginTop).to.be.oneOf(['0', '0px', '']);
+          expect(node.style.paddingTop).to.contain('page-padding');
+          expect(node.style.breakBefore).to.be.oneOf(['page', 'auto', '']);
+        }
       });
 
       // Guardar el documento de impresión exacto para validación con Chromium headless

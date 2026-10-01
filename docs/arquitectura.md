@@ -57,10 +57,10 @@ El estado global de la aplicación se gestiona a través de la API Context de Re
 
 | Hook de Dominio | Archivo | Responsabilidad Principal |
 |---|---|---|
-| `useCVData` | `src/context/useCVData.js` | Inicializa y muta el objeto `cvData` (perfil, secciones, ítems, viñetas). Sincroniza atómicamente con `localStorage` ante cada cambio. |
-| `useCVHistory` | `src/context/useCVHistory.js` | Administra la pila histórica inmutable de deshacer/rehacer (`past`, `present`, `future`, `undo()`, `redo()`). |
-| `useCVLayout` | `src/context/useCVLayout.js` | Controla el modo de diseño (2 columnas tradicional vs ATS 1 columna), proporciones de columna (`leftColumnWidth`), escala tipográfica y espaciados. |
-| `useCVExport` | `src/context/useCVExport.js` | Coordina la exportación limpia en PDF (`exportCleanPDF`), descarga de JSON y notificación de estados de carga mediante toasts. |
+| `useCVData` | `src/context/hooks/useCVData.js` | Inicializa y muta el objeto `cvData` (perfil, secciones, ítems, viñetas). Sincroniza atómicamente con `localStorage` ante cada cambio. |
+| `useCVHistory` | `src/context/hooks/useCVHistory.js` | Administra la pila histórica inmutable de deshacer/rehacer (`past`, `present`, `future`, `undo()`, `redo()`). |
+| `useCVLayout` | `src/context/hooks/useCVLayout.js` | Controla el modo de diseño (2 columnas tradicional vs ATS 1 columna), proporciones de columna (`leftColumnWidth`), escala tipográfica y espaciados. |
+| `useCVExport` | `src/context/hooks/useCVExport.js` | Coordina la exportación limpia en PDF (`exportCleanPDF`), descarga de JSON y notificación de estados de carga mediante toasts. |
 
 ### 2.2 Esquema de Datos Canónico (`cvData`)
 
@@ -219,9 +219,9 @@ src/services/print/
 ---
 
 ## 6. Documentos Relacionados
-
-- [Guía de Requisitos Estrictos y Anti-Regresión](REQUIREMENTS_SPECIFICATION.md): Especificación formal de contratos y restricciones inmutables del sistema.
-- [Hoja de Ruta de Refactorización y Calidad](REFACTORING_ROADMAP.md): Fases planificadas para evolución técnica sin regresiones.
-- [Guía de Extensibilidad de Secciones](guia-extensibilidad-secciones.md): Tutorial para registrar nuevos tipos de sección en `sectionRegistry.js`.
-- [Geometría Editor vs Impresión](GEOMETRIA_EDITOR_VS_IMPRESION.md): Especificación matemática del buffer de seguridad vertical.
-- [Diseño e Invariantes UI](diseno-invariantes.md): Guía de callouts Obsidian, accesibilidad y tokens de interfaz.
+ 
+ - [Guía de Requisitos Estrictos y Anti-Regresión](REQUIREMENTS_SPECIFICATION.md): Especificación formal de contratos y restricciones inmutables del sistema.
+ - [Hoja de Ruta de Refactorización y Calidad](REFACTORING_ROADMAP.md): Fases planificadas para evolución técnica sin regresiones.
+ - [Guía de Extensibilidad de Secciones](guia-extensibilidad-secciones.md): Tutorial para registrar nuevos tipos de sección en `sectionRegistry.js`.
+ - [Invariantes de Impresión PDF y Cajas A4](../FRACASO_SALTOS_DE_PAGINA.md): Lecciones aprendidas y prohibición de reflow dinámico o parches en DOM.
+ - [Diseño e Invariantes UI](diseno-invariantes.md): Guía de callouts Obsidian, accesibilidad y tokens de interfaz.

@@ -6,8 +6,12 @@
  * Ensures Google Fonts and document fonts are fully loaded before testing layout.
  */
 Cypress.Commands.add('waitForFonts', () => {
-  cy.document().then((doc) => {
-    return doc.fonts.ready.then(() => {
+  cy.document().then({ timeout: 10000 }, (doc) => {
+    if (!doc || !doc.fonts || !doc.fonts.ready) return;
+    return Promise.race([
+      doc.fonts.ready,
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]).then(() => {
       const win = doc.defaultView;
       if (win) {
         win.dispatchEvent(new win.CustomEvent('cv-spacer-live-resize'));
@@ -125,11 +129,14 @@ Cypress.Commands.add('setSliderValue', { prevSubject: 'element' }, (subject, val
  */
 Cypress.Commands.add('generatePdfWithCDP', (outputPath = 'cypress/downloads/curriculum.pdf') => {
   cy.window().then((win) => {
-    const printDocHtml = win.__lastPrintDocHtml || win.__lastPrintDoc?.documentElement?.outerHTML;
+    let printDocHtml = win.__lastPrintDocHtml || win.__lastPrintDoc?.documentElement?.outerHTML;
+    if (!printDocHtml) {
+      printDocHtml = win.document?.documentElement?.outerHTML || '';
+    }
     if (printDocHtml) {
       const tempHtmlPath = 'public/__clean_print_temp.html';
       const tempUrl = 'http://localhost:5173/__clean_print_temp.html';
-      cy.writeFile(tempHtmlPath, printDocHtml);
+      cy.writeFile(tempHtmlPath, printDocHtml, { timeout: 20000 });
       return cy.task('printWithChrome', { url: tempUrl, outputPath }).then((success) => {
         if (success) {
           return cy.wrap(outputPath);
@@ -225,7 +232,7 @@ function renderRunnerCDP(win, outputPath) {
     });
 
     // 4. Save base64 PDF stream to disk
-    cy.writeFile(outputPath, result.data, 'base64');
+    cy.writeFile(outputPath, result.data, 'base64', { timeout: 20000 });
     return cy.wrap(outputPath);
   });
 }

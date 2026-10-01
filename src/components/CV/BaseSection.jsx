@@ -123,7 +123,7 @@ export const PrintBaseSection = ({ section }) => {
         data-section-id={section.id}
         style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
       >
-        {descriptor.hasTitle !== false && section.title && (
+        {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
           <h2 
             className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
             data-section-title={section.id}

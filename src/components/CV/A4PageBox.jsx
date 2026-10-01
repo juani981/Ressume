@@ -98,6 +98,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     showBadge = true,
     badgeText,
     onDeletePage,
+    onMoveOverflowToNextPage,
     className = '',
     style = {},
     leftStyle = {},
@@ -487,6 +488,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
         </div>
       )}
 
+
       {showBadge && effectiveOverflow && (
         <div
           className="obsidian-callout obsidian-callout-danger no-print a4-overflow-warning"
@@ -499,20 +501,48 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 100,
-            background: 'rgba(233, 49, 71, 0.95)',
+            background: 'rgba(233, 49, 71, 0.1)',
             borderLeft: '4px solid rgba(233, 49, 71, 1)',
             borderRadius: '4px',
             padding: '6px 14px',
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-            color: '#ffffff',
-            pointerEvents: 'none',
-            maxWidth: '90%',
+            color: '#b91c1c',
+            pointerEvents: 'auto',
+            maxWidth: '92%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
           }}
         >
           <div className="callout-title" style={{ display: 'flex', gap: '8px', fontWeight: 600, alignItems: 'center' }}>
             <span>🛑</span>
             <span>Desbordamiento de página {pageNumber}: El contenido excede los 297mm físicos.</span>
           </div>
+          {typeof onMoveOverflowToNextPage === 'function' && (
+            <button
+              type="button"
+              className="obsidian-callout-action-btn no-print"
+              data-testid={`a4-page-overflow-action-${pageNumber}`}
+              onClick={() => onMoveOverflowToNextPage(pageNumber)}
+              style={{
+                background: '#b91c1c',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              Pasar sobrante a Página {pageNumber + 1} ➔
+            </button>
+          )}
         </div>
       )}
     </div>

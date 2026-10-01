@@ -370,5 +370,5 @@ describe('Sección Portfolio en Registry', () => {
 
 - [Arquitectura del Editor](arquitectura.md): Estructura general, ciclo de vida del estado y jerarquía de componentes.
 - [Diseño e Invariantes](diseno-invariantes.md): Paleta de colores, tokens de tipografía y estándares visuales.
-- [Motor de Impresión PDF](motor-impresion-pdf.md): Pipeline estático y preservación de geometrías.
+- [Invariantes de Impresión PDF](../FRACASO_SALTOS_DE_PAGINA.md): Pipeline estático y preservación de geometrías.
 - [Manual de Desarrollo](DEVELOPMENT_MANUAL.md): Guía de desarrollo y comandos de test.

@@ -134,7 +134,25 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     if (typeof applyStateWithHistory !== 'function') return;
     applyStateWithHistory(prev => ({
       ...prev,
-      sections: prev.sections.map(sec => sec.id === sectionId ? { ...sec, column: newColumn } : sec)
+      sections: prev.sections.map(sec => {
+        if (sec.id !== sectionId) return sec;
+        const updatedSec = { ...sec, column: newColumn };
+        delete updatedSec.breakBefore;
+        delete updatedSec.pageBreak;
+        delete updatedSec.targetPage;
+        delete updatedSec.page;
+        if (Array.isArray(updatedSec.items)) {
+          updatedSec.items = updatedSec.items.map(it => {
+            const clean = { ...it };
+            delete clean.breakBefore;
+            delete clean.pageBreak;
+            delete clean.targetPage;
+            delete clean.page;
+            return clean;
+          });
+        }
+        return updatedSec;
+      })
     }));
   }, [applyStateWithHistory]);
 
@@ -149,6 +167,20 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
       }
 
       const updatedSec = { ...activeSec, column: targetColumn };
+      delete updatedSec.breakBefore;
+      delete updatedSec.pageBreak;
+      delete updatedSec.targetPage;
+      delete updatedSec.page;
+      if (Array.isArray(updatedSec.items)) {
+        updatedSec.items = updatedSec.items.map(it => {
+          const clean = { ...it };
+          delete clean.breakBefore;
+          delete clean.pageBreak;
+          delete clean.targetPage;
+          delete clean.page;
+          return clean;
+        });
+      }
       const remainingSections = prev.sections.filter(s => s.id !== activeSectionId);
 
       let insertIndex = -1;

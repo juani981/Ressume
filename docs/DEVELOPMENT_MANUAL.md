@@ -7,10 +7,10 @@ Este documento establece las pautas de arquitectura, estructura de directorios, 
 ## 1. Guías Técnicas Especializadas en `/docs`
 
 Para profundizar en áreas específicas del sistema, consulte las guías técnicas autoritativas:
-- **[Arquitectura del Editor y Flujo de Datos](arquitectura.md)**: Flujo de datos unidireccional con `CVContext.jsx`, descomposición modular en hooks (`usePaginationEngine`, `useCVDndCoordinator`, `useColumnResizer`), subcomponentes de presentación y utilidades de geometría y color.
+- **[Arquitectura del Editor y Flujo de Datos](arquitectura.md)**: Flujo de datos unidireccional con `CVContext.jsx`, descomposición modular en hooks (`useDocumentPages`, `useCVDndCoordinator`, `useColumnResizer`), subcomponentes de presentación y utilidades de geometría y color.
 - **[Guía de Extensibilidad de Secciones e Ítems](guia-extensibilidad-secciones.md)**: Tutorial paso a paso para añadir nuevas secciones mediante `src/registry/sectionRegistry.js` respetando el patrón Open/Closed y Template + Strategy sin tocar componentes del núcleo.
 - **[Diseño, Invariantes y Accesibilidad](diseno-invariantes.md)**: Estándar visual Obsidian Callouts, exclusividad de `@dnd-kit`, posicionamiento dinámico de tooltips con `getBoundingClientRect()`, tokens tipográficos y unificación de iconos en `lucide-react`.
-- **[Motor de Impresión PDF y Paridad Visual](motor-impresion-pdf.md)**: Pipeline de renderizado estático en iframe (`executeCleanPrint`), hoja de estilos única `print.css`, ancho estándar de 794px, `box-decoration-break: slice` y prevención de rupturas de super-contenedores.
+- **[Invariante de Paginación e Impresión PDF](../FRACASO_SALTOS_DE_PAGINA.md)**: Proyección 1:1 sin reflow dinámico (`executeCleanPrint` en `src/services/print/`), cajas discretas A4 (`210mm x 297mm`, `overflow: hidden`) y prohibición de `break-before` en selectores repetidos.
 
 ---
 
@@ -21,14 +21,16 @@ El código fuente de la aplicación se encuentra estructurado en `src/`:
 ```text
 ├── src/
 │   ├── components/
-│   │   ├── CV/                # Componentes de renderizado del currículum (BaseSection, BaseItem, items/)
-│   │   │   └── items/         # Renderizadores atómicos de ítems (ExperienceItem, EducationItem, etc.)
-│   │   └── Editor/            # Componentes de UI interactiva (ActionMenu, DragHandle, A4PageGuides, Modals)
-│   ├── context/               # Estado Global y Fachada (CVContext.jsx, useCVData, useCVHistory, useCVLayout, useCVExport)
-│   ├── hooks/                 # Custom hooks modulares (usePaginationEngine, useCVDndCoordinator, useColumnResizer)
+│   │   ├── CV/                # Componentes de renderizado del currículum (BaseSection, BaseItem, A4PageBox, items/)
+│   │   │   └── items/         # Renderizadores atómicos de ítems (ExperienceItem, EducationItem, CertificatesItem, etc.)
+│   │   └── Editor/            # Componentes de UI interactiva (ActionMenu, DragHandle, InlineEdit, Modals)
+│   ├── constants/             # SSOT canónico (geometry.js, spacing.js, typography.js, colors.js)
+│   ├── context/               # Estado Global y Fachada (CVContext.jsx, hooks/useCVData, hooks/useCVHistory, hooks/useCVLayout, hooks/useCVExport)
+│   ├── hooks/                 # Custom hooks modulares (useDocumentPages, useCVDndCoordinator, useColumnResizer)
 │   ├── registry/              # Catálogo abierto de secciones (sectionRegistry.js, itemFormatters.js)
+│   ├── services/print/        # Pipeline de impresión (cleanHtmlGenerator.js, printExecutionDriver.js, pdfTitleService.js)
 │   ├── styles/                # Estilos dedicados (print.css - SSOT de impresión)
-│   ├── utils/                 # Utilidades puras (pageGeometry.js, colorUtils.js, typographyUtils.js, paginationEngine.js, staticHtmlPdfEngine.js)
+│   ├── utils/                 # Utilidades puras (pageGeometry.js, pageDistributor.js, colorUtils.js, typographyUtils.js)
 │   ├── tests/                 # Suites de pruebas automatizadas en Vitest
 │   ├── index.css              # Estilos base y tokens CSS en pantalla (sin reglas @media print)
 │   ├── App.jsx                # Orquestador declarativo de alto nivel

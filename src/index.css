@@ -558,6 +558,24 @@ img {
   display: block !important;
 }
 
+/* Redundant timeline rounders / dots must never render on continuation items */
+.editable-item-container.item-is-continuation .experience__rounder,
+.editable-item-container.item-is-continuation .education__rounder,
+.editable-item-container.item-is-continuation [class*="__rounder"],
+.cv-block.item-is-continuation .experience__rounder,
+.cv-block.item-is-continuation .education__rounder,
+.cv-block.item-is-continuation [class*="__rounder"],
+.experience__content.item-is-continuation .experience__rounder,
+.education__content.item-is-continuation .education__rounder,
+[data-is-continuation="true"] .experience__rounder,
+[data-is-continuation="true"] .education__rounder,
+[data-is-continuation="true"] [class*="__rounder"] {
+  display: none !important;
+  margin: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
 .education__data,
 .experience__data {
   gap: .5rem;

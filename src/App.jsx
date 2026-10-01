@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import ActionMenu from "./components/Editor/ActionMenu";
 import LayoutModeToggle from "./components/Editor/LayoutModeToggle";
 import AppModals from "./components/Editor/AppModals";
@@ -30,6 +30,8 @@ function App() {
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
+      updateSectionProperty,
+      updateSectionItem,
       activeTooltip,
       setTotalPages: setContextTotalPages,
       deletePage,
@@ -41,7 +43,10 @@ function App() {
 
    const areaCvRef = useRef(null);
 
-   // 1. DND Coordination Hook
+   // 1. Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
+   const { pages, totalPages } = useDocumentPages({ cvData });
+
+   // 2. DND Coordination Hook
    const {
       sensors,
       collisionDetection,
@@ -53,12 +58,10 @@ function App() {
       activeDragSection,
    } = useCVDndCoordinator({
       cvData,
+      pages,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
    });
-
-   // 2. Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
-   const { pages, totalPages } = useDocumentPages({ cvData });
 
    // Keep context synchronized with document page count
    useEffect(() => {
@@ -82,6 +85,34 @@ function App() {
       setAddSectionTargetColumn(column);
       setIsAddSectionModalOpen(true);
    };
+
+   // 5. Interactive Overflow Relay Handler
+   const handleMoveOverflowToNextPage = useCallback((pageNumber) => {
+      const pageModel = pages.find((p) => p.pageNumber === pageNumber);
+      if (!pageModel) return;
+
+      const boxEl = document.querySelector(`.a4-page-box[data-page-number="${pageNumber}"]`);
+      let overflowPx = 0;
+      if (boxEl) {
+         const boxOverflow = boxEl.scrollHeight - boxEl.clientHeight;
+         const rightColEl = boxEl.querySelector('.resume__right');
+         const leftColEl = boxEl.querySelector('.resume__left');
+         const singleColEl = boxEl.querySelector('.resume__single-column');
+         const rightOverflow = rightColEl ? rightColEl.scrollHeight - rightColEl.clientHeight : 0;
+         const leftOverflow = leftColEl ? leftColEl.scrollHeight - leftColEl.clientHeight : 0;
+         const singleOverflow = singleColEl ? singleColEl.scrollHeight - singleColEl.clientHeight : 0;
+         overflowPx = Math.max(boxOverflow, rightOverflow, leftOverflow, singleOverflow);
+      }
+
+      // Recalibrate layout headroom dynamically so that pageDistributor partitions
+      // the overflowing content (items or granular bullets) naturally to the next page
+      // without ever hijacking any section or item with targetPage locks.
+      const currentHeadroom = cvData.layout?.editorHeadroom ?? 80;
+      const deltaHeadroom = overflowPx > 0 ? Math.ceil(overflowPx) + 20 : 40;
+      if (typeof updateLayout === 'function') {
+         updateLayout('editorHeadroom', currentHeadroom + deltaHeadroom);
+      }
+   }, [pages, cvData.layout, updateLayout]);
 
    // Layout Modes & Class Toggles
    const isAtsMode =
@@ -187,12 +218,14 @@ function App() {
                         pageHeight={A4_HEIGHT_CSS}
                         pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
                         onDeletePage={deletePage}
+                        onMoveOverflowToNextPage={handleMoveOverflowToNextPage}
                      >
                         {is2Col ? (
                            <>
                               <DroppableColumn
                                  id={pageModel.pageNumber === 1 ? "column-left" : `column-left-page-${pageModel.pageNumber}`}
                                  column="left"
+                                 pageNumber={pageModel.pageNumber}
                                  className="resume__left"
                                  style={{
                                     background:
@@ -257,6 +290,7 @@ function App() {
                               <DroppableColumn
                                  id={pageModel.pageNumber === 1 ? "column-right" : `column-right-page-${pageModel.pageNumber}`}
                                  column="right"
+                                 pageNumber={pageModel.pageNumber}
                                  className="resume__right"
                                  style={{
                                     background:
@@ -313,6 +347,7 @@ function App() {
                            <DroppableColumn
                               id={pageModel.pageNumber === 1 ? "column-single" : `column-single-page-${pageModel.pageNumber}`}
                               column="single"
+                              pageNumber={pageModel.pageNumber}
                               className="resume__single-column"
                               style={{
                                  display: "flex",

@@ -327,9 +327,10 @@ export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
   // 5. Query Relevant AI Knowledge Base Rules from src/ai-knowledge/
   const targetLayoutKey = isAtsMode ? 'ATS_1_col' : 'Human_2_col';
   const relevantRules = ALL_RULES.filter(rule => {
+    const matchIndustry = rule.target_industry === 'tech' || rule.target_industry === 'all';
     const matchLayout = rule.target_layout === targetLayoutKey || rule.target_layout === 'both';
     const matchSection = rule.target_section === 'global' || sections.some(s => s.type === rule.target_section || s.id === rule.target_section);
-    return matchLayout && matchSection;
+    return matchIndustry && matchLayout && matchSection;
   }).slice(0, 10).map(r => ({
     id: r.id,
     target_section: r.target_section,

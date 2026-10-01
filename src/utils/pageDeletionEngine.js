@@ -73,7 +73,10 @@ export function deletePageFromDOMAndState({
 
   // 1. Determine current total pages
   const totalPagesAttr = areaCv.getAttribute('data-total-pages');
-  const currentTotalPages = totalPagesAttr ? parseInt(totalPagesAttr, 10) : 1;
+  const pageBoxes = areaCv.querySelectorAll('.a4-page-box');
+  const currentTotalPages = pageBoxes.length > 0
+    ? pageBoxes.length
+    : (totalPagesAttr ? parseInt(totalPagesAttr, 10) : 1);
 
   if (currentTotalPages <= 1) {
     showToast?.('El CV tiene solo 1 página. No se puede eliminar la única página.', 'warning', 3500);
@@ -100,7 +103,22 @@ export function deletePageFromDOMAndState({
 
   const sections = Array.isArray(cvData.sections) ? cvData.sections : [];
 
-  // 3. Inspect sections and items by measuring their DOM positions
+  // Check if target page is in a discrete .a4-page-box
+  const targetBox = areaCv.querySelector(`.a4-page-box[data-page-number="${targetPage}"]`);
+  if (targetBox) {
+    const secElements = targetBox.querySelectorAll('[data-section-id]');
+    secElements.forEach((el) => {
+      const secId = el.getAttribute('data-section-id');
+      if (secId && secId !== 'profile_header') {
+        const rawId = secId.replace(/__page\d+$/, '');
+        sectionsToDelete.add(rawId);
+        deletedSectionsCount++;
+      }
+    });
+    try { targetBox.remove(); } catch (_) {}
+  }
+
+  // 3. Inspect sections and items by measuring their DOM positions (fallback / hybrid)
   sections.forEach((sec) => {
     const secEl = areaCv.querySelector(`[data-section-id="${sec.id}"], #${sec.id}`);
     if (!secEl) return;

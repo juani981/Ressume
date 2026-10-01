@@ -1,4 +1,4 @@
-<html lang="es" style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; font-family: Poppins, sans-serif;"><head>
+<html lang="es" style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; --a4-page-width: 210mm; --a4-page-height: 297mm; --a4-page-width-px: 794px; --a4-page-height-px: 1123px; --a4-page-gap: 20px; --a4-page-scale: 1; font-family: Poppins, sans-serif;"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CV_TU NOMBRE Y APELLIDO_Título Profesional _ Especialidad</title>
@@ -11,6 +11,11 @@
     html,
     body,
     #area-cv {
+      --a4-page-width: 210mm;
+      --a4-page-height: 297mm;
+      --a4-page-width-px: 794px;
+      --a4-page-height-px: 1123px;
+      --a4-page-scale: 1;
       --page-padding: 24px;
       --section-gap: 20px;
       --item-gap: 8px;
@@ -46,6 +51,9 @@
     }
     #area-cv.bd-grid {
       grid-template-columns: 1fr 2fr !important;
+      gap: 0 !important;
+      column-gap: 0 !important;
+      row-gap: 0 !important;
     }
   
 /*===== GOOGLE FONTS =====*/
@@ -93,6 +101,21 @@
   /*========== z index ==========*/
   --z-tooltip: 10;
   --z-fixed: 100;
+
+  /*========== Canonical A4 Page Dimensions & Scale (Single Source of Truth) ==========*/
+  --a4-page-width: 210mm;
+  --a4-page-height: 297mm;
+  --a4-page-width-px: 794px;
+  --a4-page-height-px: 1123px;
+  --a4-page-gap: 20px;
+  --a4-page-scale: 1;
+
+  /*========== Live Editor Vertical Tuned Dimensions ==========*/
+  --editor-page-width: 210mm;
+  --editor-page-height: 297mm;
+  --editor-page-width-px: 794px;
+  --editor-page-height-px: 1123px;
+  --editor-height-reduction-mm: 0mm;
 }
 
 /*========== BASE ==========*/
@@ -120,6 +143,13 @@ body {
   font-size: var(--normal-font-size);
   background-color: var(--body-color);
   color: var(--text-color);
+  position: relative;
+  z-index: 0;
+}
+
+.l-main {
+  position: relative;
+  z-index: 0;
 }
 
 #area-cv {
@@ -132,6 +162,7 @@ body {
   color: var(--text-color);
   box-sizing: border-box;
   position: relative;
+  z-index: 1;
   box-shadow: 0 4px 25px rgba(13, 12, 12, 0.12);
   border-radius: 4px;
   overflow-wrap: break-word;
@@ -157,7 +188,7 @@ body {
   --list-font-size: calc(var(--normal-font-size) * var(--list-scale, 1));
 }
 
-#area-cv.bd-grid {
+#area-cv.bd-grid:not(.has-a4-page-boxes) {
   display: grid;
   padding: 0 !important;
   gap: 0 !important;
@@ -171,15 +202,15 @@ body {
       var(--right-bg, #ffffff) 100%);
 }
 
-#area-cv.bd-grid .resume__left,
-#area-cv.bd-grid .resume__right {
+#area-cv.bd-grid:not(.has-a4-page-boxes) .resume__left,
+#area-cv.bd-grid:not(.has-a4-page-boxes) .resume__right {
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
 
 /* 3. Modo 1 Columna (ATS) - BFC Flexbox Architecture (Zero Margin Collapse) */
-#area-cv.resume__single-column {
+#area-cv.resume__single-column:not(.has-a4-page-boxes) {
   display: flex !important;
   flex-direction: column !important;
   padding: var(--page-padding, 24px);
@@ -235,11 +266,23 @@ img {
   position: relative;
 }
 
+/* Secciones de cabecera (título, contacto, foto) agrupan al mínimo espacio sin desperdicio */
+.editor-control-stripped.home,
+.cv-section.home,
+.editor-control-stripped.social,
+.cv-section.social,
+.editor-control-stripped.cv-section-photo,
+.cv-section.cv-section-photo {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+}
+
 .cv-section:last-of-type,
 .editor-control-stripped:last-of-type,
 .section:last-of-type {
   margin-bottom: 0 !important;
 }
+
 
 .cv-block,
 .editor-control-stripped,
@@ -380,12 +423,26 @@ img {
 }
 
 .home__container {
-  gap: 3rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .home__data {
-  gap: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+.home__data-title-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 .home__img {
@@ -398,12 +455,18 @@ img {
 
 .home__title {
   font-size: var(--title-h1-size, var(--h1-font-size));
+  line-height: 1.15;
+  margin: 0;
+  padding: 0;
 }
 
 .home__subtitle {
   font-size: var(--title-subtitle-size, var(--normal-font-size));
   font-weight: var(--font-medium);
-  margin-bottom: var(--mb-1);
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 0;
 }
 
 .home__profession {
@@ -444,8 +507,13 @@ img {
 
 /*========== SOCIAL ==========*/
 .social__container {
-  grid-template-columns: max-content;
-  gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  grid-template-columns: none;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 0;
 }
 
 .social__link {
@@ -520,6 +588,50 @@ img {
 .education__content:last-child .education__line,
 .education__content:last-of-type .education__line {
   display: none !important;
+}
+
+/* When an item is partial (starts on page N and continues on page N+1) or continuation, ALWAYS show its connector line */
+.editor-control-stripped.item-is-partial .experience__line,
+.editor-control-stripped.item-is-partial .education__line,
+.editor-control-stripped.item-is-partial [class*="__line"],
+.cv-block.item-is-partial .experience__line,
+.cv-block.item-is-partial .education__line,
+.cv-block.item-is-partial [class*="__line"],
+.experience__content.item-is-partial .experience__line,
+.education__content.item-is-partial .education__line,
+.editor-control-stripped.item-is-continuation .experience__line,
+.editor-control-stripped.item-is-continuation .education__line,
+.editor-control-stripped.item-is-continuation [class*="__line"],
+.cv-block.item-is-continuation .experience__line,
+.cv-block.item-is-continuation .education__line,
+.cv-block.item-is-continuation [class*="__line"],
+.experience__content.item-is-continuation .experience__line,
+.education__content.item-is-continuation .education__line,
+[data-is-partial="true"] .experience__line,
+[data-is-partial="true"] .education__line,
+[data-is-partial="true"] [class*="__line"],
+[data-is-continuation="true"] .experience__line,
+[data-is-continuation="true"] .education__line,
+[data-is-continuation="true"] [class*="__line"] {
+  display: block !important;
+}
+
+/* Redundant timeline rounders / dots must never render on continuation items */
+.editor-control-stripped.item-is-continuation .experience__rounder,
+.editor-control-stripped.item-is-continuation .education__rounder,
+.editor-control-stripped.item-is-continuation [class*="__rounder"],
+.cv-block.item-is-continuation .experience__rounder,
+.cv-block.item-is-continuation .education__rounder,
+.cv-block.item-is-continuation [class*="__rounder"],
+.experience__content.item-is-continuation .experience__rounder,
+.education__content.item-is-continuation .education__rounder,
+[data-is-continuation="true"] .experience__rounder,
+[data-is-continuation="true"] .education__rounder,
+[data-is-continuation="true"] [class*="__rounder"] {
+  display: none !important;
+  margin: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
 }
 
 .education__data,
@@ -643,11 +755,16 @@ img {
 
 /*========== DOCUMENT CANVAS LAYOUT RULES (#area-cv Single Source of Truth) ==========*/
 #area-cv .home__container {
-  gap: 1.5rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .home__data {
   text-align: initial;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .home__img {
@@ -655,7 +772,13 @@ img {
 }
 
 #area-cv .social__container {
-  grid-template-columns: repeat(3, max-content);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  grid-template-columns: none;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .skills__content {
@@ -681,9 +804,9 @@ img {
   background-color: var(--container-color-alt);
 }
 
-#area-cv .resume__left,
-#area-cv .resume__right {
-  padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem);
+#area-cv:not(.has-a4-page-boxes) .resume__left,
+#area-cv:not(.has-a4-page-boxes) .resume__right {
+  padding: var(--page-padding, 24px);
 }
 
 .resume {
@@ -726,7 +849,7 @@ img {
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
   position: absolute;
-  z-index: 20;
+  z-index: 50;
   user-select: none;
   touch-action: none;
 }
@@ -748,6 +871,7 @@ img {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  z-index: 50;
 }
 
 .editor-control-stripped {
@@ -758,6 +882,7 @@ img {
   background: rgba(255, 255, 255, 0.85);
   border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 50;
 }
 
 .editor-control-stripped:hover>.editor-control-stripped,
@@ -1078,7 +1203,7 @@ a,
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
   transition: transform 0.15s ease, opacity 0.2s ease, visibility 0.2s ease, background 0.15s ease, box-shadow 0.15s ease;
   position: absolute;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1089,6 +1214,7 @@ a,
   background: #dc2626;
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
   opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .editor-control-stripped {
@@ -1096,10 +1222,11 @@ a,
   right: 0.35rem;
 }
 
-.editor-control-stripped:hover>.editor-control-stripped {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editor-control-stripped:hover>.editor-control-stripped,
+.editor-control-stripped:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* ==========================================================
@@ -1118,20 +1245,22 @@ a,
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  cursor: default;
   transform: translateY(-2px);
   transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Hover: Make all buttons in the group float into view together */
 .editor-control-stripped:hover>.section-action-buttons,
-.editor-control-stripped:hover .section-action-buttons {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.editor-control-stripped:hover .section-action-buttons,
+.section-action-buttons:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   transform: translateY(0);
 }
 
@@ -1159,10 +1288,19 @@ a,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: pointer !important;
   padding: 0;
   flex-shrink: 0;
   transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Ensure inner SVG icons do not intercept pointer events from the button */
+.section-action-buttons button svg,
+.editor-control-stripped svg,
+.editor-control-stripped svg,
+.add-bullet-btn svg,
+.editor-control-stripped svg {
+  pointer-events: none;
 }
 
 /* 1. TOOLTIPS Button inside action buttons */
@@ -1236,7 +1374,7 @@ a,
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 25;
+  z-index: 150;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1261,10 +1399,11 @@ a,
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
 }
 
-.editor-control-stripped:hover>.section-tips-toggle-btn {
-  opacity: 0.95;
-  visibility: visible;
-  pointer-events: auto;
+.editor-control-stripped:hover>.section-tips-toggle-btn,
+.section-tips-toggle-btn:hover {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .section-tips-toggle-btn:hover {
@@ -1302,10 +1441,11 @@ a,
   height: 20px;
 }
 
-.editor-control-stripped:hover>.editor-control-stripped {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.editor-control-stripped:hover>.editor-control-stripped,
+.editor-control-stripped:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 /* Section add item button container (Positioned directly on bottom border: 50% in, 50% out) */
@@ -1337,7 +1477,7 @@ a,
 .bullet-item-row {
   position: relative;
   padding-right: 1.5rem;
-  padding-left: 1.15rem;
+  padding-left: 0 !important;
   border-radius: 4px;
   margin-top: 0 !important;
 }
@@ -1355,14 +1495,15 @@ a,
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3);
 }
 
-.bullet-item-row:hover .bullet-del-btn {
-  opacity: 0.92;
-  visibility: visible;
-  pointer-events: auto;
+.bullet-item-row:hover .bullet-del-btn,
+.bullet-del-btn:hover {
+  opacity: 0.92 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 .bullet-item-row .bullet-del-btn:hover {
-  opacity: 1;
+  opacity: 1 !important;
   transform: scale(1.15);
 }
 
@@ -1552,7 +1693,7 @@ body.ats-mode-active {
   /* Noticeably darker slate background for ATS mode */
 }
 
-.resume--ats-mode {
+.resume--ats-mode:not(.has-a4-page-boxes):not(.a4-page-box) {
   background-color: #ffffff !important;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45) !important;
   border: 1px solid #334155 !important;
@@ -1701,8 +1842,17 @@ body.ats-mode-active {
 .contact-item-pill {
   position: relative;
   transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.contact-separator {
+  color: var(--text-color-light, #94a3b8);
+  font-size: 0.8em;
+  line-height: 1;
+  margin: 0 1px !important;
+  opacity: 0.7;
 }
 
 .contact-item-pill:hover {
@@ -1923,6 +2073,115 @@ body.ats-mode-active {
 }
 
 /* ==========================================================
+   A4 PAGE BOX (Editor-Native Discrete A4 Boxes - Rule 15)
+   ========================================================== */
+.a4-page-box {
+  width: var(--a4-page-width, 210mm);
+  min-width: var(--a4-page-width, 210mm);
+  max-width: var(--a4-page-width, 210mm);
+  height: var(--a4-page-height, 297mm);
+  min-height: var(--a4-page-height, 297mm);
+  max-height: var(--a4-page-height, 297mm);
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  margin: 0 auto 32px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+#area-cv:has(.a4-page-box),
+#area-cv.has-a4-page-boxes {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: var(--a4-page-width, 210mm) !important;
+  min-width: var(--a4-page-width, 210mm) !important;
+  max-width: var(--a4-page-width, 210mm) !important;
+  margin: 0 auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border: none !important;
+  min-height: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#area-cv.has-a4-page-boxes .resume__left,
+#area-cv.has-a4-page-boxes .resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  height: 100% !important;
+  min-height: 100% !important;
+  align-self: stretch !important;
+  padding: var(--page-padding, 24px) !important;
+  box-sizing: border-box !important;
+}
+
+#area-cv.has-a4-page-boxes .resume__single-column {
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.a4-page-box.bd-grid {
+  display: grid !important;
+  grid-template-rows: 1fr !important;
+  align-items: stretch !important;
+}
+
+.a4-page-box.bd-grid,
+.a4-page-box {
+  border: none !important;
+  outline: none !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+}
+
+#area-cv.has-a4-page-boxes .cv-section:first-child,
+#area-cv.has-a4-page-boxes .cv-section:first-of-type,
+#area-cv.has-a4-page-boxes .section:first-child,
+#area-cv.has-a4-page-boxes .section:first-of-type,
+#area-cv.has-a4-page-boxes .cv-section:first-child > :first-child,
+#area-cv.has-a4-page-boxes .section:first-child > :first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+#area-cv.has-a4-page-boxes .cv-section:last-child,
+#area-cv.has-a4-page-boxes .cv-section:last-of-type,
+#area-cv.has-a4-page-boxes .section:last-child,
+#area-cv.has-a4-page-boxes .section:last-of-type {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+.a4-page-box .a4-page-badge {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 50;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background-color: rgba(15, 23, 42, 0.08);
+  color: #64748b;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+body.ats-mode-active .a4-page-box .a4-page-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+/* ==========================================================
    A4 PAGE FOLD GUIDE (Visual Separation of Pages in Live Editor)
    ========================================================== */
 .a4-page-fold-guide {
@@ -2026,6 +2285,210 @@ body.ats-mode-active .a4-page-fold-badge {
   background: #3874ff !important;
   box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.4);
 }
+
+/* ==========================================================
+   2-COLUMN MODE & UNIVERSAL WORD-WRAP CONTAINMENT
+   Guarantees that all content (titles, bullets, descriptions,
+   contacts, skills, links) wraps properly within column boundaries
+   without horizontal overflow or truncation.
+   ========================================================== */
+
+.resume__left,
+.resume__right,
+.a4-page-box .resume__left,
+.a4-page-box .resume__right {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left *,
+.resume__right *,
+.a4-page-box .resume__left *,
+.a4-page-box .resume__right * {
+  box-sizing: border-box;
+}
+
+.resume__left .cv-section,
+.resume__right .cv-section,
+.resume__left .editor-control-stripped,
+.resume__right .editor-control-stripped,
+.resume__left .cv-block,
+.resume__right .cv-block,
+.resume__left .editor-control-stripped,
+.resume__right .editor-control-stripped,
+.a4-page-box .cv-section,
+.a4-page-box .cv-block,
+.a4-page-box .editor-control-stripped,
+.a4-page-box .editor-control-stripped {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.resume__left .section-title,
+.resume__right .section-title,
+.a4-page-box .section-title,
+.a4-page-box .home__title,
+.a4-page-box .home__subtitle,
+.a4-page-box .home__profession,
+.a4-page-box .experience__title,
+.a4-page-box .experience__company,
+.a4-page-box .experience__description,
+.a4-page-box .education__title,
+.a4-page-box .education__studies,
+.a4-page-box .education__year,
+.a4-page-box .profile__description,
+.a4-page-box .bullet-item-row,
+.a4-page-box .simple-list-item,
+.a4-page-box .skills__name,
+.a4-page-box .languages__name,
+.a4-page-box p,
+.a4-page-box h1,
+.a4-page-box h2,
+.a4-page-box h3,
+.a4-page-box h4,
+.a4-page-box span,
+.a4-page-box li,
+.a4-page-box a {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  max-width: 100%;
+}
+
+/* Ensure hyperlinks and URLs break properly anywhere even without whitespace */
+.resume__left a,
+.resume__right a,
+.resume__left .social__link,
+.resume__right .social__link,
+.resume__left .hyperlink-display,
+.resume__right .hyperlink-display,
+.a4-page-box a,
+.a4-page-box .social__link,
+.a4-page-box .hyperlink-display {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+/* InlineEdit bounding */
+.inline-edit-display {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.editor-control-stripped {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Container adaptations for 2-column sidebar mode: prevent multiple max-content columns from overflowing */
+.resume__left .social__container,
+.resume__right .social__container,
+.has-a4-page-boxes .social__container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  grid-template-columns: none !important;
+  gap: 2px 4px !important;
+  row-gap: 2px !important;
+  column-gap: 4px !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.resume__left .skills__content {
+  grid-template-columns: 1fr !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .languages__content {
+  grid-template-columns: 1fr !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.resume__left .interests__container {
+  grid-template-columns: repeat(2, 1fr) !important;
+  column-gap: 1rem !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Bullet item row horizontal containment */
+.bullet-item-row {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.bullet-item-row span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Typography & OCR Glyph Mapping Protection */
+#area-cv,
+.resume,
+.a4-page-box {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* ATS Mode: Omit photos and vector icons cleanly while preserving data state */
+.resume--ats-mode .cv-section-photo,
+.resume--ats-mode .cv-photo-container,
+.resume--ats-mode .cv-photo-item-edit,
+.resume--ats-mode .photo__container {
+  display: none !important;
+}
+
+.resume--ats-mode .social__link > svg,
+.resume--ats-mode .contact-item-pill > svg,
+.resume--ats-mode .social__link > .lucide,
+.resume--ats-mode .contact-item-pill > .lucide,
+.resume--ats-mode .contact__icon,
+.resume--ats-mode .home__contact > svg {
+  display: none !important;
+}
+
+/* Guard: Ensure editor popups & rich text toolbar icons are NEVER hidden by ATS mode */
+.rich-text-toolbar svg,
+.contact-type-picker-popover svg,
+.section-bullet-style-popover svg,
+.editor-control-stripped svg,
+.editor-control-stripped svg {
+  display: inline-block !important;
+}
+
+/* AI Tips Active Section Highlight */
+.ai-tip-highlighted-section {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 4px !important;
+  border-radius: 6px !important;
+  transition: outline 0.15s ease-out, box-shadow 0.15s ease-out !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
+}
   </style>
   <style id="cv-print-styles">
 /*===================================================================
@@ -2038,6 +2501,36 @@ body.ats-mode-active .a4-page-fold-badge {
   @page {
     size: A4;
     margin: 0;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  .a4-page-box {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    gap: 0 !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+  }
+
+  .a4-page-box:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
   }
 
   * {
@@ -2053,6 +2546,8 @@ body.ats-mode-active .a4-page-fold-badge {
     padding: 0 !important;
     background-color: #ffffff !important;
     -webkit-font-smoothing: antialiased;
+    transform: none !important;
+    zoom: 1.0 !important;
   }
 
   body {
@@ -2077,6 +2572,55 @@ body.ats-mode-active .a4-page-fold-badge {
     box-decoration-break: clone !important;
   }
 
+  /* When #area-cv contains discrete A4 page boxes, match exact 210mm physical page geometry */
+  #area-cv:has(.a4-page-box),
+  #area-cv.has-a4-page-boxes {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .a4-page-box.bd-grid {
+    display: grid !important;
+    grid-template-rows: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .a4-page-box .resume__left,
+  .a4-page-box .resume__right {
+    height: 100% !important;
+    min-height: 100% !important;
+    align-self: stretch !important;
+    padding: var(--page-padding, 24px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .a4-page-box .resume__single-column {
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .a4-page-box .cv-section:first-child,
+  .a4-page-box .cv-section:first-of-type,
+  .a4-page-box .section:first-child,
+  .a4-page-box .section:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  .a4-page-box .cv-section:last-child,
+  .a4-page-box .cv-section:last-of-type,
+  .a4-page-box .section:last-child,
+  .a4-page-box .section:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+
   .resume__left,
   .resume__right {
     /* CRITICAL: Force block display in print so browser treats each column as a normal
@@ -2088,13 +2632,19 @@ body.ats-mode-active .a4-page-fold-badge {
     height: 100% !important;
     align-self: stretch !important;
     box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     -webkit-box-decoration-break: clone !important;
     box-decoration-break: clone !important;
   }
 
-  #area-cv.resume__single-column {
+  #area-cv.resume__single-column:not(.has-a4-page-boxes):not(:has(.a4-page-box)),
+  .resume__single-column:not(#area-cv *):not(.a4-page-box):not(.has-a4-page-boxes) {
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
@@ -2104,8 +2654,8 @@ body.ats-mode-active .a4-page-fold-badge {
     box-decoration-break: clone !important;
   }
 
-  .resume__single-column,
-  #area-cv .resume__single-column {
+  /* Inner wrapper inside #area-cv does not duplicate horizontal padding */
+  #area-cv > .resume__single-column {
     padding: 0 !important;
     height: auto !important;
     min-height: 0 !important;
@@ -2219,20 +2769,34 @@ body.ats-mode-active .a4-page-fold-badge {
     margin-top: 0 !important;
   }
 
-  /* Quiebre de página completa antes del elemento en 1 columna / modo ATS */
+
+  /* Salto de pagina forzado en modo ATS / 1 columna unicamente.
+   * Regla: No usar break-before:page en 2 columnas (CSS Grid).
+   * Ver AGENTS.md §5, §7 y audit bug #2.1 */
   .resume__single-column .break-page-before:not(:first-child),
   .resume__single-column .force-page-break-before:not(:first-child),
   .resume__single-column [data-page-break="before"]:not(:first-child),
-  .resume__single-column [data-page-break-before="true"]:not(:first-child),
-  .resume__single-column [data-editor-break-forced="true"]:not(:first-child),
-  .break-page-before:not(:first-child),
-  .force-page-break-before:not(:first-child),
-  [data-page-break="before"]:not(:first-child),
-  [data-page-break-before="true"]:not(:first-child),
-  [data-editor-break-forced="true"]:not(:first-child) {
+  .resume__single-column [data-page-break-before="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
     padding-top: var(--page-padding, 24px) !important;
+    margin-top: 0 !important;
+  }
+
+  /* Protección anti-fragmentación del grid en layouts de 2 columnas:
+   * las secciones dentro de columnas no deben romperse por el motor de paginación. */
+  .resume__left > .section,
+  .resume__right > .section,
+  .resume__left > .cv-section,
+  .resume__right > .cv-section {
+    break-inside: avoid-page;
+  }
+
+
+  /* Protección contra quiebres en cascada: los cortes automáticos del editor NUNCA fuerzan salto en impresión */
+  [data-editor-break-forced="true"] {
+    break-before: auto !important;
+    page-break-before: auto !important;
     margin-top: 0 !important;
   }
 
@@ -2547,63 +3111,171 @@ body.ats-mode-active .a4-page-fold-badge {
     display: inline !important;
     margin: 0 !important;
   }
+
+  /* Universal word-wrap and horizontal containment in print */
+  .resume__left *,
+  .resume__right *,
+  .cv-section,
+  .cv-block,
+  .editor-control-stripped,
+  .editor-control-stripped,
+  .section-title,
+  .experience__title,
+  .experience__company,
+  .experience__description,
+  .education__title,
+  .education__studies,
+  .education__year,
+  .profile__description,
+  .bullet-item-row,
+  .simple-list-item,
+  .skills__name,
+  .languages__name,
+  .inline-edit-display {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+  }
+
+  .resume__left a,
+  .resume__right a,
+  .social__link,
+  .hyperlink-display {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  /* Typography & OCR Glyph Mapping Protection: Disable font ligatures and kerning collisions */
+  html, body, #area-cv, .resume, .a4-page-box, p, span, h1, h2, h3, h4, li, a {
+    font-variant-ligatures: none !important;
+    font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "dlig" 0 !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Print Vector Icons: Prevent OCR / parser from interpreting icons as checkboxes (☑) */
+  svg, .lucide {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    speak: none !important;
+  }
+
+  /* ATS Print Mode Overrides: Zero icons, zero photos, pure semantic clean text */
+  .resume--ats-mode svg,
+  .resume--ats-mode .lucide,
+  .resume--ats-mode .contact__icon,
+  .resume--ats-mode .cv-section-photo,
+  .resume--ats-mode .cv-photo-container,
+  .resume--ats-mode .cv-photo-item-edit,
+  .resume--ats-mode .photo__container {
+    display: none !important;
+  }
+
+  /* Compact Title, Subtitle, and Contact spacing in Print Mode */
+  .cv-section.home,
+  .cv-section.social,
+  .cv-section.cv-section-photo {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .home__container,
+  #area-cv .home__container {
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .home__data,
+  .home__data-title-subtitle,
+  #area-cv .home__data {
+    gap: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .home__title {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.15 !important;
+  }
+
+  .home__subtitle {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .social__container,
+  #area-cv .social__container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    grid-template-columns: none !important;
+    gap: 2px 4px !important;
+    row-gap: 2px !important;
+    column-gap: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .contact-item-pill {
+    padding: 1px 2px !important;
+    gap: 3px !important;
+    line-height: 1.2 !important;
+  }
+
+  .contact-separator {
+    margin: 0 1px !important;
+    font-size: 0.8em !important;
+    opacity: 0.7 !important;
+  }
 }
 
   </style>
   <style id="cv-snapshot-breaks">
-
-            #area-cv [data-section-title="education"], [data-section-title="education"] {
-              break-before: page !important;
-              page-break-before: always !important;
-              padding-top: var(--page-padding, 24px) !important;
-              margin-top: 0 !important;
-            }
-          
-
-            #area-cv [data-item-id="exp_1789951705259_6_d18ul"], [data-item-id="exp_1789951705259_6_d18ul"] {
-              break-before: auto !important;
-              page-break-before: auto !important;
-              padding-top: var(--page-padding, 24px) !important;
-              margin-top: 0 !important;
-            }
-          
   </style>
 </head>
-<body style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; font-family: Poppins, sans-serif;"><div class="resume bd-grid " id="area-cv" data-total-pages="2" style="display: grid; align-items: stretch; min-width: 794px; background: linear-gradient(to right, rgb(243, 244, 246) 0%, rgb(243, 244, 246) 33.33%, rgb(255, 255, 255) 33.33%, rgb(255, 255, 255) 100%); gap: 0px; min-height: calc(2265.04px); position: relative; grid-template-columns: 1fr 2fr; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; --body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; width: 100% !important; max-width: 100% !important; margin: 0px !important; padding: 0px !important; font-family: Poppins, sans-serif; line-height: 1.45; --print-target-height-mm: 594mm; --print-total-pages: 2;"><div id="column-left" class="resume__left" style="background: var(--container-color-alt); padding-right: ; padding-bottom: ; padding-left: ; min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="home section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="profile_header" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><div class=""><div class="home__data bd-grid editable-item-container cv-block" data-item-id="prof1" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><div class="home__data home__data-title-subtitle" style="break-inside: avoid !important;"><h1 class="home__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">TU NOMBRE Y APELLIDO</span></h1><h2 class="home__subtitle" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Título Profesional / Especialidad</span></h2></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-profile_header" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="social section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="contact" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><div class=""><div class="experience__content editable-item-container cv-block" data-item-id="contact1" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><div class="social__container bd-grid" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;"><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin lucide" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg> <span tabindex="0" role="button" aria-label="Ciudad, País" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Ciudad, País</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail lucide" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> <span tabindex="0" role="button" aria-label="tu.email@ejemplo.com" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">tuemail@ejemplo.com</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone lucide" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg> <span tabindex="0" role="button" aria-label="+54 9 11 1234 5678" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">+00 123 456 789</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 lucide-share-2 lucide" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg> <span tabindex="0" role="button" aria-label="linkedin.com/in/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">linkedin.com/in/tu-perfil</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-git2 lucide-folder-git-2 lucide" aria-hidden="true"><path d="M18 19a5 5 0 0 1-5-5v8"></path><path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5"></path><circle cx="13" cy="12" r="2"></circle><circle cx="20" cy="19" r="2"></circle></svg> <span tabindex="0" role="button" aria-label="github.com/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">github.com/tu-usuario</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-contact" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="profile section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="about_section" data-section-id="about_section" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="about_section" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Perfil Profesional</span></h2><div class=""><div class="profile__description editable-item-container cv-block" data-item-id="about1" data-section-id="about_section" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); transition: transform linear; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Resumen profesional destacando tus fortalezas, años de experiencia clave y objetivos profesionales. Haz clic en este texto para redactar tu presentación profesional.</span></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-about_section" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="skills section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="skills" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="skills" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">HABILIDADES TÉCNICAS</span></h2><div class="skills__container bd-grid"><ul class="skills__content bd-grid" style="grid-template-columns: 1fr; padding: 0px; list-style: none !important;"><li class="skills__name editable-item-container cv-block" data-item-id="skill1" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Habilidades Técnicas</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Herramienta 1, Lenguaje 2, Tecnología 3, Framework 4, Metodologías.</span></span></li><li class="skills__name editable-item-container cv-block" data-item-id="skill2" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Habilidades Blandas</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo, Trabajo en Equipo, Comunicación Efectiva, Resolución de Problemas.</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-skills" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold has-split-break has-split-break--page2-only" id="education" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" data-section-split="page2-only" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear; --split-part1-height: 0px; --split-part2-top: 213px;"><h2 class="section-title force-page-break-before break-page-before" data-section-title="education" data-editor-break-forced="true" data-editor-break-fold="1" style="break-before: page; margin-top: 0px !important; padding-top: var(--page-padding, 24px) !important; break-inside: auto !important;" data-page-break="before" data-page-break-before="true" data-page-break-forced="true" data-page-break-fold="1"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">EDUCACIÓN</span></h2><div class="education__container bd-grid"><div class="education__content editable-item-container cv-block" data-item-id="edu1" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: avoid !important;"><div class="education__time"><span class="education__rounder"></span><span class="education__line"></span></div><div class="education__data bd-grid" style="width: 100%; break-inside: avoid !important;"><h3 class="education__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Título Académico o Grado</span></h3><span class="education__studies"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Universidad o Entidad Educativa</span></span><span class="education__year"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Año de Graduación</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-education" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="languages" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="languages" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">IDIOMAS</span></h2><div class="experience__container bd-grid"><ul class="experience__bullets simple-list-ul" style="color: var(--text-color); padding: 0px; list-style: none !important; break-inside: auto !important;"><li class="simple-list-item editable-item-container cv-block" data-item-id="lang1" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Español: Nativo</span></span></li><li class="simple-list-item editable-item-container cv-block" data-item-id="lang2" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Inglés: Profesional</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-languages" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div><div id="column-right" class="resume__right" style="background: var(--container-color); padding: var(--page-padding, 2rem) var(--page-padding, 1.5rem); min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold has-split-break" id="experience" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" data-section-split="true" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear; --split-part1-height: 994.140625px; --split-part2-top: 1143.140625px;"><h2 class="section-title" data-section-title="experience" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">EXPERIENCIA LABORAL</span></h2><div class="experience__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="exp1" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Cargo o Puesto de Trabajo</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2023 – Actualidad</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nombre de la Empresa o Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp1_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-3" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Describe una responsabilidad clave o logro alcanzado en el puesto.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp1_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-3" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Detalla proyectos liderados, optimizaciones o impacto cuantitativo alcanzado.</span></span></li></ul><div id="DndDescribedBy-3" style="display: none;">
+<body style="--body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; --a4-page-width: 210mm; --a4-page-height: 297mm; --a4-page-width-px: 794px; --a4-page-height-px: 1123px; --a4-page-gap: 20px; --a4-page-scale: 1; font-family: Poppins, sans-serif; zoom: 1; transform: none;"><div class="resume bd-grid  has-a4-page-boxes" id="area-cv" data-total-pages="2" style="display: flex; flex-direction: column; align-items: center; min-width: 794px; background: transparent; border-radius: 0px; border: none; min-height: auto; position: relative; z-index: 1; gap: 0px; --grid-template-columns: 1fr 2fr; --left-col-percent: 33.33%; --left-bg: var(--container-color-alt); --right-bg: #ffffff; --body-font: 'Poppins', sans-serif; --font-scale: 1; --title-scale: 1; --body-scale: 1; --list-scale: 1; --line-height: 1.45; --page-padding: 24px; --section-gap: 20px; --item-gap: 8px; --a4-page-width: 210mm; --a4-page-height: 297mm; --a4-page-width-px: 794px; --a4-page-height-px: 1123px; --a4-page-gap: 20px; --a4-page-scale: 1; width: 100% !important; max-width: 100% !important; margin: 0px !important; padding: 0px !important; font-family: Poppins, sans-serif; line-height: 1.45;"><div class="a4-page-box bd-grid" data-page-number="1" data-total-pages="2" data-testid="a4-page-box-1" style="z-index: 1; grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 2fr; grid-template-rows: 1fr; align-items: stretch; background: linear-gradient(to right, rgb(243, 244, 246) 0%, rgb(243, 244, 246) 33.33%, rgb(255, 255, 255) 33.33%, rgb(255, 255, 255) 100%); padding: 0px !important; gap: 0px; width: 210mm !important; min-width: 210mm !important; max-width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; margin: 0px !important; box-shadow: none !important; break-inside: avoid !important; break-after: page !important;"><div id="column-left" class="resume__left" style="background: var(--container-color-alt); padding: 24px !important; min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; overflow-wrap: break-word; word-break: break-word; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="home section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="profile_header" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><div class="" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="home__data bd-grid editable-item-container cv-block" data-item-id="prof1" data-section-id="profile_header" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; break-inside: avoid !important;"><div class="home__data home__data-title-subtitle" style="display: flex; flex-direction: column; gap: 1px; margin: 0px; padding: 0px; break-inside: avoid !important;"><h1 class="home__title" style="margin: 0px; padding: 0px; line-height: 1.15; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">TU NOMBRE Y APELLIDO</span></h1><h2 class="home__subtitle" style="margin: 0px; padding: 0px; line-height: 1.2; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Título Profesional / Especialidad</span></h2></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-profile_header" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="social section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="contact" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><div class="" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="experience__content editable-item-container cv-block" data-item-id="contact1" data-section-id="contact" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; break-inside: avoid !important;"><div class="social__container bd-grid" style="display: flex; gap: 2px 4px; flex-wrap: wrap; align-items: center; margin: 0px; padding: 0px;"><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 1px 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin lucide" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg> <span tabindex="0" role="button" aria-label="Ciudad, País" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Ciudad, País</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 1px 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail lucide" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> <span tabindex="0" role="button" aria-label="tu.email@ejemplo.com" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">tuemail@ejemplo.com</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 1px 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone lucide" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg> <span tabindex="0" role="button" aria-label="+54 9 11 1234 5678" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">+00 123 456 789</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 1px 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 lucide-share-2 lucide" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg> <span tabindex="0" role="button" aria-label="linkedin.com/in/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">linkedin.com/in/tu-perfil</span></span><span class="social__link contact-item-pill" style="position: relative; display: inline-flex; align-items: center; gap: 3px; padding: 1px 2px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-git2 lucide-folder-git-2 lucide" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><path d="M18 19a5 5 0 0 1-5-5v8"></path><path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5"></path><circle cx="13" cy="12" r="2"></circle><circle cx="20" cy="19" r="2"></circle></svg> <span tabindex="0" role="button" aria-label="github.com/usuario" class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">github.com/tu-usuario</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-contact" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="profile section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="about_section" data-section-id="about_section" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><h2 class="section-title" data-section-title="about_section" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Perfil Profesional</span></h2><div class="" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="profile__description editable-item-container cv-block" data-item-id="about1" data-section-id="about_section" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Resumen profesional destacando tus fortalezas, años de experiencia clave y objetivos profesionales. Haz clic en este texto para redactar tu presentación profesional.</span></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-about_section" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="skills section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="skills" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><h2 class="section-title" data-section-title="skills" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">HABILIDADES TÉCNICAS</span></h2><div class="skills__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><ul class="skills__content bd-grid" style="grid-template-columns: 1fr; padding: 0px; list-style: none !important;"><li class="skills__name editable-item-container cv-block" data-item-id="skill1" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Habilidades Técnicas</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Herramienta 1, Lenguaje 2, Tecnología 3, Framework 4, Metodologías.</span></span></li><li class="skills__name editable-item-container cv-block" data-item-id="skill2" data-section-id="skills" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; align-items: flex-start; list-style: none !important; background: transparent; transition: transform linear; break-inside: avoid !important;"><span class="skills__circle" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0; background-color: var(--circle-color, var(--text-color));"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%;"><b><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Habilidades Blandas</span></b> <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo, Trabajo en Equipo, Comunicación Efectiva, Resolución de Problemas.</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-skills" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="education section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="education" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><h2 class="section-title" data-section-title="education" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">EDUCACIÓN</span></h2><div class="education__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="education__content editable-item-container cv-block" data-item-id="edu1" data-section-id="education" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: avoid !important;"><div class="education__time"><span class="education__rounder"></span><span class="education__line"></span></div><div class="education__data bd-grid" style="width: 100%; break-inside: avoid !important;"><h3 class="education__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Título Académico o Grado</span></h3><span class="education__studies"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Universidad o Entidad Educativa</span></span><span class="education__year"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Año de Graduación</span></span></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-education" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div><div id="column-right" class="resume__right" style="background: var(--container-color); padding: 24px !important; min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; overflow-wrap: break-word; word-break: break-word; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="experience" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><h2 class="section-title" data-section-title="experience" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">EXPERIENCIA LABORAL</span></h2><div class="experience__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="experience__content editable-item-container cv-block" data-item-id="exp1" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Cargo o Puesto de Trabajo</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2023 - Actualidad</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nombre de la Empresa o Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp1_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-3" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Describe una responsabilidad clave o logro alcanzado en el puesto.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp1_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-3" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Detalla proyectos liderados, optimizaciones o impacto cuantitativo alcanzado.</span></span></li></ul><div id="DndDescribedBy-3" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-1" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951704952_1_0ive4" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951704952_1_0ive4_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-5" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951704952_1_0ive4_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-5" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-5" style="display: none;">
+  </div><div id="DndLiveRegion-1" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817983562_1_56klr" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817983562_1_56klr_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-5" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817983562_1_56klr_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-5" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-5" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-5" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705013_2_33t7k" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705013_2_33t7k_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-7" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705013_2_33t7k_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-7" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-7" style="display: none;">
+  </div><div id="DndLiveRegion-5" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817983931_2_gvge0" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817983931_2_gvge0_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-7" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817983931_2_gvge0_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-7" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-7" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-7" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705073_3_7djg8" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705073_3_7djg8_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-9" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705073_3_7djg8_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-9" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-9" style="display: none;">
+  </div><div id="DndLiveRegion-7" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817984234_3_wm5ve" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984234_3_wm5ve_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-9" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984234_3_wm5ve_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-9" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-9" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-9" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705132_4_svc9g" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705132_4_svc9g_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-11" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705132_4_svc9g_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-11" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-11" style="display: none;">
+  </div><div id="DndLiveRegion-9" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817984545_4_h2dbg" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984545_4_h2dbg_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-11" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984545_4_h2dbg_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-11" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-11" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-11" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705196_5_1fo67" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705196_5_1fo67_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705196_5_1fo67_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-13" style="display: none;">
+  </div><div id="DndLiveRegion-11" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817984862_5_dj1tw" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984862_5_dj1tw_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817984862_5_dj1tw_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-13" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-13" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-13" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705259_6_d18ul" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" data-editor-break-forced="true" data-editor-break-fold="1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; margin-top: 0px !important; break-before: auto; padding-top: var(--page-padding, 24px) !important; break-inside: auto !important;" data-page-break="before" data-page-break-before="true" data-page-break-forced="true" data-page-break-fold="1"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705259_6_d18ul_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705259_6_d18ul_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-15" style="display: none;">
+  </div><div id="DndLiveRegion-13" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-experience" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div></div><div class="a4-page-box bd-grid" data-page-number="2" data-total-pages="2" data-testid="a4-page-box-2" style="z-index: 1; grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 2fr; grid-template-rows: 1fr; align-items: stretch; background: linear-gradient(to right, rgb(243, 244, 246) 0%, rgb(243, 244, 246) 33.33%, rgb(255, 255, 255) 33.33%, rgb(255, 255, 255) 100%); padding: 0px !important; gap: 0px; width: 210mm !important; min-width: 210mm !important; max-width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; margin: 0px !important; box-shadow: none !important; break-inside: avoid !important; break-after: auto !important;"><div id="column-left-page-2" class="resume__left" style="background: var(--container-color-alt); padding: 24px !important; min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; overflow-wrap: break-word; word-break: break-word; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="languages" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><h2 class="section-title" data-section-title="languages" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">IDIOMAS</span></h2><div class="experience__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><ul class="experience__bullets simple-list-ul" style="color: var(--text-color); padding: 0px; list-style: none !important; break-inside: auto !important;"><li class="simple-list-item editable-item-container cv-block" data-item-id="lang1" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; padding-left: 0px !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Español: Nativo</span></span></li><li class="simple-list-item editable-item-container cv-block" data-item-id="lang2" data-section-id="languages" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; padding-left: 0px !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Inglés: Profesional</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-languages" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div><div id="column-right-page-2" class="resume__right" style="background: var(--container-color); padding: 24px !important; min-height: 100%; height: 100%; align-self: stretch; display: flex; flex-direction: column; box-sizing: border-box; min-width: 0px; max-width: 100%; overflow-wrap: break-word; word-break: break-word; color: var(--text-color); --title-color: #0b0a0a; --text-color: #403a3a; --text-color-light: #707070; --container-color-alt: rgba(0, 0, 0, 0.05); --circle-color: #d7d7d7;"><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="experience__cont_2" data-section-id="experience__cont_2" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear;"><div class="experience__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817985111_6_71w45" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985111_6_71w45_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985111_6_71w45_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-15" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-15" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-15" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705322_7_nvmq9" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705322_7_nvmq9_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-17" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705322_7_nvmq9_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-17" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-17" style="display: none;">
+  </div><div id="DndLiveRegion-15" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817985443_7_rjkk5" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985443_7_rjkk5_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-17" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985443_7_rjkk5_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-17" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-17" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-17" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1789951705394_8_s70p6" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">2025 – Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705394_8_s70p6_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-19" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1789951705394_8_s70p6_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-19" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; padding-right: 0px; padding-left: 1.15rem; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-19" style="display: none;">
+  </div><div id="DndLiveRegion-17" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div><div class="experience__content editable-item-container cv-block" data-item-id="exp_1790817985864_8_9jgbs" data-section-id="experience" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nuevo Cargo / Rol Profesional</span></h3><span class="experience__company"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">2025 - Presente</span> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Empresa / Institución | Ubicación</span></span><div class="experience__bullets-container" style="break-inside: auto !important;"><ul class="experience__bullets" style="padding: 0px; margin-top: 0.25rem; margin-bottom: 0px; list-style: none !important; break-inside: auto !important;"><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985864_8_9jgbs_bullet_0" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-19" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Liderazgo y ejecución técnica con resultados medibles e impacto directo.</span></span></li><li class="bullet-item-row editable-item-container cv-block" data-item-id="exp_1790817985864_8_9jgbs_bullet_1" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-19" style="position: relative; opacity: 1; display: flex; align-items: flex-start; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; padding-right: 0px; padding-left: 0px !important; color: inherit; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; transition: transform linear; list-style: none !important; break-inside: avoid !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Diseñé y automaticé flujos de trabajo con metodologías ágiles.</span></span></li></ul><div id="DndDescribedBy-19" style="display: none;">
     To pick up a draggable item, press the space bar.
     While dragging, use the arrow keys to move the item.
     Press space again to drop the item in its new position, or press escape to cancel.
-  </div><div id="DndLiveRegion-19" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-experience" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="projects" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="projects" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">PROYECTOS DESTACADOS</span></h2><div class="experience__container bd-grid"><div class="experience__content editable-item-container cv-block" data-item-id="proj1" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Nombre del Proyecto</span></h3><span class="experience__company"> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Rol en el proyecto | Tecnologías clave</span></span><span class="social__container bd-grid" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">enlace-o-repositorio.com</span></span></span><p class="experience__description"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Breve descripción del problema abordado, tecnologías implementadas y resultados obtenidos.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-projects" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="certificates" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); transition: transform linear;"><h2 class="section-title" data-section-title="certificates" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">CERTIFICACIONES</span></h2><div class="experience__container bd-grid"><ul class="experience__bullets simple-list-ul" style="color: var(--text-color); padding: 0px; list-style: none !important; break-inside: auto !important;"><li class="simple-list-item editable-item-container cv-block" data-item-id="cert1" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 6px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; min-height: 1em; text-align: left; color: inherit;">Certificación Profesional o Diplomatura (Institución, Año)</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-certificates" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div></div>
+  </div><div id="DndLiveRegion-19" role="status" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(100%); white-space: nowrap;"></div></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-experience" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="projects" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><h2 class="section-title" data-section-title="projects" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">PROYECTOS DESTACADOS</span></h2><div class="experience__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><div class="experience__content editable-item-container cv-block" data-item-id="proj1" data-section-id="projects" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; transition: transform linear; break-inside: auto !important;"><div class="experience__time"><span class="experience__rounder"></span><span class="experience__line"></span></div><div class="experience__data bd-grid" style="width: 100%; break-inside: auto !important;"><h3 class="experience__title" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Nombre del Proyecto</span></h3><span class="experience__company"> | <span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Rol en el proyecto | Tecnologías clave</span></span><span class="social__container bd-grid" style="margin-top: 0.25rem; margin-bottom: 0.25rem;"><span class="social__link " data-testid="hyperlink-trigger" title="Clic para abrir o editar el hipervínculo" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--first-color, #3874ff); text-decoration: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link lucide lucide-external-link" aria-hidden="true" focusable="false" role="presentation" style="user-select: none !important;"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span style="text-decoration: underline; text-underline-offset: 3px;">enlace-o-repositorio.com</span></span></span><p class="experience__description"><span tabindex="0" role="button" aria-label="Haz clic para escribir texto..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Breve descripción del problema abordado, tecnologías implementadas y resultados obtenidos.</span></p><div class="experience__bullets-container" style="break-inside: auto !important;"></div></div></div></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-projects" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section><section class="experience section editable-section-container cv-section bullet-size-normal bullet-variant-bold" id="certificates" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; margin-bottom: var(--section-gap, 20px); color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><h2 class="section-title" data-section-title="certificates" style="break-inside: avoid !important;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">CERTIFICACIONES</span></h2><div class="experience__container bd-grid" style="min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box;"><ul class="experience__bullets simple-list-ul" style="color: var(--text-color); padding: 0px; list-style: none !important; break-inside: auto !important;"><li class="simple-list-item editable-item-container cv-block" data-item-id="cert1" data-section-id="certificates" role="button" tabindex="0" aria-disabled="false" aria-roledescription="sortable" aria-describedby="DndDescribedBy-1" style="position: relative; opacity: 1; color: var(--text-color); min-width: 0px; max-width: 100%; width: 100%; box-sizing: border-box; display: flex; align-items: flex-start; list-style: none !important; transition: transform linear; break-inside: avoid !important; margin-top: 0px !important; margin-bottom: var(--item-gap, 8px) !important; line-height: var(--line-height, 1.45) !important; font-size: var(--list-font-size, var(--normal-font-size)) !important; padding-left: 0px !important;"><span class="simple-list-circle" style="display: inline-block; width: 5px; height: 5px; background-color: var(--circle-color, var(--text-color)); border-radius: 50%; margin: 7px 0.45rem 0px 0px; flex-shrink: 0;"></span><span style="flex: 1 1 0%; min-width: 0px; max-width: 100%; color: inherit;"><span tabindex="0" role="button" aria-label="Haz clic para editar..." class="inline-edit-display " data-testid="inline-edit-display" style="cursor: pointer; display: inline-block; min-width: 20px; max-width: 100%; box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; min-height: 1em; text-align: left; color: inherit;">Certificación Profesional o Diplomatura (Institución, Año)</span></span></li></ul></div><div class="integrated-bottom-spacer" data-testid="integrated-bottom-spacer-certificates" data-spacer-height="0" style="position: relative; width: 100%; height: 0px; min-height: 0px; box-sizing: border-box; background: transparent; border: none; border-radius: 3px; transition: height 0.1s, border-color 0.15s; user-select: auto; box-shadow: none; outline: none;"></div></section></div></div></div>
 </body></html>

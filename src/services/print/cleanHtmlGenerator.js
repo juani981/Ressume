@@ -393,7 +393,10 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     el.style.setProperty('list-style-type', 'none', 'important');
   });
 
-  const pageBoxes = clone.querySelectorAll('.a4-page-box');
+  const descendantBoxes = Array.from(clone.querySelectorAll('.a4-page-box'));
+  const pageBoxes = clone.classList.contains('a4-page-box') && descendantBoxes.length === 0
+    ? [clone]
+    : descendantBoxes;
   const hasA4Boxes = pageBoxes.length > 0;
 
   if (hasA4Boxes) {

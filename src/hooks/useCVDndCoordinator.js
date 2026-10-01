@@ -34,6 +34,7 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
  */
 export function useCVDndCoordinator({
   cvData,
+  pages,
   moveItemBetweenSections,
   moveSectionToColumnAndIndex,
 }) {
@@ -109,16 +110,33 @@ export function useCVDndCoordinator({
         targetSectionId = toCanonicalSectionId(over.id);
         overItemId = null;
       } else if (overData?.type === 'column') {
-        const colSections = (cvData?.sections || []).filter(
-          (s) => s.column === overData.column,
-        );
-        if (colSections.length > 0) {
-          // Drop onto last section in the column
-          targetSectionId = colSections[colSections.length - 1].id;
+        let candidateSecId = null;
+        if (overData.pageNumber != null && Array.isArray(pages)) {
+          const targetPageModel = pages.find((p) => p.pageNumber === overData.pageNumber);
+          if (targetPageModel) {
+            const colSections =
+              overData.column === 'left'
+                ? targetPageModel.leftSections
+                : overData.column === 'right'
+                  ? targetPageModel.rightSections
+                  : targetPageModel.singleSections;
+            if (colSections && colSections.length > 0) {
+              const lastSecOnPage = colSections[colSections.length - 1];
+              candidateSecId = toCanonicalSectionId(lastSecOnPage.originalSectionId || lastSecOnPage.id);
+            }
+          }
+        }
+        if (candidateSecId) {
+          targetSectionId = candidateSecId;
+          overItemId = null;
         } else {
-          // Empty column: we can't move an item to an empty column cross-section.
-          // Fall through without a targetSectionId — the item stays in place.
-          // (Only sections can be moved to empty columns via the section drag path.)
+          const colSections = (cvData?.sections || []).filter(
+            (s) => s.column === overData.column,
+          );
+          if (colSections.length > 0) {
+            // Drop onto last section in the column
+            targetSectionId = colSections[colSections.length - 1].id;
+          }
         }
       } else {
         // Find which section contains over.id
@@ -162,6 +180,44 @@ export function useCVDndCoordinator({
       if (overData?.type === 'column') {
         targetColumn = overData.column;
         overSectionId = null;
+
+        // Page-aware drop in column whitespace:
+        if (overData.pageNumber != null && Array.isArray(pages)) {
+          const targetPageModel = pages.find((p) => p.pageNumber === overData.pageNumber);
+          if (targetPageModel) {
+            const colSections =
+              targetColumn === 'left'
+                ? targetPageModel.leftSections
+                : targetColumn === 'right'
+                  ? targetPageModel.rightSections
+                  : targetPageModel.singleSections;
+
+            if (colSections && colSections.length > 0) {
+              const lastSecOnPage = colSections[colSections.length - 1];
+              overSectionId = toCanonicalSectionId(lastSecOnPage.originalSectionId || lastSecOnPage.id);
+              position = 'below';
+            } else {
+              // If column is empty on this page, look backward to previous pages
+              for (let pNum = overData.pageNumber - 1; pNum >= 1; pNum--) {
+                const prevModel = pages.find((p) => p.pageNumber === pNum);
+                if (prevModel) {
+                  const prevColSections =
+                    targetColumn === 'left'
+                      ? prevModel.leftSections
+                      : targetColumn === 'right'
+                        ? prevModel.rightSections
+                        : prevModel.singleSections;
+                  if (prevColSections && prevColSections.length > 0) {
+                    const prevLastSec = prevColSections[prevColSections.length - 1];
+                    overSectionId = toCanonicalSectionId(prevLastSec.originalSectionId || prevLastSec.id);
+                    position = 'below';
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
       } else if (overData?.type === 'section') {
         const cleanOver = toCanonicalSectionId(over.id);
         const overSection = (cvData?.sections || []).find((s) => s.id === cleanOver);

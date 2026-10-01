@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import {
   createPageGeometry,
   PAGE_FORMATS,
@@ -170,6 +170,49 @@ describe('Engineering Milestone: Page Geometry SSOT & Content Overflow Robustnes
 
       expect(screen.queryByTestId('a4-page-overflow-warning-1')).toBeNull();
     });
+
+    it('renders actionable button inside Obsidian Callout and dispatches onMoveOverflowToNextPage', () => {
+      const handleMove = vi.fn();
+      render(
+        <A4PageBox
+          pageNumber={1}
+          totalPages={1}
+          showBadge={true}
+          isOverflowed={true}
+          onMoveOverflowToNextPage={handleMove}
+        >
+          <div>Overflowing content</div>
+        </A4PageBox>
+      );
+
+      const actionBtn = screen.getByTestId('a4-page-overflow-action-1');
+      expect(actionBtn).toBeInTheDocument();
+      expect(actionBtn).toHaveTextContent('Pasar sobrante a Página 2 ➔');
+
+      fireEvent.click(actionBtn);
+      expect(handleMove).toHaveBeenCalledTimes(1);
+      expect(handleMove).toHaveBeenCalledWith(1);
+    });
+
+    it('dynamically relocates overflowing section to page 2 when breakBefore is toggled', () => {
+      const cvWithOverflow = JSON.parse(JSON.stringify(defaultSchema));
+      const exp = cvWithOverflow.sections.find(s => s.id === 'experience');
+      exp.items.push({
+        id: 'exp2',
+        title: 'Senior Distributed Systems Architect',
+        subtitle: 'Enterprise Cloud Corp.',
+        bullets: ['Bullet A '.repeat(10), 'Bullet B '.repeat(10)]
+      });
+
+      // User triggers action on certificates which sets breakBefore: true
+      const cert = cvWithOverflow.sections.find(s => s.id === 'certificates');
+      cert.breakBefore = true;
+
+      const pages = distributeSectionsToPages(cvWithOverflow, { isEditor: true });
+      expect(pages.length).toBeGreaterThan(1);
+      const page2Right = pages[1].rightSections.map(s => s.id);
+      expect(page2Right).toContain('certificates');
+    });
   });
 
   describe('Problem 9: Bullet Splitting & Continuation Parent Preservation', () => {
@@ -228,6 +271,75 @@ describe('Engineering Milestone: Page Geometry SSOT & Content Overflow Robustnes
     });
   });
 
+  describe('Problem 10: Multi-Page Overflow Cascade Strict Page Targeting', () => {
+    it('relocates content from page 2 to page 3 without skipping to page 4', () => {
+      const cv = JSON.parse(JSON.stringify(defaultSchema));
+      const exp = cv.sections.find(s => s.id === 'experience');
+      const proj = cv.sections.find(s => s.id === 'projects');
+      const cert = cv.sections.find(s => s.id === 'certificates');
+
+      exp.items.push({
+        id: 'exp2',
+        title: 'Lead Architect',
+        subtitle: 'Enterprise Cloud',
+        bullets: ['Bullet 1 '.repeat(10), 'Bullet 2 '.repeat(10)],
+      });
+
+      proj.items.push(
+        {
+          id: 'proj2',
+          title: 'Infrastructure Project 1',
+          subtitle: 'Distributed Engine',
+          description: 'Long description '.repeat(25),
+        },
+        {
+          id: 'proj3',
+          title: 'Infrastructure Project 2',
+          subtitle: 'Distributed Engine',
+          description: 'Long description '.repeat(25),
+        }
+      );
+
+      // Page 1 overflow -> moved to Page 2
+      proj.targetPage = 2;
+      let pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBeGreaterThanOrEqual(2);
+
+      // Page 2 overflow -> moved to Page 3 (Must land on Page 3, NOT Page 4)
+      cert.targetPage = 3;
+      pages = distributeSectionsToPages(cv, { isEditor: true });
+
+      const certPageIndex = pages.findIndex(p => p.rightSections.some(s => s.id.startsWith('certificates')));
+      expect(certPageIndex).toBe(2); // 0-indexed: Page 3
+      expect(pages.length).toBe(3);
+    });
+  });
+
+  describe('Problem 11: Reordering into Whitespace & Break Lock Removal', () => {
+    it('clears sticky break and targetPage properties when a section is moved', () => {
+      const cv = JSON.parse(JSON.stringify(defaultSchema));
+      const cert = cv.sections.find(s => s.id === 'certificates');
+      cert.targetPage = 4;
+      cert.breakBefore = true;
+
+      // Simulate dragging cert to fill whitespace on Page 2 or Page 3
+      delete cert.targetPage;
+      delete cert.breakBefore;
+      delete cert.pageBreak;
+
+      // Move cert before projects in the right column
+      cv.sections = cv.sections.filter(s => s.id !== 'certificates');
+      const projIndex = cv.sections.findIndex(s => s.id === 'projects');
+      cv.sections.splice(projIndex, 0, cert);
+
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      const certPageIndex = pages.findIndex(p => p.rightSections.some(s => s.id.startsWith('certificates')));
+      expect(certPageIndex).toBeLessThan(3); // Occupies page 1 or 2, not locked to page 4
+      expect(cert.targetPage).toBeUndefined();
+      expect(cert.breakBefore).toBeUndefined();
+    });
+  });
+
   describe('Clean Invariant: defaultSchema 1-Page Guarantee', () => {
     it('fits defaultSchema cleanly into 1 page in editor mode', () => {
       const pages = distributeSectionsToPages(defaultSchema, { isEditor: true });
@@ -236,4 +348,96 @@ describe('Engineering Milestone: Page Geometry SSOT & Content Overflow Robustnes
       expect(pages[0].rightSections.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Incident Remediation: Natural Bullet Overflow without Section Hijacking', () => {
+    it('never sends entire section with title to page 2 when bullets fit partially on page 1', () => {
+      const cv = {
+        layout: { type: '2-column', pagePadding: 24, editorHeadroom: 80 },
+        sections: [
+          {
+            id: 'exp',
+            column: 'right',
+            type: 'experience',
+            title: 'Experiencia Laboral',
+            items: [
+              {
+                id: 'exp1',
+                title: 'Staff Platform Engineer',
+                subtitle: 'Cloud Tech Inc.',
+                bullets: [
+                  'Architected real-time streaming analytics engine processing 50k events/sec.',
+                  'Led cross-functional migration of monolithic backend to Kubernetes microservices.',
+                  'Implemented automated CI/CD pipelines reducing deployment lead time by 65%.',
+                  'Mentored junior and mid-level engineers across 3 distributed squads.',
+                  'Designed fault-tolerant multi-region failover cluster on AWS with zero downtime.',
+                  'Optimized distributed cache queries reducing latency by 45ms across all APIs.',
+                  'Built custom monitoring dashboards with Prometheus and Grafana for SLO tracking.',
+                  'Standardized Terraform infrastructure modules adopted by over 20 development teams.',
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const pages = distributeSectionsToPages(cv, { isEditor: true, editorHeadroom: 80 });
+      // Section exp should start on Page 1
+      const page1Sec = pages[0].rightSections.find(s => s.id === 'exp' || s.originalSectionId === 'exp');
+      expect(page1Sec).toBeDefined();
+      // Page 1 MUST retain the title
+      expect(page1Sec.title).toBe('Experiencia Laboral');
+      expect(page1Sec.items[0].title).toBe('Staff Platform Engineer');
+      expect(page1Sec.items[0].bullets.length).toBeGreaterThan(0);
+
+      // If it overflowed onto Page 2, Page 2 receives continuation without repeating title
+      if (pages.length > 1) {
+        const page2Sec = pages[1].rightSections.find(s => s.originalSectionId === 'exp' || s.id.startsWith('exp'));
+        expect(page2Sec).toBeDefined();
+        // Continuation section title must be empty per user requirement
+        expect(page2Sec.title).toBe('');
+        const contItem = page2Sec.items[0];
+        expect(contItem.isContinuationItem).toBe(true);
+        expect(contItem.title).toBe('');
+      }
+    });
+
+    it('calibrated headroom naturally pushes trailing bullets to page 2 without targetPage locks', () => {
+      const cv = {
+        layout: { type: '2-column', pagePadding: 24, editorHeadroom: 80 },
+        sections: [
+          {
+            id: 'exp',
+            column: 'right',
+            type: 'experience',
+            title: 'Experiencia Laboral',
+            items: [
+              {
+                id: 'exp1',
+                title: 'Senior Developer',
+                subtitle: 'SaaS Corp',
+                bullets: Array.from({ length: 35 }, (_, i) => `High impact achievement bullet number ${i + 1} with extensive technical description of architecture and metrics.`),
+              },
+            ],
+          },
+        ],
+      };
+
+      // With default headroom (80px)
+      const pages80 = distributeSectionsToPages(cv, { isEditor: true, editorHeadroom: 80 });
+      expect(pages80.length).toBeGreaterThan(1);
+      const page1Bullets80 = pages80[0].rightSections[0].items[0].bullets.length;
+
+      // With increased headroom (250px) due to overflow recalibration
+      const pages250 = distributeSectionsToPages(cv, { isEditor: true, editorHeadroom: 250 });
+      const page1Bullets250 = pages250[0].rightSections[0].items[0].bullets.length;
+
+      // Increased headroom cleanly moves more bullets to page 2 naturally
+      expect(page1Bullets250).toBeLessThan(page1Bullets80);
+      // But page 1 ALWAYS keeps the section and its title
+      expect(pages250[0].rightSections[0].title).toBe('Experiencia Laboral');
+      // No targetPage lock is set on the cv input
+      expect(cv.sections[0].targetPage).toBeUndefined();
+    });
+  });
 });
+
