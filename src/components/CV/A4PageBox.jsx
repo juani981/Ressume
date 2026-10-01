@@ -519,30 +519,6 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
             <span>🛑</span>
             <span>Desbordamiento de página {pageNumber}: El contenido excede los 297mm físicos.</span>
           </div>
-          {typeof onMoveOverflowToNextPage === 'function' && (
-            <button
-              type="button"
-              className="obsidian-callout-action-btn no-print"
-              data-testid={`a4-page-overflow-action-${pageNumber}`}
-              onClick={() => onMoveOverflowToNextPage(pageNumber)}
-              style={{
-                background: '#b91c1c',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '4px 10px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              Pasar sobrante a Página {pageNumber + 1} ➔
-            </button>
-          )}
         </div>
       )}
     </div>

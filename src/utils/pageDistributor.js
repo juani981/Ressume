@@ -874,8 +874,10 @@ export function distributeSectionsToPages(cvData, options = {}) {
 
   const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
+  // Dynamic ATS headroom tied directly to the user's selected pagePadding (e.g. 2 * padding = 48px at default 24px)
+  const dynamicAtsHeadroom = Math.round(padding * 2);
   const safetyHeadroom = isAts 
-    ? (options.atsEditorHeadroom ?? 0) 
+    ? (options.atsEditorHeadroom ?? (mergedOptions.isEditor ? dynamicAtsHeadroom : 0)) 
     : (mergedOptions.isEditor ? (options.editorHeadroom ?? 195) : (options.printHeadroom ?? 100));
   const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding - safetyHeadroom);
 

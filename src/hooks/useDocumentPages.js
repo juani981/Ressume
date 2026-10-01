@@ -128,7 +128,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       // Dynamic measured heights from DOM feedback loop
       measuredHeights,
       measuredItemHeights,
-      editorHeadroom: options.editorHeadroom ?? layout.editorHeadroom ?? 80,
+      editorHeadroom: options.editorHeadroom ?? (layout.editorHeadroom ? Math.min(Math.max(layout.editorHeadroom, 195), 250) : 195),
 
       // Mode resolution
       isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),

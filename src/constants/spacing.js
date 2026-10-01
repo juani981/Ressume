@@ -5,10 +5,10 @@
  * item gaps, and line height defaults across the CV editor and print engine.
  */
 
-export const DEFAULT_PAGE_PADDING_PX = 24;
-export const DEFAULT_SECTION_GAP_PX = 20;
+export const DEFAULT_PAGE_PADDING_PX = 18;
+export const DEFAULT_SECTION_GAP_PX = 12;
 export const DEFAULT_ITEM_GAP_PX = 8;
-export const DEFAULT_LINE_HEIGHT = 1.45;
+export const DEFAULT_LINE_HEIGHT = 1.30;
 
 // Aliases for backward compatibility
 export const DEFAULT_PAGE_PADDING = DEFAULT_PAGE_PADDING_PX;
