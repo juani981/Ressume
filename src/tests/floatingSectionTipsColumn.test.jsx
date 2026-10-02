@@ -216,5 +216,48 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
     expect(enAtsRules.length).toBeGreaterThan(0);
     expect(en2ColRules.length).toBeGreaterThan(0);
   });
+
+  it('8. Alternates floating advice cards left and right along the main CV sheet (Title: Left, Contact: Right, Profile: Left...)', () => {
+    render(
+      <CVProvider initialCV={mockCVData}>
+        <AITipsSidebar />
+      </CVProvider>
+    );
+
+    const sidebar = screen.getByTestId('ai-tips-sidebar');
+    const cardWrappers = sidebar.querySelectorAll('.ai-tip-card-wrapper');
+    expect(cardWrappers.length).toBeGreaterThan(3);
+
+    // Verify Title / Encabezado (first section) is on the LEFT
+    expect(cardWrappers[0].getAttribute('data-side')).toBe('left');
+    expect(cardWrappers[0].textContent).toContain('Titular & Encabezado');
+
+    // Verify Contact (second section) is on the RIGHT
+    expect(cardWrappers[1].getAttribute('data-side')).toBe('right');
+    expect(cardWrappers[1].textContent).toContain('Datos de Contacto');
+
+    // Verify Perfil Profesional (third section) is on the LEFT
+    expect(cardWrappers[2].getAttribute('data-side')).toBe('left');
+    expect(cardWrappers[2].textContent).toContain('Perfil Profesional');
+
+    // Verify alternation and pointer direction across all rendered cards
+    cardWrappers.forEach((wrapper, index) => {
+      const expectedSide = index % 2 === 0 ? 'left' : 'right';
+      expect(wrapper.getAttribute('data-side')).toBe(expectedSide);
+
+      // Verify pointer arrows
+      const pointer = wrapper.querySelector('.ai-tip-pointer');
+      expect(pointer).toBeInTheDocument();
+      const style = pointer.getAttribute('style') || '';
+      if (expectedSide === 'left') {
+        // Left card points towards CV on the right (uses border-left)
+        expect(style).toContain('border-left:');
+      } else {
+        // Right card points towards CV on the left (uses border-right)
+        expect(style).toContain('border-right:');
+      }
+    });
+  });
 });
+
 

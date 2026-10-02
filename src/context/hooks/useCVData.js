@@ -224,13 +224,15 @@ export const useCVData = ({
   }, [applyStateWithHistory]);
 
   const addSectionItem = useCallback((sectionId) => {
+    const canonicalId = typeof sectionId === 'string' ? sectionId.split('__cont_')[0] : sectionId;
     applyStateWithHistory(prev => ({
-      ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: [...(s.items || []), createDefaultItemForSection(s.type)] } : s)
+      ...prev, sections: prev.sections.map(s => s.id === canonicalId ? { ...s, items: [...(s.items || []), createDefaultItemForSection(s.type)] } : s)
     }));
   }, [applyStateWithHistory]);
   const deleteSectionItem = useCallback((sectionId, itemId) => {
+    const canonicalId = typeof sectionId === 'string' ? sectionId.split('__cont_')[0] : sectionId;
     applyStateWithHistory(prev => ({
-      ...prev, sections: prev.sections.map(s => s.id !== sectionId || s.type === 'profile_header' || s.type === 'title_subtitle' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
+      ...prev, sections: prev.sections.map(s => s.id !== canonicalId || s.type === 'profile_header' || s.type === 'title_subtitle' || s.type === 'contact' ? s : { ...s, items: (s.items || []).filter(i => i.id !== itemId) })
     }));
   }, [applyStateWithHistory]);
   /**
@@ -239,15 +241,16 @@ export const useCVData = ({
    * engine always receives consistent data.
    */
   const updateSectionItem = useCallback((sectionId, itemId, key, value) => {
+    const canonicalId = typeof sectionId === 'string' ? sectionId.split('__cont_')[0] : sectionId;
     applyStateWithHistory(prev => {
-      const targetSec = prev.sections.find(s => s.id === sectionId);
+      const targetSec = prev.sections.find(s => s.id === canonicalId);
       const isProfileSec = targetSec && (
         targetSec.type === 'profile_header' ||
         targetSec.type === 'title_subtitle' ||
         targetSec.type === 'contact'
       );
 
-      const updatedSections = prev.sections.map(sec => sec.id !== sectionId ? sec : {
+      const updatedSections = prev.sections.map(sec => sec.id !== canonicalId ? sec : {
         ...sec, items: (sec.items || []).map(i => i.id === itemId
           ? { ...i, ...(typeof key === 'object' && key !== null ? key : { [key]: value }) }
           : i)
@@ -276,7 +279,8 @@ export const useCVData = ({
     });
   }, [applyStateWithHistory]);
   const reorderSectionItems = useCallback((sectionId, newItems) => {
-    applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === sectionId ? { ...s, items: newItems } : s) }));
+    const canonicalId = typeof sectionId === 'string' ? sectionId.split('__cont_')[0] : sectionId;
+    applyStateWithHistory(prev => ({ ...prev, sections: prev.sections.map(s => s.id === canonicalId ? { ...s, items: newItems } : s) }));
   }, [applyStateWithHistory]);
 
   const moveItemBetweenSections = useCallback((activeItemId, overItemId, activeSectionId, overSectionId, position = null) => {

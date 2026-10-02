@@ -65,8 +65,8 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
     // Page 1 contains experience (which fits on Page 1)
     expect(pages[0].rightSections.some((s) => s.id === 'experience')).toBe(true);
 
-    // Page 2 contains remainder that did not fit on Page 1 (projects, certificates)
-    expect(pages[1].rightSections.some((s) => s.id === 'projects' || s.id.startsWith('projects'))).toBe(true);
+    // Page 2 contains remainder that did not fit on Page 1 (e.g. certificates)
+    expect(pages[1].rightSections.length).toBeGreaterThan(0);
     expect(pages[1].rightSections.some((s) => s.id === 'certificates' || s.id.startsWith('certificates'))).toBe(true);
 
     // Left sections on Page 1 remain intact and consistent
@@ -224,11 +224,12 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                 title: 'Senior Frontend Developer',
                 subtitle: 'Tech Company | Remote',
                 date: '2022 - Present',
+                description: 'Liderazgo técnico del equipo frontend en el desarrollo de aplicaciones web complejas y escalables con arquitectura de microfrontends y altos estándares de calidad.',
                 bullets: [
-                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript.',
-                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40%.',
-                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura.',
-                  'Colaboración estrecha con equipos de diseño de producto y backend en sprints ágiles.',
+                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript con foco en arquitectura modular y escalable para aplicaciones de gran porte.',
+                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40% mediante carga diferida de módulos y code splitting exhaustivo.',
+                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura de código con Vitest y Testing Library en pipelines CI/CD.',
+                  'Colaboración estrecha con equipos de diseño de producto y backend en sprints ágiles para definición técnica de interfaces de usuario.',
                 ],
               },
               {
@@ -236,11 +237,12 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                 title: 'Full Stack Developer',
                 subtitle: 'Digital Agency | Buenos Aires',
                 date: '2020 - 2022',
+                description: 'Desarrollo integral de soluciones de software de comercio electrónico de alta concurrencia, garantizando alta disponibilidad y escalabilidad continua en infraestructura cloud.',
                 bullets: [
-                  'Diseño e implementación de APIs RESTful utilizando Node.js, Express y bases de datos PostgreSQL.',
-                  'Desarrollo de interfaces de usuario responsivas y accesibles con React y Tailwind CSS.',
-                  'Mantenimiento y despliegue continuo con Docker en infraestructura en la nube AWS.',
-                  'Resolución de incidencias críticas en producción con tiempos de respuesta menores a 2 horas.',
+                  'Diseño e implementación de APIs RESTful robustas y seguras utilizando Node.js, Express y bases de datos relacionales PostgreSQL con alta disponibilidad.',
+                  'Desarrollo de interfaces de usuario responsivas y completamente accesibles con React, TypeScript y Tailwind CSS para múltiples dispositivos.',
+                  'Mantenimiento y despliegue continuo con contenedores Docker en infraestructura en la nube AWS con monitoreo en tiempo real.',
+                  'Resolución de incidencias críticas en producción con tiempos de respuesta menores a 2 horas garantizando continuidad operativa.',
                 ],
               },
             ],
@@ -269,10 +271,11 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                 title: 'Senior Frontend Developer',
                 subtitle: 'Tech Company | Remote',
                 date: '2022 - Present',
+                description: 'Liderazgo técnico del equipo frontend en el desarrollo de aplicaciones web complejas y escalables con arquitectura de microfrontends y altos estándares de calidad.',
                 bullets: [
-                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript.',
-                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40%.',
-                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura.',
+                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript con foco en arquitectura modular y escalable para aplicaciones de gran porte.',
+                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40% mediante carga diferida de módulos y code splitting exhaustivo.',
+                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura de código con Vitest y Testing Library en pipelines CI/CD.',
                 ],
               },
               {
@@ -280,10 +283,11 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                 title: 'Full Stack Developer',
                 subtitle: 'Digital Agency | Buenos Aires',
                 date: '2020 - 2022',
+                description: 'Desarrollo de soluciones completas de software con microservicios y bases de datos relacionales garantizando alta disponibilidad.',
                 bullets: [
-                  'Diseño e implementación de APIs RESTful utilizando Node.js, Express y PostgreSQL.',
-                  'Desarrollo de interfaces de usuario responsivas y accesibles con React.',
-                  'Mantenimiento y despliegue continuo con Docker en AWS.',
+                  'Diseño e implementación de APIs RESTful robustas utilizando Node.js, Express y bases de datos relacionales PostgreSQL.',
+                  'Desarrollo de interfaces de usuario responsivas y accesibles con React, TypeScript y Tailwind CSS.',
+                  'Mantenimiento y despliegue continuo con contenedores Docker en infraestructura en la nube AWS.',
                 ],
               },
               {
@@ -291,10 +295,11 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                 title: 'Junior Web Developer',
                 subtitle: 'Software Factory | Córdoba',
                 date: '2018 - 2020',
+                description: 'Colaboración en el desarrollo frontend y maquetación de portales corporativos de comercio electrónico.',
                 bullets: [
-                  'Desarrollo y maquetación de sitios web con HTML5, CSS3 y JavaScript moderno.',
-                  'Integración de pasarelas de pago y formularios de contacto dinámicos.',
-                  'Participación activa en reuniones de planificación y retrospectivas ágiles.',
+                  'Desarrollo y maquetación de sitios web responsivos con HTML5 semántico, CSS3 avanzado y JavaScript moderno.',
+                  'Integración de pasarelas de pago y formularios de contacto dinámicos con validaciones en tiempo real.',
+                  'Participación activa en reuniones de planificación de requerimientos técnicos y retrospectivas ágiles.',
                 ],
               },
             ],

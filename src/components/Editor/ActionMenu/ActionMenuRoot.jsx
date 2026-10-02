@@ -226,12 +226,33 @@ export const ActionMenuRoot = () => {
               setIsUnidirectionalOnly(false);
               setIsAIModalOpen(true);
             }}
-            aria-label="Traducir CV (Inglés US Tech)"
-            title="Traducir CV a Inglés (US Tech) u otros idiomas"
+            aria-label={`Traducir CV (Idioma actual: ${String(activeLanguage || 'es').toUpperCase()})`}
+            title={`Idioma actual: ${String(activeLanguage || 'es').toUpperCase()}. Clic para traducir CV`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1px',
+              padding: '0.2rem 0.35rem',
+            }}
           >
-            <Globe size={20} color="#10b981" />
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                lineHeight: 1,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                color: '#10b981',
+                userSelect: 'none',
+              }}
+            >
+              {String(activeLanguage || 'es').toUpperCase()}
+            </span>
+            <Globe size={18} color="#10b981" />
           </button>
-          <span className="action-menu-tooltip">Traducir CV (Inglés US Tech)</span>
+          <span className="action-menu-tooltip">Idioma: {String(activeLanguage || 'es').toUpperCase()} (Traducir CV)</span>
         </div>
 
         {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}

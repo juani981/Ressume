@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import {
+  Check,
   CheckCircle2,
   Copy,
   Edit3,
@@ -9,20 +10,60 @@ import {
   Download,
   Eye,
   X,
+  FileText,
 } from 'lucide-react';
+
+/**
+ * Format relative timestamp in Spanish: "Hace X min", "Ayer", etc.
+ * @param {string} dateString
+ * @returns {string}
+ */
+const formatRelativeTime = (dateString) => {
+  if (!dateString) return 'Fecha no disponible';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  if (isNaN(diffInMs)) return 'Fecha no disponible';
+
+  const diffInSec = Math.floor(diffInMs / 1000);
+  if (diffInSec < 60) return 'Hace un momento';
+
+  const diffInMin = Math.floor(diffInSec / 60);
+  if (diffInMin < 60) {
+    return `Hace ${diffInMin} ${diffInMin === 1 ? 'min' : 'mins'}`;
+  }
+
+  const diffInHours = Math.floor(diffInMin / 60);
+  if (diffInHours < 24) {
+    return `Hace ${diffInHours} ${diffInHours === 1 ? 'h' : 'h'}`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) return 'Ayer';
+  if (diffInDays < 7) return `Hace ${diffInDays} días`;
+
+  return date.toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+};
 
 /**
  * VersionCard
  * Renders an individual CV version snapshot card in the Version Manager grid:
- * - Miniature visual thumbnail preview with fixed height (never shrinks)
- * - ATS / 2-Col layout badge
+ * - Miniature visual thumbnail preview with centered A4 simulated sheet and realistic aspect ratio
+ * - Layout badge (ATS 1-Col or 2-Col) with high contrast
+ * - Emerald active badge with pulse dot indicator when isActive is true
+ * - Page count pill
  * - High-resolution preview lightbox modal on explicit click
  * - Version title or inline rename input
- * - Created date metadata
- * - Action buttons toolbar: Cargar, Previsualizar, Duplicar, Descargar JSON, Eliminar (always visible)
+ * - Relative time metadata row with exact timestamp tooltip
+ * - Action buttons toolbar: Primary Cargar/Activa + 32x32px Secondary icon cluster (Ver, Duplicar, JSON, Eliminar)
  */
 export const VersionCard = ({
   version,
+  isActive = false,
   isEditing,
   renameText,
   renameInputRef,
@@ -41,7 +82,7 @@ export const VersionCard = ({
     version.cvData?.layout?.isAtsMode || version.cvData?.layout?.type === '1-column'
   );
 
-  const formattedDate = version.createdAt
+  const exactDate = version.createdAt
     ? new Date(version.createdAt).toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'short',
@@ -51,24 +92,34 @@ export const VersionCard = ({
       })
     : 'Fecha no disponible';
 
+  const relativeTime = formatRelativeTime(version.createdAt);
+
+  const pageCount = version.cvData?.pages?.length || 1;
+  const pageText = `${pageCount} ${pageCount === 1 ? 'pág' : 'págs'}`;
+
   return (
     <div
       key={version.id}
-      className="version-card"
+      className={`version-card ${isActive ? 'version-card--active' : ''}`}
       style={{
         backgroundColor: '#ffffff',
-        border: '1px solid #e2e8f0',
+        border: isActive ? '1.5px solid #10b981' : '1px solid #e2e8f0',
         borderRadius: '12px',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        height: '310px',
+        minHeight: '310px',
+        maxHeight: '310px',
+        boxShadow: isActive
+          ? '0 4px 14px rgba(16, 185, 129, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)'
+          : '0 2px 4px rgba(0, 0, 0, 0.04)',
+        transition: 'all 0.15s ease',
         flexShrink: 0,
         position: 'relative',
       }}
     >
-      {/* Miniature Visual Thumbnail Preview (Fixed size, never shrinks) */}
+      {/* Visual Thumbnail Preview (100% of container, zero black bars, lowest z-index: 1) */}
       <div
         className="version-thumbnail-container"
         style={{
@@ -76,7 +127,7 @@ export const VersionCard = ({
           minHeight: '190px',
           maxHeight: '190px',
           flexShrink: 0,
-          backgroundColor: '#f1f5f9',
+          backgroundColor: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -84,6 +135,8 @@ export const VersionCard = ({
           position: 'relative',
           borderBottom: '1px solid #e2e8f0',
           cursor: version.thumbnail ? 'pointer' : 'default',
+          width: '100%',
+          zIndex: 1,
         }}
         onClick={() => {
           if (version.thumbnail) setIsPreviewOpen(true);
@@ -96,15 +149,72 @@ export const VersionCard = ({
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'contain',
+              objectFit: 'cover',
+              objectPosition: 'top center',
               display: 'block',
+              backgroundColor: '#ffffff',
+              zIndex: 1,
             }}
           />
         ) : (
-          <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Sin vista previa</div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '8px',
+              textAlign: 'center',
+              height: '100%',
+              width: '100%',
+              backgroundColor: '#f8fafc',
+              zIndex: 1,
+            }}
+          >
+            <FileText size={24} color="#94a3b8" />
+            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
+              Sin vista previa
+            </span>
+          </div>
         )}
 
-        {/* Layout Badge */}
+        {/* Top-Left: "Actual" emerald pill with pulse dot if isActive */}
+        {isActive && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '8px',
+              left: '8px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '3px 8px',
+              borderRadius: '9999px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              backgroundColor: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+              zIndex: 3,
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981',
+                boxShadow: '0 0 6px #10b981',
+                display: 'inline-block',
+              }}
+            />
+            Actual
+          </div>
+        )}
+
+        {/* Top-Right: Layout Badge with High Contrast */}
         <div
           style={{
             position: 'absolute',
@@ -116,13 +226,35 @@ export const VersionCard = ({
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.03em',
-            backgroundColor: isAts ? '#e0f2fe' : '#ede9fe',
-            color: isAts ? '#0369a1' : '#6b21a8',
-            border: `1px solid ${isAts ? '#bae6fd' : '#ddd6fe'}`,
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            backgroundColor: isAts ? '#0284c7' : '#6d28d9',
+            color: '#ffffff',
+            border: `1px solid ${isAts ? '#0369a1' : '#5b21b6'}`,
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+            zIndex: 3,
           }}
         >
           {isAts ? 'ATS 1-Col' : '2-Col'}
+        </div>
+
+        {/* Bottom-Right: Page Count Pill */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '8px',
+            right: '8px',
+            padding: '2px 7px',
+            borderRadius: '6px',
+            fontSize: '0.68rem',
+            fontWeight: 600,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            color: '#ffffff',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.15)',
+            zIndex: 3,
+          }}
+        >
+          {pageText}
         </div>
       </div>
 
@@ -147,7 +279,6 @@ export const VersionCard = ({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '1.5rem',
-            animation: 'fadeIn 0.15s ease-out',
             cursor: 'zoom-out',
           }}
         >
@@ -185,15 +316,15 @@ export const VersionCard = ({
                   fontSize: '0.72rem',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  backgroundColor: isAts ? '#e0f2fe' : '#ede9fe',
-                  color: isAts ? '#0369a1' : '#6b21a8',
-                  border: `1px solid ${isAts ? '#bae6fd' : '#ddd6fe'}`,
+                  backgroundColor: isAts ? '#0284c7' : '#6d28d9',
+                  color: '#ffffff',
+                  border: `1px solid ${isAts ? '#0369a1' : '#5b21b6'}`,
                 }}
               >
                 {isAts ? 'ATS 1-Col' : '2-Col'}
               </span>
               <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                {formattedDate}
+                {exactDate}
               </span>
               <button
                 type="button"
@@ -247,17 +378,21 @@ export const VersionCard = ({
         document.body
       )}
 
-      {/* Card Content */}
+      {/* Card Body: Title and Metadata */}
       <div
         style={{
-          padding: '1rem',
+          padding: '0.65rem 0.85rem 0.25rem 0.85rem',
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
+          backgroundColor: '#ffffff',
+          position: 'relative',
+          zIndex: 2,
+          overflow: 'hidden',
         }}
       >
         {/* Version Title or Inline Rename Input */}
-        <div style={{ marginBottom: '0.5rem', minHeight: '28px', display: 'flex', alignItems: 'center' }}>
+        <div style={{ marginBottom: '0.25rem', minHeight: '26px', display: 'flex', alignItems: 'center' }}>
           {isEditing ? (
             <input
               ref={renameInputRef}
@@ -277,8 +412,8 @@ export const VersionCard = ({
               onBlur={() => onCommitRename(version.id)}
               style={{
                 width: '100%',
-                padding: '3px 6px',
-                fontSize: '0.92rem',
+                padding: '2px 6px',
+                fontSize: '0.88rem',
                 fontWeight: 600,
                 border: '1px solid #3b82f6',
                 borderRadius: '4px',
@@ -293,6 +428,7 @@ export const VersionCard = ({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
+                gap: '4px',
               }}
             >
               <h4
@@ -300,7 +436,7 @@ export const VersionCard = ({
                 title="Doble clic para renombrar"
                 style={{
                   margin: 0,
-                  fontSize: '0.92rem',
+                  fontSize: '0.9rem',
                   fontWeight: 600,
                   color: '#0f172a',
                   whiteSpace: 'nowrap',
@@ -326,67 +462,95 @@ export const VersionCard = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  flexShrink: 0,
                 }}
               >
-                <Edit3 size={14} />
+                <Edit3 size={13} />
               </button>
             </div>
           )}
         </div>
 
-        {/* Metadata: Created Date */}
+        {/* Metadata row: Relative time with exact date in title + bullet dot + layout info */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
-            fontSize: '0.75rem',
+            gap: '6px',
+            fontSize: '0.72rem',
             color: '#64748b',
-            marginBottom: '1rem',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          <Calendar size={13} />
-          <span>{formattedDate}</span>
-        </div>
-
-        {/* Action Buttons Toolbar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginTop: 'auto',
-            paddingTop: '0.75rem',
-            borderTop: '1px solid #f1f5f9',
-          }}
-        >
-          {/* Cargar */}
-          <button
-            type="button"
-            data-testid="btn-load-version"
-            onClick={() => onConfirmLoad(version)}
+          <span
+            title={exactDate}
             style={{
-              flex: 1,
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '5px',
-              padding: '0.45rem 0.75rem',
-              backgroundColor: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
-              borderRadius: '6px',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
+              gap: '4px',
+              cursor: 'help',
             }}
           >
-            <CheckCircle2 size={14} />
-            Cargar
-          </button>
+            <Calendar size={12} />
+            <span>{relativeTime}</span>
+          </span>
+          <span style={{ color: '#cbd5e1' }}>•</span>
+          <span>{isAts ? 'ATS 1-Columna' : '2 Columnas'}</span>
+        </div>
+      </div>
 
-          {/* Previsualizar */}
+      {/* Action Toolbar: ALWAYS FIXED AT THE BOTTOM, ALWAYS VISIBLE, NEVER HIDDEN (zIndex: 10) */}
+      <div
+        className="version-card-actions"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '46px',
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '0 0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.45rem',
+          zIndex: 10,
+          boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.03)',
+        }}
+      >
+        {/* Primary Button: Load / Active */}
+        <button
+          type="button"
+          data-testid="btn-load-version"
+          onClick={() => onConfirmLoad(version)}
+          style={{
+            flex: 1,
+            height: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
+            padding: '0 0.65rem',
+            backgroundColor: isActive ? '#ecfdf5' : '#eff6ff',
+            color: isActive ? '#059669' : '#2563eb',
+            border: `1px solid ${isActive ? '#a7f3d0' : '#bfdbfe'}`,
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {isActive ? <Check size={13} /> : <CheckCircle2 size={13} />}
+          <span>{isActive ? 'Activa' : 'Cargar'}</span>
+        </button>
+
+        {/* Secondary Icon Cluster (30x30px buttons) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          {/* 1. btn-preview-version */}
           <button
             type="button"
             data-testid="btn-preview-version"
@@ -395,25 +559,25 @@ export const VersionCard = ({
             disabled={!version.thumbnail}
             onClick={() => setIsPreviewOpen(true)}
             style={{
+              width: '30px',
+              height: '30px',
+              minWidth: '30px',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
-              padding: '0.45rem 0.65rem',
+              padding: 0,
               backgroundColor: '#f8fafc',
               color: version.thumbnail ? '#334155' : '#94a3b8',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
-              fontSize: '0.8rem',
-              fontWeight: 500,
               cursor: version.thumbnail ? 'pointer' : 'not-allowed',
+              transition: 'all 0.15s ease',
             }}
           >
             <Eye size={14} />
-            <span style={{ fontSize: '0.75rem' }}>Ver</span>
           </button>
 
-          {/* Duplicar */}
+          {/* 2. btn-duplicate-version */}
           <button
             type="button"
             data-testid="btn-duplicate-version"
@@ -421,47 +585,51 @@ export const VersionCard = ({
             title="Duplicar"
             onClick={() => onDuplicate(version.id)}
             style={{
+              width: '30px',
+              height: '30px',
+              minWidth: '30px',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
-              padding: '0.45rem 0.65rem',
+              padding: 0,
               backgroundColor: '#f8fafc',
               color: '#475569',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
-              fontSize: '0.8rem',
-              fontWeight: 500,
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
             <Copy size={14} />
-            <span style={{ fontSize: '0.75rem' }}>Duplicar</span>
           </button>
 
-          {/* Descargar JSON */}
+          {/* 3. btn-download-version-json */}
           <button
             type="button"
             data-testid="btn-download-version-json"
             aria-label="Descargar esta versión como JSON"
-            title="Descargar esta versión como JSON"
+            title="Descargar como JSON"
             onClick={() => onDownloadJSON(version)}
             style={{
+              width: '30px',
+              height: '30px',
+              minWidth: '30px',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '0.45rem',
+              padding: 0,
               backgroundColor: '#f8fafc',
               color: '#475569',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
             <Download size={14} />
           </button>
 
-          {/* Eliminar */}
+          {/* 4. btn-delete-version */}
           <button
             type="button"
             data-testid="btn-delete-version"
@@ -469,15 +637,18 @@ export const VersionCard = ({
             title="Eliminar"
             onClick={() => onConfirmDelete(version)}
             style={{
+              width: '30px',
+              height: '30px',
+              minWidth: '30px',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '0.45rem',
+              padding: 0,
               backgroundColor: '#fff1f2',
               color: '#e11d48',
-              border: '1px solid #fecdd3',
-              borderRadius: '6px',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
             <Trash2 size={14} />

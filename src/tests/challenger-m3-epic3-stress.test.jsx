@@ -6,6 +6,7 @@ import ActionMenu from '../components/Editor/ActionMenu';
 import AddSectionModal from '../components/Editor/AddSectionModal';
 import { CVProvider, useCV } from '../context/CVContext';
 import * as printEngineModule from '../utils/staticHtmlPdfEngine';
+import { DEFAULT_LINE_HEIGHT } from '../constants/spacing';
 
 // Inspector helper to check state transitions and invariants
 const InvariantInspector = ({ onState }) => {
@@ -417,7 +418,7 @@ describe('Empirical Challenger M3-1: Epic 3 Stress & Invariant Verification', ()
       expect(stateRecord.cvData.layout.bodyScale).toBe(1.0);
       expect(stateRecord.cvData.layout.listScale).toBe(1.0);
       expect(stateRecord.cvData.layout.fontScale).toBe(1.0);
-      expect(stateRecord.cvData.layout.lineHeight).toBe(1.45);
+      expect(stateRecord.cvData.layout.lineHeight).toBe(DEFAULT_LINE_HEIGHT);
     });
 
     it('CHAL-3.3: Acciones menu export actions execution and error handling', async () => {

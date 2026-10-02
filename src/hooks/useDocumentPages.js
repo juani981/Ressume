@@ -51,6 +51,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       // Mode resolution
       isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
       mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 
       // User overrides

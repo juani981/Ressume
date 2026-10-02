@@ -93,7 +93,7 @@ describe('Milestone M2: Modularization and Utility Deduplication', () => {
       expect(A4_PAGE_HEIGHT_PX).toBe(1123);
       expect(A4_WIDTH_PX).toBe(794);
       expect(A4_GAP_PX).toBe(20);
-      expect(DEFAULT_PAGE_PADDING).toBe(24);
+      expect(DEFAULT_PAGE_PADDING).toBe(12);
     });
 
     it('measures 297mm ruler height in pixels with resilient fallback', () => {

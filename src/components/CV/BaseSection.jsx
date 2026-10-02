@@ -135,7 +135,7 @@ export const PrintBaseSection = ({ section }) => {
         <div className={wrapperClass}>
           <SectionItemsRenderer
             items={items}
-            sectionId={section.id}
+            sectionId={section.originalSectionId || section.id}
             sectionType={section.type}
             descriptor={descriptor}
             isPrint={true}
