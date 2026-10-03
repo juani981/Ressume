@@ -2448,3 +2448,33 @@ body.ats-mode-active .a4-page-fold-badge {
   transition: outline 0.15s ease-out, box-shadow 0.15s ease-out !important;
   box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
 }
+
+/* AI Tips Sidebar & Floating Advice Cards viewport containment */
+.ai-tips-sidebar {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.ai-tip-card-wrapper {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.ai-tip-card-wrapper .callout-content,
+.ai-tip-card-wrapper .callout-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.suggestion-tooltip {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.suggestion-tooltip .callout-content,
+.suggestion-tooltip .callout-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

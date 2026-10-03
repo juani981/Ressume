@@ -113,34 +113,31 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
     expect(enKillResponsible.suggestion_title).toContain('Responsible for');
   });
 
-  it('4. Allows dismissing individual advice cards and restoring them', () => {
+  it('4. Renders all advice cards unconditionally without individual dismiss buttons or counters (all-or-nothing)', () => {
     render(
       <CVProvider initialCV={mockCVData}>
         <AITipsSidebar />
       </CVProvider>
     );
 
-    const initialCards = screen.getAllByRole('button', { name: /descartar este consejo/i });
-    const initialCount = initialCards.length;
-    expect(initialCount).toBeGreaterThan(0);
+    const sidebar = screen.getByTestId('ai-tips-sidebar');
+    expect(sidebar).toBeInTheDocument();
 
-    // Dismiss first card
-    fireEvent.click(initialCards[0]);
+    // Verify all section cards are rendered
+    const cardWrappers = sidebar.querySelectorAll('.ai-tip-card-wrapper');
+    expect(cardWrappers.length).toBeGreaterThan(0);
 
-    // Cards count should have decreased by 1
-    const updatedCards = screen.getAllByRole('button', { name: /descartar este consejo/i });
-    expect(updatedCards.length).toBe(initialCount - 1);
+    // Verify ZERO individual dismiss buttons (no 'descartar este consejo')
+    const dismissBtns = screen.queryAllByRole('button', { name: /descartar este consejo/i });
+    expect(dismissBtns).toHaveLength(0);
 
-    // Restore button should appear
-    const restoreBtn = screen.getByRole('button', { name: /restaurar.*consejo/i });
-    expect(restoreBtn).toBeInTheDocument();
+    // Verify ZERO restore buttons
+    const restoreBtns = screen.queryAllByRole('button', { name: /restaurar/i });
+    expect(restoreBtns).toHaveLength(0);
 
-    // Click restore
-    fireEvent.click(restoreBtn);
-
-    // All cards restored
-    const restoredCards = screen.getAllByRole('button', { name: /descartar este consejo/i });
-    expect(restoredCards.length).toBe(initialCount);
+    // Verify NO counter box of how many tips are shown
+    expect(sidebar.textContent).not.toMatch(/\d+\s+consejos\s+intercalados/i);
+    expect(sidebar.textContent).not.toMatch(/has\s+descartado\s+todos/i);
   });
 
   it('5. Renders nothing when showAITips is set to false globally', () => {
@@ -256,6 +253,40 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
         // Right card points towards CV on the left (uses border-right)
         expect(style).toContain('border-right:');
       }
+    });
+  });
+
+  it('9. Enforces viewport width boundary clamping (<= VW) and vertical downward growth without horizontal scroll', () => {
+    render(
+      <CVProvider initialCV={mockCVData}>
+        <AITipsSidebar />
+      </CVProvider>
+    );
+
+    const sidebar = screen.getByTestId('ai-tips-sidebar');
+    const sidebarStyle = sidebar.getAttribute('style') || '';
+
+    // Container must be strictly clamped to <= 100vw and overflow-x clipped
+    expect(sidebarStyle).toContain('max-width: 100vw');
+    expect(sidebarStyle).toContain('overflow-x: clip');
+
+    // Cards must allow vertical expansion via height: auto and wrap text cleanly
+    const cardWrappers = sidebar.querySelectorAll('.ai-tip-card-wrapper');
+    expect(cardWrappers.length).toBeGreaterThan(0);
+
+    cardWrappers.forEach((wrapper) => {
+      const style = wrapper.getAttribute('style') || '';
+      expect(style).toContain('height: auto');
+      expect(style).toContain('overflow-wrap: break-word');
+      expect(style).toContain('word-break: break-word');
+
+      // Callouts inside must also have auto height and break words
+      const callouts = wrapper.querySelectorAll('.obsidian-callout');
+      callouts.forEach((callout) => {
+        const cStyle = callout.getAttribute('style') || '';
+        expect(cStyle).toContain('overflow-wrap: break-word');
+        expect(cStyle).toContain('word-break: break-word');
+      });
     });
   });
 });

@@ -3,20 +3,17 @@
  * @description Dynamic floating advice cards flanking the CV sheet (alternating left
  * and right in top-to-bottom visual order) with strict anti-collision vertical placement.
  * Adheres strictly to AGENTS.md Invariant 1 (Obsidian Callouts) and Invariant 16 (Zero Print Reflow).
+ * All-or-nothing visibility: either all tips are shown or none, without individual dismiss
+ * or count indicators.
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getRules } from '../../locales/index';
 import { 
-  Lightbulb, 
   OctagonAlert, 
   TriangleAlert, 
   Info, 
-  X, 
-  Sparkles, 
-  RotateCcw,
-  CheckCircle2,
   Pin
 } from 'lucide-react';
 
@@ -54,6 +51,10 @@ const SECTION_LABEL_MAP = {
 };
 
 const CARD_WIDTH = 280;
+const CARD_MAX_WIDTH = 280;
+const MIN_CARD_WIDTH = 120;
+const GAP_FROM_CV = 14;
+const VIEWPORT_MARGIN = 20;
 
 /**
  * Filter and prioritize rules for a specific CV section.
@@ -100,12 +101,11 @@ function getRulesForSection(sec, allRules, targetLayout, globalRules = []) {
  * left and right sides according to vertical section appearance, with anti-collision spacing.
  */
 const AITipsSidebar = () => {
-  const { cvData, showAITips, toggleAITips, activeLanguage } = useCV();
+  const { cvData, showAITips, activeLanguage } = useCV();
   const [baseTop, setBaseTop] = useState(90);
   const [areaBounds, setAreaBounds] = useState({ left: null, right: null });
-  const [dismissedCardKeys, setDismissedCardKeys] = useState(new Set());
+  const [columnWidths, setColumnWidths] = useState({ left: CARD_MAX_WIDTH, right: CARD_MAX_WIDTH });
   const [cardPositions, setCardPositions] = useState({});
-  const [maxBottom, setMaxBottom] = useState(0);
   const [hasMeasuredPositions, setHasMeasuredPositions] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState(null);
 
@@ -184,14 +184,28 @@ const AITipsSidebar = () => {
     }
     setAreaBounds({ left: Math.round(areaLeft), right: Math.round(areaRight) });
 
+    const vw = typeof window !== 'undefined'
+      ? (document.documentElement?.clientWidth || window.innerWidth)
+      : 1200;
+
+    // Available horizontal space strictly restricted to prevent horizontal viewport overflow
+    const availLeft = Math.max(MIN_CARD_WIDTH, Math.floor(areaLeft - GAP_FROM_CV - VIEWPORT_MARGIN));
+    const availRight = Math.max(MIN_CARD_WIDTH, Math.floor(vw - areaRight - GAP_FROM_CV - VIEWPORT_MARGIN));
+
+    const leftWidth = Math.min(CARD_MAX_WIDTH, availLeft);
+    const rightWidth = Math.min(CARD_MAX_WIDTH, availRight);
+
+    setColumnWidths(prev => {
+      if (prev.left === leftWidth && prev.right === rightWidth) return prev;
+      return { left: leftWidth, right: rightWidth };
+    });
+
     const newPositions = {};
     let lastBottomLeft = 0; // Starts at top of CV sheet
-    let lastBottomRight = 56; // Reserves top space for the master toggle header on the right
+    let lastBottomRight = 0; // Starts at top of CV sheet
     const MIN_GAP = 14;
 
     cardItems.forEach((item) => {
-      if (dismissedCardKeys.has(item.key)) return;
-
       const side = item.side;
       let targetTop = side === 'left' ? lastBottomLeft : lastBottomRight;
 
@@ -204,9 +218,9 @@ const AITipsSidebar = () => {
         }
       }
 
-      // Measure height of card element or fallback estimate
+      // Measure height of card element or fallback estimate (adjusted for narrow column vertical growth)
       const cardEl = cardRefs.current[item.key];
-      const cardHeight = cardEl ? cardEl.offsetHeight : 140;
+      const cardHeight = cardEl ? cardEl.offsetHeight : (leftWidth < 220 ? 170 : 140);
 
       if (side === 'left') {
         const computedTop = Math.max(targetTop, lastBottomLeft);
@@ -218,8 +232,6 @@ const AITipsSidebar = () => {
         lastBottomRight = computedTop + cardHeight + MIN_GAP;
       }
     });
-
-    setMaxBottom(Math.max(lastBottomLeft, lastBottomRight));
 
     setCardPositions(prev => {
       const keysA = Object.keys(prev);
@@ -233,7 +245,20 @@ const AITipsSidebar = () => {
       return newPositions;
     });
     setHasMeasuredPositions(true);
-  }, [cardItems, dismissedCardKeys]);
+  }, [cardItems]);
+
+  // When column widths adjust due to viewport constraints, measure updated card heights for vertical flow
+  useEffect(() => {
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+      return;
+    }
+    if (hasMeasuredPositions) {
+      const timer = setTimeout(() => {
+        recalculatePositions();
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [columnWidths.left, columnWidths.right, recalculatePositions, hasMeasuredPositions]);
 
   // Track DOM layout, scroll, and resize
   useEffect(() => {
@@ -292,22 +317,7 @@ const AITipsSidebar = () => {
     }
   }, []);
 
-  const handleDismissCard = useCallback((key) => {
-    setDismissedCardKeys(prev => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
-  }, []);
-
-  const handleRestoreAllCards = useCallback(() => {
-    setDismissedCardKeys(new Set());
-  }, []);
-
-  if (!showAITips) return null;
-
-  // Filter out dismissed cards
-  const visibleCards = cardItems.filter(item => !dismissedCardKeys.has(item.key));
+  if (!showAITips || cardItems.length === 0) return null;
 
   return (
     <aside
@@ -321,445 +331,226 @@ const AITipsSidebar = () => {
         left: 0,
         right: 0,
         width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'clip',
         zIndex: 40,
         boxSizing: 'border-box',
         pointerEvents: 'none'
       }}
     >
-      {/* Rail Header with Master Toggle - positioned at top right */}
-      <div
-        className="ai-tips-header"
-        style={{
-          position: hasMeasuredPositions ? 'absolute' : 'relative',
-          top: 0,
-          left: hasMeasuredPositions
-            ? (areaBounds.right != null ? `${areaBounds.right + 20}px` : 'calc(50% + 417px)')
-            : undefined,
-          width: `${CARD_WIDTH}px`,
-          maxWidth: 'calc(100vw - 32px)',
-          margin: hasMeasuredPositions ? 0 : '0 auto 10px auto',
-          pointerEvents: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 10px',
-          marginBottom: hasMeasuredPositions ? 0 : '10px',
-          borderRadius: '8px',
-          backgroundColor: isAtsMode ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: isAtsMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #e2e8f0',
-          boxShadow: '0 4px 14px -2px rgba(0, 0, 0, 0.08)',
-          boxSizing: 'border-box'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '24px',
-              height: '24px',
-              borderRadius: '5px',
-              backgroundColor: 'rgba(234, 179, 8, 0.15)',
-              color: '#eab308'
-            }}
-          >
-            <Lightbulb size={14} strokeWidth={2.5} />
-          </div>
-          <div>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                color: isAtsMode ? '#f8fafc' : '#0f172a',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px'
-              }}
-            >
-              Consejos IA
-              <span
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 600,
-                  padding: '1px 5px',
-                  borderRadius: '999px',
-                  backgroundColor: isAtsMode ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.12)',
-                  color: isAtsMode ? '#34d399' : '#059669'
-                }}
-              >
-                {isAtsMode ? 'ATS' : 'Visual'}
-              </span>
-            </h3>
-            <span style={{ fontSize: '0.65rem', color: isAtsMode ? '#94a3b8' : '#64748b' }}>
-              {visibleCards.length} consejos intercalados
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {dismissedCardKeys.size > 0 && (
-            <button
-              type="button"
-              onClick={handleRestoreAllCards}
-              title={`Recuperar ${dismissedCardKeys.size} elemento(s) oculto(s)`}
-              aria-label="Recuperar elementos ocultos"
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: '3px 6px',
-                borderRadius: '4px',
-                color: '#3b82f6',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                fontSize: '0.65rem',
-                fontWeight: 600
-              }}
-            >
-              <RotateCcw size={11} />
-              <span>{dismissedCardKeys.size}</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            data-testid="btn-close-ai-tips-sidebar"
-            onClick={() => toggleAITips && toggleAITips()}
-            title="Ocultar panel de consejos"
-            aria-label="Cerrar panel de consejos"
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '3px',
-              borderRadius: '4px',
-              color: isAtsMode ? '#94a3b8' : '#64748b',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = isAtsMode ? '#94a3b8' : '#64748b'; }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-
       {/* Floating Section Advice Cards */}
       <div style={{ position: 'relative', width: '100%', minHeight: '100px' }}>
-        {visibleCards.length === 0 ? (
-          <div
-            style={{
-              position: hasMeasuredPositions ? 'absolute' : 'relative',
-              top: hasMeasuredPositions ? '56px' : undefined,
-              left: hasMeasuredPositions
-                ? (areaBounds.right != null ? `${areaBounds.right + 20}px` : 'calc(50% + 417px)')
-                : undefined,
-              width: `${CARD_WIDTH}px`,
-              maxWidth: 'calc(100vw - 32px)',
-              margin: hasMeasuredPositions ? 0 : '0 auto',
-              padding: '1.2rem 0.8rem',
-              textAlign: 'center',
-              backgroundColor: isAtsMode ? 'rgba(15, 23, 42, 0.85)' : '#ffffff',
-              borderRadius: '8px',
-              border: isAtsMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
-              color: isAtsMode ? '#94a3b8' : '#64748b',
-              pointerEvents: 'auto',
-              boxSizing: 'border-box'
-            }}
-          >
-            <CheckCircle2 size={24} color="#10b981" style={{ margin: '0 auto 0.4rem auto' }} />
-            <p style={{ margin: '0 0 0.4rem 0', fontWeight: 600, fontSize: '0.78rem' }}>
-              Has descartado todos los consejos.
-            </p>
-            <button
-              type="button"
-              onClick={handleRestoreAllCards}
+        {cardItems.map((item) => {
+          const side = item.side; // 'left' | 'right'
+          const isLeft = side === 'left';
+          const isHovered = hoveredCardKey === item.key;
+          const pos = cardPositions[item.key];
+          const topPos = hasMeasuredPositions ? pos?.top : undefined;
+          const currentCardWidth = isLeft ? columnWidths.left : columnWidths.right;
+
+          // Compute horizontal placement: Left card to the left of CV; Right card to the right of CV
+          let cardLeft = undefined;
+          let cardRight = undefined;
+
+          if (hasMeasuredPositions && areaBounds.left != null && areaBounds.right != null) {
+            if (isLeft) {
+              cardLeft = `${Math.max(VIEWPORT_MARGIN, areaBounds.left - GAP_FROM_CV - currentCardWidth)}px`;
+            } else {
+              cardLeft = `${areaBounds.right + GAP_FROM_CV}px`;
+            }
+          } else if (hasMeasuredPositions) {
+            if (isLeft) {
+              cardRight = 'calc(50% + 417px)';
+            } else {
+              cardLeft = 'calc(50% + 417px)';
+            }
+          }
+
+          return (
+            <div
+              key={item.key}
+              ref={(el) => { cardRefs.current[item.key] = el; }}
+              className="ai-tip-card-wrapper"
+              data-side={side}
+              onClick={() => handleCardClick(item.sectionId)}
+              onMouseEnter={() => handleCardMouseEnter(item.sectionId, item.key)}
+              onMouseLeave={() => handleCardMouseLeave(item.sectionId)}
               style={{
-                background: 'none',
-                border: '1px solid #cbd5e1',
-                borderRadius: '5px',
-                padding: '3px 8px',
-                fontSize: '0.7rem',
+                position: hasMeasuredPositions ? 'absolute' : 'relative',
+                top: hasMeasuredPositions ? `${topPos ?? 0}px` : undefined,
+                left: cardLeft,
+                right: cardRight,
+                width: `${currentCardWidth}px`,
+                maxWidth: isLeft
+                  ? `${Math.max(60, (areaBounds.left != null ? areaBounds.left - GAP_FROM_CV : 300) - VIEWPORT_MARGIN)}px`
+                  : `calc(100vw - ${(areaBounds.right != null ? areaBounds.right + GAP_FROM_CV : 1000)}px - ${VIEWPORT_MARGIN}px)`,
+                height: 'auto',
+                minHeight: 'fit-content',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                marginBottom: hasMeasuredPositions ? 0 : '10px',
+                backgroundColor: isAtsMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                borderRadius: '8px',
+                border: isHovered
+                  ? '1px solid #3b82f6'
+                  : isAtsMode
+                  ? '1px solid rgba(255, 255, 255, 0.12)'
+                  : '1px solid #e2e8f0',
+                boxShadow: isHovered
+                  ? '0 8px 20px -3px rgba(59, 130, 246, 0.25), 0 2px 5px -1px rgba(0, 0, 0, 0.05)'
+                  : isAtsMode
+                  ? '0 6px 18px -3px rgba(0, 0, 0, 0.5)'
+                  : '0 6px 18px -3px rgba(0, 0, 0, 0.07), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
+                padding: '7px 9px',
+                boxSizing: 'border-box',
+                pointerEvents: 'auto',
                 cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                color: isAtsMode ? '#f8fafc' : '#334155'
+                transition: 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
+                transform: isHovered ? (isLeft ? 'translateX(3px)' : 'translateX(-3px)') : 'none'
               }}
             >
-              <RotateCcw size={11} /> Restaurar consejos
-            </button>
-          </div>
-        ) : (
-          visibleCards.map((item) => {
-            const side = item.side; // 'left' | 'right'
-            const isLeft = side === 'left';
-            const isHovered = hoveredCardKey === item.key;
-            const pos = cardPositions[item.key];
-            const topPos = hasMeasuredPositions ? pos?.top : undefined;
-
-            // Compute horizontal placement: Left card to the left of CV; Right card to the right of CV
-            let cardLeft = undefined;
-            let cardRight = undefined;
-
-            if (hasMeasuredPositions && areaBounds.left != null && areaBounds.right != null) {
-              if (isLeft) {
-                cardLeft = `${Math.max(12, areaBounds.left - 20 - CARD_WIDTH)}px`;
-              } else {
-                cardLeft = `${areaBounds.right + 20}px`;
-              }
-            } else if (hasMeasuredPositions) {
-              if (isLeft) {
-                cardRight = 'calc(50% + 417px)';
-              } else {
-                cardLeft = 'calc(50% + 417px)';
-              }
-            }
-
-            return (
+              {/* Pointer Arrow pointing towards CV section: Left card points Right; Right card points Left */}
               <div
-                key={item.key}
-                ref={(el) => { cardRefs.current[item.key] = el; }}
-                className="ai-tip-card-wrapper"
-                data-side={side}
-                onClick={() => handleCardClick(item.sectionId)}
-                onMouseEnter={() => handleCardMouseEnter(item.sectionId, item.key)}
-                onMouseLeave={() => handleCardMouseLeave(item.sectionId)}
+                className="ai-tip-pointer"
                 style={{
-                  position: hasMeasuredPositions ? 'absolute' : 'relative',
-                  top: hasMeasuredPositions ? `${topPos ?? 0}px` : undefined,
-                  left: cardLeft,
-                  right: cardRight,
-                  width: `${CARD_WIDTH}px`,
-                  maxWidth: 'calc(100vw - 32px)',
-                  marginBottom: hasMeasuredPositions ? 0 : '10px',
-                  backgroundColor: isAtsMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  borderRadius: '8px',
-                  border: isHovered
-                    ? '1px solid #3b82f6'
-                    : isAtsMode
-                    ? '1px solid rgba(255, 255, 255, 0.12)'
-                    : '1px solid #e2e8f0',
-                  boxShadow: isHovered
-                    ? '0 8px 20px -3px rgba(59, 130, 246, 0.25), 0 2px 5px -1px rgba(0, 0, 0, 0.05)'
-                    : isAtsMode
-                    ? '0 6px 18px -3px rgba(0, 0, 0, 0.5)'
-                    : '0 6px 18px -3px rgba(0, 0, 0, 0.07), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
-                  padding: '7px 9px',
-                  boxSizing: 'border-box',
-                  pointerEvents: 'auto',
-                  cursor: 'pointer',
-                  transition: 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
-                  transform: isHovered ? (isLeft ? 'translateX(3px)' : 'translateX(-3px)') : 'none'
+                  position: 'absolute',
+                  ...(isLeft ? { right: '-6px' } : { left: '-6px' }),
+                  top: '14px',
+                  width: 0,
+                  height: 0,
+                  borderTop: '5px solid transparent',
+                  borderBottom: '5px solid transparent',
+                  ...(isLeft
+                    ? {
+                        borderLeft: isHovered
+                          ? '6px solid #3b82f6'
+                          : isAtsMode
+                          ? '6px solid rgba(255, 255, 255, 0.2)'
+                          : '6px solid #cbd5e1',
+                        borderRight: 'none'
+                      }
+                    : {
+                        borderRight: isHovered
+                          ? '6px solid #3b82f6'
+                          : isAtsMode
+                          ? '6px solid rgba(255, 255, 255, 0.2)'
+                          : '6px solid #cbd5e1',
+                        borderLeft: 'none'
+                      }
+                  )
+                }}
+              />
+
+              {/* Card Header: Section Badge only */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '5px',
+                  paddingBottom: '4px',
+                  borderBottom: isAtsMode ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #f1f5f9'
                 }}
               >
-                {/* Pointer Arrow pointing towards CV section: Left card points Right; Right card points Left */}
-                <div
-                  className="ai-tip-pointer"
+                <span
                   style={{
-                    position: 'absolute',
-                    ...(isLeft ? { right: '-6px' } : { left: '-6px' }),
-                    top: '14px',
-                    width: 0,
-                    height: 0,
-                    borderTop: '5px solid transparent',
-                    borderBottom: '5px solid transparent',
-                    ...(isLeft
-                      ? {
-                          borderLeft: isHovered
-                            ? '6px solid #3b82f6'
-                            : isAtsMode
-                            ? '6px solid rgba(255, 255, 255, 0.2)'
-                            : '6px solid #cbd5e1',
-                          borderRight: 'none'
-                        }
-                      : {
-                          borderRight: isHovered
-                            ? '6px solid #3b82f6'
-                            : isAtsMode
-                            ? '6px solid rgba(255, 255, 255, 0.2)'
-                            : '6px solid #cbd5e1',
-                          borderLeft: 'none'
-                        }
-                    )
-                  }}
-                />
-
-                {/* Card Header: Section Badge + Dismiss button */}
-                <div
-                  style={{
+                    fontSize: '0.64rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    color: isHovered ? '#2563eb' : isAtsMode ? '#94a3b8' : '#475569',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '5px',
-                    paddingBottom: '4px',
-                    borderBottom: isAtsMode ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #f1f5f9'
+                    gap: '5px'
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: '0.64rem',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                      color: isHovered ? '#2563eb' : isAtsMode ? '#94a3b8' : '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px'
-                    }}
-                  >
-                    <Pin size={11} strokeWidth={2.4} style={{ color: isHovered ? '#2563eb' : '#94a3b8' }} />
-                    <span>{item.sectionLabel}</span>
-                  </span>
+                  <Pin size={11} strokeWidth={2.4} style={{ color: isHovered ? '#2563eb' : '#94a3b8' }} />
+                  <span>{item.sectionLabel}</span>
+                </span>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDismissCard(item.key);
-                    }}
-                    title="Descartar este consejo"
-                    aria-label="Descartar este consejo"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '2px',
-                      color: isAtsMode ? '#64748b' : '#94a3b8',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '3px',
-                      transition: 'color 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = isAtsMode ? '#64748b' : '#94a3b8'; }}
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
+              {/* Obsidian Callouts inside card */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {item.rules.map((rule, rIdx) => {
+                  const isCritical = rule.severity === 'critical';
+                  const isWarning = rule.severity === 'warning';
 
-                {/* Obsidian Callouts inside card */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {item.rules.map((rule, rIdx) => {
-                    const isCritical = rule.severity === 'critical';
-                    const isWarning = rule.severity === 'warning';
+                  // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
+                  const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
+                  const iconColor = `rgba(${themeColor}, 1)`;
 
-                    // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
-                    const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
-                    const iconColor = `rgba(${themeColor}, 1)`;
-
-                    return (
+                  return (
+                    <div
+                      key={rule.id || rIdx}
+                      className="obsidian-callout"
+                      data-testid={`callout-${rule.id || rIdx}`}
+                      style={{
+                        backgroundColor: `rgba(${themeColor}, 0.08)`,
+                        borderLeft: `4px solid ${iconColor}`,
+                        borderRadius: '4px',
+                        padding: '5px 8px',
+                        fontSize: '0.72rem',
+                        color: isAtsMode ? '#e2e8f0' : '#1e293b',
+                        lineHeight: '1.3',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxSizing: 'border-box',
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word',
+                        height: 'auto'
+                      }}
+                    >
                       <div
-                        key={rule.id || rIdx}
-                        className="obsidian-callout"
-                        data-testid={`callout-${rule.id || rIdx}`}
+                        className="callout-title"
                         style={{
-                          backgroundColor: `rgba(${themeColor}, 0.08)`,
-                          borderLeft: `4px solid ${iconColor}`,
-                          borderRadius: '4px',
-                          padding: '5px 8px',
-                          fontSize: '0.72rem',
-                          color: isAtsMode ? '#e2e8f0' : '#1e293b',
-                          lineHeight: '1.3',
                           display: 'flex',
-                          flexDirection: 'column',
-                          boxSizing: 'border-box'
+                          alignItems: 'flex-start',
+                          gap: '5px',
+                          color: iconColor,
+                          fontWeight: '600',
+                          marginBottom: '2px',
+                          fontSize: '0.74rem',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word'
                         }}
                       >
-                        <div
-                          className="callout-title"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '5px',
-                            color: iconColor,
-                            fontWeight: '600',
-                            marginBottom: '2px',
-                            fontSize: '0.74rem'
-                          }}
+                        <span
+                          className="callout-icon"
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
                         >
-                          <span
-                            className="callout-icon"
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
-                          >
-                            {isCritical ? (
-                              <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
-                            ) : isWarning ? (
-                              <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
-                            ) : (
-                              <Info size={13} color={iconColor} strokeWidth={2.2} />
-                            )}
-                          </span>
-                          <span>{rule.suggestion_title}</span>
-                        </div>
-                        <div
-                          className="callout-content"
-                          style={{
-                            fontSize: '0.68rem',
-                            color: isAtsMode ? '#cbd5e1' : '#334155',
-                            lineHeight: '1.3'
-                          }}
-                        >
-                          {rule.suggestion_body}
-                        </div>
+                          {isCritical ? (
+                            <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
+                          ) : isWarning ? (
+                            <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
+                          ) : (
+                            <Info size={13} color={iconColor} strokeWidth={2.2} />
+                          )}
+                        </span>
+                        <span>{rule.suggestion_title}</span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div
+                        className="callout-content"
+                        style={{
+                          fontSize: '0.68rem',
+                          color: isAtsMode ? '#cbd5e1' : '#334155',
+                          lineHeight: '1.3',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word'
+                        }}
+                      >
+                        {rule.suggestion_body}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
-        )}
+            </div>
+          );
+        })}
       </div>
-
-      {/* Footer restore action if any dismissed */}
-      {dismissedCardKeys.size > 0 && visibleCards.length > 0 && (
-        <div
-          style={{
-            position: hasMeasuredPositions ? 'absolute' : 'relative',
-            top: hasMeasuredPositions ? `${maxBottom + 12}px` : undefined,
-            left: hasMeasuredPositions
-              ? (areaBounds.right != null ? `${areaBounds.right + 20}px` : 'calc(50% + 417px)')
-              : undefined,
-            width: `${CARD_WIDTH}px`,
-            textAlign: 'center',
-            marginTop: '10px',
-            pointerEvents: 'auto'
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleRestoreAllCards}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#3b82f6',
-              fontSize: '0.72rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              textDecoration: 'underline'
-            }}
-          >
-            <RotateCcw size={11} /> Restaurar {dismissedCardKeys.size} consejo(s) oculto(s)
-          </button>
-        </div>
-      )}
     </aside>
   );
 };
 
 export default AITipsSidebar;
-

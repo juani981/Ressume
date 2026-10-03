@@ -374,92 +374,58 @@ const TranslationModal = ({ isOpen, onClose }) => {
 
               {/* Collapsible Prompt Preview */}
               <div style={{
-                border: '1px solid rgba(150, 150, 150, 0.25)',
-                borderRadius: '10px',
-                padding: '0.75rem 1rem',
-                background: 'rgba(0, 0, 0, 0.02)'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: isPromptExpanded ? '0.5rem' : '0',
+                marginTop: '0.15rem'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isPromptExpanded ? '0.6rem' : '0.35rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>
-                    <Eye size={15} color="#3874ff" /> Prompt Rígido Ensamblado (Directrices + Diccionario):
-                  </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #888)' }}>
-                      {Object.keys(currentDict).length} claves a traducir
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.2rem 0.4rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#3874ff',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <Eye size={15} color="#3874ff" />
+                    <span>{isPromptExpanded ? 'Ocultar prompt' : 'Desplegar prompt completo'}</span>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #888)', fontWeight: 400 }}>
+                      ({Object.keys(currentDict).length} claves a traducir)
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsPromptExpanded(!isPromptExpanded)}
-                      style={{
-                        background: 'none',
-                        border: '1px solid rgba(150, 150, 150, 0.35)',
-                        borderRadius: '6px',
-                        padding: '0.2rem 0.55rem',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: '#3874ff',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      {isPromptExpanded ? (
-                        <>
-                          <ChevronUp size={13} /> Ocultar prompt
-                        </>
-                      ) : (
-                        <>
-                          <Eye size={13} /> Desplegar prompt completo
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  </button>
                 </div>
 
-                <div style={{ position: 'relative' }}>
-                  <pre style={{
-                    background: '#18181b',
-                    color: '#d4d4d4',
-                    padding: isPromptExpanded ? '1rem' : '0.45rem 0.75rem',
-                    borderRadius: '8px',
-                    fontSize: isPromptExpanded ? '0.8rem' : '0.68rem',
-                    lineHeight: isPromptExpanded ? '1.45' : '1.25',
-                    fontFamily: 'Consolas, Monaco, monospace',
-                    maxHeight: isPromptExpanded ? '220px' : '44px',
-                    overflowY: isPromptExpanded ? 'auto' : 'hidden',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    margin: 0,
-                    opacity: isPromptExpanded ? 1 : 0.75,
-                    transition: 'max-height 0.2s ease, opacity 0.2s ease'
-                  }}>
-                    {generatedPrompt}
-                  </pre>
-                  {!isPromptExpanded && (
-                    <div 
-                      onClick={() => setIsPromptExpanded(true)}
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '22px',
-                        background: 'linear-gradient(transparent, rgba(24, 24, 27, 0.95))',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'center',
-                        paddingBottom: '2px',
-                        cursor: 'pointer',
-                        borderRadius: '0 0 8px 8px',
-                        fontSize: '0.68rem',
-                        color: '#94a3b8'
-                      }}
-                    >
-                      <span>Vista compacta — Clic para desplegar</span>
-                    </div>
-                  )}
-                </div>
+                <pre style={{
+                  background: '#18181b',
+                  color: '#d4d4d4',
+                  padding: isPromptExpanded ? '1rem' : '0',
+                  borderRadius: '8px',
+                  fontSize: isPromptExpanded ? '0.8rem' : '0.68rem',
+                  lineHeight: isPromptExpanded ? '1.45' : '1.25',
+                  fontFamily: 'Consolas, Monaco, monospace',
+                  maxHeight: isPromptExpanded ? '220px' : '44px',
+                  height: isPromptExpanded ? 'auto' : '0px',
+                  overflowY: isPromptExpanded ? 'auto' : 'hidden',
+                  overflow: 'hidden',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  margin: 0,
+                  opacity: isPromptExpanded ? 1 : 0,
+                  display: isPromptExpanded ? 'block' : 'none',
+                  transition: 'all 0.2s ease'
+                }}>
+                  {generatedPrompt}
+                </pre>
               </div>
 
               {/* Action Banner to Transition to Waiting State */}

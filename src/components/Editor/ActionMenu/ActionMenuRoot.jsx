@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useCV } from '../../../context/CVContext';
 import AIExportModal from '../AIExportModal';
-import TranslationModal from '../TranslationModal';
 import VersionManagerModal from '../VersionManagerModal';
 import { executeCleanPrint } from '../../../utils/staticHtmlPdfEngine';
 import DesignPanel from './DesignPanel';
@@ -43,7 +42,6 @@ export const ActionMenuRoot = () => {
   const [aiModalPromptId, setAiModalPromptId] = useState('recruiter_audit');
   const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
-  const [isTranslationModalOpen, setIsTranslationModalOpen] = useState(false);
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
@@ -77,8 +75,7 @@ export const ActionMenuRoot = () => {
     isHoverExpanded ||
     isDesignMenuOpen ||
     isAIModalOpen ||
-    isVersionModalOpen ||
-    isTranslationModalOpen;
+    isVersionModalOpen;
 
   const handleTogglePin = useCallback(() => {
     setIsPinned((prev) => {
@@ -647,7 +644,6 @@ export const ActionMenuRoot = () => {
         initialPromptId={aiModalPromptId}
         unidirectionalOnly={isUnidirectionalOnly}
       />
-      <TranslationModal isOpen={isTranslationModalOpen} onClose={() => setIsTranslationModalOpen(false)} />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
     </>
   );
