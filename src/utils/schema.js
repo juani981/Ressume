@@ -10,7 +10,7 @@ export const defaultSchema = {
     titleScale: 1.0, // 0.80 to 1.40 (Global Titles scale)
     bodyScale: 1.0, // 0.80 to 1.30 (Global Body text scale)
     listScale: 1.0, // 0.80 to 1.30 (Global Lists and bullets scale)
-    lineHeight: 1.45, // 1.25 to 1.85
+    lineHeight: 1.3, // 1.15 to 1.85
     pagePadding: 24,
     sectionGap: 20,
     itemGap: 8

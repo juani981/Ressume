@@ -30,7 +30,7 @@ export const NUMERIC_BOUNDS = Object.freeze({
   titleScale: { min: 0.5, max: 2.0, default: 1.0 },
   bodyScale: { min: 0.5, max: 2.0, default: 1.0 },
   listScale: { min: 0.5, max: 2.0, default: 1.0 },
-  lineHeight: { min: 1.0, max: 2.5, default: 1.45 }
+  lineHeight: { min: 1.0, max: 2.5, default: 1.3 }
 });
 
 /**

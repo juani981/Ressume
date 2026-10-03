@@ -83,7 +83,7 @@ describe('Multi-Bullet Organic Flow & Layout Parity', () => {
     );
     const li = renderedContainer.querySelector('li.bullet-item-row');
     expect(li).not.toBeNull();
-    expect(li.style.lineHeight).toBe('var(--line-height, 1.45)');
+    expect(li.style.lineHeight).toBe('var(--line-height, 1.3)');
     expect(li.style.fontSize).toBe('var(--list-font-size, var(--normal-font-size))');
   });
 

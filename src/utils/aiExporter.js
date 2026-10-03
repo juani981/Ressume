@@ -113,7 +113,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   lines.push(`  title_scale: ${layout.titleScale ?? 1.0}`);
   lines.push(`  body_scale: ${layout.bodyScale ?? 1.0}`);
   lines.push(`  list_scale: ${layout.listScale ?? 1.0}`);
-  lines.push(`  line_height: ${layout.lineHeight ?? 1.45}`);
+  lines.push(`  line_height: ${layout.lineHeight ?? 1.3}`);
 
   // Spacing
   lines.push('spacing:');

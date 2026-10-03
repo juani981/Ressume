@@ -88,7 +88,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                       listStyle: 'none',
                       listStyleType: 'none',
                       marginBottom: 'var(--item-gap, 8px)',
-                      lineHeight: 'var(--line-height, 1.45)',
+                      lineHeight: 'var(--line-height, 1.3)',
                       fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0

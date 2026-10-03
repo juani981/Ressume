@@ -10,7 +10,7 @@
  * Invariant 16: Zero Dynamic Reflow on Print
  */
 
-import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants/index.js';
+import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING, DEFAULT_LINE_HEIGHT } from '../constants/index.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 
@@ -89,18 +89,18 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
       options.column === 'single'
     );
     const fontScale = options.fontScale ?? (options.titleScale ?? 1.0);
-    const lineHeight = options.lineHeight ?? 1.45;
+    const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
     const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
 
     if (isAts) {
-      return Math.round(24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
+      return Math.round(24 * fontScale * (lineHeight / DEFAULT_LINE_HEIGHT)) + Math.round(itemGap * 1.5);
     }
 
     const isLeftCol = options.column === 'left';
     // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 18 chars
     const isMultiLine = isLeftCol && section.title.trim().length > 18;
     const lines = isMultiLine ? 2 : 1;
-    return Math.round(lines * 24 * fontScale * (lineHeight / 1.45)) + Math.round(itemGap * 1.5);
+    return Math.round(lines * 24 * fontScale * (lineHeight / DEFAULT_LINE_HEIGHT)) + Math.round(itemGap * 1.5);
   }
 
   return 0;
@@ -117,8 +117,8 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
 export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? 1.45;
-  const fontFactor = fontScale * (lineHeight / 1.45);
+  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
   const isAts = Boolean(
     options.isAts ||
     options.isAtsMode ||
@@ -149,8 +149,8 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
 export function estimateSingleBulletHeight(bullet, sectionType = '', options = {}) {
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const fontScale = options.fontScale ?? (options.listScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? 1.45;
-  const fontFactor = fontScale * (lineHeight / 1.45);
+  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
   const charsPerLine = getCharsPerLine(options, true);
 
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
@@ -202,8 +202,8 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
 
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? 1.45;
-  const fontFactor = fontScale * (lineHeight / 1.45);
+  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
   const isAts = Boolean(
     options.isAts ||
     options.isAtsMode ||
@@ -222,7 +222,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'title_subtitle': {
       const titleScale = options.titleScale ?? 1.0;
       let h = Math.round(26 * titleScale) + (item.subtitle ? Math.round(18 * titleScale) : 0);
-      return Math.round(h * (lineHeight / 1.45)) + itemGap;
+      return Math.round(h * (lineHeight / DEFAULT_LINE_HEIGHT)) + itemGap;
     }
     case 'profile_header': {
       if (isAts) {
@@ -818,7 +818,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
     titleScale: layout.titleScale ?? 1.0,
     bodyScale: layout.bodyScale ?? 1.0,
     listScale: layout.listScale ?? 1.0,
-    lineHeight: layout.lineHeight ?? 1.45,
+    lineHeight: layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
     pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,

@@ -381,7 +381,7 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={1.25}
+              min={1.15}
               max={1.85}
               step={0.05}
               value={lineHeight}

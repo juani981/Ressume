@@ -87,7 +87,7 @@ const VolunteeringItemPrintView = ({ item, sectionId, isLast = false }) => {
                       listStyle: 'none',
                       listStyleType: 'none',
                       marginBottom: 'calc(var(--item-gap, 8px) / 2)',
-                      lineHeight: 'var(--line-height, 1.45)',
+                      lineHeight: 'var(--line-height, 1.3)',
                       fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
