@@ -218,7 +218,7 @@ export const ActionMenuRoot = () => {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.6rem',
-          background: isAtsMode ? 'rgba(15, 23, 42, 0.96)' : 'var(--container-color, #ffffff)',
+          background: isAtsMode ? 'rgba(35, 45, 65, 0.60)' : 'var(--container-color, #ffffff)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           padding: '0.65rem 0.65rem 0.85rem 0.65rem',
