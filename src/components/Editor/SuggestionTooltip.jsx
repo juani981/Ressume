@@ -18,7 +18,7 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect, anchorRef }) 
    */
   const computePosition = useCallback((r) => {
     if (!r) return;
-    const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const vw = typeof window !== 'undefined' ? (document.documentElement?.clientWidth || window.innerWidth) : 1920;
     const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
     const TOOLTIP_WIDTH = 300;
 
@@ -32,11 +32,15 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect, anchorRef }) 
     if (top + 400 > vh) top = vh - 420;
     if (top < 20) top = 20;
 
+    // Constrain width so left + width strictly avoids pushing past viewport width
+    const availableWidth = Math.max(160, vw - left - 16);
+    const finalWidth = Math.min(TOOLTIP_WIDTH, availableWidth);
+
     setStylePos({
       top,
       left,
-      width: TOOLTIP_WIDTH,
-      maxWidth: `calc(100vw - 24px)`,
+      width: finalWidth,
+      maxWidth: `calc(100vw - ${left + 16}px)`,
       maxHeight: `calc(100vh - ${top + 20}px)`
     });
   }, []);
@@ -148,6 +152,8 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect, anchorRef }) 
         width: `${stylePos.width}px`,
         maxWidth: stylePos.maxWidth,
         maxHeight: stylePos.maxHeight,
+        overflowWrap: 'break-word',
+        wordBreak: 'break-word',
         backgroundColor: '#ffffff',
         border: '1px solid #cbd5e1',
         borderRadius: '10px',

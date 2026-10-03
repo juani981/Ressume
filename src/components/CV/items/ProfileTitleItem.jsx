@@ -16,14 +16,14 @@ import InlineEdit from '../../Editor/InlineEdit';
  */
 const ProfileTitlePrintView = ({ item }) => {
   return (
-    <div className="home__data home__data-title-subtitle">
-      <h1 className="home__title">
+    <div className="home__data home__data-title-subtitle" style={{ display: 'flex', flexDirection: 'column', gap: '1px', margin: 0, padding: 0 }}>
+      <h1 className="home__title" style={{ margin: 0, padding: 0, lineHeight: 1.15 }}>
         <InlineEdit 
           value={item?.name || ''} 
           isPrint={true}
         />
       </h1>
-      <h2 className="home__subtitle">
+      <h2 className="home__subtitle" style={{ margin: 0, padding: 0, lineHeight: 1.2 }}>
         <InlineEdit 
           value={item?.subtitle || ''} 
           isPrint={true}
@@ -38,14 +38,14 @@ const ProfileTitlePrintView = ({ item }) => {
  */
 const ProfileTitleEditView = ({ item, sectionId, onUpdateItem }) => {
   return (
-    <div className="home__data home__data-title-subtitle">
-      <h1 className="home__title">
+    <div className="home__data home__data-title-subtitle" style={{ display: 'flex', flexDirection: 'column', gap: '1px', margin: 0, padding: 0 }}>
+      <h1 className="home__title" style={{ margin: 0, padding: 0, lineHeight: 1.15 }}>
         <InlineEdit 
           value={item?.name || ''} 
           onSave={(val) => onUpdateItem(sectionId, item.id, 'name', val)} 
         />
       </h1>
-      <h2 className="home__subtitle">
+      <h2 className="home__subtitle" style={{ margin: 0, padding: 0, lineHeight: 1.2 }}>
         <InlineEdit 
           value={item?.subtitle || ''} 
           onSave={(val) => onUpdateItem(sectionId, item.id, 'subtitle', val)} 

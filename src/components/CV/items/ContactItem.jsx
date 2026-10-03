@@ -26,7 +26,7 @@ const ContactPrintView = ({ item }) => {
   return (
     <div 
       className="social__container bd-grid" 
-      style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}
+      style={{ display: 'flex', gap: '2px 4px', flexWrap: 'wrap', alignItems: 'center', margin: 0, padding: 0 }}
     >
       {validContacts.map((contact, idx) => {
         const config = getContactConfig(contact.type);
@@ -43,10 +43,11 @@ const ContactPrintView = ({ item }) => {
                 position: 'relative',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '3px',
+                padding: '1px 2px'
               }}
             >
-              <ContactIcon name={config.icon} size={14} />{' '}
+              <ContactIcon name={config.icon} size={13} />{' '}
               <InlineEdit 
                 value={formattedValue || ''} 
                 isPrint={true}
@@ -57,10 +58,12 @@ const ContactPrintView = ({ item }) => {
                 className="contact-separator" 
                 aria-hidden="false"
                 style={{ 
-                  color: 'var(--text-color-light)', 
+                  color: 'var(--text-color-light, #94a3b8)', 
                   userSelect: 'text', 
                   WebkitUserSelect: 'text',
-                  margin: '0 2px' 
+                  margin: '0 1px',
+                  fontSize: '0.8em',
+                  opacity: 0.7
                 }}
               >
                 |
@@ -116,47 +119,66 @@ const ContactEditView = ({ item, sectionId, onUpdateItem }) => {
     <>
       <div 
         className="social__container bd-grid" 
-        style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}
+        style={{ display: 'flex', gap: '2px 4px', flexWrap: 'wrap', alignItems: 'center', margin: 0, padding: 0 }}
       >
         {contacts.map((contact, idx) => {
           const config = getContactConfig(contact.type);
+          const isLast = idx === contacts.length - 1;
           return (
-            <span 
-              key={contact.id || `contact_${idx}`} 
-              className="social__link contact-item-pill"
-              onPointerDown={(e) => {
-                if (!e.target.closest('.drag-handle')) {
-                  e.stopPropagation();
-                }
-              }}
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <ContactIcon name={config.icon} size={14} />{' '}
-              <InlineEdit 
-                value={contact.value || ''} 
-                placeholder={config.placeholder || config.label}
-                onSave={(val) => handleUpdateContactValue(contact.id, val)} 
-              />
-              <button
-                type="button"
-                className="contact-del-btn bullet-del-btn no-print"
-                data-editor-ui="true"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteContact(contact.id);
+            <React.Fragment key={contact.id || `contact_${idx}`}>
+              <span 
+                className="social__link contact-item-pill"
+                onPointerDown={(e) => {
+                  if (!e.target.closest('.drag-handle')) {
+                    e.stopPropagation();
+                  }
                 }}
-                title={`Eliminar ${config.label}`}
-                aria-label={`Eliminar ${config.label}`}
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '1px 2px'
+                }}
               >
-                <Minus size={12} strokeWidth={2.5} />
-              </button>
-            </span>
+                <ContactIcon name={config.icon} size={13} />{' '}
+                <InlineEdit 
+                  value={contact.value || ''} 
+                  placeholder={config.placeholder || config.label}
+                  onSave={(val) => handleUpdateContactValue(contact.id, val)} 
+                />
+                <button
+                  type="button"
+                  className="contact-del-btn bullet-del-btn no-print"
+                  data-editor-ui="true"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteContact(contact.id);
+                  }}
+                  title={`Eliminar ${config.label}`}
+                  aria-label={`Eliminar ${config.label}`}
+                >
+                  <Minus size={11} strokeWidth={2.5} />
+                </button>
+              </span>
+              {!isLast && (
+                <span 
+                  className="contact-separator no-print" 
+                  aria-hidden="true"
+                  style={{ 
+                    color: 'var(--text-color-light, #94a3b8)', 
+                    userSelect: 'none', 
+                    WebkitUserSelect: 'none',
+                    margin: '0 1px',
+                    fontSize: '0.8em',
+                    opacity: 0.6
+                  }}
+                >
+                  |
+                </span>
+              )}
+            </React.Fragment>
           );
         })}
 
@@ -178,20 +200,20 @@ const ContactEditView = ({ item, sectionId, onUpdateItem }) => {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '4px',
-            padding: '3px 9px',
+            gap: '2px',
+            padding: '1px 6px',
             borderRadius: '999px',
             border: '1px dashed var(--first-color, #3874ff)',
             background: 'rgba(56, 116, 255, 0.06)',
             color: 'var(--first-color, #3874ff)',
-            fontSize: '0.75rem',
+            fontSize: '0.72rem',
             fontWeight: 600,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            height: '24px'
+            height: '20px'
           }}
         >
-          <Plus size={13} strokeWidth={2.5} />
+          <Plus size={12} strokeWidth={2.5} />
           <span>Contacto</span>
         </button>
       </div>

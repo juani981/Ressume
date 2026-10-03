@@ -24,7 +24,13 @@ import {
   AlertTriangle, 
   Sparkles, 
   XCircle, 
-  X 
+  X,
+  ChevronUp,
+  ChevronDown,
+  ExternalLink,
+  ArrowRight,
+  ClipboardPaste,
+  Trash2
 } from 'lucide-react';
 
 const TranslationModal = ({ isOpen, onClose }) => {
@@ -42,6 +48,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
   const [customLangCode, setCustomLangCode] = useState('');
   const [customGuidelines, setCustomGuidelines] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const [isWaitingAI, setIsWaitingAI] = useState(false);
 
   // Import Tab State
   const [rawAIInput, setRawAIInput] = useState('');
@@ -70,8 +78,23 @@ const TranslationModal = ({ isOpen, onClose }) => {
       await navigator.clipboard.writeText(generatedPrompt);
       setCopiedPrompt(true);
       setTimeout(() => setCopiedPrompt(false), 2500);
+      setIsWaitingAI(true);
+      setActiveTab('import');
     } catch (e) {
       console.error('Error copying prompt', e);
+    }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          setRawAIInput(text);
+        }
+      }
+    } catch (err) {
+      console.warn('Clipboard read failed:', err);
     }
   };
 
@@ -349,30 +372,102 @@ const TranslationModal = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <Eye size={15} color="#3874ff" /> Prompt Rígido Ensamblado (Directrices + Diccionario de Texto):
-                  </label>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #888)' }}>
-                    {Object.keys(currentDict).length} claves a traducir
-                  </span>
+              {/* Collapsible Prompt Preview */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: isPromptExpanded ? '0.5rem' : '0',
+                marginTop: '0.15rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.2rem 0.4rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#3874ff',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <Eye size={15} color="#3874ff" />
+                    <span>{isPromptExpanded ? 'Ocultar prompt' : 'Desplegar prompt completo'}</span>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #888)', fontWeight: 400 }}>
+                      ({Object.keys(currentDict).length} claves a traducir)
+                    </span>
+                  </button>
                 </div>
+
                 <pre style={{
-                  background: '#1e1e1e',
+                  background: '#18181b',
                   color: '#d4d4d4',
-                  padding: '1rem',
+                  padding: isPromptExpanded ? '1rem' : '0',
                   borderRadius: '8px',
-                  fontSize: '0.8rem',
+                  fontSize: isPromptExpanded ? '0.8rem' : '0.68rem',
+                  lineHeight: isPromptExpanded ? '1.45' : '1.25',
                   fontFamily: 'Consolas, Monaco, monospace',
-                  maxHeight: '220px',
-                  overflowY: 'auto',
+                  maxHeight: isPromptExpanded ? '220px' : '44px',
+                  height: isPromptExpanded ? 'auto' : '0px',
+                  overflowY: isPromptExpanded ? 'auto' : 'hidden',
+                  overflow: 'hidden',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
-                  margin: 0
+                  margin: 0,
+                  opacity: isPromptExpanded ? 1 : 0,
+                  display: isPromptExpanded ? 'block' : 'none',
+                  transition: 'all 0.2s ease'
                 }}>
                   {generatedPrompt}
                 </pre>
+              </div>
+
+              {/* Action Banner to Transition to Waiting State */}
+              <div style={{
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                background: 'rgba(56, 116, 255, 0.05)',
+                border: '1px solid rgba(56, 116, 255, 0.2)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '1rem',
+                flexWrap: 'wrap'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3874ff' }}>
+                    Flujo guiado de Traducción con IA:
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-color-light, #666)' }}>
+                    Copia el prompt, genera la traducción en tu IA externa y vuelve a pegarla en la pestaña de Importar.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyPrompt}
+                  style={{
+                    padding: '0.45rem 0.9rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#3874ff',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    boxShadow: '0 2px 8px rgba(56, 116, 255, 0.25)'
+                  }}
+                >
+                  <Clipboard size={14} /> Copiar Prompt y Esperar IA ➔
+                </button>
               </div>
             </>
           )}
@@ -380,25 +475,136 @@ const TranslationModal = ({ isOpen, onClose }) => {
           {/* TAB 2: IMPORT & VALIDATE */}
           {activeTab === 'import' && (
             <>
+              {/* Waiting Mode Banner in Tab 2 */}
+              {isWaitingAI && (
+                <div style={{
+                  padding: '1rem 1.25rem',
+                  borderRadius: '12px',
+                  background: 'rgba(56, 116, 255, 0.07)',
+                  border: '1.5px solid rgba(56, 116, 255, 0.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: '#3874ff',
+                        display: 'inline-block',
+                        boxShadow: '0 0 8px #3874ff'
+                      }} />
+                      <span style={{ fontSize: '1rem', fontWeight: 700, color: '#3874ff' }}>
+                        Esperando respuesta de tu IA externa...
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsWaitingAI(false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-color-light, #666)',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      Ocultar guía
+                    </button>
+                  </div>
+
+                  <p style={{ margin: 0, fontSize: '0.84rem', lineHeight: '1.4', opacity: 0.9 }}>
+                    El prompt de traducción ya fue copiado a tu portapapeles. Ve a otra pestaña, solicita la traducción en tu IA y regresa a pegar el bloque JSON aquí abajo.
+                  </p>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color-light, #777)' }}>
+                      Abrir IA externa en nueva pestaña:
+                    </span>
+                    <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(56, 116, 255, 0.1)', color: '#3874ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
+                      ChatGPT <ExternalLink size={11} />
+                    </a>
+                    <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(56, 116, 255, 0.1)', color: '#3874ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
+                      Claude <ExternalLink size={11} />
+                    </a>
+                    <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(56, 116, 255, 0.1)', color: '#3874ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
+                      Gemini <ExternalLink size={11} />
+                    </a>
+                    <a href="https://chat.deepseek.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(56, 116, 255, 0.1)', color: '#3874ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
+                      DeepSeek <ExternalLink size={11} />
+                    </a>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                  <Clipboard size={15} color="#3874ff" /> Pegar Respuesta Completa de la IA (JSON o Bloque de Código):
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
+                    <Clipboard size={15} color="#3874ff" /> Pegar Respuesta Completa de la IA (JSON o Bloque de Código):
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={handlePasteFromClipboard}
+                      style={{
+                        background: 'none',
+                        border: '1px solid rgba(56, 116, 255, 0.3)',
+                        borderRadius: '6px',
+                        padding: '0.2rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#3874ff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <ClipboardPaste size={13} /> Pegar del portapapeles
+                    </button>
+                    {rawAIInput && (
+                      <button
+                        type="button"
+                        onClick={() => setRawAIInput('')}
+                        style={{
+                          background: 'none',
+                          border: '1px solid rgba(150, 150, 150, 0.3)',
+                          borderRadius: '6px',
+                          padding: '0.2rem 0.5rem',
+                          fontSize: '0.75rem',
+                          color: 'var(--text-color-light, #888)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        <Trash2 size={13} /> Limpiar
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <textarea
-                  rows={7}
+                  rows={isWaitingAI ? 10 : 7}
                   value={rawAIInput}
                   onChange={(e) => setRawAIInput(e.target.value)}
                   placeholder={`Pega aquí el JSON devuelto por ChatGPT, Claude, Gemini o DeepSeek...\nEjemplo:\n{\n  "${effectiveTargetLang}": {\n    "nav_home": "Home",\n    ...\n  }\n}`}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
+                    minHeight: isWaitingAI ? '220px' : '140px',
+                    padding: '0.85rem',
                     borderRadius: '8px',
-                    border: '1px solid rgba(150, 150, 150, 0.3)',
+                    border: '1px solid rgba(150, 150, 150, 0.35)',
                     background: 'var(--body-color, #f9f9f9)',
                     color: 'inherit',
                     fontFamily: 'Consolas, Monaco, monospace',
-                    fontSize: '0.82rem',
-                    resize: 'vertical'
+                    fontSize: '0.83rem',
+                    lineHeight: '1.4',
+                    resize: 'vertical',
+                    boxSizing: 'border-box'
                   }}
                 />
               </div>

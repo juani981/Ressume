@@ -41,10 +41,10 @@ describe('Architecture & SOLID Invariants Automated Guard', () => {
     });
 
     it('defines page padding and spacing strictly in single source of truth', () => {
-      expect(DEFAULT_PAGE_PADDING_PX).toBe(24);
-      expect(DEFAULT_SECTION_GAP_PX).toBe(20);
+      expect(DEFAULT_PAGE_PADDING_PX).toBe(12);
+      expect(DEFAULT_SECTION_GAP_PX).toBe(12);
       expect(DEFAULT_ITEM_GAP_PX).toBe(8);
-      expect(SPACING_TOKENS.pagePaddingPx).toBe(24);
+      expect(SPACING_TOKENS.pagePaddingPx).toBe(12);
       expect(EDITOR_PAGE_WIDTH_CSS).toBe('210mm');
       expect(EDITOR_PAGE_HEIGHT_CSS).toBe('297mm');
     });
@@ -56,7 +56,7 @@ describe('Architecture & SOLID Invariants Automated Guard', () => {
 
       expect(content).toContain('--a4-page-width: 210mm;');
       expect(content).toContain('--a4-page-height: 297mm;');
-      expect(content).toContain('--page-padding: 24px;');
+      expect(content).toContain('--page-padding: 12px;');
     });
 
     it('ensures legacy utilities re-export canonical geometry without drifting', async () => {
