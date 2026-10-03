@@ -831,8 +831,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
 
   const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  const safetyHeadroom = Number(mergedOptions.safetyHeadroom ?? 0);
-  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding - safetyHeadroom);
+  // Margen de seguridad estrictamente reducido a 0: 100% de la capacidad física útil A4 disponible
+  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding);
 
   let singleBuckets = {};
   let leftBuckets = {};

@@ -1572,6 +1572,22 @@ a,
   background-color: rgba(56, 116, 255, 0.08);
 }
 
+/* AI Group & Prompting Aesthetic in Action Menu */
+.action-menu-ai-group {
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.action-menu-ai-group:hover {
+  border-color: rgba(168, 85, 247, 0.45) !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.22) !important;
+}
+
+.action-menu-ai-group .action-menu-btn:hover,
+.action-menu-ai-group .translation-hub-btn:hover,
+.action-menu-ai-group .byo-cv-hub-btn:hover {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+}
+
 .action-menu-tooltip {
   position: absolute;
   left: calc(100% + 14px);
