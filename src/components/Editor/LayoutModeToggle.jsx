@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
-import { Columns, FileText, Lightbulb } from 'lucide-react';
+import { Columns, FileText, Lightbulb, LightbulbOff } from 'lucide-react';
 
 /**
  * LayoutModeToggle
@@ -275,7 +275,29 @@ const LayoutModeToggle = ({ enableTwoColumn }) => {
         }}
         title={showAITips ? 'Ocultar todos los consejos IA' : 'Mostrar todos los consejos IA'}
       >
-        <Lightbulb size={17} color={showAITips ? '#eab308' : '#94a3b8'} strokeWidth={2.3} />
+        {showAITips ? (
+          <Lightbulb
+            size={18}
+            color="#eab308"
+            fill="#facc15"
+            strokeWidth={2.4}
+            style={{
+              filter: 'drop-shadow(0 0 6px #eab308) drop-shadow(0 0 12px rgba(250, 204, 21, 0.75))',
+              transform: 'scale(1.1)',
+              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          />
+        ) : (
+          <LightbulbOff
+            size={18}
+            color={isAtsMode ? '#94a3b8' : '#64748b'}
+            strokeWidth={2}
+            style={{
+              opacity: 0.75,
+              transition: 'all 0.3s ease',
+            }}
+          />
+        )}
         <span>Consejos IA</span>
         <span
           style={{

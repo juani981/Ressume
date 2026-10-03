@@ -44,7 +44,8 @@ export function getCharsPerLine(options = {}, isBullet = false) {
     const colWidth = options.columnWidthPx;
     const effectiveWidth = isBullet ? Math.max(80, colWidth - 28) : colWidth;
     const fontScale = options.fontScale ?? 1.0;
-    const charWidth = 10.5 * Math.max(0.7, fontScale);
+    const baseCharWidth = isAts ? 9.6 : 10.5;
+    const charWidth = baseCharWidth * Math.max(0.7, fontScale);
     return Math.max(12, Math.floor(effectiveWidth / charWidth));
   }
 

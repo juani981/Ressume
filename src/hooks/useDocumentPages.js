@@ -15,6 +15,8 @@ import { useMemo } from 'react';
 import { distributeSectionsToPages } from '../utils/pageDistributor';
 import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING, DEFAULT_LINE_HEIGHT } from '../constants';
 
+const DEFAULT_OPTIONS = Object.freeze({});
+
 /**
  * Custom hook returning an array of PageModel instances for live rendering and print.
  *
@@ -26,7 +28,7 @@ import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING, DEFAULT_LINE_HEIGHT } from '..
  *   totalPages: number
  * }}
  */
-export function useDocumentPages({ cvData, options = {} }) {
+export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
   const layout = cvData?.layout || {};
   const sections = cvData?.sections || [];
 
@@ -73,7 +75,7 @@ export function useDocumentPages({ cvData, options = {} }) {
     layout.sectionGap,
     layout.itemGap,
     layout.leftColumnWidth,
-    options,
+    options === DEFAULT_OPTIONS ? null : options,
   ]);
 
   const totalPages = pages.length;

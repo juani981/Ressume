@@ -379,7 +379,7 @@
 
   .resume--ats-mode .cv-section,
   .resume__single-column .cv-section {
-    margin-bottom: var(--section-gap, 5px) !important;
+    margin-bottom: var(--section-gap, 20px) !important;
   }
 
   .resume--ats-mode .cv-section:last-child,
