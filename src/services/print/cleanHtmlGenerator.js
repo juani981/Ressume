@@ -393,6 +393,12 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     el.style.setProperty('list-style-type', 'none', 'important');
   });
 
+  clone.querySelectorAll('.a4-page-wrapper').forEach((wrapper) => {
+    wrapper.style.setProperty('display', 'contents', 'important');
+    wrapper.style.setProperty('margin', '0', 'important');
+    wrapper.style.setProperty('padding', '0', 'important');
+  });
+
   const pageBoxes = clone.querySelectorAll('.a4-page-box');
   const hasA4Boxes = pageBoxes.length > 0;
 

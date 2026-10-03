@@ -94,7 +94,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     rightContent,
     singleColumnContent,
     children,
-    badgePosition = 'bottom-right',
+    badgePosition = 'gap',
     showBadge = true,
     badgeText,
     onDeletePage,
@@ -165,10 +165,9 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   // Badge text: "Página N de M"
   const currentBadgeText = badgeText || `Página ${pageNumber} de ${totalPages}`;
 
-  // Badge style for editor display
+  // Badge style for editor display - positioned in the inter-page gap by default
   const badgeStyle = {
     position: 'absolute',
-    bottom: '12px',
     right: '16px',
     backgroundColor: 'rgba(15, 23, 42, 0.75)',
     color: '#ffffff',
@@ -177,11 +176,15 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     fontSize: '11px',
     fontWeight: 600,
     letterSpacing: '0.05em',
-    zIndex: 10,
+    zIndex: 50,
     pointerEvents: 'none',
     userSelect: 'none',
-    ...(badgePosition === 'top-right' ? { top: '12px', bottom: 'auto' } : {}),
-    ...(!badgePosition.includes('top') && !badgePosition.includes('bottom') ? {} : {}),
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+    ...(badgePosition === 'top-right'
+      ? { top: '12px', bottom: 'auto' }
+      : badgePosition === 'bottom-right'
+      ? { bottom: '12px', top: 'auto' }
+      : { bottom: '5px', top: 'auto' }),
   };
 
   // Render 2-column content
@@ -386,15 +389,25 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
 
   return (
     <div
-      ref={ref}
-      className={classNames}
-      data-page-number={pageNumber}
-      data-total-pages={totalPages}
-      data-testid={`a4-page-box-${pageNumber}`}
-      style={containerStyle}
-      {...restProps}
+      className="a4-page-wrapper"
+      data-page-wrapper={pageNumber}
+      style={{
+        position: 'relative',
+        width: A4_WIDTH_CSS,
+        margin: '0 auto',
+      }}
     >
-      {effective2Col ? render2ColContent() : render1ColContent()}
+      <div
+        ref={ref}
+        className={classNames}
+        data-page-number={pageNumber}
+        data-total-pages={totalPages}
+        data-testid={`a4-page-box-${pageNumber}`}
+        style={containerStyle}
+        {...restProps}
+      >
+        {effective2Col ? render2ColContent() : render1ColContent()}
+      </div>
 
       {showBadge && (
         <div

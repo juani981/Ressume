@@ -91,6 +91,12 @@
     box-shadow: none !important;
   }
 
+  .a4-page-wrapper {
+    display: contents !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .a4-page-box.bd-grid {
     display: grid !important;
     grid-template-rows: 1fr !important;

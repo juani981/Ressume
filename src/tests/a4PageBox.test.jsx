@@ -59,6 +59,32 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(badgeTop.style.top).toBe('12px');
       expect(badgeTop.style.right).toBe('16px');
     });
+
+    it('positions badge in the inter-page gap by default (outside usable content)', () => {
+      const { container } = render(<A4PageBox pageNumber={1} totalPages={2} />);
+      const badge = container.querySelector('.a4-page-badge');
+      const pageBox = container.querySelector('.a4-page-box');
+      const wrapper = container.querySelector('.a4-page-wrapper');
+
+      expect(wrapper).toBeTruthy();
+      expect(badge).toBeTruthy();
+      expect(badge.style.bottom).toBe('5px');
+      expect(badge.style.right).toBe('16px');
+      // Badge is outside the clipped a4-page-box so it sits in the gap
+      expect(pageBox.contains(badge)).toBe(false);
+      expect(wrapper.contains(badge)).toBe(true);
+    });
+
+    it('renders delete button inside gap badge for page > 1 with clickable callback', () => {
+      let deletedPage = null;
+      const { container } = render(
+        <A4PageBox pageNumber={2} totalPages={2} onDeletePage={(n) => { deletedPage = n; }} />
+      );
+      const delBtn = container.querySelector('.page-delete-btn');
+      expect(delBtn).toBeTruthy();
+      delBtn.click();
+      expect(deletedPage).toBe(2);
+    });
   });
 
   describe('2. Two-Column Mode (is2Col)', () => {
