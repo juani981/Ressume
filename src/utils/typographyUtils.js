@@ -5,7 +5,17 @@
  * for universal typography scaling and line heights across the CV editor and print engine.
  */
 
-import { A4_PAGE_SIZE } from '../constants';
+import { A4_PAGE_SIZE } from '../constants/index.js';
+import {
+  DEFAULT_PAGE_PADDING_PX,
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP_PX,
+  DEFAULT_LINE_HEIGHT,
+} from '../constants/spacing.js';
+import {
+  BASE_FONT_SIZES_PX,
+  getFontAdvanceRatio,
+} from '../constants/typography.js';
 
 export {
   FONT_FAMILIES,
@@ -13,6 +23,9 @@ export {
   DEFAULT_FONT_FAMILY_NAME,
   SUPPORTED_FONT_NAMES,
   TYPOGRAPHY_SCALE_LIMITS,
+  BASE_FONT_SIZES_PX,
+  FONT_ADVANCE_RATIOS,
+  getFontAdvanceRatio,
 } from '../constants/typography.js';
 
 import {
@@ -33,6 +46,44 @@ export function getFontFamilyStack(fontName) {
 }
 
 /**
+ * Computes exact rendered line height in CSS pixels for a given typography level
+ * based on layout scale tokens and line-height multiplier.
+ *
+ * @param {'h1'|'h2'|'h3'|'subtitle'|'normal'|'small'|'smaller'} level
+ * @param {Object} [layout={}]
+ * @returns {number}
+ */
+export function calcLineHeightPx(level = 'normal', layout = {}) {
+  const baseSize = BASE_FONT_SIZES_PX[level] ?? BASE_FONT_SIZES_PX.normal;
+  const fontScale = layout.fontScale ?? 1.0;
+  let categoryScale = 1.0;
+  if (level === 'h1' || level === 'h2' || level === 'h3' || level === 'subtitle') {
+    categoryScale = layout.titleScale ?? 1.0;
+  } else if (level === 'small' || level === 'smaller' || level === 'normal') {
+    categoryScale = layout.bodyScale ?? (layout.listScale ?? 1.0);
+  }
+  const lineHeight = layout.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  return baseSize * fontScale * categoryScale * lineHeight;
+}
+
+/**
+ * Computes exact average character advance width in pixels for a font and scale.
+ *
+ * @param {string} fontFamily
+ * @param {Object} [layout={}]
+ * @param {'normal'|'small'} [level='normal']
+ * @returns {number} Width in pixels per character
+ */
+export function calcCharAdvancePx(fontFamily, layout = {}, level = 'normal') {
+  const baseSize = BASE_FONT_SIZES_PX[level] ?? BASE_FONT_SIZES_PX.normal;
+  const fontScale = layout.fontScale ?? 1.0;
+  const categoryScale = layout.bodyScale ?? (layout.listScale ?? 1.0);
+  const currentFontSize = baseSize * fontScale * categoryScale;
+  const ratio = getFontAdvanceRatio(fontFamily);
+  return currentFontSize * ratio;
+}
+
+/**
  * Compiles dynamic typography and spacing settings from layout state into CSS custom property tokens.
  *
  * @param {Object} [layout={}] - Layout configuration from cvData.layout
@@ -44,10 +95,10 @@ export function computeTypographyTokens(layout = {}) {
   const titleScale = layout.titleScale ?? 1.0;
   const bodyScale = layout.bodyScale ?? 1.0;
   const listScale = layout.listScale ?? 1.0;
-  const lineHeight = layout.lineHeight ?? 1.3;
-  const pagePadding = layout.pagePadding ?? 24;
-  const sectionGap = layout.sectionGap ?? 20;
-  const itemGap = layout.itemGap ?? 8;
+  const lineHeight = layout.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  const pagePadding = layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
+  const sectionGap = layout.sectionGap ?? DEFAULT_SECTION_GAP_PX;
+  const itemGap = layout.itemGap ?? DEFAULT_ITEM_GAP_PX;
   const leftColPercent = layout.leftColumnWidth || 33.33;
   const gridTemplateColumns = layout.leftColumnWidth
     ? `${layout.leftColumnWidth}% ${100 - layout.leftColumnWidth}%`

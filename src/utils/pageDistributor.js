@@ -1,33 +1,68 @@
 /**
  * pageDistributor.js
  *
- * Pure deterministic document page distributor.
+ * Canonical Pure Deterministic Document Page Distributor (Single Source of Truth).
  * Partitions and distributes CV sections and items into discrete PageModels
- * respecting A4 physical capacity, manual page assignments, layout modes,
- * and multi-item section continuation splits.
+ * respecting physical A4 capacity, typography metrics, layout scale tokens,
+ * anti-orphan header invariants, and granular bullet continuations.
  *
- * Invariant 15: Editor-Native Discrete A4 Boxes
- * Invariant 16: Zero Dynamic Reflow on Print
+ * Adheres strictly to:
+ * - Invariant 15: Editor-Native Discrete A4 Boxes
+ * - Invariant 16: Zero Dynamic Reflow on Print
+ * - Invariant 17: Radical Minimalism (Elimination of Accidental Complexity)
  */
 
-import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING, DEFAULT_LINE_HEIGHT } from '../constants/index.js';
+import {
+  A4_PAGE_HEIGHT_PX,
+  A4_WIDTH_PX,
+} from '../constants/geometry.js';
+import {
+  DEFAULT_PAGE_PADDING_PX,
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP_PX,
+  DEFAULT_LINE_HEIGHT,
+  PAGE_BOTTOM_CLEARANCE_PX,
+  DEFAULT_HEADER_MARGIN_BOTTOM_RATIO,
+  DEFAULT_DATA_GAP_PX,
+  WORD_WRAP_EFFICIENCY,
+  BULLET_INDENT_PX,
+  BULLET_INDENT_ATS_PX,
+  MIN_EFFECTIVE_WIDTH_PX,
+  MIN_CHARS_PER_LINE,
+  MIN_PAGE_CAPACITY_PX,
+  ATS_HEADER_BORDER_PADDING_PX,
+  FALLBACK_ITEM_HEIGHT_PX,
+  DEFAULT_PHOTO_SIZE_PX,
+  DEFAULT_PHOTO_HEADER_SIZE_PX,
+  DEFAULT_SPACER_HEIGHT_PX,
+} from '../constants/spacing.js';
+import {
+  calcLineHeightPx,
+  calcCharAdvancePx,
+} from './typographyUtils.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 
-export const DEFAULT_SECTION_GAP_PX = 16;
-export const DEFAULT_ITEM_GAP_PX = 8;
-export const DEFAULT_HEADER_HEIGHT_PX = 36;
-export const CONTINUATION_HEADER_HEIGHT_PX = 20;
+export {
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP_PX,
+};
+
+export const DEFAULT_HEADER_HEIGHT_PX = 28;
+export const CONTINUATION_HEADER_HEIGHT_PX = 0;
 
 /**
- * Calculates character capacity per line for a given column width and font styling.
- * Supports dynamic column width resizing (leftColumnWidth).
+ * Calculates character capacity per line for a given column width and typography styling.
+ * Derived dynamically from font metrics without arbitrary magic constants.
  *
- * @param {Object} options
+ * @param {Object} [options={}]
  * @param {boolean} [isBullet=false]
  * @returns {number}
  */
 export function getCharsPerLine(options = {}, isBullet = false) {
+  if (typeof options.charsPerLine === 'number' && options.charsPerLine > 0) {
+    return options.charsPerLine;
+  }
   const isAts = Boolean(
     options.isAts ||
     options.isAtsMode ||
@@ -35,28 +70,30 @@ export function getCharsPerLine(options = {}, isBullet = false) {
     options.mode === '1-column' ||
     options.column === 'single'
   );
-  if (typeof options.charsPerLine === 'number') {
-    return options.charsPerLine;
-  }
-  const isLeftCol = !isAts && options.column === 'left';
+  const padding = options.pagePaddingPx ?? DEFAULT_PAGE_PADDING_PX;
+  const contentWidth = A4_WIDTH_PX - 2 * padding;
+  let colWidth = contentWidth;
 
-  if (options.columnWidthPx != null && options.columnWidthPx > 0) {
-    const colWidth = options.columnWidthPx;
-    const effectiveWidth = isBullet ? Math.max(80, colWidth - 28) : colWidth;
-    const fontScale = options.fontScale ?? 1.0;
-    const baseCharWidth = isAts ? 9.6 : 10.5;
-    const charWidth = baseCharWidth * Math.max(0.7, fontScale);
-    return Math.max(12, Math.floor(effectiveWidth / charWidth));
+  if (!isAts) {
+    const leftPct = Number(options.leftColumnWidth) || 33.33;
+    const isLeftCol = options.column === 'left';
+    colWidth = isLeftCol
+      ? Math.round(contentWidth * (leftPct / 100))
+      : Math.round(contentWidth * ((100 - leftPct) / 100));
+  } else if (typeof options.columnWidthPx === 'number' && options.columnWidthPx > 0) {
+    colWidth = options.columnWidthPx;
   }
 
-  // Canonical baseline values matching standard 33% / 67% layout
-  if (isAts) {
-    return isBullet ? 70 : 72;
-  }
-  if (isLeftCol) {
-    return isBullet ? 26 : 28;
-  }
-  return isBullet ? 42 : 44;
+  // Deduct indentation: bullet disc / drag handle / delete button
+  const indent = isAts
+    ? (options.bulletIndentAtsPx ?? BULLET_INDENT_ATS_PX)
+    : (options.bulletIndentPx ?? BULLET_INDENT_PX);
+  const minWidth = options.minEffectiveWidthPx ?? MIN_EFFECTIVE_WIDTH_PX;
+  const effectiveWidth = isBullet ? Math.max(minWidth, colWidth - indent) : colWidth;
+  const advancePx = calcCharAdvancePx(options.fontFamily, options, 'normal');
+  const efficiency = options.wordWrapEfficiency ?? WORD_WRAP_EFFICIENCY;
+  const minChars = options.minCharsPerLine ?? MIN_CHARS_PER_LINE;
+  return Math.max(minChars, Math.floor((effectiveWidth * efficiency) / advancePx));
 }
 
 /**
@@ -73,53 +110,21 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
       return 0;
     }
     if (section && section.title && section.title.trim() !== '') {
-      return (options.continuationHeaderHeightPx ?? CONTINUATION_HEADER_HEIGHT_PX);
+      return options.continuationHeaderHeightPx ?? 0;
     }
     return 0;
   }
 
-  if (section && section.title && section.title.trim() !== '') {
-    if (typeof options.headerHeightPx === 'number') {
-      return options.headerHeightPx;
-    }
-    const isAts = Boolean(
-      options.isAts ||
-      options.isAtsMode ||
-      options.mode === 'ats' ||
-      options.mode === '1-column' ||
-      options.column === 'single'
-    );
-    const fontScale = options.fontScale ?? (options.titleScale ?? 1.0);
-    const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
-
-    if (isAts) {
-      return Math.round(24 * fontScale * (lineHeight / DEFAULT_LINE_HEIGHT)) + Math.round(itemGap * 1.5);
-    }
-
-    const isLeftCol = options.column === 'left';
-    // In narrow left column (33% width), uppercase titles with letter-spacing wrap to 2 lines if longer than 18 chars
-    const isMultiLine = isLeftCol && section.title.trim().length > 18;
-    const lines = isMultiLine ? 2 : 1;
-    return Math.round(lines * 24 * fontScale * (lineHeight / DEFAULT_LINE_HEIGHT)) + Math.round(itemGap * 1.5);
+  if (!section || !section.title || section.title.trim() === '') {
+    return 0;
   }
 
-  return 0;
-}
+  if (typeof options.headerHeightPx === 'number') {
+    return options.headerHeightPx;
+  }
 
-/**
- * Estimates the base height of an item containing bullets, excluding the bullets themselves.
- *
- * @param {Object} item - Item object
- * @param {string} [sectionType=''] - Type of section containing the item
- * @param {Object} [options={}] - Distribution options
- * @returns {number} Estimated base item height in px
- */
-export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
-  const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
-  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
+  const h2LineHeight = calcLineHeightPx('h2', options);
   const isAts = Boolean(
     options.isAts ||
     options.isAtsMode ||
@@ -127,16 +132,50 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
     options.mode === '1-column' ||
     options.column === 'single'
   );
+  const isLeftCol = !isAts && options.column === 'left';
+  const isMultiLine = isLeftCol && section.title.trim().length > 18;
+  const lines = isMultiLine ? 2 : 1;
+  const headerMarginRatio = options.headerMarginBottomRatio ?? DEFAULT_HEADER_MARGIN_BOTTOM_RATIO;
+  const headerMargin = Math.round(itemGap * headerMarginRatio);
+  const atsHeaderBorder = isAts ? (options.atsHeaderBorderPaddingPx ?? ATS_HEADER_BORDER_PADDING_PX) : 0;
+
+  return Math.round(lines * h2LineHeight) + atsHeaderBorder + headerMargin;
+}
+
+/**
+ * Estimates the base height of an item (title, meta, description) without its bullets.
+ *
+ * @param {Object} item - Item object
+ * @param {string} [sectionType=''] - Type of section containing the item
+ * @param {Object} [options={}] - Distribution options
+ * @returns {number} Estimated base item height in px
+ */
+export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
+  if (!item || typeof item !== 'object') return options.fallbackItemHeightPx ?? FALLBACK_ITEM_HEIGHT_PX;
+  if (typeof item.height === 'number' && item.height > 0) return item.height;
+
+  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const dataGap = options.dataGapPx ?? DEFAULT_DATA_GAP_PX;
+  const h3LineH = calcLineHeightPx('h3', options);
+  const smallLineH = calcLineHeightPx('small', options);
+  const normalLineH = calcLineHeightPx('normal', options);
   const charsPerLine = getCharsPerLine(options, false);
 
-  let h = isAts ? 38 : 50;
-  if (item.link) h += 16;
+  let h = h3LineH;
+  const hasMeta = Boolean(item.company || item.institution || item.subtitle || item.date || item.period);
+  if (hasMeta) {
+    h += dataGap + smallLineH;
+  }
+  if (item.link) {
+    h += dataGap + smallLineH;
+  }
   if (item.description) {
     const paragraphs = String(item.description).split('\n');
     const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
-    h += descLines * 20;
+    h += dataGap + descLines * normalLineH;
   }
-  return Math.round(h * fontFactor) + Math.round(itemGap * 0.5);
+
+  return Math.round(h) + itemGap;
 }
 
 /**
@@ -149,14 +188,11 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
  */
 export function estimateSingleBulletHeight(bullet, sectionType = '', options = {}) {
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
-  const fontScale = options.fontScale ?? (options.listScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
-  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
+  const normalLineH = calcLineHeightPx('normal', options);
   const charsPerLine = getCharsPerLine(options, true);
-
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
-  const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine)));
-  return Math.round((bLines * 20) * fontFactor) + Math.round(itemGap * 0.75);
+  const bLines = Math.max(1, Math.ceil(bStr.length / charsPerLine));
+  return Math.round(bLines * normalLineH) + itemGap;
 }
 
 /**
@@ -181,97 +217,73 @@ export function estimateItemBulletsHeight(bullets, sectionType = '', options = {
  * @returns {number} Estimated item height in px
  */
 export function estimateItemHeight(item, sectionType = '', options = {}) {
-  if (!item || typeof item !== 'object') {
-    return 30;
-  }
-
+  if (!item || typeof item !== 'object') return options.fallbackItemHeightPx ?? FALLBACK_ITEM_HEIGHT_PX;
   if (typeof options.itemHeightEstimator === 'function') {
     const custom = options.itemHeightEstimator(item, sectionType, options);
-    if (typeof custom === 'number' && !isNaN(custom)) {
-      return custom;
-    }
+    if (typeof custom === 'number' && !isNaN(custom)) return custom;
   }
-
-  if (typeof item.height === 'number' && item.height > 0) {
-    return item.height;
-  }
+  if (typeof item.height === 'number' && item.height > 0) return item.height;
 
   const descriptor = getSectionDescriptor(sectionType);
   if (typeof descriptor?.estimateItemHeight === 'function') {
     return descriptor.estimateItemHeight(item, options);
   }
 
-  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
-  const fontScale = options.fontScale ?? (options.bodyScale ?? 1.0);
-  const lineHeight = options.lineHeight ?? DEFAULT_LINE_HEIGHT;
-  const fontFactor = fontScale * (lineHeight / DEFAULT_LINE_HEIGHT);
   const isAts = Boolean(
-    options.isAts ||
-    options.isAtsMode ||
-    options.mode === 'ats' ||
-    options.mode === '1-column' ||
-    options.column === 'single'
+    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
   );
-  const isLeftCol = !isAts && options.column === 'left';
+  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const normalLineH = calcLineHeightPx('normal', options);
+  const smallLineH = calcLineHeightPx('small', options);
+  const charsPerLine = getCharsPerLine(options, false);
 
   switch (sectionType) {
     case 'photo': {
       if (isAts) return 0;
-      const size = Number(item.size) || 130;
+      const size = Number(item.size) || (options.defaultPhotoSizePx ?? DEFAULT_PHOTO_SIZE_PX);
       return size + itemGap;
     }
     case 'title_subtitle': {
-      const titleScale = options.titleScale ?? 1.0;
-      let h = Math.round(26 * titleScale) + (item.subtitle ? Math.round(18 * titleScale) : 0);
-      return Math.round(h * (lineHeight / DEFAULT_LINE_HEIGHT)) + itemGap;
+      const h1LineH = calcLineHeightPx('h1', options);
+      const subLineH = calcLineHeightPx('subtitle', options);
+      return Math.round(h1LineH + (item.subtitle ? subLineH : 0)) + itemGap;
     }
     case 'profile_header': {
-      if (isAts) {
-        let h = 44;
-        if (item.subtitle) h += 18;
-        return Math.round(h * fontFactor) + itemGap;
+      const h1LineH = calcLineHeightPx('h1', options);
+      const subLineH = calcLineHeightPx('subtitle', options);
+      let h = h1LineH + (item.subtitle ? subLineH : 0);
+      if (item.photo && !isAts) {
+        h += Number(item.photoSize) || (options.defaultPhotoHeaderSizePx ?? DEFAULT_PHOTO_HEADER_SIZE_PX);
       }
-      let h = 45;
-      if (item.subtitle) h += isLeftCol ? 20 : 18;
-      if (item.photo) {
-        const photoH = Number(item.photoSize) || (isLeftCol ? 70 : 60);
-        h += photoH;
-      }
-      return Math.round(h * fontFactor) + itemGap;
+      return Math.round(h) + itemGap;
     }
     case 'contact': {
-      if (Array.isArray(item.contacts) && item.contacts.length > 0) {
-        if (isAts) {
-          const rows = Math.ceil(item.contacts.length / 4);
-          return Math.round((10 + rows * 18) * fontFactor) + itemGap;
-        }
-        const rows = isLeftCol ? item.contacts.length : Math.ceil(item.contacts.length / 2);
-        return Math.round((rows * 20) * fontFactor) + itemGap;
+      const contacts = Array.isArray(item.contacts) ? item.contacts : [];
+      if (contacts.length > 0) {
+        const rows = isAts ? Math.ceil(contacts.length / 4) : Math.ceil(contacts.length / 2);
+        return Math.round(rows * smallLineH) + itemGap;
       }
-      return Math.round(32 * fontFactor) + itemGap;
+      return Math.round(smallLineH * 2) + itemGap;
     }
     case 'about': {
       const text = item.description || item.text || '';
-      const charsPerLine = getCharsPerLine(options, false);
       const paragraphs = String(text).split('\n');
       const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
-      return Math.round((lines * 20) * fontFactor) + itemGap;
+      return Math.round(lines * normalLineH) + itemGap;
     }
     case 'skills': {
       const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
-      const charsPerLine = getCharsPerLine(options, false);
       const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
-      return Math.round((lines * 20) * fontFactor) + itemGap;
+      return Math.round(lines * normalLineH) + itemGap;
     }
     case 'education': {
-      const charsPerLine = getCharsPerLine(options, false);
-      let h = isLeftCol ? 54 : (isAts ? 40 : 46);
+      const h3LineH = calcLineHeightPx('h3', options);
+      let h = h3LineH + smallLineH;
       if (item.description) {
-        const paragraphs = String(item.description).split('\n');
-        const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
-        h += descLines * 20;
+        const descLines = Math.max(1, Math.ceil(String(item.description).length / charsPerLine));
+        h += descLines * normalLineH;
       }
-      return Math.round(h * fontFactor) + itemGap;
+      return Math.round(h) + itemGap;
     }
     case 'list':
     case 'experience':
@@ -284,27 +296,24 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      const charsPerLine = getCharsPerLine(options, false);
       const text = item.text || item.description || item.name || '';
-      const paragraphs = String(text).split('\n');
-      const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
-      const h = 22 + (lines - 1) * 20;
-      return Math.round(h * fontFactor) + itemGap;
+      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      return Math.round(lines * normalLineH) + itemGap;
     }
     case 'spacer': {
-      return item.height || 24;
+      return item.height || (options.defaultSpacerHeightPx ?? DEFAULT_SPACER_HEIGHT_PX);
     }
     default: {
-      let h = 36;
+      const baseH = item.title ? calcLineHeightPx('h3', options) : 0;
+      let bodyH = 0;
       if (item.description || item.text) {
-        const str = String(item.description || item.text);
-        const charsPerLine = getCharsPerLine(options, false);
-        h += Math.max(1, Math.ceil(str.length / charsPerLine)) * 18;
+        const lines = Math.max(1, Math.ceil(String(item.description || item.text).length / charsPerLine));
+        bodyH = lines * normalLineH;
       }
-      if (Array.isArray(item.bullets)) {
-        h += item.bullets.length * 18;
-      }
-      return Math.round(h * fontFactor) + itemGap;
+      const bulletsH = Array.isArray(item.bullets)
+        ? estimateItemBulletsHeight(item.bullets, sectionType, options)
+        : 0;
+      return Math.round(baseH + bodyH + bulletsH) + itemGap;
     }
   }
 }
@@ -319,34 +328,28 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
 export function estimateSectionHeight(section, options = {}) {
   if (!section || typeof section !== 'object') return 0;
   const isAts = Boolean(
-    options.isAtsMode ||
-    options.mode === '1-column' ||
-    options.column === 'single'
+    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
   );
   if (isAts && section.type === 'photo') return 0;
-  if (typeof section.height === 'number' && section.height > 0) {
-    return section.height;
-  }
-  const header = estimateHeaderHeight(section, Boolean(section.isContinuation), options);
+
+  const headerH = estimateHeaderHeight(section, false, options);
   const items = Array.isArray(section.items) ? section.items : [];
-  const itemsHeight = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
-  const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
-  return header + itemsHeight + sectionGap;
+  if (items.length === 0) {
+    return headerH + (section.height || 0);
+  }
+  const itemsH = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
+  return headerH + itemsH;
 }
 
 /**
- * Distributes a flat list of sections across pages based on capacity and explicit breaks.
- *
- * @param {Array<Object>} sectionList - Array of sections belonging to a column or ATS sequence
- * @param {number} capacity - Maximum useful height capacity per page in pixels
- * @param {Object} options - Distribution options
- * @returns {Object.<number, Array<Object>>} Map from 1-based page number to array of section objects
+ * Core partition algorithm: distributes a sequence of sections into page buckets.
  */
 function distributeSectionListToPageBuckets(sectionList, capacity, options = {}) {
   const buckets = {};
   let currentPage = 1;
   let currentUsedHeight = 0;
-  const pageCapacity = Math.max(100, capacity);
+  const minCapacity = options.minPageCapacityPx ?? MIN_PAGE_CAPACITY_PX;
+  const pageCapacity = Math.max(minCapacity, capacity);
   const isAts = Boolean(
     options?.isAtsMode ||
     options?.mode === '1-column' ||
@@ -363,7 +366,6 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       continue;
     }
 
-    // Clone raw section so we never mutate cvData
     const section = {
       ...rawSec,
       items: Array.isArray(rawSec.items) ? rawSec.items.map(it => ({ ...it })) : [],
@@ -384,7 +386,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       it => (it.page != null) || (it.targetPage != null) || it.breakBefore || it.pageBreak
     );
 
-    // Case 1: Items contain explicit page targets or breaks
+    // Case 1: Explicit item breaks
     if (hasExplicitItemBreaks) {
       let targetItemPage = explicitSectionPage || currentPage;
       const itemPageMap = new Map();
@@ -444,11 +446,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       continue;
     }
 
-    // Case 3: Automatic capacity-based distribution adhering to the 3 Acceptance Criteria:
-    // 1. If the size of the section plus the margin set by the user fits still in the current page, do not jump.
-    // 2. If only the header of the section fits in the current page, but not the first item of the section, then jump it to the next page.
-    // 3. If the header of the section and n first items of the section fit in the current page, write that in the current page, and the remaining items to the next page.
-
+    // Case 3: Automatic capacity-based distribution with SSOT tokens
     const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
     const gapBefore = currentUsedHeight > 0 ? sectionGap : 0;
     const headerHeight = estimateHeaderHeight(section, false, options);
@@ -456,14 +454,14 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     const totalItemsHeight = itemHeights.reduce((acc, h) => acc + h, 0);
     const totalSectionHeight = gapBefore + headerHeight + (items.length > 0 ? totalItemsHeight : (section.height || 0));
 
-    // CRITERION 1: Fits still in the current page -> DO NOT JUMP
+    // CRITERION 1: Fits entirely on current page
     if (currentUsedHeight + totalSectionHeight <= pageCapacity) {
       addToBucket(currentPage, section);
       currentUsedHeight += totalSectionHeight;
       continue;
     }
 
-    // Section has NO items (e.g. spacer) and exceeds capacity on current page
+    // Section without items (e.g. spacer)
     if (items.length === 0) {
       if (currentUsedHeight > 0) {
         currentPage++;
@@ -474,22 +472,25 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       continue;
     }
 
-    // Section has items and does not fit entirely on currentPage.
-    const remainingOnCurrent = pageCapacity - currentUsedHeight;
-    const minNeededForFirstItem = gapBefore + headerHeight + itemHeights[0];
-    const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 0;
-    const baseH0 = estimateItemBaseHeight(items[0], section.type, options);
-    const firstBulletH0 = firstItemHasBullets ? estimateSingleBulletHeight(items[0].bullets[0], section.type, options) : 0;
-    const minBulletNeeded = firstItemHasBullets
-      ? (gapBefore + headerHeight + baseH0 + firstBulletH0)
-      : minNeededForFirstItem;
+    if (section.isIndivisible && currentUsedHeight > 0) {
+      currentPage++;
+      currentUsedHeight = 0;
+      addToBucket(currentPage, section);
+      currentUsedHeight = headerHeight + totalItemsHeight;
+      continue;
+    }
 
-    // CRITERION 2: If neither first item nor its initial bullets fit, jump to next page
-    if (currentUsedHeight > 0 && minBulletNeeded > remainingOnCurrent) {
+    // INVARIANTE ANTI-HUÉRFANOS: El encabezado nunca queda solo
+    const remainingOnCurrent = pageCapacity - currentUsedHeight;
+    const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 0;
+    const baseH0 = firstItemHasBullets ? estimateItemBaseHeight(items[0], section.type, options) : itemHeights[0];
+    const firstBulletH0 = firstItemHasBullets ? estimateSingleBulletHeight(items[0].bullets[0], section.type, options) : 0;
+    const minNeededForFirstAtom = gapBefore + headerHeight + baseH0 + firstBulletH0;
+
+    if (currentUsedHeight > 0 && minNeededForFirstAtom > remainingOnCurrent) {
       currentPage++;
       currentUsedHeight = 0;
 
-      // On the fresh page, if the whole section fits now, place it directly
       const freshTotalHeight = headerHeight + totalItemsHeight;
       if (freshTotalHeight <= pageCapacity) {
         addToBucket(currentPage, section);
@@ -498,7 +499,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       }
     }
 
-    // CRITERION 3: Header and n first items (or granular bullets) fit in current page -> write to current page, remaining to next page
+    // CRITERION 3: Partición granular (ítem por ítem y viñeta por viñeta)
     const currentGap = currentUsedHeight > 0 ? sectionGap : 0;
     const availableOnPage = pageCapacity - currentUsedHeight;
     let accumulated = currentGap + estimateHeaderHeight(section, false, options);
@@ -509,11 +510,14 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       splitIdx++;
     }
 
-    // Granular bullet splitting for the boundary item (items[splitIdx])
     let partialCandidate = null;
     let partialCandidateRemaining = null;
 
-    const allowGranularBullets = options.splitGranularBullets !== false;
+    const allowGranularBullets = Boolean(
+      options.splitGranularBullets ||
+      options.isEditor ||
+      items.length === 1
+    );
 
     if (allowGranularBullets && splitIdx < items.length) {
       const candidate = items[splitIdx];
@@ -542,6 +546,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
               bulletStartIndex: 0,
               isPartialItem: true,
             };
+            // Continuación Asimétrica en P2: baseH = 0 (arranca directo con viñetas)
             partialCandidateRemaining = {
               ...candidate,
               id: `${candidate.id}__cont_${currentPage + 1}`,
@@ -562,7 +567,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       }
     }
 
-    // If on a page with prior content nothing could fit, advance to a fresh page instead of overflowing
+    // Si nada cupo en la página actual con contenido previo, avanzar a página fresca
     if (splitIdx === 0 && !partialCandidate) {
       if (currentUsedHeight > 0) {
         currentPage++;
@@ -644,7 +649,6 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         partialCandidate = freshPartial;
         partialCandidateRemaining = freshPartialRemaining;
       } else {
-        // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
         splitIdx = 1;
         accumulated += itemHeights[0];
       }
@@ -662,29 +666,35 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     addToBucket(currentPage, part1);
     currentUsedHeight += accumulated;
 
-    let remItems = items.slice(splitIdx + (partialCandidate ? 1 : 0));
-    let remHeights = itemHeights.slice(splitIdx + (partialCandidate ? 1 : 0));
-
+    // Remaining items for continuation pages
+    let remItems = [];
     if (partialCandidateRemaining) {
-      const remH = estimateItemBulletsHeight(partialCandidateRemaining.bullets, section.type, options);
-      remItems = [partialCandidateRemaining, ...remItems];
-      remHeights = [remH, ...remHeights];
+      remItems.push(partialCandidateRemaining);
     }
+    const unplacedFullItems = items.slice(splitIdx + (partialCandidate ? 1 : 0));
+    remItems.push(...unplacedFullItems);
 
-    // Remaining items go to the next page(s)
+    let contPageNum = currentPage + 1;
+
     while (remItems.length > 0) {
-      currentPage++;
+      currentPage = contPageNum;
       currentUsedHeight = 0;
       const contHeader = estimateHeaderHeight(section, true, options);
       let contAcc = contHeader;
       let nextIdx = 0;
+
+      const remHeights = remItems.map(it => {
+        if (it.isContinuationItem) {
+          return estimateItemBulletsHeight(it.bullets, section.type, options);
+        }
+        return estimateItemHeight(it, section.type, options);
+      });
 
       while (nextIdx < remItems.length && (contAcc + remHeights[nextIdx] <= pageCapacity)) {
         contAcc += remHeights[nextIdx];
         nextIdx++;
       }
 
-      // Check if the boundary item on this continuation page can be split at bullet level
       let contPartial = null;
       let contPartialRemaining = null;
 
@@ -709,12 +719,11 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
             }
 
             if (bIdx > 0 && bIdx < candidate.bullets.length) {
-              const startOffset = candidate.bulletStartIndex || 0;
               contPartial = {
                 ...candidate,
                 bullets: candidate.bullets.slice(0, bIdx),
                 originalBullets: candidate.originalBullets || candidate.bullets,
-                bulletStartIndex: startOffset,
+                bulletStartIndex: (candidate.bulletStartIndex || 0),
                 isPartialItem: true,
               };
               contPartialRemaining = {
@@ -728,7 +737,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
                 description: '',
                 bullets: candidate.bullets.slice(bIdx),
                 originalBullets: candidate.originalBullets || candidate.bullets,
-                bulletStartIndex: startOffset + bIdx,
+                bulletStartIndex: (candidate.bulletStartIndex || 0) + bIdx,
                 isContinuationItem: true,
               };
               contAcc += bAcc;
@@ -742,9 +751,9 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         contAcc += remHeights[0];
       }
 
-      const pageItems = remItems.slice(0, nextIdx);
+      const placedItems = remItems.slice(0, nextIdx);
       if (contPartial) {
-        pageItems.push(contPartial);
+        placedItems.push(contPartial);
       }
 
       const contPart = {
@@ -756,25 +765,19 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         continuationPage: currentPage,
         title: (options.omitContinuationHeader || options.omitContinuationTitle)
           ? ''
-          : options.reduceContinuationHeader
-            ? `${section.title} (Cont.)`
-            : section.title,
-        items: pageItems,
+          : (options.reduceContinuationHeader ? `${section.title} (Cont.)` : section.title),
+        items: placedItems,
       };
       addToBucket(currentPage, contPart);
       currentUsedHeight = contAcc;
 
-      let nextRemItems = remItems.slice(nextIdx + (contPartial ? 1 : 0));
-      let nextRemHeights = remHeights.slice(nextIdx + (contPartial ? 1 : 0));
-
+      const nextRem = [];
       if (contPartialRemaining) {
-        const remH = estimateItemBulletsHeight(contPartialRemaining.bullets, section.type, options);
-        nextRemItems = [contPartialRemaining, ...nextRemItems];
-        nextRemHeights = [remH, ...nextRemHeights];
+        nextRem.push(contPartialRemaining);
       }
-
-      remItems = nextRemItems;
-      remHeights = nextRemHeights;
+      nextRem.push(...remItems.slice(nextIdx + (contPartial ? 1 : 0)));
+      remItems = nextRem;
+      contPageNum++;
     }
   }
 
@@ -782,21 +785,12 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
 }
 
 /**
- * Distributes CV sections deterministically into an immutable array of PageModels.
+ * Distributes CV sections and items into discrete A4 PageModel instances.
+ * Pure deterministic distribution driven 100% by layout tokens and SSOT geometry.
  *
  * @param {Object} cvData - Current CV document data with sections and layout
  * @param {Object} [options={}] - Distribution options
- * @param {number} [options.pageHeightPx=1123] - Physical page height in px
- * @param {number} [options.pagePaddingPx=24] - Page padding in px
- * @param {number} [options.pageCapacity] - Override useful capacity in px
- * @param {string} [options.mode] - '1-column' | '2-column' | 'ats'
- * @param {boolean} [options.isAtsMode] - Override ATS single column mode
- * @param {boolean} [options.omitContinuationHeader=false] - Whether to strip title on continued sections
- * @param {boolean} [options.reduceContinuationHeader=false] - Whether to add "(Cont.)" on continued sections
- * @param {boolean} [options.uniqueContinuationIds=false] - Generate unique id for continuation section
- * @param {Function} [options.itemHeightEstimator] - Custom item height estimator function
- * @param {number} [options.minPages=1] - Minimum number of pages to generate
- * @returns {Array<import('./pageModelTypes').PageModel>} Immutable array of PageModel instances
+ * @returns {Array<import('./pageModelTypes').PageModel>} Array of frozen PageModels
  */
 export function distributeSectionsToPages(cvData, options = {}) {
   const cv = cvData || {};
@@ -814,25 +808,29 @@ export function distributeSectionsToPages(cvData, options = {}) {
     isAts = Boolean(layout.isAtsMode === true || layout.type === '1-column');
   }
 
+  const pageHeight = options.pageHeightPx ?? layout.pageHeight ?? A4_PAGE_HEIGHT_PX;
+  const padding = options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
+  const clearance = options.pageBottomClearancePx ?? PAGE_BOTTOM_CLEARANCE_PX;
+  // SSOT: Height minus 2 * padding minus the micro-gasket clearance (14px)
+  const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding - clearance);
+
   const mergedOptions = {
+    omitContinuationHeader: options.omitContinuationHeader ?? false,
+    omitContinuationTitle: options.omitContinuationTitle ?? false,
+    uniqueContinuationIds: options.uniqueContinuationIds ?? false,
+    reduceContinuationHeader: options.reduceContinuationHeader ?? false,
+    fontFamily: layout.fontFamily,
     fontScale: layout.fontScale ?? 1.0,
     titleScale: layout.titleScale ?? 1.0,
     bodyScale: layout.bodyScale ?? 1.0,
     listScale: layout.listScale ?? 1.0,
     lineHeight: layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
-    pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
-    leftColumnWidth: options.leftColumnWidth ?? (layout.leftColumnWidth || 33.33),
-    isAts,
-    isAtsMode: isAts,
+    leftColumnWidth: layout.leftColumnWidth || 33.33,
     ...options,
+    isAts,
   };
-
-  const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
-  const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  // Margen de seguridad estrictamente reducido a 0: 100% de la capacidad física útil A4 disponible
-  const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding);
 
   let singleBuckets = {};
   let leftBuckets = {};
@@ -842,13 +840,13 @@ export function distributeSectionsToPages(cvData, options = {}) {
     singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, {
       ...mergedOptions,
       column: 'single',
-      columnWidthPx: 746,
+      columnWidthPx: A4_WIDTH_PX - 2 * padding,
     });
   } else {
-    const leftColPercent = Number(mergedOptions.leftColumnWidth) || 33.33;
-    const contentWidth = 746;
-    const leftColWidthPx = Math.round(contentWidth * (leftColPercent / 100));
-    const rightColWidthPx = Math.round(contentWidth * ((100 - leftColPercent) / 100));
+    const leftPct = Number(mergedOptions.leftColumnWidth) || 33.33;
+    const contentWidth = A4_WIDTH_PX - 2 * padding;
+    const leftColWidthPx = Math.round(contentWidth * (leftPct / 100));
+    const rightColWidthPx = contentWidth - leftColWidthPx;
 
     const leftList = sections.filter(s => s && s.column === 'left');
     const rightList = sections.filter(s => s && s.column !== 'left');
@@ -882,17 +880,17 @@ export function distributeSectionsToPages(cvData, options = {}) {
     const rightSections = isAts ? [] : (rightBuckets[p] || []);
     const singleSections = isAts ? (singleBuckets[p] || []) : [];
 
-    const page = createPageModel({
+    pages.push(createPageModel({
       pageNumber: p,
       totalPages,
       isLastPage,
       leftSections,
       rightSections,
       singleSections,
-    });
-
-    pages.push(page);
+    }));
   }
 
   return deepFreeze(pages);
 }
+
+export default distributeSectionsToPages;

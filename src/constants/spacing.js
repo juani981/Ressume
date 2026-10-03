@@ -9,6 +9,22 @@ export const DEFAULT_PAGE_PADDING_PX = 12;
 export const DEFAULT_SECTION_GAP_PX = 12;
 export const DEFAULT_ITEM_GAP_PX = 8;
 export const DEFAULT_LINE_HEIGHT = 1.3;
+export const PAGE_BOTTOM_CLEARANCE_PX = 14;
+export const DEFAULT_HEADER_MARGIN_BOTTOM_RATIO = 1.5;
+export const DEFAULT_DATA_GAP_PX = 8;
+export const WORD_WRAP_EFFICIENCY = 0.88;
+
+// Physical layout thresholds & fallback dimensions
+export const BULLET_INDENT_PX = 28;
+export const BULLET_INDENT_ATS_PX = 36;
+export const MIN_EFFECTIVE_WIDTH_PX = 60;
+export const MIN_CHARS_PER_LINE = 12;
+export const MIN_PAGE_CAPACITY_PX = 100;
+export const ATS_HEADER_BORDER_PADDING_PX = 6;
+export const FALLBACK_ITEM_HEIGHT_PX = 28;
+export const DEFAULT_PHOTO_SIZE_PX = 120;
+export const DEFAULT_PHOTO_HEADER_SIZE_PX = 70;
+export const DEFAULT_SPACER_HEIGHT_PX = 24;
 
 // Aliases for backward compatibility
 export const DEFAULT_PAGE_PADDING = DEFAULT_PAGE_PADDING_PX;
@@ -20,6 +36,20 @@ export const SPACING_TOKENS = Object.freeze({
   sectionGapPx: DEFAULT_SECTION_GAP_PX,
   itemGapPx: DEFAULT_ITEM_GAP_PX,
   lineHeight: DEFAULT_LINE_HEIGHT,
+  pageBottomClearancePx: PAGE_BOTTOM_CLEARANCE_PX,
+  headerMarginBottomRatio: DEFAULT_HEADER_MARGIN_BOTTOM_RATIO,
+  dataGapPx: DEFAULT_DATA_GAP_PX,
+  wordWrapEfficiency: WORD_WRAP_EFFICIENCY,
+  bulletIndentPx: BULLET_INDENT_PX,
+  bulletIndentAtsPx: BULLET_INDENT_ATS_PX,
+  minEffectiveWidthPx: MIN_EFFECTIVE_WIDTH_PX,
+  minCharsPerLine: MIN_CHARS_PER_LINE,
+  minPageCapacityPx: MIN_PAGE_CAPACITY_PX,
+  atsHeaderBorderPaddingPx: ATS_HEADER_BORDER_PADDING_PX,
+  fallbackItemHeightPx: FALLBACK_ITEM_HEIGHT_PX,
+  defaultPhotoSizePx: DEFAULT_PHOTO_SIZE_PX,
+  defaultPhotoHeaderSizePx: DEFAULT_PHOTO_HEADER_SIZE_PX,
+  defaultSpacerHeightPx: DEFAULT_SPACER_HEIGHT_PX,
   minPagePaddingPx: 8,
   maxPagePaddingPx: 64,
   minSectionGapPx: 4,
