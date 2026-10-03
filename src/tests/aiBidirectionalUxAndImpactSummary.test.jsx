@@ -174,6 +174,14 @@ describe('Bidirectional AI Modes, Auto-Paste & Live Impact Summary Suite', () =>
       expect(byoBtn).toBeInTheDocument();
       expect(byoBtn).toHaveAttribute('aria-label', expect.stringMatching(/trae tu propio cv/i));
 
+      // Verify dedicated AI tools grouping container and badge exist with distinctive styling
+      const aiGroup = screen.getByTestId('action-menu-ai-group');
+      expect(aiGroup).toBeInTheDocument();
+      expect(aiGroup).toHaveTextContent(/ia/i);
+      expect(aiGroup.querySelector('.action-menu-ai-badge')).toBeInTheDocument();
+      expect(aiGroup.contains(translateBtn)).toBe(true);
+      expect(aiGroup.contains(byoBtn)).toBe(true);
+
       // Verify that the strict regression invariant <= 8 buttons on .action-menu-btn holds
       const topButtons = navbar.querySelectorAll('.action-menu-btn');
       expect(topButtons.length).toBeLessThanOrEqual(8);

@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   Pin,
   PinOff,
+  Sparkles,
 } from 'lucide-react';
 
 const HOVER_INTENT_MS = 280;
@@ -218,7 +219,7 @@ export const ActionMenuRoot = () => {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.6rem',
-          background: isAtsMode ? 'rgba(15, 23, 42, 0.96)' : 'var(--container-color, #ffffff)',
+          background: isAtsMode ? 'rgba(35, 45, 65, 0.60)' : 'var(--container-color, #ffffff)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           padding: '0.65rem 0.65rem 0.85rem 0.65rem',
@@ -470,85 +471,141 @@ export const ActionMenuRoot = () => {
           </span>
         </div>
 
-        {/* Generar Prompts de IA (Unidireccional: Auditoría ATS, Entrevistas, STAR) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn"
-            id="ia-prompts-item"
-            onClick={() => {
-              setAiModalPromptId('recruiter_audit');
-              setIsUnidirectionalOnly(true);
-              setIsAIModalOpen(true);
-            }}
-            style={{ color: '#BE00F7' }}
-            aria-label="Generar Prompts de IA"
-            title="Generar Prompts de IA"
-          >
-            <BotMessageSquare />
-          </button>
-          <span className="action-menu-tooltip">Generar Prompts para análisis</span>
-        </div>
-
-        {/* Traducir CV a Inglés US Tech (Modo Bidireccional Independiente 1) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="translation-hub-btn action-menu-hub-btn"
-            id="translation-action-item"
-            data-testid="btn-open-translation"
-            onClick={() => {
-              setAiModalPromptId('translate_english');
-              setIsUnidirectionalOnly(false);
-              setIsAIModalOpen(true);
-            }}
-            aria-label={`Traducir CV (Idioma actual: ${String(activeLanguage || 'es').toUpperCase()})`}
-            title={`Idioma actual: ${String(activeLanguage || 'es').toUpperCase()}. Clic para traducir CV`}
+        {/* Grupo de Herramientas IA (Prompting & Asistencia) */}
+        <div
+          className="action-menu-ai-group"
+          data-testid="action-menu-ai-group"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.45rem',
+            width: '100%',
+            padding: '0.45rem 0.25rem 0.45rem 0.25rem',
+            borderRadius: '12px',
+            background: isAtsMode
+              ? 'linear-gradient(180deg, rgba(168, 85, 247, 0.16) 0%, rgba(99, 102, 241, 0.10) 100%)'
+              : 'linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(99, 102, 241, 0.05) 100%)',
+            border: isAtsMode
+              ? '1px solid rgba(168, 85, 247, 0.35)'
+              : '1px solid rgba(168, 85, 247, 0.25)',
+            boxShadow: isAtsMode
+              ? '0 0 14px rgba(168, 85, 247, 0.16), inset 0 0 10px rgba(168, 85, 247, 0.06)'
+              : '0 2px 10px rgba(147, 51, 234, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+            position: 'relative',
+            transition: 'all 0.25s ease',
+          }}
+        >
+          {/* Banderita / Leyenda de IA con Icono de Estrellas */}
+          <div
+            className="action-menu-ai-badge"
             style={{
-              display: 'flex',
-              flexDirection: 'column',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '1px',
-              padding: '0.2rem 0.35rem',
+              gap: '3px',
+              padding: '2px 6px',
+              borderRadius: '999px',
+              background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+              color: '#ffffff',
+              fontSize: '0.58rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              lineHeight: 1,
+              boxShadow: '0 2px 6px rgba(168, 85, 247, 0.45)',
+              marginBottom: '2px',
+              userSelect: 'none',
             }}
+            title="Herramientas y Prompts Asistidos por IA"
           >
-            <span
+            <Sparkles size={10} color="#ffffff" fill="#ffffff" />
+            <span>IA</span>
+          </div>
+
+          {/* Generar Prompts de IA (Unidireccional: Auditoría ATS, Entrevistas, STAR) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="action-menu-btn"
+              id="ia-prompts-item"
+              onClick={() => {
+                setAiModalPromptId('recruiter_audit');
+                setIsUnidirectionalOnly(true);
+                setIsAIModalOpen(true);
+              }}
               style={{
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                lineHeight: 1,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                color: '#10b981',
-                userSelect: 'none',
+                color: isAtsMode ? '#c084fc' : '#9333ea',
+                borderRadius: '8px',
+              }}
+              aria-label="Generar Prompts de IA"
+              title="Generar Prompts de IA"
+            >
+              <BotMessageSquare />
+            </button>
+            <span className="action-menu-tooltip">Generar Prompts para análisis</span>
+          </div>
+
+          {/* Traducir CV a Inglés US Tech (Modo Bidireccional Independiente 1) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="translation-hub-btn action-menu-hub-btn"
+              id="translation-action-item"
+              data-testid="btn-open-translation"
+              onClick={() => {
+                setAiModalPromptId('translate_english');
+                setIsUnidirectionalOnly(false);
+                setIsAIModalOpen(true);
+              }}
+              aria-label={`Traducir CV (Idioma actual: ${String(activeLanguage || 'es').toUpperCase()})`}
+              title={`Idioma actual: ${String(activeLanguage || 'es').toUpperCase()}. Clic para traducir CV`}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1px',
+                padding: '0.2rem 0.35rem',
               }}
             >
-              {String(activeLanguage || 'es').toUpperCase()}
-            </span>
-            <Globe size={18} color="#10b981" />
-          </button>
-          <span className="action-menu-tooltip">Idioma: {String(activeLanguage || 'es').toUpperCase()} (Traducir CV)</span>
-        </div>
+              <span
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: '#10b981',
+                  userSelect: 'none',
+                }}
+              >
+                {String(activeLanguage || 'es').toUpperCase()}
+              </span>
+              <Globe size={18} color="#10b981" />
+            </button>
+            <span className="action-menu-tooltip">Idioma: {String(activeLanguage || 'es').toUpperCase()} (Traducir CV)</span>
+          </div>
 
-        {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="byo-cv-hub-btn action-menu-hub-btn"
-            id="byo-cv-action-item"
-            data-testid="btn-open-byo-cv"
-            onClick={() => {
-              setAiModalPromptId('bring_your_own_cv');
-              setIsUnidirectionalOnly(false);
-              setIsAIModalOpen(true);
-            }}
-            aria-label="Trae tu propio CV (PDF a ATS 1:1)"
-            title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
-          >
-            <FileUp size={20} color="#f59e0b" />
-          </button>
-          <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
+          {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="byo-cv-hub-btn action-menu-hub-btn"
+              id="byo-cv-action-item"
+              data-testid="btn-open-byo-cv"
+              onClick={() => {
+                setAiModalPromptId('bring_your_own_cv');
+                setIsUnidirectionalOnly(false);
+                setIsAIModalOpen(true);
+              }}
+              aria-label="Trae tu propio CV (PDF a ATS 1:1)"
+              title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
+            >
+              <FileUp size={20} color="#f59e0b" />
+            </button>
+            <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
+          </div>
         </div>
 
         <hr

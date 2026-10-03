@@ -91,6 +91,12 @@
     box-shadow: none !important;
   }
 
+  .a4-page-wrapper {
+    display: contents !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .a4-page-box.bd-grid {
     display: grid !important;
     grid-template-rows: 1fr !important;
@@ -373,7 +379,7 @@
 
   .resume--ats-mode .cv-section,
   .resume__single-column .cv-section {
-    margin-bottom: var(--section-gap, 5px) !important;
+    margin-bottom: var(--section-gap, 20px) !important;
   }
 
   .resume--ats-mode .cv-section:last-child,

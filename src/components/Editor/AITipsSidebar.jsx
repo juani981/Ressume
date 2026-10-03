@@ -108,6 +108,7 @@ const AITipsSidebar = () => {
   const [cardPositions, setCardPositions] = useState({});
   const [hasMeasuredPositions, setHasMeasuredPositions] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState(null);
+  const [hoveredSectionId, setHoveredSectionId] = useState(null);
 
   const containerRef = useRef(null);
   const cardRefs = useRef({});
@@ -290,6 +291,86 @@ const AITipsSidebar = () => {
     };
   }, [recalculatePositions]);
 
+  // Bidirectional Section ↔ Callout Interaction:
+  // When hovering or focusing inside a section in the CV document, highlight its corresponding tip card immediately
+  useEffect(() => {
+    if (!showAITips || typeof document === 'undefined') return;
+
+    let currentSectionEl = null;
+
+    const handlePointerOver = (e) => {
+      const sectionEl = e.target.closest?.('[data-section-id], .cv-section');
+      if (sectionEl === currentSectionEl) return;
+
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+      }
+
+      currentSectionEl = sectionEl;
+
+      if (!sectionEl) {
+        setHoveredSectionId(null);
+        return;
+      }
+
+      const secId = sectionEl.getAttribute('data-section-id') || sectionEl.id;
+      const canonicalId = secId ? secId.split('__cont_')[0] : null;
+      setHoveredSectionId(canonicalId);
+      sectionEl.classList.add('ai-tip-highlighted-section');
+    };
+
+    const handlePointerLeave = () => {
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        currentSectionEl = null;
+      }
+      setHoveredSectionId(null);
+    };
+
+    const handleFocusIn = (e) => {
+      const sectionEl = e.target.closest?.('[data-section-id], .cv-section');
+      if (sectionEl && sectionEl !== currentSectionEl) {
+        if (currentSectionEl) {
+          currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        }
+        currentSectionEl = sectionEl;
+        const secId = sectionEl.getAttribute('data-section-id') || sectionEl.id;
+        const canonicalId = secId ? secId.split('__cont_')[0] : null;
+        setHoveredSectionId(canonicalId);
+        sectionEl.classList.add('ai-tip-highlighted-section');
+      }
+    };
+
+    const handleFocusOut = (e) => {
+      const nextEl = e.relatedTarget?.closest?.('[data-section-id], .cv-section');
+      if (!nextEl && currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        currentSectionEl = null;
+        setHoveredSectionId(null);
+      }
+    };
+
+    const areaCv = document.getElementById('area-cv');
+    if (areaCv) {
+      areaCv.addEventListener('pointerover', handlePointerOver, { passive: true });
+      areaCv.addEventListener('pointerleave', handlePointerLeave, { passive: true });
+      areaCv.addEventListener('focusin', handleFocusIn, { passive: true });
+      areaCv.addEventListener('focusout', handleFocusOut, { passive: true });
+    }
+
+    return () => {
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+      }
+      if (areaCv) {
+        areaCv.removeEventListener('pointerover', handlePointerOver);
+        areaCv.removeEventListener('pointerleave', handlePointerLeave);
+        areaCv.removeEventListener('focusin', handleFocusIn);
+        areaCv.removeEventListener('focusout', handleFocusOut);
+      }
+    };
+  }, [showAITips]);
+
   // Section highlight handlers
   const handleCardMouseEnter = useCallback((sectionId, key) => {
     setHoveredCardKey(key);
@@ -343,7 +424,12 @@ const AITipsSidebar = () => {
         {cardItems.map((item) => {
           const side = item.side; // 'left' | 'right'
           const isLeft = side === 'left';
-          const isHovered = hoveredCardKey === item.key;
+          const isHovered = (hoveredCardKey === item.key) ||
+            Boolean(hoveredSectionId && (
+              hoveredSectionId === item.sectionId ||
+              item.sectionId.startsWith(hoveredSectionId) ||
+              hoveredSectionId.startsWith(item.sectionId)
+            ));
           const pos = cardPositions[item.key];
           const topPos = hasMeasuredPositions ? pos?.top : undefined;
           const currentCardWidth = isLeft ? columnWidths.left : columnWidths.right;
@@ -372,6 +458,7 @@ const AITipsSidebar = () => {
               ref={(el) => { cardRefs.current[item.key] = el; }}
               className="ai-tip-card-wrapper"
               data-side={side}
+              data-section-id={item.sectionId}
               onClick={() => handleCardClick(item.sectionId)}
               onMouseEnter={() => handleCardMouseEnter(item.sectionId, item.key)}
               onMouseLeave={() => handleCardMouseLeave(item.sectionId)}
@@ -394,12 +481,14 @@ const AITipsSidebar = () => {
                 WebkitBackdropFilter: 'blur(16px)',
                 borderRadius: '8px',
                 border: isHovered
-                  ? '1px solid #3b82f6'
+                  ? '1.5px solid #3b82f6'
                   : isAtsMode
                   ? '1px solid rgba(255, 255, 255, 0.12)'
                   : '1px solid #e2e8f0',
                 boxShadow: isHovered
-                  ? '0 8px 20px -3px rgba(59, 130, 246, 0.25), 0 2px 5px -1px rgba(0, 0, 0, 0.05)'
+                  ? (isAtsMode
+                      ? '0 0 16px rgba(59, 130, 246, 0.45), 0 8px 24px -4px rgba(0, 0, 0, 0.6)'
+                      : '0 0 14px rgba(59, 130, 246, 0.35), 0 8px 20px -3px rgba(59, 130, 246, 0.25)')
                   : isAtsMode
                   ? '0 6px 18px -3px rgba(0, 0, 0, 0.5)'
                   : '0 6px 18px -3px rgba(0, 0, 0, 0.07), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
@@ -408,7 +497,7 @@ const AITipsSidebar = () => {
                 pointerEvents: 'auto',
                 cursor: 'pointer',
                 transition: 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
-                transform: isHovered ? (isLeft ? 'translateX(3px)' : 'translateX(-3px)') : 'none'
+                transform: isHovered ? (isLeft ? 'translateX(4px)' : 'translateX(-4px)') : 'none'
               }}
             >
               {/* Pointer Arrow pointing towards CV section: Left card points Right; Right card points Left */}
