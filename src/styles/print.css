@@ -586,7 +586,7 @@
   .bullet-item-row {
     margin-top: 0 !important;
     margin-bottom: var(--item-gap, 8px) !important;
-    line-height: var(--line-height, 1.45) !important;
+    line-height: var(--line-height, 1.3) !important;
     font-size: var(--list-font-size, var(--normal-font-size)) !important;
     color: inherit !important;
     text-align: left !important;

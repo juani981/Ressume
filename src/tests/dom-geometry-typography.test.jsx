@@ -34,7 +34,7 @@ const ContextHarness = ({ onStateChange }) => {
       <span data-testid="title-scale">{cv.cvData?.layout?.titleScale ?? 1.0}</span>
       <span data-testid="body-scale">{cv.cvData?.layout?.bodyScale ?? 1.0}</span>
       <span data-testid="list-scale">{cv.cvData?.layout?.listScale ?? 1.0}</span>
-      <span data-testid="line-height">{cv.cvData?.layout?.lineHeight ?? 1.45}</span>
+      <span data-testid="line-height">{cv.cvData?.layout?.lineHeight ?? 1.3}</span>
       <span data-testid="page-padding">{cv.cvData?.layout?.pagePadding ?? 24}</span>
       <span data-testid="section-gap">{cv.cvData?.layout?.sectionGap ?? 20}</span>
       <span data-testid="item-gap">{cv.cvData?.layout?.itemGap ?? 8}</span>
@@ -53,7 +53,7 @@ const ContextHarness = ({ onStateChange }) => {
       <button data-testid="btn-set-title-scale" onClick={() => cv.updateLayout('titleScale', 1.25)}>Title 1.25</button>
       <button data-testid="btn-set-body-scale" onClick={() => cv.updateLayout('bodyScale', 0.95)}>Body 0.95</button>
       <button data-testid="btn-set-list-scale" onClick={() => cv.updateLayout('listScale', 1.10)}>List 1.10</button>
-      <button data-testid="btn-reset-typography" onClick={() => cv.updateLayout({ fontScale: 1.0, titleScale: 1.0, bodyScale: 1.0, listScale: 1.0, lineHeight: 1.45 })}>Reset Typo</button>
+      <button data-testid="btn-reset-typography" onClick={() => cv.updateLayout({ fontScale: 1.0, titleScale: 1.0, bodyScale: 1.0, listScale: 1.0, lineHeight: 1.3 })}>Reset Typo</button>
       <button data-testid="btn-set-line-height" onClick={() => cv.updateLayout('lineHeight', 1.65)}>Line Height 1.65</button>
       <button data-testid="btn-set-page-padding" onClick={() => cv.updateLayout('pagePadding', 36)}>Padding 36</button>
       <button data-testid="btn-set-section-gap" onClick={() => cv.updateLayout('sectionGap', 28)}>Section Gap 28</button>
@@ -115,7 +115,7 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       it('F2.1: defaultLayout defines standard font-scale and line-height tokens', () => {
         expect(defaultLayout).toBeDefined();
         expect(defaultLayout.fontScale ?? 1.0).toBeGreaterThanOrEqual(0.85);
-        expect(defaultLayout.lineHeight ?? 1.45).toBeGreaterThanOrEqual(1.25);
+        expect(defaultLayout.lineHeight ?? 1.3).toBeGreaterThanOrEqual(1.25);
       });
 
       it('F2.2: updateLayout updates fontScale dynamically in context state', () => {

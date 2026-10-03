@@ -120,6 +120,39 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(saved.layout.type).toBe('2-column');
       expect(saved.layout.isAtsMode).toBe(false);
     });
+
+    it('T1.5: when two-column mode is disabled, hides the 2-column toggle and displays the harmonious MODO OPTIMIZADO ATS legend', () => {
+      render(
+        <CVProvider>
+          <LayoutModeToggle enableTwoColumn={false} />
+        </CVProvider>
+      );
+
+      // Interactive toggle switch and 2-column button must NOT exist
+      expect(screen.queryByTestId('ats-mode-toggle')).not.toBeInTheDocument();
+      expect(screen.queryByText(/diseño tradicional/i)).not.toBeInTheDocument();
+
+      // Harmonious legend "MODO OPTIMIZADO ATS" must be prominently displayed
+      const legendPill = screen.getByTestId('ats-mode-legend');
+      expect(legendPill).toBeInTheDocument();
+      expect(screen.getByText('MODO OPTIMIZADO ATS')).toBeInTheDocument();
+
+      // Master AI Tips toggle must remain rendered and functional
+      expect(screen.getByTestId('master-tips-toggle')).toBeInTheDocument();
+    });
+
+    it('T1.6: automatically synchronizes cvData.layout to 1-column ATS mode when two-column mode is disabled', () => {
+      let currentState = null;
+      render(
+        <CVProvider>
+          <LayoutModeToggle enableTwoColumn={false} />
+          <StateInspector onState={(s) => { currentState = s; }} />
+        </CVProvider>
+      );
+
+      expect(currentState.cvData.layout.type).toBe('1-column');
+      expect(currentState.cvData.layout.isAtsMode).toBe(true);
+    });
   });
 
   // =========================================================================

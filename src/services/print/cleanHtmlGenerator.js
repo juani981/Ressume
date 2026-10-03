@@ -50,7 +50,7 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
   const titleScale = layout.titleScale ?? 1.0;
   const bodyScale = layout.bodyScale ?? 1.0;
   const listScale = layout.listScale ?? 1.0;
-  const lineHeight = layout.lineHeight ?? 1.45;
+  const lineHeight = layout.lineHeight ?? 1.3;
   const pagePadding = layout.pagePadding ?? 24;
   const sectionGap = layout.sectionGap ?? 20;
   const itemGap = layout.itemGap ?? 8;
@@ -603,7 +603,7 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     bulletEl.style.setProperty('page-break-inside', 'avoid', 'important');
     bulletEl.style.setProperty('margin-top', '0', 'important');
     bulletEl.style.setProperty('margin-bottom', 'var(--item-gap, 8px)', 'important');
-    bulletEl.style.setProperty('line-height', 'var(--line-height, 1.45)', 'important');
+    bulletEl.style.setProperty('line-height', 'var(--line-height, 1.3)', 'important');
     bulletEl.style.setProperty('font-size', 'var(--list-font-size, var(--normal-font-size))', 'important');
     bulletEl.style.setProperty('padding-left', '0', 'important');
   });
@@ -676,7 +676,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   const titleScale = layout.titleScale || 1.0;
   const bodyScale = layout.bodyScale || 1.0;
   const listScale = layout.listScale || 1.0;
-  const lineHeight = layout.lineHeight || 1.45;
+  const lineHeight = layout.lineHeight || 1.3;
 
   const leftBg = layout.leftBg || '#f3f4f6';
   const rightBg = layout.rightBg || '#ffffff';

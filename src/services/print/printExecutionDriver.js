@@ -209,7 +209,7 @@ ${activePrintStyles}
               areaCv.style.setProperty(prop, val);
             });
             areaCv.style.fontFamily = getFontFamilyStack(layout.fontFamily);
-            areaCv.style.lineHeight = String(layout.lineHeight ?? 1.45);
+            areaCv.style.lineHeight = String(layout.lineHeight ?? 1.3);
           }
 
           if (liveAreaCv && liveAreaCv.style && doc.documentElement?.style && typeof doc.documentElement.style.setProperty === 'function') {

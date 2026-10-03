@@ -17,7 +17,7 @@ export const getAtsGoldenSchemaTemplate = (lang = 'es') => {
       titleScale: 1.0,
       bodyScale: 1.0,
       listScale: 1.0,
-      lineHeight: 1.45,
+      lineHeight: 1.3,
       pagePadding: 24,
       sectionGap: 20,
       itemGap: 8

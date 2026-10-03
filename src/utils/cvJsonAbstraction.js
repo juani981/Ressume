@@ -553,7 +553,7 @@ export const generatePhysicalPageLayout = (cvData, options = {}) => {
         title_scale: layout.titleScale ?? 1.0,
         body_scale: layout.bodyScale ?? 1.0,
         list_scale: layout.listScale ?? 1.0,
-        line_height: layout.lineHeight ?? 1.45
+        line_height: layout.lineHeight ?? 1.3
       },
       spacing_and_geometry: {
         page_padding_px: layout.pagePadding ?? 24,
