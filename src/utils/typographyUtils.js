@@ -67,23 +67,6 @@ export function calcLineHeightPx(level = 'normal', layout = {}) {
 }
 
 /**
- * Computes exact average character advance width in pixels for a font and scale.
- *
- * @param {string} fontFamily
- * @param {Object} [layout={}]
- * @param {'normal'|'small'} [level='normal']
- * @returns {number} Width in pixels per character
- */
-export function calcCharAdvancePx(fontFamily, layout = {}, level = 'normal') {
-  const baseSize = BASE_FONT_SIZES_PX[level] ?? BASE_FONT_SIZES_PX.normal;
-  const fontScale = layout.fontScale ?? 1.0;
-  const categoryScale = layout.bodyScale ?? (layout.listScale ?? 1.0);
-  const currentFontSize = baseSize * fontScale * categoryScale;
-  const ratio = getFontAdvanceRatio(fontFamily);
-  return currentFontSize * ratio;
-}
-
-/**
  * Compiles dynamic typography and spacing settings from layout state into CSS custom property tokens.
  *
  * @param {Object} [layout={}] - Layout configuration from cvData.layout

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { distributeSectionsToPages } from '../utils/pageDistributor';
+import { distributeSectionsToPages, estimateItemHeight, estimateItemBulletsHeight } from '../utils/pageDistributor';
 
 describe('Live DOM Measurement Page Distribution', () => {
   it('uses exact measured DOM heights when provided, eliminating artificial gaps', () => {
@@ -192,4 +192,47 @@ describe('Live DOM Measurement Page Distribution', () => {
     expect(p1Skills.items.map(i => i.id)).toEqual(['s1', 's2', 's3', 's4', 's5', 's6']);
     expect(pages.length).toBe(2);
   });
+
+  it('prevents circular measurement poisoning: splittable items calculate base + bullets and never return partial wrapper height', () => {
+    const item = {
+      id: 'exp_1',
+      title: 'Senior Engineer',
+      bullets: ['Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4'],
+    };
+
+    // Simulated poisoned cache where exp_1 has a partial measurement (e.g. 50px from P1)
+    const poisonedMeasuredHeights = {
+      'exp_1': 50, // Poisoned partial wrapper height
+      'base_exp_1': 40,
+      'exp_1_bullet_0': 25,
+      'exp_1_bullet_1': 25,
+      'exp_1_bullet_2': 25,
+      'exp_1_bullet_3': 25,
+    };
+
+    const options = {
+      measuredHeights: poisonedMeasuredHeights,
+    };
+
+    // For splittable section ('experience'), estimateItemHeight MUST NOT return 50
+    // It must return base (40) + bullets (25 * 4 = 100) = 140
+    const totalH = estimateItemHeight(item, 'experience', options);
+    expect(totalH).toBe(140);
+  });
+
+  it('correctly maps continuation item bullets with bulletStartIndex offset', () => {
+    const contBullets = ['Bullet 3', 'Bullet 4'];
+    const measuredHeights = {
+      'exp_1_bullet_0': 20,
+      'exp_1_bullet_1': 20,
+      'exp_1_bullet_2': 35,
+      'exp_1_bullet_3': 40,
+    };
+
+    const options = { measuredHeights };
+    // Continuation item with startOffset = 2 (points to bullets 2 and 3)
+    const bulletsH = estimateItemBulletsHeight(contBullets, 'experience', options, 'exp_1', 2);
+    expect(bulletsH).toBe(75); // 35 + 40
+  });
 });
+

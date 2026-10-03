@@ -24,11 +24,6 @@ import {
   PAGE_BOTTOM_CLEARANCE_PX,
   DEFAULT_HEADER_MARGIN_BOTTOM_RATIO,
   DEFAULT_DATA_GAP_PX,
-  WORD_WRAP_EFFICIENCY,
-  BULLET_INDENT_PX,
-  BULLET_INDENT_ATS_PX,
-  MIN_EFFECTIVE_WIDTH_PX,
-  MIN_CHARS_PER_LINE,
   MIN_PAGE_CAPACITY_PX,
   ATS_HEADER_BORDER_PADDING_PX,
   FALLBACK_ITEM_HEIGHT_PX,
@@ -38,7 +33,6 @@ import {
 } from '../constants/spacing.js';
 import {
   calcLineHeightPx,
-  calcCharAdvancePx,
 } from './typographyUtils.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
@@ -50,51 +44,6 @@ export {
 
 export const DEFAULT_HEADER_HEIGHT_PX = 28;
 export const CONTINUATION_HEADER_HEIGHT_PX = 0;
-
-/**
- * Calculates character capacity per line for a given column width and typography styling.
- * Derived dynamically from font metrics without arbitrary magic constants.
- *
- * @param {Object} [options={}]
- * @param {boolean} [isBullet=false]
- * @returns {number}
- */
-export function getCharsPerLine(options = {}, isBullet = false) {
-  if (typeof options.charsPerLine === 'number' && options.charsPerLine > 0) {
-    return options.charsPerLine;
-  }
-  const isAts = Boolean(
-    options.isAts ||
-    options.isAtsMode ||
-    options.mode === 'ats' ||
-    options.mode === '1-column' ||
-    options.column === 'single'
-  );
-  const padding = options.pagePaddingPx ?? DEFAULT_PAGE_PADDING_PX;
-  const contentWidth = A4_WIDTH_PX - 2 * padding;
-  let colWidth = contentWidth;
-
-  if (!isAts) {
-    const leftPct = Number(options.leftColumnWidth) || 33.33;
-    const isLeftCol = options.column === 'left';
-    colWidth = isLeftCol
-      ? Math.round(contentWidth * (leftPct / 100))
-      : Math.round(contentWidth * ((100 - leftPct) / 100));
-  } else if (typeof options.columnWidthPx === 'number' && options.columnWidthPx > 0) {
-    colWidth = options.columnWidthPx;
-  }
-
-  // Deduct indentation: bullet disc / drag handle / delete button
-  const indent = isAts
-    ? (options.bulletIndentAtsPx ?? BULLET_INDENT_ATS_PX)
-    : (options.bulletIndentPx ?? BULLET_INDENT_PX);
-  const minWidth = options.minEffectiveWidthPx ?? MIN_EFFECTIVE_WIDTH_PX;
-  const effectiveWidth = isBullet ? Math.max(minWidth, colWidth - indent) : colWidth;
-  const advancePx = calcCharAdvancePx(options.fontFamily, options, 'normal');
-  const efficiency = options.wordWrapEfficiency ?? WORD_WRAP_EFFICIENCY;
-  const minChars = options.minCharsPerLine ?? MIN_CHARS_PER_LINE;
-  return Math.max(minChars, Math.floor((effectiveWidth * efficiency) / advancePx));
-}
 
 /**
  * Estimates the height of a section header in pixels.
@@ -145,6 +94,25 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
   const atsHeaderBorder = isAts ? (options.atsHeaderBorderPaddingPx ?? ATS_HEADER_BORDER_PADDING_PX) : 0;
 
   return Math.round(lines * h2LineHeight) + atsHeaderBorder + headerMargin;
+}
+
+/**
+ * Computes realistic characters per line for fallback layout estimation when DOM is not yet measured.
+ * Uses exact physical column width and standard Latin glyph advance (~0.52 of font size).
+ *
+ * @param {Object} [options={}]
+ * @param {boolean} [isBullet=false]
+ * @returns {number}
+ */
+export function getCharsPerLine(options = {}, isBullet = false) {
+  const isAts = Boolean(
+    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
+  );
+  const isLeftCol = !isAts && options.column === 'left';
+  const fontScale = options.fontScale ?? (isBullet ? (options.listScale ?? 1.0) : (options.bodyScale ?? 1.0));
+
+  const baseChars = isLeftCol ? (isBullet ? 26 : 28) : (isAts ? (isBullet ? 70 : 72) : (isBullet ? 42 : 44));
+  return Math.max(12, Math.floor(baseChars / Math.max(0.7, fontScale)));
 }
 
 /**
@@ -206,7 +174,7 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
   const charsPerLine = getCharsPerLine(options, true);
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
   const bLines = Math.max(1, Math.ceil(bStr.length / charsPerLine));
-  return Math.round(bLines * normalLineH) + itemGap;
+  return Math.round(bLines * normalLineH) + Math.round(itemGap / 2);
 }
 
 /**
@@ -218,10 +186,10 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
  * @param {string} [itemId=''] - Optional item ID to qualify bullet measurement keys
  * @returns {number}
  */
-export function estimateItemBulletsHeight(bullets, sectionType = '', options = {}, itemId = '') {
+export function estimateItemBulletsHeight(bullets, sectionType = '', options = {}, itemId = '', startOffset = 0) {
   if (!Array.isArray(bullets) || bullets.length === 0) return 0;
   return bullets.reduce((sum, b, idx) => {
-    const key = itemId ? `${itemId}_bullet_${idx}` : '';
+    const key = itemId ? `${itemId}_bullet_${startOffset + idx}` : '';
     return sum + estimateSingleBulletHeight(b, sectionType, options, key);
   }, 0);
 }
@@ -237,7 +205,9 @@ export function estimateItemBulletsHeight(bullets, sectionType = '', options = {
 export function estimateItemHeight(item, sectionType = '', options = {}) {
   if (!item || typeof item !== 'object') return options.fallbackItemHeightPx ?? FALLBACK_ITEM_HEIGHT_PX;
   const id = item.originalItemId || item.id;
-  if (options.measuredHeights && typeof options.measuredHeights[id] === 'number' && options.measuredHeights[id] > 0) {
+  const isSplittable = ['list', 'experience', 'projects', 'volunteering'].includes(sectionType) || (Array.isArray(item.bullets) && item.bullets.length > 0);
+
+  if (!isSplittable && options.measuredHeights && typeof options.measuredHeights[id] === 'number' && options.measuredHeights[id] > 0) {
     return options.measuredHeights[id];
   }
   if (typeof options.itemHeightEstimator === 'function') {
@@ -302,7 +272,8 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
       const h3LineH = calcLineHeightPx('h3', options);
       let h = h3LineH + smallLineH;
       if (item.description) {
-        const descLines = Math.max(1, Math.ceil(String(item.description).length / charsPerLine));
+        const paragraphs = String(item.description).split('\n');
+        const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
         h += descLines * normalLineH;
       }
       return Math.round(h) + itemGap;
@@ -312,7 +283,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'projects':
     case 'volunteering': {
       const baseH = estimateItemBaseHeight(item, sectionType, options);
-      const bulletsH = estimateItemBulletsHeight(item.bullets, sectionType, options);
+      const bulletsH = estimateItemBulletsHeight(item.bullets, sectionType, options, id);
       return baseH + bulletsH;
     }
     case 'simple_list':
@@ -333,7 +304,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
         bodyH = lines * normalLineH;
       }
       const bulletsH = Array.isArray(item.bullets)
-        ? estimateItemBulletsHeight(item.bullets, sectionType, options)
+        ? estimateItemBulletsHeight(item.bullets, sectionType, options, id)
         : 0;
       return Math.round(baseH + bodyH + bulletsH) + itemGap;
     }
@@ -620,17 +591,18 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
           const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
 
           if (hasBullets) {
+            const candId = candidate.originalItemId || candidate.id;
             const baseH = estimateItemBaseHeight(candidate, section.type, options);
-            const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+            const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options, `${candId}_bullet_0`);
 
             if (freshAccumulated + baseH + firstBulletH <= freshAvailable) {
               let bAcc = baseH;
               let bIdx = 0;
               while (
                 bIdx < candidate.bullets.length &&
-                (freshAccumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= freshAvailable)
+                (freshAccumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${bIdx}`) <= freshAvailable)
               ) {
-                bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+                bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${bIdx}`);
                 bIdx++;
               }
 
@@ -708,7 +680,9 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
 
       const remHeights = remItems.map(it => {
         if (it.isContinuationItem) {
-          return estimateItemBulletsHeight(it.bullets, section.type, options);
+          const candId = it.originalItemId || it.id;
+          const startOffset = it.bulletStartIndex || 0;
+          return estimateItemBulletsHeight(it.bullets, section.type, options, candId, startOffset);
         }
         return estimateItemHeight(it, section.type, options);
       });

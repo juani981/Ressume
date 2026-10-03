@@ -53,7 +53,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
   return (
     <ItemTag 
       className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
-      data-item-id={item?.id || sectionType}
+      data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}
       data-is-continuation={isContinuation ? 'true' : undefined}
@@ -128,7 +128,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
     <ItemTag
       ref={setNodeRef}
       className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
-      data-item-id={item?.id || sectionType}
+      data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}
       data-is-continuation={isContinuation ? 'true' : undefined}
