@@ -4,6 +4,11 @@ import ColorPickerSwatch from '../ColorPickerSwatch';
 import { Palette, X, RotateCcw, Info } from 'lucide-react';
 import { DEFAULT_LINE_HEIGHT } from '../../../constants/spacing';
 
+const formatPx = (val) => {
+  const rounded = Math.round(val * 2) / 2;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} px`;
+};
+
 export const DesignPanel = ({
   isOpen,
   onClose,
@@ -256,17 +261,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Títulos (Encabezados)</span>
               <b style={{ color: '#4f46e5' }}>
-                {titleScale.toFixed(2)}x{' '}
-                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>
-                  (H1: ~{Math.round(24 * fontScale * titleScale)}px, H2: ~{Math.round(20 * fontScale * titleScale)}px)
-                </span>
+                {formatPx(20 * fontScale * titleScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.4}
-              step={0.05}
+              step={0.5 / (20 * (fontScale || 1.0))}
               value={titleScale}
               onChange={(e) => updateLayout('titleScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -287,17 +289,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Cuerpo (Descripciones)</span>
               <b style={{ color: '#4f46e5' }}>
-                {bodyScale.toFixed(2)}x{' '}
-                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>
-                  (~{Math.round(15 * fontScale * bodyScale)}px)
-                </span>
+                {formatPx(15 * fontScale * bodyScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.3}
-              step={0.05}
+              step={0.5 / (15 * (fontScale || 1.0))}
               value={bodyScale}
               onChange={(e) => updateLayout('bodyScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -318,17 +317,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Listas (Viñetas / Habilidades)</span>
               <b style={{ color: '#4f46e5' }}>
-                {listScale.toFixed(2)}x{' '}
-                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>
-                  (~{Math.round(15 * fontScale * listScale)}px)
-                </span>
+                {formatPx(15 * fontScale * listScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.3}
-              step={0.05}
+              step={0.5 / (15 * (fontScale || 1.0))}
               value={listScale}
               onChange={(e) => updateLayout('listScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -353,19 +349,16 @@ export const DesignPanel = ({
                 marginBottom: '0.3rem',
               }}
             >
-              <span>Escala General (Multiplicador)</span>
+              <span>Escala General</span>
               <b>
-                {fontScale.toFixed(2)}x{' '}
-                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b' }}>
-                  (Base: ~{Math.round(15 * fontScale)}px)
-                </span>
+                {formatPx(15 * fontScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.25}
-              step={0.05}
+              step={0.5 / 15}
               value={fontScale}
               onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}

@@ -22,7 +22,7 @@ import DroppableColumn from "./components/Editor/DroppableColumn";
 import {
    A4_WIDTH_PX,
    A4_HEIGHT_CSS,
-} from "./utils/pageGeometry";
+} from "./constants";
 
 function App() {
    const {

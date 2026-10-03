@@ -1,23 +1,29 @@
-# Arquitectura del Editor, Flujo de Datos Unidireccional y Motor de Paginación
+# Arquitectura del Editor, Flujo de Datos Unidireccional y Distribución de Páginas Discretas
 
-Este documento constituye la referencia técnica autoritativa sobre la arquitectura interna de **Ressume**, el flujo de datos unidireccional de la aplicación, la descomposición modular de componentes y hooks, y los algoritmos matemáticos que gobiernan el motor de paginación en tiempo real.
+Este documento constituye la referencia técnica autoritativa sobre la arquitectura interna de **Ressume**, el flujo de datos unidireccional de la aplicación, la descomposición modular de componentes y hooks, y los contratos que gobiernan la distribución de páginas discretas y el pipeline de impresión en PDF.
 
 ---
 
 ## 1. Visión General del Sistema
 
-**Ressume** es un editor de currículums interactivo de alta fidelidad construido como una Single Page Application (SPA) client-side sobre **React 18** y **Vite 5**. No depende de microservicios externos ni de motores backend (como Puppeteer o Chromium headless) para compilar, paginar o exportar el documento: toda la renderización, manipulación geométrica y generación estática ocurre íntegramente en el navegador del usuario.
+**Ressume** es un editor de currículums interactivo de alta fidelidad construido como una Single Page Application (SPA) client-side sobre **React 18** y **Vite 5**. No depende de microservicios externos ni de servidores backend (como Puppeteer o Chromium headless) para compilar, paginar o exportar el documento: toda la renderización, manipulación geométrica y generación de PDF vectorial ocurre íntegramente en el navegador del usuario.
 
-### Principios Fundamentales
-1. **Unidireccionalidad Estricta**: Los datos del currículum fluyen desde una única fuente de la verdad hacia el árbol de componentes; cualquier mutación se canaliza a través de despachadores inmutables.
-2. **Dualidad de Renderizado con Cero Desfase (0px Drift)**:
-   - **Canvas Interactivo (`#area-cv`)**: Vista editable en vivo con manijas de arrastre (`@dnd-kit`), campos de texto enriquecido y guías visuales de corte (`A4PageGuides`).
-   - **Snapshot de Impresión (`staticHtmlPdfEngine.js`)**: Renderizado estático en un `<iframe>` aislado fuera de pantalla con las mismas dimensiones físicas (794px), tipografías y variables CSS calculadas, libre de artefactos interactivos.
-3. **Open/Closed mediante Registry**: La adición de nuevas secciones o tipos de ítems no modifica los componentes del núcleo (`App.jsx`, `BaseSection.jsx`, `BaseItem.jsx`), sino que se delega a `src/registry/sectionRegistry.js`.
-4. **Respeto a los Invariantes Arquitectónicos**:
-   - Exclusividad de `@dnd-kit` (prohibición de `swapy`).
-   - Tooltips flotantes anclados a coordenadas relativas del viewport (`getBoundingClientRect()`).
-   - Callouts con diseño Obsidian estándar (Danger, Caution, Info).
+### Principios Fundamentales e Invariantes Arquitectónicos
+1. **Unidireccionalidad Estricta**: Los datos del currículum fluyen desde una única fuente de verdad (`CVContext.jsx`) hacia el árbol de componentes; cualquier mutación se canaliza a través de despachadores inmutables con soporte undo/redo (`useCVHistory`).
+2. **Cajas A4 Fijas Nativas en el Editor (`<A4PageBox>`, Invariante 15 de `AGENTS.md`)**:
+   - El editor (`#area-cv`) **no es un lienzo continuo infinito** ni utiliza pliegues o líneas punteadas simuladas.
+   - La interfaz se compone directamente de una lista de cajas cerradas `<A4PageBox pageNumber={N}>` con dimensiones inmutables: `210mm x 297mm`, `overflow: hidden`, `box-sizing: border-box`.
+   - La partición de contenido entre páginas se decide de manera reactiva y determinista en el estado de React mediante `useDocumentPages` y `pageDistributor.js`.
+3. **Estructura Fija Tallada en Piedra (Zero Dynamic Reflow on Print, Invariante 16 de `AGENTS.md`)**:
+   - El editor es la **única fuente de verdad** de la estructura del documento.
+   - El motor de impresión (`src/services/print/`) tiene prohibido ejecutar algoritmos heurísticos o reposicionamientos dinámicos; su rol es proyectar de forma puramente pasiva y determinista la estructura que el editor le suministra (WYSIWYG 1:1 absoluto).
+4. **Open/Closed mediante Registry**: La adición de nuevas secciones o tipos de ítems no modifica los componentes del núcleo (`App.jsx`, `BaseSection.jsx`), sino que se delega a `src/registry/sectionRegistry.js`.
+5. **Obsidian Callout Standard (Regla 1 de `AGENTS.md`)**:
+   - Todos los mensajes de advertencia, sugerencias y alertas de IA siguen estrictamente el estándar visual de callouts de Obsidian (Danger/Critical, Caution/Warning, Info).
+6. **Drag and Drop con `@dnd-kit` (Regla 2 de `AGENTS.md`)**:
+   - Uso exclusivo de `@dnd-kit` para arrastre polimórfico de secciones e ítems (prohibición terminante de `swapy`).
+7. **Tooltips Flotantes Dinámicos (Regla 3 de `AGENTS.md`)**:
+   - Posicionamiento dinámico adaptado a coordenadas relativas del viewport (`getBoundingClientRect()`).
 
 ---
 
@@ -78,6 +84,9 @@ El estado persistido en `localStorage` responde a la estructura definida en `src
     leftColumnWidth: 33.33,    // Porcentaje de ancho para columna lateral
     fontFamily: "Poppins",      // Poppins | Inter | Roboto | Merriweather | JetBrains Mono
     fontScale: 1.0,            // Escala base (0.85 a 1.25)
+    titleScale: 1.0,
+    bodyScale: 1.0,
+    listScale: 1.0,
     lineHeight: 1.45,          // Altura de línea relativa
     pagePadding: 24,           // Margen perimetral en píxeles (default: 24px)
     sectionGap: 20,            // Separación vertical entre secciones (default: 20px)
@@ -88,10 +97,10 @@ El estado persistido en `localStorage` responde a la estructura definida en `src
   sections: [
     {
       id: "sec_exp_1",
-      type: "list",            // Resuelto por sectionRegistry.js
+      type: "list",            // Resuelto por sectionRegistry.js (aliased a 'experience')
       column: "right",         // 'left' | 'right'
       title: "EXPERIENCIA LABORAL",
-      bottomSpacing: 0,        // Compensación de espaciador integrado
+      bottomSpacing: 0,
       bulletStyle: { size: "normal", variant: "bold", showLine: true },
       items: [
         {
@@ -111,30 +120,26 @@ El estado persistido en `localStorage` responde a la estructura definida en `src
 
 ## 3. Jerarquía de Componentes y Descomposición
 
-El shell principal del editor (`src/App.jsx`) actúa como un **orquestador declarativo** limpio (~419 líneas), delegando la interacción de drag-and-drop, redimensionamiento y cálculos geométricos en hooks especializados y subcomponentes visuales.
+El shell principal del editor (`src/App.jsx`) actúa como un **orquestador declarativo** limpio, delegando la interacción de drag-and-drop, partición de páginas y redimensionamiento en hooks especializados:
 
 ```
 App.jsx (Orquestador)
 ├── Joyride & CustomTooltip (Tour interactivo inicial)
-├── ActionMenu (Barra flotante: Diseño, Espaciado, Exportación, Idiomas)
-├── LayoutModeToggle (Selector: 2 Columnas Tradicional vs ATS 1 Columna)
+├── ActionMenu (Barra flotante: Diseño, Espaciado, Exportación, Idiomas, Versiones, IA)
 ├── DndContext (@dnd-kit/core gestionado por useCVDndCoordinator)
-│   └── main#area-cv (Canvas A4 con geometría estricta de 794px)
-│       ├── A4PageGuides (Líneas y marcadores de corte entre hojas A4)
-│       ├── DroppableColumn #column-left (en modo 2-columnas)
-│       │   ├── SortableContext (verticalListSortingStrategy)
-│       │   │   └── BaseSection -> EditableBaseSection
-│       │   │       ├── DragHandle (Manija de arrastre de sección)
-│       │   │       ├── InlineEdit (Edición de título en línea)
-│       │   │       ├── SortableContext (ítems)
-│       │   │       │   └── BaseItem -> EditableBaseItem
-│       │   │       │       └── ItemComponent (p. ej. SkillsItem, EducationItem)
-│       │   │       │           └── SortableBulletItem (Viñetas anidadas)
-│       │   │       └── IntegratedBottomSpacer
-│       │   └── Button (Agregar Sección Lateral)
-│       ├── ColumnResizer (Divisor arrastrable para redimensionar columnas)
-│       └── DroppableColumn #column-right
-│           └── ... (Secciones principales)
+│   └── main#area-cv (Contenedor flex vertical)
+│       └── pages.map(pageModel => (
+│           └── <A4PageBox pageNumber={N}> (Caja A4 cerrada 210mm x 297mm)
+│               ├── DroppableColumn #column-left (en 2-columnas)
+│               │   └── SortableContext (secciones de la página N)
+│               │       └── BaseSection -> EditableBaseSection
+│               │           ├── DragHandle
+│               │           ├── InlineEdit (título)
+│               │           └── SortableContext (ítems)
+│               │               └── BaseItem -> ItemComponent (ej. ExperienceItem)
+│               │                   └── SortableBulletItem
+│               ├── ColumnResizer (en página 1 en 2-col)
+│               └── DroppableColumn #column-right (secciones de la página N)
 ├── AddSectionModal (Catálogo flotante de secciones disponibles)
 ├── SuggestionTooltip (Popover dinámico con sugerencias IA estilo Obsidian)
 ├── ToastNotification (Feedback no bloqueante para exportación y guardado)
@@ -143,132 +148,80 @@ App.jsx (Orquestador)
 
 ### 3.1 Custom Hooks Especializados (`src/hooks/`)
 
-Para mantener `App.jsx` como un componente puramente orquestador y legible, la lógica compleja está aislada en hooks modulares con responsabilidades unitarias:
-
-#### `usePaginationEngine.js`
-Coordina la detección y recálculo reactivo de páginas y saltos de corte:
-- Escucha eventos de redimensionamiento de ventana y mutaciones de tamaño (`ResizeObserver`) sobre `#area-cv`.
-- Implementa un mecanismo de debouncing y enfriamiento programado con `requestAnimationFrame` (RAF) para evitar parpadeos y recálculos innecesarios durante el tipeo o el arrastre activo (`activeDragItem !== null`).
-- Invoca la suite de paginación pura (`src/utils/paginationEngine.js`) y actualiza `totalPages` en el estado global.
-
-#### `useCVDndCoordinator.js`
-Centraliza la coordinación de drag-and-drop de dos niveles con `@dnd-kit`:
-- Configura sensores de alta precisión (`PointerSensor` con `distance: 4` para evitar falsos arrastres al hacer clic en botones de edición, y `KeyboardSensor` para accesibilidad).
-- Aplica el algoritmo de detección de colisiones `closestCorners`.
-- Gestiona los ciclos `handleDragStart`, `handleDragOver` y `handleDragEnd`.
-- Administra el movimiento polimórfico entre columnas (`moveSectionToColumnAndIndex`) y entre secciones de distinta naturaleza (`moveItemBetweenSections`), adaptando los esquemas de datos transparentemente.
-
-#### `useColumnResizer.js`
-Encapsula la interacción de redimensionamiento de columnas:
-- Maneja eventos de cursor `mousedown`, `mousemove` y `mouseup` globales sobre el documento.
-- Calcula el porcentaje dinámico de la columna izquierda relativo al ancho total del contenedor `#area-cv`.
-- Aplica un clampeo estricto entre **20%** y **55%** para evitar que la columna se colapse o desborde la geometría visual del documento.
-
-### 3.2 Subcomponentes de Presentación (`src/components/Editor/`)
-
-- **`A4PageGuides.jsx`**: Renderiza las guías visuales punteadas de corte (`.a4-page-fold-guide`), líneas horizontales (`.a4-page-fold-line`) e insignias de número de hoja (`.a4-page-fold-badge`) únicamente en el editor de pantalla.
-- **`ColumnResizer.jsx`**: Divisor visual vertical interactivo (`.column-resizer`) ubicado exactamente entre la columna izquierda y derecha. Incluye manija de agarre centrada (`.column-resizer-handle`) y señal de estado activo (`.is-resizing`).
-- **`CVDragOverlay.jsx`**: Renderiza el clon visual flotante (ghost preview) optimizado a 60 FPS dentro de un portal de `@dnd-kit`, representando con precisión la sección o el ítem en movimiento.
+- **`useDocumentPages.js`**: Hook reactivo que consume `cvData` y `pageDistributor.js`. Genera el array `pages` con la asignación determinista de secciones e ítems para cada hoja `<A4PageBox>`.
+- **`useCVDndCoordinator.js`**: Centraliza la coordinación de drag-and-drop de dos niveles con `@dnd-kit` (sensores de puntero y teclado, colisión `closestCorners`, reordenamiento polimórfico).
+- **`useColumnResizer.js`**: Controla el divisor interactivo entre columnas, clampeando el porcentaje entre 20% y 55% para garantizar la estabilidad visual.
 
 ---
 
-## 4. Utilidades Puras y Algoritmos Centralizados (`src/utils/`)
+## 4. Distribución Determinista de Páginas (`src/utils/pageDistributor.js`)
 
-Toda la lógica algorítmica y matemática reside en módulos puramente funcionales, desacoplados del ciclo de vida de React y de dependencias directas del DOM del navegador:
+El motor de paginación opera de forma pura y determinista:
 
-### 4.1 `src/utils/pageGeometry.js`
-Define las constantes geométricas universales y funciones de cálculo métrico:
-- `A4_PAGE_HEIGHT_PX = 1123`: Altura exacta de 1 hoja A4 a 96 DPI (297 mm).
-- `A4_WIDTH_PX = 794`: Ancho exacto de 1 hoja A4 a 96 DPI (210 mm).
-- `A4_GAP_PX = 20`: Separación visual vertical entre hojas en el canvas del editor (`.a4-page-fold-guide`). **Este valor es estrictamente exclusivo del editor interactivo y nunca se introduce en el pipeline de impresión PDF.**
-- `DEFAULT_PAGE_PADDING = 24`: Padding perimetral por defecto en píxeles.
-- `getRulerHeightPx(containerEl)`: Crea una regla oculta temporal de `297mm` en el DOM para medir con precisión subpíxel la conversión de milímetros a píxeles según la resolución real del dispositivo o el motor de renderizado.
-- `getRelativeBounds(el, parentEl)`: Retorna las coordenadas relativas (`top`, `bottom`, `height`) de cualquier elemento respecto a la parte superior de `#area-cv`.
-- `isInForbiddenBoundaryZone(top, bottom, pageHeight, pagePadding)`: Evalúa si un rango vertical intersecta la zona prohibida de corte `[k * pageHeight - padding .. k * pageHeight + padding]`.
-
-### 4.2 `src/utils/colorUtils.js`
-Implementa algoritmos de contraste cromático y legibilidad basados en la norma YIQ:
-- `calculateYIQ(hexColor)`: Convierte un color hexadecimal al espacio YIQ (`(r * 299 + g * 587 + b * 114) / 1000`).
-- `getContrastYIQ(hexColor)`: Determina si el texto sobre un fondo debe ser oscuro (`'dark'`) o claro (`'light'`) con un umbral de 128.
-- `getDynamicTextVariables(backgroundColor)`: Genera un mapa completo de variables CSS (`--title-color`, `--text-color`, `--text-color-light`, `--circle-color`, `--container-color-alt`) optimizadas para garantizar máximo contraste y accesibilidad visual (WCAG AA/AAA).
-
-### 4.3 `src/utils/typographyUtils.js`
-Unifica la configuración de tipografías y el cálculo de tokens:
-- `FONT_FAMILIES`: Mapa canónico de familias tipográficas seleccionables (`Poppins`, `Inter`, `Roboto`, `Merriweather`, `JetBrains Mono`).
-- `computeTypographyTokens(layout)`: Calcula el diccionario de variables CSS aplicadas al contenedor raíz:
-  - `--body-font`
-  - `--font-scale`, `--title-scale`, `--body-scale`, `--list-scale`, `--line-height`
-  - `--page-padding`, `--section-gap`, `--item-gap`
-  - Tamaños derivados calculados mediante `calc(...)` (`--h1-font-size`, `--h2-font-size`, etc.).
-
-### 4.4 `src/utils/paginationEngine.js`
-Implementa el algoritmo de corte de página y prevención de orfandad:
-- `BREAKABLE_SELECTOR`: Selector unificado de componentes atómicos fragmentables (`.section-title, .cv-block, .experience__content, .education__content, .skills__name, .profile__description, .home__data, .simple-list-item, li.cv-block, .contact__item`).
-- `getBreakableComponents(container)`: Extrae y filtra los elementos fragmentables, ignorando nodos anidados cuyo contenedor padre ya gestiona el salto.
-- `executePaginationAlgorithm(container, options)`: Algoritmo multi-pase (hasta 6 iteraciones de estabilización):
-  1. Limpia saltos de página forzados previos (`resetForcedPageBreaks`).
-  2. Evalúa las coordenadas de cada elemento contra las líneas de corte `k * pageHeightPx`.
-  3. Detecta invasiones en la **Zona Prohibida de Borde** (Forbidden Boundary Zone).
-  4. Detecta **Encabezados Huérfanos** (`isOrphanTitle`): Si un título queda a menos de 60px del borde inferior o su primer ítem hijo es desplazado a la siguiente página, el título se traslada preventivamente al siguiente folio.
-  5. Inyecta atributos `data-editor-break-forced="true"` y estilos `margin-top: var(--page-padding, 24px) !important; break-before: page !important;`.
-  6. Si los saltos inyectados alteran la geometría del flujo subsiguiente, itera hasta convergencia matemática.
+1. **Presupuesto de Altura por Página**:
+   - Altura A4 ISO 216: `297mm` (1123px a 96 DPI).
+   - Presupuesto en el editor: `272mm` (`EDITOR_HEIGHT_REDUCTION_MM = 25`) para proporcionar un margen de seguridad vertical contra desbordes en motores de impresión reales.
+2. **Estimación Geométrica de Elementos**:
+   - `estimateSectionHeight(section, options)`: Calcula la altura esperada de una sección sumando el encabezado, separación (`sectionGap`), y la suma de alturas de sus ítems.
+   - `estimateItemHeight(item, type, options)`: Computa la altura del ítem basada en tipografía, líneas de texto aproximadas y viñetas (`itemGap`).
+3. **Distribución en Modelos de Página (`PageModel`)**:
+   - Las secciones e ítems se asignan secuencialmente a `Page 1`. Al sobrepasar el presupuesto vertical, el exceso se transfiere limpiamente a `Page 2` (o subsiguientes), permitiendo división a nivel de ítem cuando una sección no cabe completa.
+4. **Independencia de Columnas en 2-Col**:
+   - En modo 2 columnas, la columna izquierda y la derecha calculan sus alturas independientemente, extendiendo fondos hasta el límite físico de la hoja `<A4PageBox>`.
 
 ---
 
-## 5. Ciclo de Vida del Motor de Impresión PDF (`staticHtmlPdfEngine.js`)
+## 5. Pipeline de Impresión PDF y Paridad Visual (`src/services/print/`)
 
-El pipeline de impresión nativa y generación de PDF libre de artefactos interactivos se ejecuta a través de `executeCleanPrint(cvData, lang, customSnapshot)`.
+El pipeline de impresión nativa y generación de PDF libre de artefactos interactivos está modularizado bajo el principio de Responsabilidad Única (SRP):
 
 ```
-                  Usuario pulsa "Imprimir / Guardar PDF"
-                                    │
-                                    ▼
-       1. Captura de Instantánea del Editor (captureEditorSnapshot)
-          - Lee coordenadas de saltos forzados en vivo (#area-cv)
-          - Identifica data-section-title y data-item-id desplazados
-                                    │
-                                    ▼
-       2. Generación de HTML Limpio (generateCleanPrintHTML)
-          - RenderToStaticMarkup de PrintBaseSection y PrintBaseItem
-          - Purga de 26 selectores interactivos (ARTIFACTS_BLACKLIST)
-          - Inyección de las 3 hojas de estilo:
-            * <style id="cv-base-styles">: index.css limpio
-            * <style id="cv-print-styles">: print.css (@media print)
-            * <style id="cv-snapshot-breaks">: saltos calculados
-                                    │
-                                    ▼
-       3. Creación del Iframe Aislado Fuera de Pantalla
-          - iframe style: top: -10000px; left: -10000px; width: 794px;
-          - doc.open() -> doc.write(html) -> doc.close()
-                                    │
-                                    ▼
-       4. Sincronización y Propagación de Variables CSS
-          - Recorre variables (--*) de #area-cv y las inyecta en :root
-          - Espera carga de tipografías web (doc.fonts.ready)
-                                    │
-                                    ▼
-       5. Disparo de Impresión Nativa (window.print)
-          - Enfoca iframe: iframe.contentWindow.focus()
-          - Dispara diálogo nativo: iframe.contentWindow.print()
-                                    │
-                                    ▼
-       6. Limpieza Automática de Recursos
-          - Escucha evento 'afterprint'
-          - Desmonta el iframe del DOM sin dejar fugas de memoria
+src/services/print/
+├── index.js                    # API Façade pública (executeCleanPrint, generateCleanPrintHTML)
+├── pdfTitleService.js          # Sanitización y formateo de nombre dinámico de archivo PDF
+├── cleanHtmlGenerator.js       # Sanitización de DOM (cloneNode), inyección de estilos y HTML fallback
+└── printExecutionDriver.js     # Orquestación de iframe oculto, espera de fuentes y window.print()
 ```
 
-### Invariantes de Paridad de Impresión (0px Drift)
-1. **Ancho Fijo A4**: El contenedor `#area-cv` en el iframe tiene un ancho inmutable de `794px` con margen `0 auto`.
-2. **Cero Zoom**: Se garantiza estrictamente un `zoom: 1.0` en el documento salvo desborde accidental extremo de fuentes del sistema operativo.
-3. **box-decoration-break: slice**: En `print.css`, los contenedores de columna (`.resume__left` y `.resume__right`) emplean `box-decoration-break: slice !important` para impedir que los saltos de hoja dupliquen los 48px de padding vertical sobre la segunda página.
-4. **Protección Anti-Ruptura de Super-Contenedores**: Todos los bloques de experiencia, educación, viñetas y títulos declaran `break-inside: avoid !important; page-break-inside: avoid !important;`.
+### 5.1 Ciclo de Ejecución de Impresión
+
+```
+             Usuario pulsa "Imprimir / Guardar PDF"
+                               │
+                               ▼
+  1. Captura y Sanitización de Clon del DOM (createSanitizedPrintClone)
+     - cloneNode(true) sobre #area-cv
+     - Purga de [data-editor-ui="true"], .no-print, manijas de arrastre
+     - Purga de placeholders vacíos y atributos contenteditable
+     - Conservación exacta de las cajas discretas .a4-page-box
+                               │
+                               ▼
+  2. Inyección de Estilos y Tokens de Diseño
+     - Inyección de index.css y print.css con @media print
+     - Transferencia de variables CSS (--*) desde #area-cv a :root
+                               │
+                               ▼
+  3. Carga en Iframe Aislado Fuera de Pantalla
+     - Creación de iframe oculto
+     - Escritura de documento HTML limpio
+     - Espera activa de fuentes web (doc.fonts.ready)
+                               │
+                               ▼
+  4. Disparo de Impresión Nativa (window.print)
+     - iframe.contentWindow.focus()
+     - iframe.contentWindow.print()
+                               │
+                               ▼
+  5. Limpieza de Recursos
+     - Desmontaje del iframe tras el evento afterprint
+```
 
 ---
 
 ## 6. Documentos Relacionados
 
-Para profundizar en áreas específicas de la arquitectura, consulte las guías complementarias:
-- [Guía de Extensibilidad de Secciones e Ítems](guia-extensibilidad-secciones.md): Tutorial paso a paso para añadir nuevas secciones y registrar descriptores en `sectionRegistry.js`.
-- [Diseño, Invariantes y Accesibilidad](diseno-invariantes.md): Especificaciones de los callouts estilo Obsidian, tooltips dinámicos con `getBoundingClientRect()` y tokens de diseño.
-- [Motor de Impresión PDF y Paridad Visual](motor-impresion-pdf.md): Detalle exhaustivo del pipeline de renderizado estático y prevención de rupturas de página.
-- [Manual de Desarrollo](DEVELOPMENT_MANUAL.md): Guía de contribución y convenciones del repositorio.
+- [Guía de Requisitos Estrictos y Anti-Regresión](REQUIREMENTS_SPECIFICATION.md): Especificación formal de contratos y restricciones inmutables del sistema.
+- [Hoja de Ruta de Refactorización y Calidad](REFACTORING_ROADMAP.md): Fases planificadas para evolución técnica sin regresiones.
+- [Guía de Extensibilidad de Secciones](guia-extensibilidad-secciones.md): Tutorial para registrar nuevos tipos de sección en `sectionRegistry.js`.
+- [Geometría Editor vs Impresión](GEOMETRIA_EDITOR_VS_IMPRESION.md): Especificación matemática del buffer de seguridad vertical.
+- [Diseño e Invariantes UI](diseno-invariantes.md): Guía de callouts Obsidian, accesibilidad y tokens de interfaz.

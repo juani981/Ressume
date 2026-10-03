@@ -807,5 +807,164 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(pages.length).toBe(1);
       expect(pages[0].singleSections.map((s) => s.id)).toEqual(['profile', 'contact', 'about', 'education']);
     });
+
+    it('Approaching end of page: when an item cannot fit on a partially used page, it cleanly starts on page 2 rather than overflowing', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'list',
+            title: 'Section One',
+            items: [{ id: 'it1', height: 950 }],
+          },
+          {
+            id: 'sec2',
+            type: 'experience',
+            title: 'Section Two',
+            items: [
+              {
+                id: 'exp1',
+                title: 'Senior Engineer',
+                height: 200,
+              },
+            ],
+          },
+        ],
+      };
+
+      // Page capacity is ~1075px. sec1 takes ~986px. Available space is < 90px.
+      // sec2 needs 20px gap + 36px header + 200px item = 256px.
+      // sec2 cannot fit on Page 1 at all. It MUST cleanly jump to Page 2, not overflow Page 1.
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBe(2);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1']);
+      expect(pages[1].singleSections.map((s) => s.id)).toEqual(['sec2']);
+    });
+
+    it('Approaching end of page with natural text: multi-item and multi-bullet section cleanly partitions to page 2 without overflowing or getting cut off', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20 },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            title: '',
+            items: [{ id: 'p1', name: 'JUAN PÉREZ', subtitle: 'Senior Full Stack Engineer' }],
+          },
+          {
+            id: 'contact',
+            type: 'contact',
+            title: '',
+            items: [
+              {
+                id: 'c1',
+                contacts: [
+                  { id: '1', type: 'email', value: 'juan@example.com' },
+                  { id: '2', type: 'phone', value: '+1 555 123 4567' },
+                  { id: '3', type: 'location', value: 'Madrid, España' },
+                  { id: '4', type: 'linkedin', value: 'linkedin.com/in/juan' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'about',
+            type: 'about',
+            title: 'Perfil Profesional',
+            items: [
+              {
+                id: 'a1',
+                description:
+                  'Ingeniero de software con más de 10 años de experiencia liderando equipos técnicos y diseñando arquitecturas escalables en la nube. Especialista en React, Node.js y microservicios de alta concurrencia.',
+              },
+            ],
+          },
+          {
+            id: 'skills',
+            type: 'skills',
+            title: 'Habilidades Técnicas',
+            items: [
+              { id: 's1', title: 'Lenguajes', description: 'JavaScript, TypeScript, Python, Go, SQL, HTML5, CSS3' },
+              { id: 's2', title: 'Frameworks', description: 'React, Node.js, Next.js, Express, TailwindCSS, PostgreSQL' },
+            ],
+          },
+          {
+            id: 'experience',
+            type: 'experience',
+            title: 'Experiencia Laboral',
+            items: [
+              {
+                id: 'e1',
+                title: 'Staff Software Engineer',
+                subtitle: 'Tech Global Inc.',
+                date: '2021 – Presente',
+                bullets: [
+                  'Diseño e implementación de arquitectura distribuida procesando más de 50 millones de eventos diarios con latencia sub-100ms.',
+                  'Liderazgo técnico de un equipo de 8 ingenieros de software implementando CI/CD y buenas prácticas de desarrollo ágil.',
+                  'Reducción de costos de infraestructura en un 35% mediante optimización de consultas SQL y cache distribuido con Redis.',
+                ],
+              },
+              {
+                id: 'e2',
+                title: 'Senior Frontend Developer',
+                subtitle: 'Digital Solutions SL',
+                date: '2018 – 2021',
+                bullets: [
+                  'Desarrollo de plataforma SaaS B2B utilizada por más de 100k usuarios activos mensuales.',
+                  'Refactorización integral del frontend migrando de arquitectura monolítica a microfrontends con Webpack Module Federation.',
+                  'Mejora de métricas Core Web Vitals alcanzando 98+ en Lighthouse y reduciendo bundle size en 45%.',
+                ],
+              },
+              {
+                id: 'e3',
+                title: 'Backend Engineer',
+                subtitle: 'DataStream Corp.',
+                date: '2016 – 2018',
+                bullets: [
+                  'Implementación de pipelines de ingestión de datos procesando más de 10TB mensuales.',
+                  'Desarrollo de APIs RESTful en Node.js y Python con autenticación OAuth2 y JWT.',
+                ],
+              },
+              {
+                id: 'e4',
+                title: 'Junior Web Developer',
+                subtitle: 'WebCraft Agency',
+                date: '2015 – 2016',
+                bullets: [
+                  'Creación de sitios web dinámicos y landing pages responsivas para clientes internacionales.',
+                ],
+              },
+            ],
+          },
+          {
+            id: 'education',
+            type: 'education',
+            title: 'Educación',
+            items: [
+              {
+                id: 'ed1',
+                title: 'Grado en Ingeniería Informática',
+                subtitle: 'Universidad Politécnica',
+                date: '2014 – 2018',
+              },
+            ],
+          },
+        ],
+      };
+
+      const pages = distributeSectionsToPages(cv, { isEditor: true });
+      expect(pages.length).toBeGreaterThanOrEqual(2);
+
+      // Verify Page 1 has clean single sections without overflowing
+      const p1 = pages[0];
+      expect(p1.singleSections.length).toBeGreaterThan(0);
+      expect(p1.leftSections).toEqual([]);
+      expect(p1.rightSections).toEqual([]);
+
+      // Verify Page 2 has the subsequent content
+      const p2 = pages[1];
+      expect(p2.singleSections.length).toBeGreaterThan(0);
+    });
   });
 });

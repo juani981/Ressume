@@ -5,7 +5,7 @@
  * for universal typography scaling and line heights across the CV editor and print engine.
  */
 
-import { A4_PAGE_SIZE } from './pageGeometry';
+import { A4_PAGE_SIZE } from '../constants';
 
 export {
   FONT_FAMILIES,

@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react';
 import { distributeSectionsToPages } from '../utils/pageDistributor';
-import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../utils/pageGeometry';
+import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants';
 
 /**
  * Custom hook returning an array of PageModel instances for live rendering and print.
@@ -51,6 +51,7 @@ export function useDocumentPages({ cvData, options = {} }) {
       // Mode resolution
       isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
       mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 
       // User overrides

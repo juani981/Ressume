@@ -208,11 +208,15 @@ img {
   position: relative;
 }
 
-/* Secciones de cabecera (título, contacto, foto) agrupan más apretado */
+/* Secciones de cabecera (título, contacto, foto) agrupan al mínimo espacio sin desperdicio */
 .editable-section-container.home,
+.cv-section.home,
 .editable-section-container.social,
-.editable-section-container.cv-section-photo {
-  margin-bottom: calc(var(--section-gap, 20px) * 0.4) !important;
+.cv-section.social,
+.editable-section-container.cv-section-photo,
+.cv-section.cv-section-photo {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
 }
 
 .cv-section:last-of-type,
@@ -361,12 +365,26 @@ img {
 }
 
 .home__container {
-  gap: 3rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .home__data {
-  gap: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+.home__data-title-subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 .home__img {
@@ -379,12 +397,18 @@ img {
 
 .home__title {
   font-size: var(--title-h1-size, var(--h1-font-size));
+  line-height: 1.15;
+  margin: 0;
+  padding: 0;
 }
 
 .home__subtitle {
   font-size: var(--title-subtitle-size, var(--normal-font-size));
   font-weight: var(--font-medium);
-  margin-bottom: var(--mb-1);
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 0;
 }
 
 .home__profession {
@@ -425,8 +449,13 @@ img {
 
 /*========== SOCIAL ==========*/
 .social__container {
-  grid-template-columns: max-content;
-  gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  grid-template-columns: none;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 0;
 }
 
 .social__link {
@@ -650,11 +679,16 @@ img {
 
 /*========== DOCUMENT CANVAS LAYOUT RULES (#area-cv Single Source of Truth) ==========*/
 #area-cv .home__container {
-  gap: 1.5rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .home__data {
   text-align: initial;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .home__img {
@@ -662,7 +696,13 @@ img {
 }
 
 #area-cv .social__container {
-  grid-template-columns: repeat(3, max-content);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  grid-template-columns: none;
+  gap: 2px 4px;
+  margin: 0;
+  padding: 0;
 }
 
 #area-cv .skills__content {
@@ -1508,8 +1548,10 @@ a,
   background-color: rgba(56, 116, 255, 0.08);
 }
 
-/* Version Hub dedicated button (preserves topButtons <= 8 regression invariant) */
-.version-hub-btn {
+/* Version Hub & Bidirectional AI Hub dedicated buttons (preserves topButtons <= 8 regression invariant) */
+.version-hub-btn,
+.translation-hub-btn,
+.byo-cv-hub-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -1523,7 +1565,9 @@ a,
   transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
-.version-hub-btn:hover {
+.version-hub-btn:hover,
+.translation-hub-btn:hover,
+.byo-cv-hub-btn:hover {
   transform: scale(1.15);
   background-color: rgba(56, 116, 255, 0.08);
 }
@@ -1563,6 +1607,37 @@ a,
   opacity: 1;
   visibility: visible;
   transform: translateY(-50%) translateX(0);
+}
+
+/*========== ACTION MENU CONTROLS & PEEK TAB ==========*/
+.action-menu-control-btn:hover {
+  background-color: rgba(56, 116, 255, 0.1) !important;
+  color: #3b82f6 !important;
+}
+
+.action-menu-control-btn.is-pinned {
+  color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+.l-navbar.is-collapsed {
+  cursor: pointer;
+}
+
+.action-menu-edge-handle {
+  user-select: none;
+}
+
+.l-navbar.is-collapsed:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16) !important;
+}
+
+.l-navbar.is-preparing {
+  border-right: 2px solid #3b82f6 !important;
+}
+
+body.ats-mode-active .l-navbar.is-collapsed:hover {
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* ==========================================================
@@ -1726,8 +1801,17 @@ body.ats-mode-active {
 .contact-item-pill {
   position: relative;
   transition: all 0.2s ease;
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.contact-separator {
+  color: var(--text-color-light, #94a3b8);
+  font-size: 0.8em;
+  line-height: 1;
+  margin: 0 1px !important;
+  opacity: 0.7;
 }
 
 .contact-item-pill:hover {
@@ -2277,9 +2361,13 @@ body.ats-mode-active .a4-page-fold-badge {
   display: flex !important;
   flex-wrap: wrap !important;
   grid-template-columns: none !important;
-  gap: 8px 12px !important;
+  gap: 2px 4px !important;
+  row-gap: 2px !important;
+  column-gap: 4px !important;
   max-width: 100% !important;
   min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .resume__left .skills__content {
@@ -2334,11 +2422,22 @@ body.ats-mode-active .a4-page-fold-badge {
   display: none !important;
 }
 
-.resume--ats-mode .social__link svg,
-.resume--ats-mode .contact-item-pill svg,
+.resume--ats-mode .social__link > svg,
+.resume--ats-mode .contact-item-pill > svg,
+.resume--ats-mode .social__link > .lucide,
+.resume--ats-mode .contact-item-pill > .lucide,
 .resume--ats-mode .contact__icon,
-.resume--ats-mode .home__contact svg {
+.resume--ats-mode .home__contact > svg {
   display: none !important;
+}
+
+/* Guard: Ensure editor popups & rich text toolbar icons are NEVER hidden by ATS mode */
+.rich-text-toolbar svg,
+.contact-type-picker-popover svg,
+.section-bullet-style-popover svg,
+.contact-del-btn svg,
+.add-contact-btn svg {
+  display: inline-block !important;
 }
 
 /* AI Tips Active Section Highlight */
@@ -2348,4 +2447,34 @@ body.ats-mode-active .a4-page-fold-badge {
   border-radius: 6px !important;
   transition: outline 0.15s ease-out, box-shadow 0.15s ease-out !important;
   box-shadow: 0 0 16px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* AI Tips Sidebar & Floating Advice Cards viewport containment */
+.ai-tips-sidebar {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.ai-tip-card-wrapper {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.ai-tip-card-wrapper .callout-content,
+.ai-tip-card-wrapper .callout-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.suggestion-tooltip {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.suggestion-tooltip .callout-content,
+.suggestion-tooltip .callout-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }

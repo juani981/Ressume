@@ -301,3 +301,5 @@ export const syncFlatContactFields = (contacts) => {
 
   return flatFields;
 };
+
+export { normalizePhoneNumber } from './phoneFormatter.js';

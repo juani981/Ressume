@@ -20,6 +20,7 @@ import { CVProvider, useCV } from '../context/CVContext';
 import ActionMenu from '../components/Editor/ActionMenu';
 import ToastNotification from '../components/Editor/ToastNotification';
 import VersionManagerModal from '../components/Editor/VersionManagerModal';
+import { VersionCard } from '../components/Editor/versionManager/VersionCard';
 import { defaultSchema, blankSchema } from '../utils/schema';
 import * as versionStorage from '../utils/versionStorage';
 import * as versionValidator from '../utils/versionValidator';
@@ -1242,6 +1243,92 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
         expect(onCloseSpy).toHaveBeenCalledTimes(1);
         expect(currentState.profile.name).toBe(blankSchema.profile.name);
       });
+    });
+  });
+
+  // ==========================================================================
+  // TIER 8: HOVER PREVIEW & THUMBNAIL INVARIANTS (UX UPGRADE)
+  // ==========================================================================
+  describe('Tier 8: Version Card UI Invariants & Fullscreen Hover Preview', () => {
+    it('T8.1: VersionCard renders thumbnail with fixed height and always visible actions', () => {
+      const mockVersion = {
+        id: 'v_hover_1',
+        name: 'Full Stack Engineer 2026',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '2-column' } },
+      };
+
+      const { container } = render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={() => {}}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      const thumb = container.querySelector('.version-thumbnail-container');
+      expect(thumb).toBeInTheDocument();
+      expect(thumb.style.height).toBe('190px');
+      expect(thumb.style.flexShrink).toBe('0');
+
+      // Actions toolbar always visible
+      expect(screen.getByTestId('btn-load-version')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-preview-version')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-duplicate-version')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-download-version-json')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-delete-version')).toBeInTheDocument();
+    });
+
+    it('T8.2: hover is completely disabled, and clicking Previsualizar button displays preview lightbox and closes with close button', async () => {
+      const mockVersion = {
+        id: 'v_preview_2',
+        name: 'Senior Architect Snapshot',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '1-column', isAtsMode: true } },
+      };
+
+      const { container } = render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={() => {}}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      const thumb = container.querySelector('.version-thumbnail-container');
+      expect(thumb).toBeInTheDocument();
+
+      // Invariant: Hover does NOT open preview overlay
+      fireEvent.mouseEnter(thumb);
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+
+      // Clicking Previsualizar button explicitly opens preview overlay
+      const previewBtn = screen.getByTestId('btn-preview-version');
+      fireEvent.click(previewBtn);
+      const previewOverlay = document.querySelector('.version-large-preview-overlay');
+      expect(previewOverlay).not.toBeNull();
+      expect(screen.getByTestId('version-large-preview')).toBeInTheDocument();
+
+      // Clicking close button closes the preview overlay
+      const closeBtn = screen.getByTestId('btn-close-large-preview');
+      fireEvent.click(closeBtn);
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
     });
   });
 });

@@ -32,14 +32,7 @@ import {
   applyTypographyTokens,
 } from '../utils/typographyUtils';
 
-import {
-  BREAKABLE_SELECTOR,
-  getBreakableComponents,
-  resetForcedPageBreaks,
-  calculatePageBreaks,
-  auditForbiddenBoundaryZones,
-  executePaginationAlgorithm,
-} from '../utils/paginationEngine';
+import { resetForcedPageBreaks } from '../utils/pageDeletionEngine';
 
 import { useDocumentPages } from '../hooks/useDocumentPages';
 import { useCVDndCoordinator } from '../hooks/useCVDndCoordinator';
@@ -100,7 +93,7 @@ describe('Milestone M2: Modularization and Utility Deduplication', () => {
       expect(A4_PAGE_HEIGHT_PX).toBe(1123);
       expect(A4_WIDTH_PX).toBe(794);
       expect(A4_GAP_PX).toBe(20);
-      expect(DEFAULT_PAGE_PADDING).toBe(24);
+      expect(DEFAULT_PAGE_PADDING).toBe(12);
     });
 
     it('measures 297mm ruler height in pixels with resilient fallback', () => {
@@ -177,31 +170,7 @@ describe('Milestone M2: Modularization and Utility Deduplication', () => {
     });
   });
 
-  describe('paginationEngine.js', () => {
-    it('declares breakable component selectors', () => {
-      expect(BREAKABLE_SELECTOR).toContain('.section-title');
-      expect(BREAKABLE_SELECTOR).toContain('.cv-block');
-      expect(BREAKABLE_SELECTOR).toContain('.experience__content');
-    });
-
-    it('filters nested breakable components while retaining section titles', () => {
-      const container = document.createElement('div');
-      container.innerHTML = `
-        <div class="cv-section">
-          <h2 class="section-title">Experience</h2>
-          <div class="cv-block">
-            <div class="experience__content">Nested child</div>
-          </div>
-        </div>
-      `;
-      const breakables = getBreakableComponents(container);
-      // section-title and cv-block should be kept; experience__content is inside cv-block so filtered out
-      const classList = breakables.map(el => el.className);
-      expect(classList.some(c => c.includes('section-title'))).toBe(true);
-      expect(classList.some(c => c.includes('cv-block'))).toBe(true);
-      expect(breakables.length).toBe(2);
-    });
-
+  describe('pageDeletionEngine.js resetForcedPageBreaks', () => {
     it('resets forced break attributes and inline margin-top', () => {
       const container = document.createElement('div');
       const item = document.createElement('div');
@@ -215,47 +184,6 @@ describe('Milestone M2: Modularization and Utility Deduplication', () => {
       expect(item.getAttribute('data-editor-break-forced')).toBeNull();
       expect(item.getAttribute('data-editor-break-fold')).toBeNull();
       expect(item.style.marginTop).toBe('');
-    });
-
-    it('calculates page break positions for multi-page documents', () => {
-      const container = document.createElement('div');
-      Object.defineProperty(container, 'scrollHeight', { value: 2500, configurable: true });
-      const breaks = calculatePageBreaks(container, 1123, 24, 20);
-      expect(breaks.length).toBeGreaterThanOrEqual(2);
-      expect(breaks[0]).toBe(1123);
-    });
-
-    it('audits forbidden zones and throws FatalForbiddenZoneIncursionError in test environment when breached', () => {
-      const container = document.createElement('div');
-      const item = document.createElement('div');
-      item.className = 'cv-block';
-      item.id = 'broken-item';
-      // Mock bounds in forbidden zone [1099 .. 1167]
-      vi.spyOn(item, 'getBoundingClientRect').mockReturnValue({
-        top: 1110,
-        bottom: 1140,
-        height: 30,
-        left: 0,
-        right: 100,
-        width: 100,
-      });
-      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-        top: 0,
-        bottom: 2300,
-        height: 2300,
-        left: 0,
-        right: 794,
-        width: 794,
-      });
-      container.appendChild(item);
-
-      try {
-        auditForbiddenBoundaryZones(container, 2, 1123, 24, 20);
-        expect.fail('Expected auditForbiddenBoundaryZones to throw');
-      } catch (err) {
-        expect(err.name).toBe('FatalForbiddenZoneIncursionError');
-        expect(err.message).toContain('FATAL_FORBIDDEN_ZONE_INCURSION');
-      }
     });
   });
 

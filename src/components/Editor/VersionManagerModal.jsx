@@ -8,7 +8,8 @@ import {
   duplicateVersion
 } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
-import { sanitizeAndValidateCVSnapshot } from '../../utils/versionValidator';
+import { sanitizeAndValidateCVSnapshot, normalizeAnyJSONToCVSnapshot } from '../../utils/versionValidator';
+import { cleanAndParseRawJSON } from '../../utils/universalJsonImporter';
 import { blankSchema } from '../../utils/schema';
 import { History, X, Layers } from 'lucide-react';
 import {
@@ -360,16 +361,13 @@ export const VersionManagerModal = ({
 
     try {
       const fileText = await file.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(fileText);
-      } catch (parseErr) {
+      let parsed = cleanAndParseRawJSON(fileText);
+      if (!parsed) {
         throw new Error('El archivo seleccionado no contiene un JSON válido.');
       }
 
-      // Handle raw cvData or snapshot structure ({ cvData: ... } or { sections: ... })
-      const rawData = parsed.cvData || parsed;
-      const validated = sanitizeAndValidateCVSnapshot(rawData);
+      // Handle raw cvData, rich live-preview abstraction, or snapshot structure
+      const validated = normalizeAnyJSONToCVSnapshot(parsed);
       if (!validated) {
         throw new Error('La estructura del archivo JSON no coincide con un CV válido.');
       }
@@ -439,7 +437,7 @@ export const VersionManagerModal = ({
       <div
         className="version-modal-dialog"
         style={{
-          maxWidth: '1040px',
+          maxWidth: 'min(1180px, 94vw)',
           width: '100%',
           maxHeight: '90vh',
           display: 'flex',
@@ -464,37 +462,85 @@ export const VersionManagerModal = ({
             background: '#ffffff',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div
               style={{
-                width: '40px',
-                height: '40px',
+                width: '42px',
+                height: '42px',
                 borderRadius: '10px',
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#2563eb',
+                flexShrink: 0,
               }}
             >
               <History size={22} />
             </div>
             <div>
-              <h2
-                id="version-modal-title"
-                style={{
-                  margin: 0,
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  color: '#0f172a',
-                  lineHeight: 1.2,
-                }}
-              >
-                Gestor de Versiones y Snapshots
-              </h2>
-              <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                Guarda, restaura, duplica y administra instantáneas persistentes de tu CV
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <h2
+                  id="version-modal-title"
+                  style={{
+                    margin: 0,
+                    fontSize: '1.25rem',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Gestor de Versiones y Snapshots
+                </h2>
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  {versions.length} {versions.length === 1 ? 'versión' : 'versiones'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px', flexWrap: 'wrap' }}>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                  Guarda, restaura, duplica y administra instantáneas persistentes de tu CV
+                </p>
+                {(cvData?.activeVersionName || cvData?.versionName) && (
+                  <>
+                    <span style={{ color: '#cbd5e1' }}>•</span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '0.75rem',
+                        color: '#065f46',
+                        fontWeight: 600,
+                        backgroundColor: '#ecfdf5',
+                        padding: '1px 8px',
+                        borderRadius: '9999px',
+                        border: '1px solid #a7f3d0',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: '#10b981',
+                          display: 'inline-block',
+                        }}
+                      />
+                      Activa: {cvData.activeVersionName || cvData.versionName}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -560,9 +606,11 @@ export const VersionManagerModal = ({
           style={{
             flex: 1,
             overflowY: 'auto',
+            maxHeight: 'calc(90vh - 140px)',
+            minHeight: '200px',
             padding: '1.5rem',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
             gap: '1.25rem',
             alignContent: 'start',
           }}
@@ -618,6 +666,11 @@ export const VersionManagerModal = ({
               <VersionCard
                 key={version.id}
                 version={version}
+                isActive={Boolean(
+                  (cvData?.activeVersionId && cvData.activeVersionId === version.id) ||
+                  (cvData?.activeVersionName && cvData.activeVersionName === version.name) ||
+                  (cvData?.versionName && cvData.versionName === version.name)
+                )}
                 isEditing={editingVersionId === version.id}
                 renameText={renameText}
                 renameInputRef={renameInputRef}

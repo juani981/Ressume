@@ -6,6 +6,9 @@ import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { getDynamicTextColors } from './colorUtils.js';
 import { sanitizeAndValidateCVSnapshot } from './versionValidator.js';
 import { stripHtml } from './richTextEngine.js';
+import { generateCVLivePdfAbstraction, exportToAIJson as exportToAIJsonFull } from './cvJsonAbstraction.js';
+import { getLanguageLegend } from './translationEngine.js';
+import { getAtsGoldenSchemaTemplate } from './atsSchemaTemplate.js';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -377,7 +380,10 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
     (sec.items || []).forEach(item => {
       const formatter = descriptor?.renderMarkdown || baseItemMarkdown;
       const md = formatter(item, sec);
-      if (md) lines.push(md);
+      if (md) {
+        lines.push(md);
+        lines.push('');
+      }
     });
 
     lines.push('');
@@ -619,45 +625,16 @@ export const exportToATSPlainText = (cvData) => {
 };
 
 /**
- * Produces a clean, compact JSON representation of cvData matching the native schema,
- * directly valid under sanitizeAndValidateCVSnapshot for import into Version Manager.
+ * Produces the standardized, hyper-detailed 1:1 Live Preview PDF Abstraction JSON,
+ * embedding the full printToPDF translation layer, ATS audit, AI knowledge rules,
+ * normalized semantic sections, and backward-compatible root fields.
  */
 export const exportToAIJson = (cvData, options = {}) => {
-  if (!cvData) return '{}';
-  const validated = sanitizeAndValidateCVSnapshot(cvData);
-
-  const compact = {
-    profile: {
-      name: validated.profile?.name || ''
-    },
-    layout: {
-      type: validated.layout?.type || '1-column',
-      isAtsMode: Boolean(validated.layout?.isAtsMode),
-      fontFamily: validated.layout?.fontFamily || 'Poppins',
-      fontScale: validated.layout?.fontScale ?? 1.0,
-      titleScale: validated.layout?.titleScale ?? 1.0,
-      bodyScale: validated.layout?.bodyScale ?? 1.0,
-      listScale: validated.layout?.listScale ?? 1.0,
-      lineHeight: validated.layout?.lineHeight ?? 1.45,
-      pagePadding: validated.layout?.pagePadding ?? 24,
-      sectionGap: validated.layout?.sectionGap ?? 20,
-      itemGap: validated.layout?.itemGap ?? 8,
-      leftBg: validated.layout?.leftBg || '',
-      rightBg: validated.layout?.rightBg || '',
-      leftColumnWidth: validated.layout?.leftColumnWidth || null
-    },
-    sections: (validated.sections || []).map(sec => ({
-      id: sec.id,
-      column: sec.column || 'left',
-      type: sec.type || 'list',
-      title: sec.title || '',
-      ...(sec.bulletStyle ? { bulletStyle: sec.bulletStyle } : {}),
-      items: (sec.items || []).map(item => ({ ...item }))
-    }))
-  };
-
-  return JSON.stringify(compact, null, 2);
+  return exportToAIJsonFull(cvData, options);
 };
+
+export const exportToRichAIJson = exportToAIJson;
+export { generateCVLivePdfAbstraction };
 
 export const exportToAIText = exportToATSPlainText;
 
@@ -730,9 +707,11 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     ? 'Below is the candidate resume structured in Markdown format with comprehensive Frontmatter metadata. Analyze only the information contained within the following block:'
     : 'A continuación se presenta el currículum del candidato estructurado en formato Markdown con su propio Frontmatter de metadatos. Analiza únicamente la información contenida dentro del siguiente bloque:';
 
-  payload.push(introHeader);
-  payload.push(introText);
-  payload.push(cvFormatted);
+  if (promptId !== 'bring_your_own_cv') {
+    payload.push(introHeader);
+    payload.push(introText);
+    payload.push(cvFormatted);
+  }
 
   // For translation and localization prompts, inject the compact native cvData JSON schema
   if (promptId === 'translate_english' || promptDef?.category === 'localization') {
@@ -742,8 +721,8 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
       ? '# COMPACT NATIVE JSON SCHEMA (cvData)'
       : '# SCHEMA JSON NATIVO COMPACTO (cvData)';
     const schemaInstruction = isEn
-      ? 'To allow direct import of the translation into the Ressume Version Manager, the current native JSON structure of the CV is provided below. Your response MUST strictly be a single ```json ... ``` code block preserving this exact schema structure translated and adapted to the US Tech ecosystem:'
-      : 'Para que la traducción pueda ser importada directamente en el Gestor de Versiones de Ressume, a continuación se proporciona la estructura JSON nativa actual del CV. Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` con esta misma estructura traducida y adaptada al ecosistema Tech de EE.UU.:';
+      ? 'CRITICAL MANDATORY UNIVERSAL DIRECTIVE: To allow direct import of the translation into the Ressume editor and Version Manager, the current native JSON structure of the CV is provided below. Your response MUST strictly be ONLY a single valid ```json ... ``` code block (or raw JSON) preserving this exact schema structure translated and localized. DO NOT include any introductory text, localization summaries, explanations, or commentary outside the JSON block:'
+      : 'DIRECTIVA ESTRICTA UNIVERSAL: Para que la traducción pueda ser importada directamente en el editor y Gestor de Versiones de Ressume, a continuación se proporciona la estructura JSON nativa actual del CV. Tu respuesta DEBE ser ÚNICAMENTE un bloque de código ```json ... ``` (o texto JSON puro) con esta misma estructura traducida y adaptada. QUEDA TERMINANTEMENTE PROHIBIDO incluir introducciones, resúmenes de localización, explicaciones o notas fuera del bloque JSON:';
 
     payload.push(schemaTitle);
     payload.push(schemaInstruction);
@@ -752,7 +731,23 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     payload.push('```');
   }
 
+  // For 'bring_your_own_cv' (Bring Your Own CV Converter), provide explicit upload & paste instructions
+  if (promptId === 'bring_your_own_cv') {
+    payload.push('');
+    payload.push('---');
+    const inputTitle = isEn
+      ? '# INSTRUCTIONS FOR PROVIDING YOUR CV (PDF ATTACHMENT OR TEXT)'
+      : '# INSTRUCCIONES PARA ADJUNTAR TU CV (ARCHIVO PDF O TEXTO)';
+    const inputInstructions = isEn
+      ? 'Please attach your original CV PDF file directly in the AI model chat, or paste the raw text extracted from your CV below:'
+      : 'Por favor, adjunta el archivo PDF de tu CV directamente en el chat con la IA, o pega el texto extraído de tu CV a continuación:';
+    payload.push(inputTitle);
+    payload.push(inputInstructions);
+    payload.push('');
+    payload.push(userCommentary && userCommentary.trim() ? userCommentary.trim() : (isEn ? '[PASTE YOUR CV TEXT HERE OR ATTACH PDF TO CHAT]' : '[PEGA AQUÍ EL TEXTO DE TU CV O ADJUNTA EL ARCHIVO PDF AL CHAT]'));
+  }
+
   return payload.join('\n');
 };
 
-export { prompts };
+export { prompts, getLanguageLegend, getAtsGoldenSchemaTemplate };

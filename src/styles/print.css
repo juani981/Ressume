@@ -679,4 +679,67 @@
   .resume--ats-mode .photo__container {
     display: none !important;
   }
+
+  /* Compact Title, Subtitle, and Contact spacing in Print Mode */
+  .cv-section.home,
+  .cv-section.social,
+  .cv-section.cv-section-photo {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .home__container,
+  #area-cv .home__container {
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .home__data,
+  .home__data-title-subtitle,
+  #area-cv .home__data {
+    gap: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .home__title {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.15 !important;
+  }
+
+  .home__subtitle {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .social__container,
+  #area-cv .social__container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    grid-template-columns: none !important;
+    gap: 2px 4px !important;
+    row-gap: 2px !important;
+    column-gap: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .contact-item-pill {
+    padding: 1px 2px !important;
+    gap: 3px !important;
+    line-height: 1.2 !important;
+  }
+
+  .contact-separator {
+    margin: 0 1px !important;
+    font-size: 0.8em !important;
+    opacity: 0.7 !important;
+  }
 }

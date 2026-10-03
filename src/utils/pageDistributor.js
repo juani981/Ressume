@@ -10,7 +10,7 @@
  * Invariant 16: Zero Dynamic Reflow on Print
  */
 
-import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from './pageGeometry.js';
+import { A4_PAGE_HEIGHT_PX, EDITOR_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants/index.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 
@@ -18,6 +18,45 @@ export const DEFAULT_SECTION_GAP_PX = 16;
 export const DEFAULT_ITEM_GAP_PX = 8;
 export const DEFAULT_HEADER_HEIGHT_PX = 36;
 export const CONTINUATION_HEADER_HEIGHT_PX = 20;
+
+/**
+ * Calculates character capacity per line for a given column width and font styling.
+ * Supports dynamic column width resizing (leftColumnWidth).
+ *
+ * @param {Object} options
+ * @param {boolean} [isBullet=false]
+ * @returns {number}
+ */
+export function getCharsPerLine(options = {}, isBullet = false) {
+  const isAts = Boolean(
+    options.isAts ||
+    options.isAtsMode ||
+    options.mode === 'ats' ||
+    options.mode === '1-column' ||
+    options.column === 'single'
+  );
+  if (typeof options.charsPerLine === 'number') {
+    return options.charsPerLine;
+  }
+  const isLeftCol = !isAts && options.column === 'left';
+
+  if (options.columnWidthPx != null && options.columnWidthPx > 0) {
+    const colWidth = options.columnWidthPx;
+    const effectiveWidth = isBullet ? Math.max(80, colWidth - 28) : colWidth;
+    const fontScale = options.fontScale ?? 1.0;
+    const charWidth = 10.5 * Math.max(0.7, fontScale);
+    return Math.max(12, Math.floor(effectiveWidth / charWidth));
+  }
+
+  // Canonical baseline values matching standard 33% / 67% layout
+  if (isAts) {
+    return isBullet ? 70 : 72;
+  }
+  if (isLeftCol) {
+    return isBullet ? 26 : 28;
+  }
+  return isBullet ? 42 : 44;
+}
 
 /**
  * Estimates the height of a section header in pixels.
@@ -87,13 +126,13 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
     options.mode === '1-column' ||
     options.column === 'single'
   );
-  const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+  const charsPerLine = getCharsPerLine(options, false);
 
   let h = isAts ? 38 : 50;
   if (item.link) h += 16;
   if (item.description) {
-    const descLines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
+    const paragraphs = String(item.description).split('\n');
+    const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
     h += descLines * 20;
   }
   return Math.round(h * fontFactor) + Math.round(itemGap * 0.5);
@@ -112,15 +151,7 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
   const fontScale = options.fontScale ?? (options.listScale ?? 1.0);
   const lineHeight = options.lineHeight ?? 1.45;
   const fontFactor = fontScale * (lineHeight / 1.45);
-  const isAts = Boolean(
-    options.isAts ||
-    options.isAtsMode ||
-    options.mode === 'ats' ||
-    options.mode === '1-column' ||
-    options.column === 'single'
-  );
-  const isLeftCol = !isAts && options.column === 'left';
-  const charsPerLine = isLeftCol ? 26 : (isAts ? 76 : 42);
+  const charsPerLine = getCharsPerLine(options, true);
 
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
   const bLines = Math.max(1, Math.ceil(bStr.length / Math.max(10, charsPerLine)));
@@ -220,22 +251,24 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     }
     case 'about': {
       const text = item.description || item.text || '';
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
-      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      const charsPerLine = getCharsPerLine(options, false);
+      const paragraphs = String(text).split('\n');
+      const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
       return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'skills': {
       const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = getCharsPerLine(options, false);
       const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
       return Math.round((lines * 20) * fontFactor) + itemGap;
     }
     case 'education': {
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = getCharsPerLine(options, false);
       let h = isLeftCol ? 54 : (isAts ? 40 : 46);
       if (item.description) {
-        const lines = Math.max(1, Math.ceil(item.description.length / charsPerLine));
-        h += lines * 20;
+        const paragraphs = String(item.description).split('\n');
+        const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
+        h += descLines * 20;
       }
       return Math.round(h * fontFactor) + itemGap;
     }
@@ -250,9 +283,10 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     case 'simple_list':
     case 'certificates':
     case 'languages': {
-      const charsPerLine = isLeftCol ? 28 : (isAts ? 80 : 44);
+      const charsPerLine = getCharsPerLine(options, false);
       const text = item.text || item.description || item.name || '';
-      const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+      const paragraphs = String(text).split('\n');
+      const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
       const h = 22 + (lines - 1) * 20;
       return Math.round(h * fontFactor) + itemGap;
     }
@@ -263,7 +297,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
       let h = 36;
       if (item.description || item.text) {
         const str = String(item.description || item.text);
-        const charsPerLine = isLeftCol ? 30 : (isAts ? 80 : 50);
+        const charsPerLine = getCharsPerLine(options, false);
         h += Math.max(1, Math.ceil(str.length / charsPerLine)) * 18;
       }
       if (Array.isArray(item.bullets)) {
@@ -442,9 +476,11 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     // Section has items and does not fit entirely on currentPage.
     const remainingOnCurrent = pageCapacity - currentUsedHeight;
     const minNeededForFirstItem = gapBefore + headerHeight + itemHeights[0];
-    const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 1;
+    const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 0;
+    const baseH0 = estimateItemBaseHeight(items[0], section.type, options);
+    const firstBulletH0 = firstItemHasBullets ? estimateSingleBulletHeight(items[0].bullets[0], section.type, options) : 0;
     const minBulletNeeded = firstItemHasBullets
-      ? (gapBefore + headerHeight + estimateItemBaseHeight(items[0], section.type, options) + estimateSingleBulletHeight(items[0].bullets[0], section.type, options))
+      ? (gapBefore + headerHeight + baseH0 + firstBulletH0)
       : minNeededForFirstItem;
 
     // CRITERION 2: If neither first item nor its initial bullets fit, jump to next page
@@ -476,11 +512,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     let partialCandidate = null;
     let partialCandidateRemaining = null;
 
-    const allowGranularBullets = Boolean(
-      options.splitGranularBullets ||
-      options.isEditor ||
-      items.length === 1
-    );
+    const allowGranularBullets = options.splitGranularBullets !== false;
 
     if (allowGranularBullets && splitIdx < items.length) {
       const candidate = items[splitIdx];
@@ -493,7 +525,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         if (accumulated + baseH + firstBulletH <= availableOnPage) {
           let bAcc = baseH;
           let bIdx = 0;
-          while (bIdx < candidate.bullets.length && (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)) {
+          while (
+            bIdx < candidate.bullets.length &&
+            (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)
+          ) {
             bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
             bIdx++;
           }
@@ -526,10 +561,92 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       }
     }
 
-    // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
+    // If on a page with prior content nothing could fit, advance to a fresh page instead of overflowing
     if (splitIdx === 0 && !partialCandidate) {
-      splitIdx = 1;
-      accumulated += itemHeights[0];
+      if (currentUsedHeight > 0) {
+        currentPage++;
+        currentUsedHeight = 0;
+
+        const freshTotalHeight = headerHeight + totalItemsHeight;
+        if (freshTotalHeight <= pageCapacity) {
+          addToBucket(currentPage, section);
+          currentUsedHeight = freshTotalHeight;
+          continue;
+        }
+
+        const freshAvailable = pageCapacity;
+        let freshAccumulated = headerHeight;
+        let freshSplitIdx = 0;
+
+        while (freshSplitIdx < items.length && (freshAccumulated + itemHeights[freshSplitIdx] <= freshAvailable)) {
+          freshAccumulated += itemHeights[freshSplitIdx];
+          freshSplitIdx++;
+        }
+
+        let freshPartial = null;
+        let freshPartialRemaining = null;
+
+        if (allowGranularBullets && freshSplitIdx < items.length) {
+          const candidate = items[freshSplitIdx];
+          const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
+
+          if (hasBullets) {
+            const baseH = estimateItemBaseHeight(candidate, section.type, options);
+            const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+
+            if (freshAccumulated + baseH + firstBulletH <= freshAvailable) {
+              let bAcc = baseH;
+              let bIdx = 0;
+              while (
+                bIdx < candidate.bullets.length &&
+                (freshAccumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= freshAvailable)
+              ) {
+                bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+                bIdx++;
+              }
+
+              if (bIdx > 0 && bIdx < candidate.bullets.length) {
+                freshPartial = {
+                  ...candidate,
+                  bullets: candidate.bullets.slice(0, bIdx),
+                  originalBullets: candidate.bullets,
+                  bulletStartIndex: 0,
+                  isPartialItem: true,
+                };
+                freshPartialRemaining = {
+                  ...candidate,
+                  id: `${candidate.id}__cont_${currentPage + 1}`,
+                  originalItemId: candidate.id,
+                  title: '',
+                  subtitle: '',
+                  date: '',
+                  link: '',
+                  description: '',
+                  bullets: candidate.bullets.slice(bIdx),
+                  originalBullets: candidate.bullets,
+                  bulletStartIndex: bIdx,
+                  isContinuationItem: true,
+                };
+                freshAccumulated += bAcc;
+              }
+            }
+          }
+        }
+
+        if (freshSplitIdx === 0 && !freshPartial) {
+          freshSplitIdx = 1;
+          freshAccumulated += itemHeights[0];
+        }
+
+        splitIdx = freshSplitIdx;
+        accumulated = freshAccumulated;
+        partialCandidate = freshPartial;
+        partialCandidateRemaining = freshPartialRemaining;
+      } else {
+        // If on a fresh page even 1 item exceeds capacity and couldn't be split, force 1 item
+        splitIdx = 1;
+        accumulated += itemHeights[0];
+      }
     }
 
     const page1Items = items.slice(0, splitIdx);
@@ -566,9 +683,67 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         nextIdx++;
       }
 
-      if (nextIdx === 0) {
+      // Check if the boundary item on this continuation page can be split at bullet level
+      let contPartial = null;
+      let contPartialRemaining = null;
+
+      if (allowGranularBullets && nextIdx < remItems.length) {
+        const candidate = remItems[nextIdx];
+        const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
+
+        if (hasBullets) {
+          const isAlreadyCont = Boolean(candidate.isContinuationItem);
+          const baseH = isAlreadyCont ? 0 : estimateItemBaseHeight(candidate, section.type, options);
+          const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+
+          if (contAcc + baseH + firstBulletH <= pageCapacity) {
+            let bAcc = baseH;
+            let bIdx = 0;
+            while (
+              bIdx < candidate.bullets.length &&
+              (contAcc + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= pageCapacity)
+            ) {
+              bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+              bIdx++;
+            }
+
+            if (bIdx > 0 && bIdx < candidate.bullets.length) {
+              const startOffset = candidate.bulletStartIndex || 0;
+              contPartial = {
+                ...candidate,
+                bullets: candidate.bullets.slice(0, bIdx),
+                originalBullets: candidate.originalBullets || candidate.bullets,
+                bulletStartIndex: startOffset,
+                isPartialItem: true,
+              };
+              contPartialRemaining = {
+                ...candidate,
+                id: `${candidate.originalItemId || candidate.id}__cont_${currentPage + 1}`,
+                originalItemId: candidate.originalItemId || candidate.id,
+                title: '',
+                subtitle: '',
+                date: '',
+                link: '',
+                description: '',
+                bullets: candidate.bullets.slice(bIdx),
+                originalBullets: candidate.originalBullets || candidate.bullets,
+                bulletStartIndex: startOffset + bIdx,
+                isContinuationItem: true,
+              };
+              contAcc += bAcc;
+            }
+          }
+        }
+      }
+
+      if (nextIdx === 0 && !contPartial) {
         nextIdx = 1;
         contAcc += remHeights[0];
+      }
+
+      const pageItems = remItems.slice(0, nextIdx);
+      if (contPartial) {
+        pageItems.push(contPartial);
       }
 
       const contPart = {
@@ -583,13 +758,22 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
           : options.reduceContinuationHeader
             ? `${section.title} (Cont.)`
             : section.title,
-        items: remItems.slice(0, nextIdx),
+        items: pageItems,
       };
       addToBucket(currentPage, contPart);
       currentUsedHeight = contAcc;
 
-      remItems = remItems.slice(nextIdx);
-      remHeights = remHeights.slice(nextIdx);
+      let nextRemItems = remItems.slice(nextIdx + (contPartial ? 1 : 0));
+      let nextRemHeights = remHeights.slice(nextIdx + (contPartial ? 1 : 0));
+
+      if (contPartialRemaining) {
+        const remH = estimateItemBulletsHeight(contPartialRemaining.bullets, section.type, options);
+        nextRemItems = [contPartialRemaining, ...nextRemItems];
+        nextRemHeights = [remH, ...nextRemHeights];
+      }
+
+      remItems = nextRemItems;
+      remHeights = nextRemHeights;
     }
   }
 
@@ -633,10 +817,12 @@ export function distributeSectionsToPages(cvData, options = {}) {
     fontScale: layout.fontScale ?? 1.0,
     titleScale: layout.titleScale ?? 1.0,
     bodyScale: layout.bodyScale ?? 1.0,
+    listScale: layout.listScale ?? 1.0,
     lineHeight: layout.lineHeight ?? 1.45,
     pagePaddingPx: layout.pagePadding ?? DEFAULT_PAGE_PADDING,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
+    leftColumnWidth: options.leftColumnWidth ?? (layout.leftColumnWidth || 33.33),
     isAts,
     isAtsMode: isAts,
     ...options,
@@ -644,7 +830,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
 
   const pageHeight = mergedOptions.pageHeightPx ?? A4_PAGE_HEIGHT_PX;
   const padding = mergedOptions.pagePaddingPx ?? DEFAULT_PAGE_PADDING;
-  const safetyHeadroom = isAts ? 0 : (mergedOptions.isEditor ? 195 : 100);
+  const safetyHeadroom = Number(mergedOptions.safetyHeadroom ?? 0);
   const usefulCapacity = mergedOptions.pageCapacity ?? (pageHeight - 2 * padding - safetyHeadroom);
 
   let singleBuckets = {};
@@ -652,13 +838,30 @@ export function distributeSectionsToPages(cvData, options = {}) {
   let rightBuckets = {};
 
   if (isAts) {
-    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, { ...mergedOptions, column: 'single' });
+    singleBuckets = distributeSectionListToPageBuckets(sections, usefulCapacity, {
+      ...mergedOptions,
+      column: 'single',
+      columnWidthPx: 746,
+    });
   } else {
+    const leftColPercent = Number(mergedOptions.leftColumnWidth) || 33.33;
+    const contentWidth = 746;
+    const leftColWidthPx = Math.round(contentWidth * (leftColPercent / 100));
+    const rightColWidthPx = Math.round(contentWidth * ((100 - leftColPercent) / 100));
+
     const leftList = sections.filter(s => s && s.column === 'left');
     const rightList = sections.filter(s => s && s.column !== 'left');
 
-    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, { ...mergedOptions, column: 'left' });
-    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, { ...mergedOptions, column: 'right' });
+    leftBuckets = distributeSectionListToPageBuckets(leftList, usefulCapacity, {
+      ...mergedOptions,
+      column: 'left',
+      columnWidthPx: leftColWidthPx,
+    });
+    rightBuckets = distributeSectionListToPageBuckets(rightList, usefulCapacity, {
+      ...mergedOptions,
+      column: 'right',
+      columnWidthPx: rightColWidthPx,
+    });
   }
 
   const allBucketKeys = [
