@@ -119,6 +119,11 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
     return 0;
   }
 
+  const headerKey = `header_${section.originalSectionId || section.id}`;
+  if (options.measuredHeights && typeof options.measuredHeights[headerKey] === 'number' && options.measuredHeights[headerKey] > 0) {
+    return options.measuredHeights[headerKey];
+  }
+
   if (typeof options.headerHeightPx === 'number') {
     return options.headerHeightPx;
   }
@@ -152,6 +157,11 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
  */
 export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
   if (!item || typeof item !== 'object') return options.fallbackItemHeightPx ?? FALLBACK_ITEM_HEIGHT_PX;
+  const id = item.originalItemId || item.id;
+  const baseKey = `base_${id}`;
+  if (options.measuredHeights && typeof options.measuredHeights[baseKey] === 'number' && options.measuredHeights[baseKey] > 0) {
+    return options.measuredHeights[baseKey];
+  }
   if (typeof item.height === 'number' && item.height > 0) return item.height;
 
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
@@ -184,9 +194,13 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
  * @param {string|Object} bullet - Bullet string or object
  * @param {string} [sectionType=''] - Type of section containing the bullet
  * @param {Object} [options={}] - Distribution options
+ * @param {string} [bulletKey=''] - Optional DOM key for exact measurement lookup
  * @returns {number} Estimated bullet height in px
  */
-export function estimateSingleBulletHeight(bullet, sectionType = '', options = {}) {
+export function estimateSingleBulletHeight(bullet, sectionType = '', options = {}, bulletKey = '') {
+  if (bulletKey && options.measuredHeights && typeof options.measuredHeights[bulletKey] === 'number' && options.measuredHeights[bulletKey] > 0) {
+    return options.measuredHeights[bulletKey];
+  }
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const normalLineH = calcLineHeightPx('normal', options);
   const charsPerLine = getCharsPerLine(options, true);
@@ -201,11 +215,15 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
  * @param {Array<string|Object>} bullets - Array of bullets
  * @param {string} [sectionType=''] - Type of section containing bullets
  * @param {Object} [options={}] - Distribution options
+ * @param {string} [itemId=''] - Optional item ID to qualify bullet measurement keys
  * @returns {number}
  */
-export function estimateItemBulletsHeight(bullets, sectionType = '', options = {}) {
+export function estimateItemBulletsHeight(bullets, sectionType = '', options = {}, itemId = '') {
   if (!Array.isArray(bullets) || bullets.length === 0) return 0;
-  return bullets.reduce((sum, b) => sum + estimateSingleBulletHeight(b, sectionType, options), 0);
+  return bullets.reduce((sum, b, idx) => {
+    const key = itemId ? `${itemId}_bullet_${idx}` : '';
+    return sum + estimateSingleBulletHeight(b, sectionType, options, key);
+  }, 0);
 }
 
 /**
@@ -218,6 +236,10 @@ export function estimateItemBulletsHeight(bullets, sectionType = '', options = {
  */
 export function estimateItemHeight(item, sectionType = '', options = {}) {
   if (!item || typeof item !== 'object') return options.fallbackItemHeightPx ?? FALLBACK_ITEM_HEIGHT_PX;
+  const id = item.originalItemId || item.id;
+  if (options.measuredHeights && typeof options.measuredHeights[id] === 'number' && options.measuredHeights[id] > 0) {
+    return options.measuredHeights[id];
+  }
   if (typeof options.itemHeightEstimator === 'function') {
     const custom = options.itemHeightEstimator(item, sectionType, options);
     if (typeof custom === 'number' && !isNaN(custom)) return custom;
@@ -524,17 +546,18 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
 
       if (hasBullets) {
+        const candId = candidate.originalItemId || candidate.id;
         const baseH = estimateItemBaseHeight(candidate, section.type, options);
-        const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+        const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options, `${candId}_bullet_0`);
 
         if (accumulated + baseH + firstBulletH <= availableOnPage) {
           let bAcc = baseH;
           let bIdx = 0;
           while (
             bIdx < candidate.bullets.length &&
-            (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= availableOnPage)
+            (accumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${bIdx}`) <= availableOnPage)
           ) {
-            bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+            bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${bIdx}`);
             bIdx++;
           }
 
@@ -703,18 +726,20 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
 
         if (hasBullets) {
+          const candId = candidate.originalItemId || candidate.id;
           const isAlreadyCont = Boolean(candidate.isContinuationItem);
+          const startOffset = candidate.bulletStartIndex || 0;
           const baseH = isAlreadyCont ? 0 : estimateItemBaseHeight(candidate, section.type, options);
-          const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options);
+          const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options, `${candId}_bullet_${startOffset}`);
 
           if (contAcc + baseH + firstBulletH <= pageCapacity) {
             let bAcc = baseH;
             let bIdx = 0;
             while (
               bIdx < candidate.bullets.length &&
-              (contAcc + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options) <= pageCapacity)
+              (contAcc + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${startOffset + bIdx}`) <= pageCapacity)
             ) {
-              bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options);
+              bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${startOffset + bIdx}`);
               bIdx++;
             }
 

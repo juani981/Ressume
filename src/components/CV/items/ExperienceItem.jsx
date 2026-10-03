@@ -34,7 +34,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={item.originalItemId || item.id} className="item-base-block">
             <h3 className="experience__title">
               <InlineEdit 
                 value={item.title || ''} 
@@ -70,7 +70,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {bullets.length > 0 && (
@@ -167,7 +167,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={targetItemId || item.id} className="item-base-block">
             <h3 className="experience__title">
               <InlineEdit 
                 value={item.title || ''} 
@@ -204,7 +204,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {/* Draggable Bullets List with Add/Delete capabilities */}

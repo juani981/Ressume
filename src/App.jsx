@@ -12,6 +12,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
 import { useColumnResizer } from "./hooks/useColumnResizer";
 import { useDocumentPages } from "./hooks/useDocumentPages";
+import { useLiveDomHeights } from "./hooks/useLiveDomHeights";
 
 import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
@@ -57,8 +58,14 @@ function App() {
       moveSectionToColumnAndIndex,
    });
 
-   // 2. Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
-   const { pages, totalPages } = useDocumentPages({ cvData });
+   // 2. Live DOM Measurement for exact WYSIWYG A4 page distribution
+   const measuredHeights = useLiveDomHeights(areaCvRef, [cvData.layout, cvData.sections]);
+
+   // Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
+   const { pages, totalPages } = useDocumentPages({
+      cvData,
+      options: { measuredHeights },
+   });
 
    // Keep context synchronized with document page count
    useEffect(() => {
