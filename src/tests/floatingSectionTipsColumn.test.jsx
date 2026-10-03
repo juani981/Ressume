@@ -289,6 +289,53 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
       });
     });
   });
+
+  it('10. Bidirectional Section ↔ Callout Interaction: hovering or focusing inside a CV section activates the corresponding tip card and section highlight', () => {
+    const { container } = render(
+      <CVProvider initialCV={mockCVData}>
+        <div id="area-cv">
+          <div data-section-id="skills" className="cv-section" data-testid="cv-section-skills">
+            Skills Content
+          </div>
+          <div data-section-id="experience" className="cv-section" data-testid="cv-section-experience">
+            Experience Content
+          </div>
+        </div>
+        <AITipsSidebar />
+      </CVProvider>
+    );
+
+    const skillsSection = screen.getByTestId('cv-section-skills');
+    const skillsCard = container.querySelector('.ai-tip-card-wrapper[data-section-id="skills"]');
+    expect(skillsCard).toBeInTheDocument();
+
+    // 1. Trigger pointerOver on skills section
+    fireEvent.pointerOver(skillsSection);
+
+    // Section should gain highlight class
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(true);
+
+    // Skills card should receive blue highlight border
+    expect(skillsCard.style.border).toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 2. Trigger pointerLeave on area-cv
+    const areaCv = document.getElementById('area-cv');
+    fireEvent.pointerLeave(areaCv);
+
+    // Section and card should lose highlight
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(false);
+    expect(skillsCard.style.border).not.toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 3. Trigger focusIn inside skills section (e.g. user typing in an inline edit field)
+    fireEvent.focusIn(skillsSection);
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(true);
+    expect(skillsCard.style.border).toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 4. Trigger focusOut outside area-cv
+    fireEvent.focusOut(skillsSection);
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(false);
+    expect(skillsCard.style.border).not.toContain('1.5px solid rgb(59, 130, 246)');
+  });
 });
 
 
