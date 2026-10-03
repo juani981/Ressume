@@ -1609,6 +1609,37 @@ a,
   transform: translateY(-50%) translateX(0);
 }
 
+/*========== ACTION MENU CONTROLS & PEEK TAB ==========*/
+.action-menu-control-btn:hover {
+  background-color: rgba(56, 116, 255, 0.1) !important;
+  color: #3b82f6 !important;
+}
+
+.action-menu-control-btn.is-pinned {
+  color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+.l-navbar.is-collapsed {
+  cursor: pointer;
+}
+
+.action-menu-edge-handle {
+  user-select: none;
+}
+
+.l-navbar.is-collapsed:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16) !important;
+}
+
+.l-navbar.is-preparing {
+  border-right: 2px solid #3b82f6 !important;
+}
+
+body.ats-mode-active .l-navbar.is-collapsed:hover {
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5) !important;
+}
+
 /* ==========================================================
    ATS 1-COLUMN MODE & SOBER ACCENTS STYLES (EPIC 3)
    ========================================================== */
