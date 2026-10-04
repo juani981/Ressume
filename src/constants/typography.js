@@ -61,3 +61,16 @@ export function getFontAdvanceRatio(fontFamily) {
   if (!fontFamily) return DEFAULT_FONT_ADVANCE_RATIO;
   return FONT_ADVANCE_RATIOS[fontFamily] || DEFAULT_FONT_ADVANCE_RATIO;
 }
+
+/**
+ * Standard calibrated characters capacity per line by column type (SSOT).
+ * Used for deterministic fallback layout calculations prior to live DOM measurement.
+ */
+export const DEFAULT_COLUMN_CHARS_CAPACITY = Object.freeze({
+  left: Object.freeze({ text: 28, bullet: 26 }),
+  right: Object.freeze({ text: 44, bullet: 42 }),
+  single: Object.freeze({ text: 72, bullet: 70 }),
+});
+
+export const MIN_CHARS_PER_LINE = 12;
+export const LEFT_COLUMN_TITLE_WRAP_CHARS = 18;

@@ -5,7 +5,12 @@
  * for universal typography scaling and line heights across the CV editor and print engine.
  */
 
-import { A4_PAGE_SIZE } from '../constants/index.js';
+import {
+  PRINT_PAGE_SIZE,
+  DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+  DEFAULT_GRID_TEMPLATE_COLUMNS,
+  formatGridTemplateColumns,
+} from '../constants/geometry.js';
 import {
   DEFAULT_PAGE_PADDING_PX,
   DEFAULT_SECTION_GAP_PX,
@@ -13,8 +18,9 @@ import {
   DEFAULT_LINE_HEIGHT,
 } from '../constants/spacing.js';
 import {
+  FONT_FAMILIES,
+  DEFAULT_FONT_FAMILY,
   BASE_FONT_SIZES_PX,
-  getFontAdvanceRatio,
 } from '../constants/typography.js';
 
 export {
@@ -26,11 +32,6 @@ export {
   BASE_FONT_SIZES_PX,
   FONT_ADVANCE_RATIOS,
   getFontAdvanceRatio,
-} from '../constants/typography.js';
-
-import {
-  FONT_FAMILIES,
-  DEFAULT_FONT_FAMILY,
 } from '../constants/typography.js';
 
 /**
@@ -82,10 +83,10 @@ export function computeTypographyTokens(layout = {}) {
   const pagePadding = layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
   const sectionGap = layout.sectionGap ?? DEFAULT_SECTION_GAP_PX;
   const itemGap = layout.itemGap ?? DEFAULT_ITEM_GAP_PX;
-  const leftColPercent = layout.leftColumnWidth || 33.33;
+  const leftColPercent = layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
   const gridTemplateColumns = layout.leftColumnWidth
-    ? `${layout.leftColumnWidth}% ${100 - layout.leftColumnWidth}%`
-    : '1fr 2fr';
+    ? formatGridTemplateColumns(layout.leftColumnWidth)
+    : DEFAULT_GRID_TEMPLATE_COLUMNS;
 
   return {
     '--body-font': currentFontFamily,
@@ -101,7 +102,7 @@ export function computeTypographyTokens(layout = {}) {
     '--left-col-percent': `${leftColPercent}%`,
     '--left-bg': layout.leftBg || 'var(--container-color-alt)',
     '--right-bg': layout.rightBg || '#ffffff',
-    ...A4_PAGE_SIZE.cssVariables,
+    ...PRINT_PAGE_SIZE.cssVariables,
   };
 }
 

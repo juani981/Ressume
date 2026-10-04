@@ -15,6 +15,7 @@
 import {
   A4_PAGE_HEIGHT_PX,
   A4_WIDTH_PX,
+  DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
 } from '../constants/geometry.js';
 import {
   DEFAULT_PAGE_PADDING_PX,
@@ -32,18 +33,39 @@ import {
   DEFAULT_SPACER_HEIGHT_PX,
 } from '../constants/spacing.js';
 import {
+  DEFAULT_COLUMN_CHARS_CAPACITY,
+  MIN_CHARS_PER_LINE,
+  LEFT_COLUMN_TITLE_WRAP_CHARS,
+  TYPOGRAPHY_SCALE_LIMITS,
+} from '../constants/typography.js';
+import {
   calcLineHeightPx,
 } from './typographyUtils.js';
 import { createPageModel, deepFreeze } from './pageModelTypes.js';
 import { getSectionDescriptor } from '../registry/sectionRegistry.js';
 
-export {
-  DEFAULT_SECTION_GAP_PX,
-  DEFAULT_ITEM_GAP_PX,
-};
+/**
+ * Determines whether the given options, cvData, or layout object corresponds to 1-column / ATS mode.
+ * Single Source of Truth for ATS mode resolution across distributor and components.
+ *
+ * @param {Object} [target={}] - Layout configuration, cvData, or distributor options
+ * @returns {boolean} True if ATS / 1-column mode is active
+ */
+export function isAtsLayout(target = {}) {
+  if (!target || typeof target !== 'object') return false;
+  if (target.isAts === true) return true;
+  if (target.isAts === false) return false;
+  if (target.mode === '1-column' || target.mode === 'ats' || target.column === 'single') return true;
+  if (target.mode === '2-column') return false;
+  if (target.isAtsMode === true) return true;
+  if (target.type === '1-column') return true;
 
-export const DEFAULT_HEADER_HEIGHT_PX = 28;
-export const CONTINUATION_HEADER_HEIGHT_PX = 0;
+  if (target.layout && typeof target.layout === 'object') {
+    return isAtsLayout(target.layout);
+  }
+
+  return false;
+}
 
 /**
  * Estimates the height of a section header in pixels.
@@ -79,15 +101,9 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
 
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const h2LineHeight = calcLineHeightPx('h2', options);
-  const isAts = Boolean(
-    options.isAts ||
-    options.isAtsMode ||
-    options.mode === 'ats' ||
-    options.mode === '1-column' ||
-    options.column === 'single'
-  );
+  const isAts = isAtsLayout(options);
   const isLeftCol = !isAts && options.column === 'left';
-  const isMultiLine = isLeftCol && section.title.trim().length > 18;
+  const isMultiLine = isLeftCol && section.title.trim().length > (options.leftColumnTitleWrapChars ?? LEFT_COLUMN_TITLE_WRAP_CHARS);
   const lines = isMultiLine ? 2 : 1;
   const headerMarginRatio = options.headerMarginBottomRatio ?? DEFAULT_HEADER_MARGIN_BOTTOM_RATIO;
   const headerMargin = Math.round(itemGap * headerMarginRatio);
@@ -105,14 +121,15 @@ export function estimateHeaderHeight(section, isContinuation = false, options = 
  * @returns {number}
  */
 export function getCharsPerLine(options = {}, isBullet = false) {
-  const isAts = Boolean(
-    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
-  );
+  const isAts = isAtsLayout(options);
   const isLeftCol = !isAts && options.column === 'left';
   const fontScale = options.fontScale ?? (isBullet ? (options.listScale ?? 1.0) : (options.bodyScale ?? 1.0));
 
-  const baseChars = isLeftCol ? (isBullet ? 26 : 28) : (isAts ? (isBullet ? 70 : 72) : (isBullet ? 42 : 44));
-  return Math.max(12, Math.floor(baseChars / Math.max(0.7, fontScale)));
+  const colKey = isLeftCol ? 'left' : (isAts ? 'single' : 'right');
+  const typeKey = isBullet ? 'bullet' : 'text';
+  const baseChars = DEFAULT_COLUMN_CHARS_CAPACITY[colKey][typeKey];
+
+  return Math.max(MIN_CHARS_PER_LINE, Math.floor(baseChars / Math.max(TYPOGRAPHY_SCALE_LIMITS.fontScale.min, fontScale)));
 }
 
 /**
@@ -221,9 +238,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
     return descriptor.estimateItemHeight(item, options);
   }
 
-  const isAts = Boolean(
-    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
-  );
+  const isAts = isAtsLayout(options);
   const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const normalLineH = calcLineHeightPx('normal', options);
   const smallLineH = calcLineHeightPx('small', options);
@@ -320,9 +335,7 @@ export function estimateItemHeight(item, sectionType = '', options = {}) {
  */
 export function estimateSectionHeight(section, options = {}) {
   if (!section || typeof section !== 'object') return 0;
-  const isAts = Boolean(
-    options.isAts || options.isAtsMode || options.mode === 'ats' || options.mode === '1-column' || options.column === 'single'
-  );
+  const isAts = isAtsLayout(options);
   if (isAts && section.type === 'photo') return 0;
 
   const headerH = estimateHeaderHeight(section, false, options);
@@ -343,11 +356,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
   let currentUsedHeight = 0;
   const minCapacity = options.minPageCapacityPx ?? MIN_PAGE_CAPACITY_PX;
   const pageCapacity = Math.max(minCapacity, capacity);
-  const isAts = Boolean(
-    options?.isAtsMode ||
-    options?.mode === '1-column' ||
-    options?.column === 'single'
-  );
+  const isAts = isAtsLayout(options);
 
   function addToBucket(pageNum, sec) {
     if (!buckets[pageNum]) buckets[pageNum] = [];
@@ -796,16 +805,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
   const layout = cv.layout || {};
   const sections = Array.isArray(cv.sections) ? cv.sections : [];
 
-  let isAts = false;
-  if (options.mode === '1-column' || options.mode === 'ats') {
-    isAts = true;
-  } else if (options.mode === '2-column') {
-    isAts = false;
-  } else if (options.isAtsMode != null) {
-    isAts = Boolean(options.isAtsMode);
-  } else {
-    isAts = Boolean(layout.isAtsMode === true || layout.type === '1-column');
-  }
+  const isAts = isAtsLayout(options.mode ? options : { ...layout, ...options });
 
   const pageHeight = options.pageHeightPx ?? layout.pageHeight ?? A4_PAGE_HEIGHT_PX;
   const padding = options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
@@ -826,7 +826,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
     lineHeight: layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
-    leftColumnWidth: layout.leftColumnWidth || 33.33,
+    leftColumnWidth: layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
     ...options,
     isAts,
   };
@@ -842,7 +842,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
       columnWidthPx: A4_WIDTH_PX - 2 * padding,
     });
   } else {
-    const leftPct = Number(mergedOptions.leftColumnWidth) || 33.33;
+    const leftPct = Number(mergedOptions.leftColumnWidth) || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
     const contentWidth = A4_WIDTH_PX - 2 * padding;
     const leftColWidthPx = Math.round(contentWidth * (leftPct / 100));
     const rightColWidthPx = contentWidth - leftColWidthPx;

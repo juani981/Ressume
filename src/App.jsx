@@ -23,7 +23,14 @@ import DroppableColumn from "./components/Editor/DroppableColumn";
 import {
    A4_WIDTH_PX,
    A4_HEIGHT_CSS,
+   DEFAULT_PAGE_PADDING_PX,
+   DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+   DEFAULT_GRID_TEMPLATE_COLUMNS,
+   formatGridTemplateColumns,
+   BASE_COLUMN_STYLE,
+   COLOR_TOKENS,
 } from "./constants";
+import { isAtsLayout } from "./utils/pageDistributor";
 
 function App() {
    const {
@@ -91,10 +98,8 @@ function App() {
    };
 
    // Layout Modes & Class Toggles
-   const isAtsMode =
-      cvData.layout?.isAtsMode === true || cvData.layout?.type === "1-column";
-   const is2Col =
-      cvData.layout?.type === "2-column" && !cvData.layout?.isAtsMode;
+   const isAtsMode = isAtsLayout(cvData.layout);
+   const is2Col = !isAtsMode;
 
    useEffect(() => {
       if (isAtsMode) {
@@ -111,11 +116,11 @@ function App() {
    const dynamicSpacing = computeTypographyTokens(cvData.layout);
 
    const leftColumnWidth = cvData.layout?.leftColumnWidth;
-   const leftColPercent = leftColumnWidth || 33.33;
+   const leftColPercent = leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
    const gridTemplateColumns = is2Col
       ? leftColumnWidth
-         ? `${leftColumnWidth}% ${100 - leftColumnWidth}%`
-         : "1fr 2fr"
+         ? formatGridTemplateColumns(leftColumnWidth)
+         : DEFAULT_GRID_TEMPLATE_COLUMNS
       : undefined;
 
    return (
@@ -175,7 +180,7 @@ function App() {
                              "--left-bg":
                                 cvData.layout?.leftBg ||
                                 "var(--container-color-alt)",
-                             "--right-bg": cvData.layout?.rightBg || "#ffffff",
+                             "--right-bg": cvData.layout?.rightBg || COLOR_TOKENS.containerWhite,
                           }
                         : {}),
                      ...dynamicSpacing,
@@ -187,8 +192,8 @@ function App() {
                         totalPages={pages.length}
                         is2Col={is2Col}
                         isAtsMode={isAtsMode}
-                        leftBg={cvData.layout?.leftBg || "#f3f4f6"}
-                        rightBg={cvData.layout?.rightBg || "#ffffff"}
+                        leftBg={cvData.layout?.leftBg || COLOR_TOKENS.containerLight}
+                        rightBg={cvData.layout?.rightBg || COLOR_TOKENS.containerWhite}
                         leftColPercent={leftColPercent}
                         gridTemplateColumns={gridTemplateColumns}
                         pageHeight={A4_HEIGHT_CSS}
@@ -202,20 +207,11 @@ function App() {
                                  column="left"
                                  className="resume__left"
                                  style={{
+                                    ...BASE_COLUMN_STYLE,
                                     background:
                                        cvData.layout?.leftBg ||
                                        "var(--container-color-alt)",
-                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
-                                    minHeight: "100%",
-                                    height: "100%",
-                                    alignSelf: "stretch",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    boxSizing: "border-box",
-                                    minWidth: 0,
-                                    maxWidth: "100%",
-                                    overflowWrap: "break-word",
-                                    wordBreak: "break-word",
+                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`,
                                     color: "var(--text-color)",
                                     ...getDynamicTextVariables(cvData.layout?.leftBg),
                                  }}>
@@ -266,20 +262,11 @@ function App() {
                                  column="right"
                                  className="resume__right"
                                  style={{
+                                    ...BASE_COLUMN_STYLE,
                                     background:
                                        cvData.layout?.rightBg ||
                                        "var(--container-color)",
-                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
-                                    minHeight: "100%",
-                                    height: "100%",
-                                    alignSelf: "stretch",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    boxSizing: "border-box",
-                                    minWidth: 0,
-                                    maxWidth: "100%",
-                                    overflowWrap: "break-word",
-                                    wordBreak: "break-word",
+                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`,
                                     color: "var(--text-color)",
                                     ...getDynamicTextVariables(cvData.layout?.rightBg),
                                  }}>

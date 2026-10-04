@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { COLUMN_RESIZER_LIMITS } from '../constants/geometry';
 
 /**
  * Manages dragging interaction for resizing two-column layout proportions.
@@ -13,9 +14,9 @@ import { useState, useCallback } from 'react';
  * @param {Object} options
  * @param {React.RefObject<HTMLElement>} options.areaCvRef - Ref to the root CV paper element
  * @param {Function} options.onResize - Callback receiving the clamped width percentage (e.g. 33)
- * @param {number} [options.minPercent=20] - Lower boundary limit for left column percentage
- * @param {number} [options.maxPercent=55] - Upper boundary limit for left column percentage
- * @param {number} [options.initialLeftWidth=33] - Initial or current left column width
+ * @param {number} [options.minPercent=COLUMN_RESIZER_LIMITS.minPercent] - Lower boundary limit for left column percentage
+ * @param {number} [options.maxPercent=COLUMN_RESIZER_LIMITS.maxPercent] - Upper boundary limit for left column percentage
+ * @param {number} [options.initialLeftWidth=COLUMN_RESIZER_LIMITS.defaultPercent] - Initial or current left column width
  * @returns {{
  *   isResizing: boolean,
  *   startResizing: (e: any) => void,
@@ -26,9 +27,9 @@ import { useState, useCallback } from 'react';
 export function useColumnResizer({
   areaCvRef,
   onResize,
-  minPercent = 20,
-  maxPercent = 55,
-  initialLeftWidth = 33,
+  minPercent = COLUMN_RESIZER_LIMITS.minPercent,
+  maxPercent = COLUMN_RESIZER_LIMITS.maxPercent,
+  initialLeftWidth = COLUMN_RESIZER_LIMITS.defaultPercent,
 }) {
   const [isResizing, setIsResizing] = useState(false);
 

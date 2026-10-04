@@ -12,7 +12,7 @@
  */
 
 import { useMemo } from 'react';
-import { distributeSectionsToPages } from '../utils/pageDistributor';
+import { distributeSectionsToPages, isAtsLayout } from '../utils/pageDistributor';
 import {
   A4_PAGE_HEIGHT_PX,
   DEFAULT_PAGE_PADDING,
@@ -57,8 +57,8 @@ export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
       itemGapPx: options.itemGapPx ?? layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
 
       // Mode resolution
-      isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
-      mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      isAtsMode: options.isAtsMode ?? isAtsLayout(layout),
+      mode: options.mode ?? (isAtsLayout(layout) ? 'ats' : '2-column'),
       leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 

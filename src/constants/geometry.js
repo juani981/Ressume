@@ -94,10 +94,50 @@ export const EDITOR_PAGE_SIZE = Object.freeze({
   }),
 });
 
-// A4_PAGE_SIZE alias of PRINT_PAGE_SIZE
+// A4_PAGE_SIZE alias of PRINT_PAGE_SIZE (retained for backward compatibility)
 export const A4_PAGE_SIZE = PRINT_PAGE_SIZE;
 
-// 4. Frozen Canonical Page Geometry Object
+// 4. Multi-Column Layout Proportions & Limits (SSOT)
+export const DEFAULT_LEFT_COLUMN_WIDTH_PERCENT = 33.33;
+export const DEFAULT_RIGHT_COLUMN_WIDTH_PERCENT = 66.67;
+export const DEFAULT_GRID_TEMPLATE_COLUMNS = '1fr 2fr';
+export const EDITOR_PAGE_GAP_PX = 32;
+
+export const COLUMN_RESIZER_LIMITS = Object.freeze({
+  minPercent: 20,
+  maxPercent: 55,
+  defaultPercent: DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+});
+
+/**
+ * Formats CSS grid-template-columns string given left column width percentage.
+ * @param {number|string} [leftPercent=DEFAULT_LEFT_COLUMN_WIDTH_PERCENT]
+ * @returns {string} CSS grid-template-columns value
+ */
+export function formatGridTemplateColumns(leftPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT) {
+  if (!leftPercent) return DEFAULT_GRID_TEMPLATE_COLUMNS;
+  const left = Number(leftPercent) || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
+  return `${left}% ${+(100 - left).toFixed(2)}%`;
+}
+
+/**
+ * Canonical layout styling for multi-column resume containers (SSOT).
+ * Shared across editor A4PageBox and DroppableColumn wrappers.
+ */
+export const BASE_COLUMN_STYLE = Object.freeze({
+  height: '100%',
+  minHeight: '100%',
+  alignSelf: 'stretch',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: 0,
+  maxWidth: '100%',
+  overflowWrap: 'break-word',
+  wordBreak: 'break-word',
+});
+
+// 5. Frozen Canonical Page Geometry Object
 export const A4_GEOMETRY = Object.freeze({
   widthMm: A4_WIDTH_MM,
   heightMm: A4_HEIGHT_MM,

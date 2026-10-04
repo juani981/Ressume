@@ -21,8 +21,9 @@
  *    for immediate consumption by existing modules and test suites.
  */
 
-import { distributeSectionsToPages } from './pageDistributor.js';
+import { distributeSectionsToPages, isAtsLayout } from './pageDistributor.js';
 import { getDynamicTextColors } from './colorUtils.js';
+import { DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../constants/geometry.js';
 import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { sanitizeAndValidateCVSnapshot } from './cvSchemaValidator.js';
 import { stripHtml } from './richTextEngine.js';
@@ -504,7 +505,7 @@ export const extractNormalizedSections = (cvData, pageModels = []) => {
  */
 export const generatePhysicalPageLayout = (cvData, options = {}) => {
   const layout = cvData?.layout || {};
-  const isAts = Boolean(options.mode === '1-column' || options.mode === 'ats' || layout.isAtsMode === true || layout.type === '1-column');
+  const isAts = isAtsLayout(options.mode ? options : { ...layout, ...options });
   const pageModels = distributeSectionsToPages(cvData, {
     ...options,
     isAtsMode: isAts,
@@ -512,7 +513,7 @@ export const generatePhysicalPageLayout = (cvData, options = {}) => {
   });
 
   const dynamicColors = getDynamicTextColors(layout.rightBg || layout.leftBg || '#ffffff');
-  const leftColPercent = layout.leftColumnWidth || (isAts ? 100 : 33.33);
+  const leftColPercent = layout.leftColumnWidth || (isAts ? 100 : DEFAULT_LEFT_COLUMN_WIDTH_PERCENT);
 
   const pageDistribution = pageModels.map(page => {
     const singleSecs = (page.singleSections || []).map(s => s.title || s.id);
@@ -617,7 +618,7 @@ export const generateSchemaContractForLLM = () => {
 export const generateCVLivePdfAbstraction = (cvData, options = {}) => {
   const validated = sanitizeAndValidateCVSnapshot(cvData);
   const layout = validated.layout || {};
-  const isAts = Boolean(options.mode === '1-column' || options.mode === 'ats' || layout.isAtsMode === true || layout.type === '1-column');
+  const isAts = isAtsLayout(options.mode ? options : { ...layout, ...options });
 
   // 1. Generate Physical Layout and Page Distribution
   const { pageModels, physicalLayoutData } = generatePhysicalPageLayout(validated, {
