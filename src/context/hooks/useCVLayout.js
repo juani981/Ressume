@@ -5,6 +5,11 @@
  */
 import { useState, useCallback } from 'react';
 import { defaultSchema } from '../../utils/schema';
+import {
+  A4_PAGE_HEIGHT_PX,
+  A4_HEIGHT_CSS,
+  A4_GAP_PX,
+} from '../../constants';
 
 /**
  * Hook managing CV layout dimensions, pagination geometry, and floating overlays.
@@ -35,7 +40,7 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     if (typeof document !== 'undefined') {
       try {
         const ruler = document.createElement('div');
-        ruler.style.height = '297mm';
+        ruler.style.height = A4_HEIGHT_CSS;
         ruler.style.position = 'absolute';
         ruler.style.visibility = 'hidden';
         ruler.style.top = '-9999px';
@@ -45,10 +50,10 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
         if (h > 0) return h;
       } catch (_) {}
     }
-    return 1123;
+    return A4_PAGE_HEIGHT_PX;
   });
 
-  const pageGapPx = 20; // 20px gap visual representation in live editor
+  const pageGapPx = A4_GAP_PX; // A4 gap visual representation in live editor
   const [totalPages, setTotalPages] = useState(1);
   const [paginationTrigger, setPaginationTrigger] = useState(0);
 

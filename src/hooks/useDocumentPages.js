@@ -12,8 +12,14 @@
  */
 
 import { useMemo } from 'react';
-import { distributeSectionsToPages } from '../utils/pageDistributor';
-import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING, DEFAULT_LINE_HEIGHT } from '../constants';
+import { distributeSectionsToPages, isAtsLayout } from '../utils/pageDistributor';
+import {
+  A4_PAGE_HEIGHT_PX,
+  DEFAULT_PAGE_PADDING,
+  DEFAULT_LINE_HEIGHT,
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP_PX,
+} from '../constants';
 
 const DEFAULT_OPTIONS = Object.freeze({});
 
@@ -47,12 +53,12 @@ export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
       bodyScale: options.bodyScale ?? layout.bodyScale ?? 1.0,
       listScale: options.listScale ?? layout.listScale ?? 1.0,
       lineHeight: options.lineHeight ?? layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
-      sectionGapPx: options.sectionGapPx ?? layout.sectionGap ?? 20,
-      itemGapPx: options.itemGapPx ?? layout.itemGap ?? 8,
+      sectionGapPx: options.sectionGapPx ?? layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
+      itemGapPx: options.itemGapPx ?? layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
 
       // Mode resolution
-      isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
-      mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      isAtsMode: options.isAtsMode ?? isAtsLayout(layout),
+      mode: options.mode ?? (isAtsLayout(layout) ? 'ats' : '2-column'),
       leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 

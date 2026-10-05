@@ -7,10 +7,10 @@ import DesignPanel from './DesignPanel';
 import {
   FileDown,
   Loader2,
-  Palette,
+  SlidersHorizontal,
   Undo2,
   Redo2,
-  History,
+  DatabaseSearch,
   BotMessageSquare,
   FileX,
   Globe,
@@ -430,47 +430,57 @@ export const ActionMenuRoot = () => {
         </div>
 
         <hr
-          style={{
-            width: '100%',
-            border: 'none',
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            margin: '0.1rem 0',
-          }}
-        />
-
-        {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
-        <svg width="0" height="0" style={{ position: 'absolute' }}>
-          <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="red" />
-            <stop offset="17%" stopColor="orange" />
-            <stop offset="33%" stopColor="yellow" />
-            <stop offset="50%" stopColor="green" />
-            <stop offset="67%" stopColor="blue" />
-            <stop offset="83%" stopColor="indigo" />
-            <stop offset="100%" stopColor="violet" />
-          </linearGradient>
-        </svg>
+            style={{
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
+            }}
+          />
+{/* Gestor de Versiones */}
         <div className="action-menu-btn-wrap">
           <button
             type="button"
-            className="action-menu-btn"
-            onClick={() => setIsDesignMenuOpen((prev) => !prev)}
-            style={{
-              color: isDesignMenuOpen ? '#3874ff' : '#6366f1',
-              background: isDesignMenuOpen ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-              borderRadius: '8px',
-            }}
+            className="version-hub-btn action-menu-hub-btn"
+            id="versiones-item"
+            data-testid="btn-open-version-manager"
+            aria-label="Gestor de Versiones"
+            title="Gestor de Versiones"
+            onClick={() => setIsVersionModalOpen(true)}
+          >
+            <DatabaseSearch size={20} color="#3b82f6" />
+          </button>
+          <span className="action-menu-tooltip">Gestor de Versiones</span>
+          </div>
+          {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="version-hub-btn action-menu-hub-btn"
+            id="design-item"
+            data-testid="btn-open-design"
             aria-label="Ajustes de Diseño y Tipografía"
             title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
-            data-testid="btn-open-design"
+            onClick={() => setIsDesignMenuOpen((prev) => !prev)}
           >
-            <Palette size={20} stroke="url(#rainbow-gradient)" />
+            <SlidersHorizontal size={20} color='#b8b79a' />
           </button>
           <span className="action-menu-tooltip">
             Diseño (Colores, Espaciado, Tipografía)
           </span>
         </div>
-
+                <hr
+            style={{
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
+            }}
+          />
         {/* Grupo de Herramientas IA (Prompting & Asistencia) */}
         <div
           className="action-menu-ai-group"
@@ -495,7 +505,8 @@ export const ActionMenuRoot = () => {
             position: 'relative',
             transition: 'all 0.25s ease',
           }}
-        >
+          >
+            
           {/* Banderita / Leyenda de IA con Icono de Estrellas */}
           <div
             className="action-menu-ai-badge"
@@ -609,29 +620,15 @@ export const ActionMenuRoot = () => {
         </div>
 
         <hr
-          style={{
-            width: '100%',
-            border: 'none',
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            margin: '0.1rem 0',
-          }}
-        />
-
-        {/* Gestor de Versiones */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="version-hub-btn action-menu-hub-btn"
-            id="versiones-item"
-            data-testid="btn-open-version-manager"
-            aria-label="Gestor de Versiones"
-            title="Gestor de Versiones"
-            onClick={() => setIsVersionModalOpen(true)}
-          >
-            <History size={20} color="#3b82f6" />
-          </button>
-          <span className="action-menu-tooltip">Gestor de Versiones</span>
-        </div>
+            style={{
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
+            }}
+          />
 
         {/* Acciones de Exportación: Native Print / Clean PDF Export */}
         <div className="action-menu-btn-wrap">
@@ -653,26 +650,6 @@ export const ActionMenuRoot = () => {
           <span className="action-menu-tooltip">Descargar/Imprimir PDF</span>
         </div>
 
-        {/* Eliminar Página */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn delete-page-btn"
-            onClick={() => deletePage && deletePage()}
-            aria-label="Eliminar página"
-            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
-            data-testid="btn-delete-page"
-            style={{
-              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
-              cursor: 'pointer',
-            }}
-          >
-            <FileX size={20} />
-          </button>
-          <span className="action-menu-tooltip">
-            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
-          </span>
-        </div>
         </div>
       </div>
 

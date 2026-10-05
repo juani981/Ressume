@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { sanitizeATSText, sanitizeContactUrl, exportToATSPlainText } from '../utils/aiExporter.js';
-import atsKnowledgeRules from '../ai-knowledge/ats.json' with { type: 'json' };
 import esRules from '../locales/es/rules.json' with { type: 'json' };
 import enRules from '../locales/en/rules.json' with { type: 'json' };
 import { defaultSchema } from '../utils/schema.js';
@@ -69,19 +68,7 @@ describe('Real ATS Parser Format & Syntax Sanitization Suite', () => {
     expect(plainText).toContain('Enlace: https://deploy-preview-4--app.netlify.app');
   });
 
-  it('ATS-PARSER-5: verifies knowledge base contains the 4 empirical ATS format rules', () => {
-    const expectedRuleIds = [
-      'ats_crit_dollar_syntax',
-      'ats_crit_url_integrity',
-      'ats_warn_glyph_overload',
-      'ats_info_technology_casing'
-    ];
-
-    expectedRuleIds.forEach(id => {
-      const inAtsKnowledge = atsKnowledgeRules.some(r => r.id === id);
-      expect(inAtsKnowledge).toBe(true);
-    });
-
+  it('ATS-PARSER-5: verifies knowledge base contains the 4 empirical ATS format rules in ES and EN', () => {
     // Check Spanish locale rules
     expect(esRules.some(r => r.id === 'ats_crit_es_dollar_syntax')).toBe(true);
     expect(esRules.some(r => r.id === 'ats_crit_es_url_integrity')).toBe(true);

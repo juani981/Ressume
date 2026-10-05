@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import esPrompts from '../locales/es/prompts.json' with { type: 'json' };
 import enPrompts from '../locales/en/prompts.json' with { type: 'json' };
-import aiKnowledgePrompts from '../ai-knowledge/prompts.json' with { type: 'json' };
+import { ALL_PROMPTS as aiKnowledgePrompts } from '../ai-knowledge/index.js';
 import { 
   exportToAIMarkdown, 
   exportToAIJson, 

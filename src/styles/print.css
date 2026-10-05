@@ -108,7 +108,7 @@
     height: 100% !important;
     min-height: 100% !important;
     align-self: stretch !important;
-    padding: var(--page-padding, 24px) !important;
+    padding: var(--page-padding, 12px) !important;
     box-sizing: border-box !important;
   }
 
@@ -161,7 +161,7 @@
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
-    padding: var(--page-padding, 24px) !important;
+    padding: var(--page-padding, 12px) !important;
     background: #ffffff !important;
     -webkit-box-decoration-break: clone !important;
     box-decoration-break: clone !important;
@@ -278,7 +278,7 @@
   .force-page-break-before {
     break-before: page !important;
     page-break-before: always !important;
-    padding-top: var(--page-padding, 24px) !important;
+    padding-top: var(--page-padding, 12px) !important;
     margin-top: 0 !important;
   }
 
@@ -292,7 +292,7 @@
   .resume__single-column [data-page-break-before="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
-    padding-top: var(--page-padding, 24px) !important;
+    padding-top: var(--page-padding, 12px) !important;
     margin-top: 0 !important;
   }
 
@@ -379,7 +379,7 @@
 
   .resume--ats-mode .cv-section,
   .resume__single-column .cv-section {
-    margin-bottom: var(--section-gap, 20px) !important;
+    margin-bottom: var(--section-gap, 12px) !important;
   }
 
   .resume--ats-mode .cv-section:last-child,

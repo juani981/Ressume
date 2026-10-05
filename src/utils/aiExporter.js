@@ -9,6 +9,7 @@ import { stripHtml } from './richTextEngine.js';
 import { generateCVLivePdfAbstraction, exportToAIJson as exportToAIJsonFull } from './cvJsonAbstraction.js';
 import { getLanguageLegend } from './translationEngine.js';
 import { getAtsGoldenSchemaTemplate } from './atsSchemaTemplate.js';
+import { isAtsLayout } from './pageDistributor.js';
 
 /**
  * Utility to convert the active CV state into unambiguous static representations
@@ -83,7 +84,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   if (!cvData) return '';
 
   const layout = cvData.layout || { type: '1-column', leftBg: '', rightBg: '' };
-  const isAtsMode = Boolean(layout.isAtsMode === true || layout.type === '1-column');
+  const isAtsMode = isAtsLayout(layout);
   const is1Col = isAtsMode;
   const layoutType = is1Col ? '1-column' : '2-column';
 

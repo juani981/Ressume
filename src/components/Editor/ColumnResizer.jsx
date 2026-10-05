@@ -6,18 +6,19 @@
  */
 
 import React from 'react';
+import { DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../constants';
 
 /**
  * Interactive draggable column resizer divider.
  *
  * @param {Object} props
- * @param {number} props.leftColPercent - Current left column percentage
- * @param {boolean} props.isResizing - Active resizing drag status
+ * @param {number} [props.leftColPercent=DEFAULT_LEFT_COLUMN_WIDTH_PERCENT] - Current left column percentage
+ * @param {boolean} [props.isResizing=false] - Active resizing drag status
  * @param {Function} props.onStartResize - Event listener for mousedown/touchstart
  * @returns {React.ReactElement}
  */
 export const ColumnResizer = ({
-  leftColPercent = 33.33,
+  leftColPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
   isResizing = false,
   onStartResize,
 }) => {

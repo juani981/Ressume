@@ -33,7 +33,7 @@ const VolunteeringItemPrintView = ({ item, sectionId, isLast = false }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={item.originalItemId || item.id} className="item-base-block">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
               <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <InlineEdit 
@@ -69,7 +69,7 @@ const VolunteeringItemPrintView = ({ item, sectionId, isLast = false }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {bullets.length > 0 && (
@@ -165,7 +165,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={targetItemId || item.id} className="item-base-block">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px' }}>
               <h3 className="experience__title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <InlineEdit 
@@ -205,7 +205,7 @@ const VolunteeringItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {/* Draggable Bullets List */}

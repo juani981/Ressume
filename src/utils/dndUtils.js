@@ -4,6 +4,50 @@
  * while cleanly preserving text editing, text selection, and button/link clicks.
  */
 
+export const NON_DRAGGABLE_SELECTORS = Object.freeze([
+  'input',
+  'textarea',
+  'select',
+  'button',
+  'a',
+  '[contenteditable="true"]',
+  '[data-editor-ui="true"]',
+  '[data-editor-add="true"]',
+  '.inline-input',
+  '.inline-edit-active',
+  '.inline-edit-display',
+  '.contact-item-pill',
+  '.social__link',
+  '.social__icon',
+  '.rich-text-toolbar',
+  '.section-action-buttons',
+  '.section-tips-toggle-btn',
+  '.section-bullet-style-btn',
+  '.round-btn-del',
+  '.round-btn-add',
+  '.add-bullet-btn',
+  '.add-section-btn',
+  '.add-contact-btn',
+  '.bullet-del-btn',
+  '.section-del-btn',
+  '.item-del-btn',
+  '.contact-del-btn',
+  '.page-delete-btn',
+  '.column-resizer',
+  '.column-resizer-bar',
+  '.column-resizer-handle',
+  '.spacer-resize-handle',
+  '.spacer-controls-bar',
+  '.spacer-del-btn',
+  '.popover',
+  '.suggestion-tooltip',
+  '.obsidian-callout',
+  '.contact-type-picker',
+  '.cv-photo-controls-floating'
+]);
+
+const NON_DRAGGABLE_QUERY = NON_DRAGGABLE_SELECTORS.join(', ');
+
 /**
  * Checks if the pointer event target is an interactive element or text-editing element
  * where drag initiation must be prevented.
@@ -24,47 +68,7 @@ export const isNonDraggableTarget = (rawTarget) => {
   }
 
   // 2. Interactive buttons, links, inputs, and editing controls
-  const isInteractive = target.closest([
-    'input',
-    'textarea',
-    'select',
-    'button',
-    'a',
-    '[contenteditable="true"]',
-    '[data-editor-ui="true"]',
-    '[data-editor-add="true"]',
-    '.inline-input',
-    '.inline-edit-active',
-    '.inline-edit-display',
-    '.contact-item-pill',
-    '.social__link',
-    '.social__icon',
-    '.rich-text-toolbar',
-    '.section-action-buttons',
-    '.section-tips-toggle-btn',
-    '.section-bullet-style-btn',
-    '.round-btn-del',
-    '.round-btn-add',
-    '.add-bullet-btn',
-    '.add-section-btn',
-    '.add-contact-btn',
-    '.bullet-del-btn',
-    '.section-del-btn',
-    '.item-del-btn',
-    '.contact-del-btn',
-    '.page-delete-btn',
-    '.column-resizer',
-    '.column-resizer-bar',
-    '.column-resizer-handle',
-    '.spacer-resize-handle',
-    '.spacer-controls-bar',
-    '.spacer-del-btn',
-    '.popover',
-    '.suggestion-tooltip',
-    '.obsidian-callout',
-    '.contact-type-picker',
-    '.cv-photo-controls-floating'
-  ].join(', '));
+  const isInteractive = target.closest(NON_DRAGGABLE_QUERY);
 
   if (isInteractive) {
     return true;

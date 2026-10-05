@@ -2,7 +2,13 @@ import React from 'react';
 import { useCV } from '../../../context/CVContext';
 import ColorPickerSwatch from '../ColorPickerSwatch';
 import { Palette, X, RotateCcw, Info } from 'lucide-react';
-import { DEFAULT_LINE_HEIGHT } from '../../../constants/spacing';
+import { DEFAULT_LINE_HEIGHT, SPACING_LIMITS } from '../../../constants/spacing';
+import { COLUMN_RESIZER_LIMITS, DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../../constants/geometry';
+import {
+  TYPOGRAPHY_SCALE_LIMITS,
+  BASE_FONT_SIZES_PX,
+  DEFAULT_FONT_FAMILY_NAME,
+} from '../../../constants/typography';
 
 const formatPx = (val) => {
   const rounded = Math.round(val * 2) / 2;
@@ -18,27 +24,27 @@ export const DesignPanel = ({
   const { cvData, updateLayout } = useCV();
   const layout = cvData.layout || {};
 
-  const currentFontFamily = layout.fontFamily || 'Poppins';
-  const fontScale = layout.fontScale ?? 1.0;
-  const titleScale = layout.titleScale ?? 1.0;
-  const bodyScale = layout.bodyScale ?? 1.0;
-  const listScale = layout.listScale ?? 1.0;
+  const currentFontFamily = layout.fontFamily || DEFAULT_FONT_FAMILY_NAME;
+  const fontScale = layout.fontScale ?? TYPOGRAPHY_SCALE_LIMITS.fontScale.default;
+  const titleScale = layout.titleScale ?? TYPOGRAPHY_SCALE_LIMITS.titleScale.default;
+  const bodyScale = layout.bodyScale ?? TYPOGRAPHY_SCALE_LIMITS.bodyScale.default;
+  const listScale = layout.listScale ?? TYPOGRAPHY_SCALE_LIMITS.listScale.default;
   const lineHeight = layout.lineHeight ?? DEFAULT_LINE_HEIGHT;
 
-  const pagePadding = layout.pagePadding ?? 24;
-  const sectionGap = layout.sectionGap ?? 20;
-  const itemGap = layout.itemGap ?? 8;
-  const leftColumnWidth = layout.leftColumnWidth || 33;
+  const pagePadding = layout.pagePadding ?? SPACING_LIMITS.pagePadding.default;
+  const sectionGap = layout.sectionGap ?? SPACING_LIMITS.sectionGap.default;
+  const itemGap = layout.itemGap ?? SPACING_LIMITS.itemGap.default;
+  const leftColumnWidth = layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
 
   const is2Col = layout.type === '2-column' && !layout.isAtsMode;
 
   const handleResetTypography = () => {
     updateLayout({
-      fontFamily: 'Poppins',
-      fontScale: 1.0,
-      titleScale: 1.0,
-      bodyScale: 1.0,
-      listScale: 1.0,
+      fontFamily: DEFAULT_FONT_FAMILY_NAME,
+      fontScale: TYPOGRAPHY_SCALE_LIMITS.fontScale.default,
+      titleScale: TYPOGRAPHY_SCALE_LIMITS.titleScale.default,
+      bodyScale: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default,
+      listScale: TYPOGRAPHY_SCALE_LIMITS.listScale.default,
       lineHeight: DEFAULT_LINE_HEIGHT,
     });
   };
@@ -261,14 +267,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Títulos (Encabezados)</span>
               <b style={{ color: '#4f46e5' }}>
-                {formatPx(20 * fontScale * titleScale)}
+                {formatPx(BASE_FONT_SIZES_PX.h2 * fontScale * titleScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.4}
-              step={0.5 / (20 * (fontScale || 1.0))}
+              step={0.5 / (BASE_FONT_SIZES_PX.h2 * (fontScale || 1.0))}
               value={titleScale}
               onChange={(e) => updateLayout('titleScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -289,14 +295,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Cuerpo (Descripciones)</span>
               <b style={{ color: '#4f46e5' }}>
-                {formatPx(15 * fontScale * bodyScale)}
+                {formatPx(BASE_FONT_SIZES_PX.normal * fontScale * bodyScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.3}
-              step={0.5 / (15 * (fontScale || 1.0))}
+              step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={bodyScale}
               onChange={(e) => updateLayout('bodyScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -317,14 +323,14 @@ export const DesignPanel = ({
             >
               <span style={{ fontWeight: 500 }}>Listas (Viñetas / Habilidades)</span>
               <b style={{ color: '#4f46e5' }}>
-                {formatPx(15 * fontScale * listScale)}
+                {formatPx(BASE_FONT_SIZES_PX.normal * fontScale * listScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.3}
-              step={0.5 / (15 * (fontScale || 1.0))}
+              step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={listScale}
               onChange={(e) => updateLayout('listScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -351,14 +357,14 @@ export const DesignPanel = ({
             >
               <span>Escala General</span>
               <b>
-                {formatPx(15 * fontScale)}
+                {formatPx(BASE_FONT_SIZES_PX.normal * fontScale)}
               </b>
             </div>
             <input
               type="range"
               min={0.5}
               max={1.25}
-              step={0.5 / 15}
+              step={0.5 / BASE_FONT_SIZES_PX.normal}
               value={fontScale}
               onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -455,9 +461,9 @@ export const DesignPanel = ({
           </div>
           <input
             type="range"
-            min={0}
-            max={60}
-            step={2}
+            min={SPACING_LIMITS.pagePadding.min}
+            max={SPACING_LIMITS.pagePadding.max}
+            step={SPACING_LIMITS.pagePadding.step}
             value={pagePadding}
             onChange={(e) => updateLayout('pagePadding', Number(e.target.value))}
             style={{ width: '100%', cursor: 'pointer' }}
@@ -479,9 +485,9 @@ export const DesignPanel = ({
           </div>
           <input
             type="range"
-            min={0}
-            max={50}
-            step={2}
+            min={SPACING_LIMITS.sectionGap.min}
+            max={SPACING_LIMITS.sectionGap.max}
+            step={SPACING_LIMITS.sectionGap.step}
             value={sectionGap}
             onChange={(e) => updateLayout('sectionGap', Number(e.target.value))}
             style={{ width: '100%', cursor: 'pointer' }}
@@ -503,9 +509,9 @@ export const DesignPanel = ({
           </div>
           <input
             type="range"
-            min={0}
-            max={30}
-            step={1}
+            min={SPACING_LIMITS.itemGap.min}
+            max={SPACING_LIMITS.itemGap.max}
+            step={SPACING_LIMITS.itemGap.step}
             value={itemGap}
             onChange={(e) => updateLayout('itemGap', Number(e.target.value))}
             style={{ width: '100%', cursor: 'pointer' }}
@@ -525,14 +531,14 @@ export const DesignPanel = ({
             >
               <span>Ancho Columna Lateral</span>
               <b style={{ color: '#3874ff' }}>
-                {leftColumnWidth}% / {100 - leftColumnWidth}%
+                {Math.round(leftColumnWidth)}% / {100 - Math.round(leftColumnWidth)}%
               </b>
             </div>
             <input
               type="range"
-              min={20}
-              max={55}
-              step={1}
+              min={COLUMN_RESIZER_LIMITS.minPercent}
+              max={COLUMN_RESIZER_LIMITS.maxPercent}
+              step={COLUMN_RESIZER_LIMITS.step}
               value={leftColumnWidth}
               onChange={(e) => updateLayout('leftColumnWidth', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}

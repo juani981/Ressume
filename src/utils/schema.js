@@ -1,3 +1,6 @@
+import { SPACING_LIMITS, DEFAULT_LINE_HEIGHT } from '../constants/spacing.js';
+import { TYPOGRAPHY_SCALE_LIMITS, DEFAULT_FONT_FAMILY_NAME } from '../constants/typography.js';
+
 export const defaultSchema = {
   layout: {
     type: '2-column', // '1-column' (ATS Optimized) or '2-column' (Visual Recruiter)
@@ -5,15 +8,15 @@ export const defaultSchema = {
     leftBg: '', // empty means it uses CSS defaults
     rightBg: '',
     leftColumnWidth: null, // null defaults to 1fr 2fr (approx 33% / 67%)
-    fontFamily: 'Poppins', // 'Poppins' | 'Inter' | 'Roboto' | 'Merriweather' | 'JetBrains Mono'
-    fontScale: 1.0, // 0.85 to 1.25 (Master overall scale)
-    titleScale: 1.0, // 0.80 to 1.40 (Global Titles scale)
-    bodyScale: 1.0, // 0.80 to 1.30 (Global Body text scale)
-    listScale: 1.0, // 0.80 to 1.30 (Global Lists and bullets scale)
-    lineHeight: 1.3, // 1.15 to 1.85
-    pagePadding: 24,
-    sectionGap: 20,
-    itemGap: 8
+    fontFamily: DEFAULT_FONT_FAMILY_NAME, // 'Poppins' | 'Inter' | 'Roboto' | 'Merriweather' | 'JetBrains Mono'
+    fontScale: TYPOGRAPHY_SCALE_LIMITS.fontScale.default, // 0.85 to 1.25 (Master overall scale)
+    titleScale: TYPOGRAPHY_SCALE_LIMITS.titleScale.default, // 0.80 to 1.40 (Global Titles scale)
+    bodyScale: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default, // 0.80 to 1.30 (Global Body text scale)
+    listScale: TYPOGRAPHY_SCALE_LIMITS.listScale.default, // 0.80 to 1.30 (Global Lists and bullets scale)
+    lineHeight: DEFAULT_LINE_HEIGHT, // 1.15 to 1.85
+    pagePadding: SPACING_LIMITS.pagePadding.default,
+    sectionGap: SPACING_LIMITS.sectionGap.default,
+    itemGap: SPACING_LIMITS.itemGap.default
   },
   profile: {
     name: "TU NOMBRE Y APELLIDO",
