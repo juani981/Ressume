@@ -192,10 +192,13 @@ const EditableBaseSection = ({ section }) => {
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.35 : 1,
+    outline: isDragging ? '2px dashed var(--first-color, #3874ff)' : 'none',
+    outlineOffset: '4px',
+    borderRadius: isDragging ? '6px' : undefined,
     marginBottom: 'var(--section-gap, 20px)',
     color: 'var(--text-color)',
     minWidth: 0,

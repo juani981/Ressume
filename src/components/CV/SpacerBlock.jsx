@@ -443,7 +443,7 @@ export const EditableSpacerBlock = ({ section }) => {
   }, [isEditingExact]);
 
   const containerStyle = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : transition,
     position: 'relative',
     height: `${localHeight}px`,
@@ -451,7 +451,9 @@ export const EditableSpacerBlock = ({ section }) => {
     boxSizing: 'border-box',
     opacity: isDragging ? 0.35 : 1,
     backgroundColor: isBlack ? '#000000' : 'transparent',
-    border: isHovered || isResizing
+    border: isDragging
+      ? '2px dashed var(--first-color, #3874ff)'
+      : isHovered || isResizing
       ? '1px dashed #3874ff'
       : '1px dashed rgba(148, 163, 184, 0.4)',
     borderRadius: '4px',

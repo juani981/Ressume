@@ -52,10 +52,12 @@ export const SortableBulletItem = ({
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
+    outline: isDragging ? '1px dashed var(--first-color, #3874ff)' : 'none',
+    borderRadius: isDragging ? '3px' : undefined,
     display: 'flex',
     alignItems: 'flex-start',
     marginTop: 0,

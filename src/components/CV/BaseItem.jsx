@@ -94,10 +94,13 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
   });
 
   const baseStyle = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
+    outline: isDragging ? '2px dashed var(--first-color, #3874ff)' : 'none',
+    outlineOffset: '2px',
+    borderRadius: isDragging ? '4px' : undefined,
     color: 'var(--text-color)',
     minWidth: 0,
     maxWidth: '100%',

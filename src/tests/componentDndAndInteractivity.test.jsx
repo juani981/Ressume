@@ -174,4 +174,83 @@ describe('Friendly Drag-and-Drop Names & Component Interactivity', () => {
       expect(stopDelSpy).toHaveBeenCalled();
     });
   });
+
+  describe('CVDragOverlay: Full-Fidelity Container Preview', () => {
+    it('renders real formatted section items inside the section drag preview', () => {
+      const activeDragSection = {
+        section: {
+          id: 'test_exp_sec',
+          type: 'list',
+          title: 'Experiencia Profesional',
+          items: [
+            {
+              id: 'job_1',
+              title: 'Senior Software Architect',
+              subtitle: 'Google',
+              date: '2020 - Presente',
+              description: 'Designed mission-critical cloud infrastructure.'
+            }
+          ]
+        }
+      };
+
+      const { container } = render(
+        <CVDragOverlayContent activeDragItem={null} activeDragSection={activeDragSection} />
+      );
+
+      // Verify section container overlay
+      const sectionOverlay = container.querySelector('[data-testid="drag-overlay-section"]');
+      expect(sectionOverlay).toBeTruthy();
+      expect(sectionOverlay.textContent).toContain('Experiencia Laboral');
+      expect(sectionOverlay.textContent).toContain('Experiencia Profesional');
+
+      // Verify actual item contents rendered via PrintBaseItem
+      expect(sectionOverlay.textContent).toContain('Senior Software Architect');
+      expect(sectionOverlay.textContent).toContain('Google');
+      expect(sectionOverlay.textContent).toContain('Designed mission-critical cloud infrastructure.');
+    });
+
+    it('renders full-fidelity item preview for dragged item', () => {
+      const activeDragItem = {
+        sectionType: 'education',
+        sectionId: 'edu_sec',
+        item: {
+          id: 'edu_1',
+          title: 'Licenciatura en Ciencias de la Computación',
+          subtitle: 'Universidad de Buenos Aires',
+          date: '2015 - 2020'
+        }
+      };
+
+      const { container } = render(
+        <CVDragOverlayContent activeDragItem={activeDragItem} activeDragSection={null} />
+      );
+
+      const itemOverlay = container.querySelector('[data-testid="drag-overlay-item"]');
+      expect(itemOverlay).toBeTruthy();
+      expect(itemOverlay.textContent).toContain('Educación y Formación');
+      expect(itemOverlay.textContent).toContain('Licenciatura en Ciencias de la Computación');
+      expect(itemOverlay.textContent).toContain('Universidad de Buenos Aires');
+    });
+
+    it('renders styled spacer container preview when dragging a spacer section', () => {
+      const activeDragSection = {
+        section: {
+          id: 'spacer_sec',
+          type: 'spacer',
+          height: 60,
+          backgroundColor: '#000000'
+        }
+      };
+
+      const { container } = render(
+        <CVDragOverlayContent activeDragItem={null} activeDragSection={activeDragSection} />
+      );
+
+      const sectionOverlay = container.querySelector('[data-testid="drag-overlay-section"]');
+      expect(sectionOverlay).toBeTruthy();
+      expect(sectionOverlay.textContent).toContain('Espacio en Blanco');
+      expect(sectionOverlay.textContent).toContain('60px');
+    });
+  });
 });
