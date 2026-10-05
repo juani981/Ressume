@@ -11,6 +11,11 @@
     "test:watch": "vitest",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
+    "cypress:chrome": "cypress run --browser chrome-for-testing",
+    "cypress:firefox": "cypress run --browser firefox",
+    "cypress:all": "cypress run --browser chrome-for-testing && cypress run --browser firefox",
+    "test:e2e": "cypress run --browser chrome-for-testing",
+    "test:e2e:firefox": "cypress run --browser firefox",
     "test:e2e:docker": "docker compose run --rm cypress"
   },
   "dependencies": {
@@ -26,8 +31,9 @@
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "cypress": "^16.1.0",
+    "cypress": "^16.1.1",
     "jsdom": "^24.0.0",
+    "start-server-and-test": "^3.0.12",
     "vite": "^5.0.8",
     "vitest": "^1.3.1",
     "yaml": "^2.9.1"
