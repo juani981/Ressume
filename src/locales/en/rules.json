@@ -5,9 +5,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "page_count",
+    "auto_fixable": false,
     "suggestion_title": "Maximum Length: 1 Page",
-    "suggestion_body": "Maintain a single structured page; maximize information density and eliminate redundant descriptions.",
-    "severity": "critical"
+    "suggestion_body": "Do not exceed one page; condense your impact and eliminate unnecessary text filler.",
+    "example_bad": "3-page resume with repetitive text and verbose job duties",
+    "example_good": "1 tight page highlighting technical achievements and measurable outcomes"
   },
   {
     "id": "rule_en_global_002",
@@ -15,9 +19,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Omission of First-Person Pronouns",
-    "suggestion_body": "Omit first-person pronouns and possessives. Begin each bullet directly with strong action verbs.",
-    "severity": "critical"
+    "suggestion_body": "Avoid 'I' or 'my'; start each bullet point directly with an active verb.",
+    "example_bad": "I led the engineering team and built my personal payment app",
+    "example_good": "Led engineering team and built distributed payment platform"
   },
   {
     "id": "rule_en_global_003",
@@ -25,9 +33,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Prohibition of Percentage Meters",
-    "suggestion_body": "Replace graphic progress meters with technical listings; arbitrary percentages lack standardized empirical validity.",
-    "severity": "critical"
+    "suggestion_body": "Do not use arbitrary percentage bars; prove skill levels through real-world tech stacks.",
+    "example_bad": "Python: 85% | React: 90% | Docker: 70%",
+    "example_good": "Python (FastAPI, PyTest) | React (TypeScript, Redux) | Docker"
   },
   {
     "id": "rule_en_global_ats_flow",
@@ -35,9 +47,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Single-Column Linear Stream",
-    "suggestion_body": "Enforce single-column vertical flow to guarantee deterministic token extraction across ATS parsers.",
-    "severity": "critical"
+    "suggestion_body": "Avoid multi-column tables in ATS mode; keep a clean single-column linear reading flow.",
+    "example_bad": "Tables and parallel sidebars that scramble automated ATS parser extraction",
+    "example_good": "Clean single-column top-to-bottom layout without embedded tables"
   },
   {
     "id": "rule_en_global_2col_contrast",
@@ -45,9 +61,13 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "info",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Two-Column Visual Hierarchy",
-    "suggestion_body": "Position skills and contact on left rail; reserve primary right column for trajectory.",
-    "severity": "info"
+    "suggestion_body": "Do not cram dense text into sidebars; reserve narrow columns for skills and contact.",
+    "example_bad": "Lengthy job experience bullet points crammed inside narrow sidebar",
+    "example_good": "Contact and core stack on left rail; career history in wide column"
   },
   {
     "id": "ats_crit_en_dollar_syntax",
@@ -55,9 +75,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Syntax Without Reserved Delimiters",
-    "suggestion_body": "Avoid reserved syntax like dollar symbols; they trigger regex and tokenization parsing errors.",
-    "severity": "critical"
+    "suggestion_body": "Avoid stray dollar signs; they disrupt automated regex patterns in modern ATS parsers.",
+    "example_bad": "+1$ optimization in CI/CD deployment pipeline",
+    "example_good": "Solved N+1 query problem and optimized CI/CD pipeline"
   },
   {
     "id": "ats_crit_en_url_integrity",
@@ -65,9 +89,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "URL Integrity and Normalization",
-    "suggestion_body": "Verify all hyperlinks point to active repositories or production deployments without whitespace.",
-    "severity": "critical"
+    "suggestion_body": "Do not paste broken hyperlinks; use clean, canonical URLs to live repositories and demos.",
+    "example_bad": "https://github. com/user /temp-draft-repo",
+    "example_good": "https://github.com/user/ecommerce-platform"
   },
   {
     "id": "ats_warn_en_glyph_overload",
@@ -75,9 +103,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Standard Typography and Glyph Suppression",
-    "suggestion_body": "Use standard typographic bullets only; custom checkboxes and Unicode glyphs corrupt OCR extraction.",
-    "severity": "warning"
+    "suggestion_body": "Avoid checkboxes and emojis; use standard round bullets to ensure clean OCR extraction.",
+    "example_bad": "☑ Developed payment API with Node.js 🚀",
+    "example_good": "• Developed resilient microservices payment API with Node.js"
   },
   {
     "id": "rule_en_global_004",
@@ -85,9 +117,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Standardized Chronological Format",
-    "suggestion_body": "Apply uniform chronological formatting (MM/YYYY – MM/YYYY or Present) across every temporal section.",
-    "severity": "warning"
+    "suggestion_body": "Do not use ambiguous dates; write 'MM/YYYY – Present' or 'MM/YYYY – MM/YYYY' consistently.",
+    "example_bad": "A couple years ago | 2021 until now | 1.5 years",
+    "example_good": "03/2022 – Present"
   },
   {
     "id": "rule_en_profile_001",
@@ -95,9 +131,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Professional Title and Core Stack",
-    "suggestion_body": "State your target engineering role and core stack explicitly. Avoid vague subjective adjectives.",
-    "severity": "critical"
+    "suggestion_body": "Avoid vague self-praise adjectives; clearly state your target engineering role and core stack.",
+    "example_bad": "Passionate developer seeking exciting new tech opportunities",
+    "example_good": "Full Stack Engineer | React, Node.js, TypeScript"
   },
   {
     "id": "rule_en_profile_002",
@@ -105,9 +145,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Location and Jurisdiction Privacy",
-    "suggestion_body": "Specify only city and country of residence; omit full street address and postal codes.",
-    "severity": "critical"
+    "suggestion_body": "Do not write your full street address; specify only city and country for privacy.",
+    "example_bad": "123 Elm St, Apt 4B, New York, NY 10001",
+    "example_good": "New York, NY (Open to Remote / Relocation)"
   },
   {
     "id": "rule_en_profile_003",
@@ -115,9 +159,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Executive Impact Summary",
-    "suggestion_body": "Replace aspirational career objectives with a quantified technical overview of achievements and production impact.",
-    "severity": "critical"
+    "suggestion_body": "Avoid generic career wishes; summarize key technical strengths and quantified outcomes in three lines.",
+    "example_bad": "Looking for a dynamic company to expand my technical knowledge",
+    "example_good": "Backend engineer with 4+ years designing resilient APIs, reducing p99 latency by 30%"
   },
   {
     "id": "rule_en_profile_004",
@@ -125,9 +173,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "LinkedIn Profile URL Normalization",
-    "suggestion_body": "Configure a clean canonical vanity URL on LinkedIn, stripping trailing random numbers and characters.",
-    "severity": "warning"
+    "suggestion_body": "Do not keep random generated numbers; customize a clean LinkedIn URL with your name.",
+    "example_bad": "https://linkedin.com/in/john-doe-8b29141a",
+    "example_good": "https://linkedin.com/in/johndoe-dev"
   },
   {
     "id": "rule_en_profile_005",
@@ -135,9 +187,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Exclusion of Sensitive Personal Data",
-    "suggestion_body": "Exclude national ID, marital status, or birthdate; they introduce bias and trigger automatic rejection.",
-    "severity": "critical"
+    "suggestion_body": "Omit national ID, age, marital status, or photo; international recruiters discard them immediately.",
+    "example_bad": "National ID: 1234567 | Single | Age: 28 | Photo attached",
+    "example_good": "Clean professional profile focused solely on engineering credentials and code"
   },
   {
     "id": "rule_en_experience_001",
@@ -145,9 +201,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Quantified Impact Structure",
-    "suggestion_body": "Structure accomplishments: objective impact achieved, measurable metric, and technical action executed (Laszlo Bock framework).",
-    "severity": "critical"
+    "suggestion_body": "Avoid passive task lists; detail what you achieved, measured by what, doing what (Laszlo Bock).",
+    "example_bad": "Maintained database servers and investigated slow query alerts",
+    "example_good": "Cut database query times by 45% through table partitioning and composite indexing"
   },
   {
     "id": "rule_en_experience_002",
@@ -155,9 +215,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Action Verbs in Active Voice",
-    "suggestion_body": "Begin each bullet with decisive action verbs; suppress passive phrases such as 'responsible for'.",
-    "severity": "critical"
+    "suggestion_body": "Avoid passive 'responsible for'; begin each bullet with strong active engineering verbs.",
+    "example_bad": "Responsible for deploying code and checking backend tasks",
+    "example_good": "Architected and deployed CI/CD pipelines, decreasing deployment rollbacks by 20%"
   },
   {
     "id": "rule_en_experience_003",
@@ -165,9 +229,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Quantification of Engineering Results",
-    "suggestion_body": "Support each achievement with objective production metrics: percentages, latency, cloud costs, or transaction throughput.",
-    "severity": "critical"
+    "suggestion_body": "Do not state unmeasured claims; support accomplishments with concrete metrics of production impact.",
+    "example_bad": "Significantly improved application response times and user satisfaction",
+    "example_good": "Optimized frontend bundles, slashing initial page load time from 3.2s to 1.1s"
   },
   {
     "id": "rule_en_experience_004",
@@ -175,9 +243,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "warning",
+    "validation_type": "word_count",
+    "auto_fixable": false,
     "suggestion_title": "Conciseness: 1 to 2 Lines per Item",
-    "suggestion_body": "Limit each bullet to two lines maximum; facilitate immediate technical scanning for engineering reviewers.",
-    "severity": "warning"
+    "suggestion_body": "Do not write dense paragraphs; keep each achievement bullet to two concise lines.",
+    "example_bad": "A 6-line paragraph detailing the company administrative backstory and meetings",
+    "example_good": "Migrated legacy monolith to Go microservices, handling 10k req/s reliably"
   },
   {
     "id": "rule_en_experience_ats_recency",
@@ -185,9 +257,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Reverse Chronological Order",
-    "suggestion_body": "Sequence roles from most recent; use present tense for active positions and past for prior.",
-    "severity": "warning"
+    "suggestion_body": "Do not put older jobs first; sequence positions in reverse chronological order from present.",
+    "example_bad": "2018 junior internship listed as the very first job experience item",
+    "example_good": "Current senior role (2024 – Present) at the top, followed by earlier positions"
   },
   {
     "id": "rule_en_experience_2col_visual",
@@ -195,9 +271,13 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Temporal Weighting of Roles",
-    "suggestion_body": "Allocate deeper detail to your recent roles and summarize older positions into high-level milestones.",
-    "severity": "warning"
+    "suggestion_body": "Avoid over-explaining older jobs; give deeper detail and more bullets to recent positions.",
+    "example_bad": "5 detailed bullets for a junior support role held 8 years ago",
+    "example_good": "4 bullets for your current senior role and 1-2 bullets for past positions"
   },
   {
     "id": "rule_en_skills_001",
@@ -205,9 +285,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Technical Categorization of Skills",
-    "suggestion_body": "Group technologies by functional domain: Languages, Frameworks, Relational Databases, Cloud Infrastructure, and DevOps Tooling.",
-    "severity": "critical"
+    "suggestion_body": "Do not list disordered tools; group technical skills into clear categories and stacks.",
+    "example_bad": "JavaScript, Docker, Postgres, React, AWS, Git dumped in a single row",
+    "example_good": "Frontend: React, TypeScript | Backend: Node.js, Go | DB: PostgreSQL"
   },
   {
     "id": "rule_en_skills_002",
@@ -215,9 +299,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Exclusion of Subjective Soft Skills",
-    "suggestion_body": "Omit unsubstantiated soft skill claims; demonstrate leadership and collaboration through concrete delivered engineering outcomes.",
-    "severity": "critical"
+    "suggestion_body": "Avoid generic soft skills; prove leadership and collaboration through concrete delivered engineering outcomes.",
+    "example_bad": "Team player, punctual, quick learner, works well under pressure",
+    "example_good": "Mentored 4 junior engineers and facilitated bi-weekly architecture RFC reviews"
   },
   {
     "id": "rule_en_skills_ats_keywords",
@@ -225,9 +313,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Early Keyword Indexing for ATS",
-    "suggestion_body": "Position mission-critical technical stack keywords in the top viewport to optimize automated ATS matching.",
-    "severity": "critical"
+    "suggestion_body": "Do not bury core skills; place key technologies near the top for ATS.",
+    "example_bad": "Technical skills section placed at the very bottom of the second page",
+    "example_good": "Core technology competencies highlighted within top third of resume"
   },
   {
     "id": "ats_info_en_technology_casing",
@@ -235,9 +327,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "info",
+    "validation_type": "dictionary_match",
+    "auto_fixable": true,
     "suggestion_title": "Canonical Technology Capitalization",
-    "suggestion_body": "Format every technology using official canonical capitalization (e.g. TypeScript, PostgreSQL, Docker) to avoid string mismatches.",
-    "severity": "info"
+    "suggestion_body": "Do not use lowercase names; use official brand capitalization for accurate ATS matching.",
+    "example_bad": "typescript, postgresql, docker, reactjs",
+    "example_good": "TypeScript, PostgreSQL, Docker, React"
   },
   {
     "id": "rule_en_projects_001",
@@ -245,9 +341,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Architecture, Solution, and Impact",
-    "suggestion_body": "Structure engineering projects detailing the problem context, architectural decisions made, and measurable outcomes achieved.",
-    "severity": "critical"
+    "suggestion_body": "Avoid tutorial clone summaries; explain the engineering challenge, architectural decisions, and stack.",
+    "example_bad": "Built a clone of Netflix by following a YouTube video step by step",
+    "example_good": "Engineered video streaming platform with serverless AWS Lambda transcoding and CDN"
   },
   {
     "id": "rule_en_projects_002",
@@ -255,9 +355,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Verifiable Repositories and Demos",
-    "suggestion_body": "Provide verifiable hyperlinks to clean public repositories or deployed production environments for code review.",
-    "severity": "critical"
+    "suggestion_body": "Never leave projects unverified; include direct links to public source code and live demos.",
+    "example_bad": "E-commerce platform (runs only locally on my machine at localhost:3000)",
+    "example_good": "Repo: github.com/user/shop | Live demo: shop-preview.vercel.app"
   },
   {
     "id": "rule_en_projects_003",
@@ -265,9 +369,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "warning",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Documentation and Reproducible Setup",
-    "suggestion_body": "Every codebase must document architecture in a README.md or provide a reproducible Docker environment.",
-    "severity": "warning"
+    "suggestion_body": "Do not publish empty repositories; document architecture in a README or include a Dockerfile.",
+    "example_bad": "Repository with a single 'initial commit' and no setup instructions",
+    "example_good": "README with system diagram, environment config, and Docker Compose command"
   },
   {
     "id": "rule_en_education_001",
@@ -275,9 +383,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Official Degree Title and Institution",
-    "suggestion_body": "Specify full official degree title, educational institution, and graduation year; provide international equivalent naming.",
-    "severity": "critical"
+    "suggestion_body": "Avoid ambiguous shorthand; state complete official degree title, university name, and graduation year.",
+    "example_bad": "Tech degree from university (graduated a while ago)",
+    "example_good": "B.S. in Computer Science | University of Michigan (2019 – 2023)"
   },
   {
     "id": "rule_en_education_002",
@@ -285,9 +397,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Exclusion of Secondary Education",
-    "suggestion_body": "Omit high school education when presenting post-secondary, university, or professional technical credentials.",
-    "severity": "critical"
+    "suggestion_body": "Do not include high school if you hold university, tertiary, or technical degrees.",
+    "example_bad": "High School Diploma | Central High School (2012 – 2016)",
+    "example_good": "Dedicate document space solely to relevant university and technical education"
   },
   {
     "id": "rule_en_certificates_001",
@@ -295,9 +411,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Standardized Industry Certifications",
-    "suggestion_body": "Prioritize proctored cloud provider credentials and recognized frameworks; exclude passive seminar attendance certificates.",
-    "severity": "critical"
+    "suggestion_body": "Avoid casual short seminar badges; prioritize proctored industry and cloud provider certifications.",
+    "example_bad": "Attendance certificate for 2-hour online introductory Python workshop",
+    "example_good": "AWS Certified Solutions Architect – Associate (Verifiable Credential ID)"
   },
   {
     "id": "rule_en_languages_001",
@@ -305,8 +425,12 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Standard Language Proficiency (CEFR)",
-    "suggestion_body": "Specify linguistic proficiency using CEFR standard descriptors (B2, C1, C2); eliminate arbitrary percentage ratings.",
-    "severity": "critical"
+    "suggestion_body": "Do not write arbitrary percentages; use standard international CEFR proficiency levels (B2, C1).",
+    "example_bad": "English: 75% | French: intermediate level",
+    "example_good": "English: C1 (Full professional proficiency in engineering environments)"
   }
 ]
