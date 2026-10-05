@@ -16,6 +16,8 @@ export const NON_DRAGGABLE_SELECTORS = Object.freeze([
   '.inline-input',
   '.inline-edit-active',
   '.inline-edit-display',
+  '.simple-list-circle',
+  '.simple-list-text',
   '.contact-item-pill',
   '.social__link',
   '.social__icon',

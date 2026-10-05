@@ -190,8 +190,9 @@ function App() {
                      ...dynamicSpacing,
                   }}>
                   {pages.map((pageModel) => (
-                     <A4PageBox
-                        key={`page-${pageModel.pageNumber}`}
+                     <React.Fragment key={`page-wrapper-${pageModel.pageNumber}`}>
+                        <A4PageBox
+                           key={`page-${pageModel.pageNumber}`}
                         pageNumber={pageModel.pageNumber}
                         totalPages={pages.length}
                         is2Col={is2Col}
@@ -348,7 +349,60 @@ function App() {
                            </DroppableColumn>
                         )}
                      </A4PageBox>
-                  ))}
+
+                     {pageModel.pageNumber < pages.length && (
+                        <div
+                           className="inter-page-gap-adder no-print"
+                           data-editor-ui="true"
+                           data-editor-add="true"
+                           style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              height: "32px",
+                              margin: "-16px auto 16px auto",
+                              position: "relative",
+                              zIndex: 50
+                           }}>
+                           <button
+                              type="button"
+                              className="inter-page-add-btn no-print"
+                              data-testid={`btn-add-section-interpage-${pageModel.pageNumber}`}
+                              data-editor-add="true"
+                              onClick={() => handleOpenAddSection(isAtsMode ? "single" : "left")}
+                              title={`Agregar nueva sección entre Página ${pageModel.pageNumber} y Página ${pageModel.pageNumber + 1}`}
+                              style={{
+                                 display: "inline-flex",
+                                 alignItems: "center",
+                                 gap: "6px",
+                                 padding: "4px 14px",
+                                 borderRadius: "16px",
+                                 border: "1px dashed #94a3b8",
+                                 background: "#ffffff",
+                                 color: "#475569",
+                                 fontSize: "11px",
+                                 fontWeight: 600,
+                                 cursor: "pointer",
+                                 boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
+                                 transition: "all 0.15s ease"
+                              }}
+                              onMouseEnter={(e) => {
+                                 e.currentTarget.style.borderColor = "#3874ff";
+                                 e.currentTarget.style.color = "#3874ff";
+                                 e.currentTarget.style.transform = "scale(1.04)";
+                              }}
+                              onMouseLeave={(e) => {
+                                 e.currentTarget.style.borderColor = "#94a3b8";
+                                 e.currentTarget.style.color = "#475569";
+                                 e.currentTarget.style.transform = "scale(1)";
+                              }}>
+                              <PlusCircle size={13} />
+                              <span>Agregar Sección entre Páginas</span>
+                           </button>
+                        </div>
+                     )}
+                  </React.Fragment>
+               ))}
                </div>
             </main>
 

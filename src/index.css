@@ -1841,19 +1841,22 @@ body.ats-mode-active {
   color: #ef4444;
   border: none;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
-  margin-left: 3px;
+  margin-left: 4px;
   padding: 0;
   transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.contact-item-pill:hover .contact-del-btn {
+.contact-item-pill:hover .contact-del-btn,
+.contact-item-pill:focus-within .contact-del-btn {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1861,7 +1864,7 @@ body.ats-mode-active {
 .contact-del-btn:hover {
   background-color: #ef4444;
   color: #ffffff;
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .add-contact-btn {

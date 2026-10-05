@@ -18,9 +18,10 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { MoreHorizontal, Trash2, Plus } from 'lucide-react';
+import { List, Trash2, Plus, Lightbulb } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
+import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
@@ -175,11 +176,15 @@ const EditableBaseSection = ({ section }) => {
     updateSectionBulletStyle,
     addSectionItem, 
     deleteSection, 
-    updateSectionProperty
+    updateSectionProperty,
+    toggleTooltipForSection,
+    activeTooltip
   } = useCV();
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteTriggerRect, setDeleteTriggerRect] = useState(null);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -221,12 +226,27 @@ const EditableBaseSection = ({ section }) => {
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
+          <button 
+            type="button"
+            className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
+            title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
+            aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
+            data-testid={`btn-section-tips-${section.id}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect());
+            }}
+          >
+            <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
+          </button>
+
           {allowBulletCustomization && (
             <button 
               type="button"
               className={`section-bullet-style-btn ${isBulletPopoverOpen ? 'active' : ''}`}
-              title="Personalizar círculo del título"
-              aria-label="Personalizar círculo del título"
+              title="Estilo de viñetas (Recomendado ATS: Círculo)"
+              aria-label="Estilo de viñetas (Recomendado ATS: Círculo)"
               data-testid={`btn-bullet-style-${section.id}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
@@ -235,7 +255,7 @@ const EditableBaseSection = ({ section }) => {
                 setIsBulletPopoverOpen(prev => !prev);
               }}
             >
-              <MoreHorizontal size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
+              <List size={14} color={isBulletPopoverOpen ? '#ffffff' : '#0f172a'} />
             </button>
           )}
 
@@ -248,7 +268,8 @@ const EditableBaseSection = ({ section }) => {
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                deleteSection(section.originalSectionId || section.id);
+                setDeleteTriggerRect(e.currentTarget.getBoundingClientRect());
+                setIsDeleteConfirmOpen(true);
               }}
             >
               <Trash2 size={13} />
@@ -301,6 +322,16 @@ const EditableBaseSection = ({ section }) => {
           bulletStyle={section.bulletStyle}
           onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.originalSectionId || section.id, newStyle)}
           triggerRect={bulletTriggerRect}
+        />
+      )}
+
+      {allowDelete && (
+        <SectionDeleteConfirmPopover
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={() => deleteSection(section.originalSectionId || section.id)}
+          sectionTitle={section.title || descriptor.title || section.id}
+          triggerRect={deleteTriggerRect}
         />
       )}
 

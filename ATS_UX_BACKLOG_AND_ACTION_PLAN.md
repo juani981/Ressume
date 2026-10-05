@@ -33,14 +33,14 @@
 
 | Task ID | Domain / Issue | Priority | Status | Assigned Agent / Test Spec |
 | :---: | :--- | :---: | :---: | :---: |
-| `ATS-01` | Master Toolbar (ActionMenu) Discoverability | P1 | ⏳ PENDING | TBD |
-| `ATS-02` | Catastrophic Section Erasure Without Confirmation | P0 | ⏳ PENDING | TBD |
-| `ATS-03` | Drag Handle Sensor Collision with Bullet Text | P0 | ⏳ PENDING | TBD |
-| `ATS-04` | Multi-Page Section Insertion on Page 1 | P1 | ⏳ PENDING | TBD |
-| `ATS-05` | Disconnected ATS Suggestion Engine & Knowledge Base | P1 | ⏳ PENDING | TBD |
-| `ATS-06` | Hazardous Contact Pill Deletion Hit-Target | P2 | ⏳ PENDING | TBD |
-| `ATS-07` | Misleading Three-Dots Icon for Bullet Styling | P2 | ⏳ PENDING | TBD |
-| `ATS-08` | Pure ATS Default Template & Clean Initialization | P1 | ⏳ PENDING | TBD |
+| `ATS-01` | Master Toolbar (ActionMenu) Discoverability | P1 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-01-onboarding-and-navigation.cy.js` & `ux-07` |
+| `ATS-02` | Catastrophic Section Erasure Without Confirmation | P0 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-09-section-lifecycle-and-empty-states.cy.js` |
+| `ATS-03` | Drag Handle Sensor Collision with Bullet Text | P0 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-12-bullet-styling-and-inline-toolbar.cy.js` |
+| `ATS-04` | Multi-Page Section Insertion on Page 1 | P1 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-14-multipage-overflow-and-spacers.cy.js` |
+| `ATS-05` | Disconnected ATS Suggestion Engine & Knowledge Base | P1 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-06-ai-assistance-and-translation.cy.js` |
+| `ATS-06` | Hazardous Contact Pill Deletion Hit-Target | P2 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-10-contact-picker-and-social-links.cy.js` |
+| `ATS-07` | Misleading Three-Dots Icon for Bullet Styling | P2 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-12-bullet-styling-and-inline-toolbar.cy.js` |
+| `ATS-08` | Pure ATS Default Template & Clean Initialization | P1 | ✅ RESOLVED & VERIFIED | `cypress/e2e/ux-01` & `pureAtsInit.test.jsx` |
 
 ---
 

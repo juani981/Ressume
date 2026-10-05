@@ -251,6 +251,30 @@ const SectionBulletStylePopover = ({
           </button>
         </div>
       </div>
+
+      {/* Obsidian Callout: ATS Recommendation (Invariant 1) */}
+      <div 
+        className="obsidian-callout"
+        data-testid="ats-bullet-callout-info"
+        style={{
+          background: 'rgba(8, 109, 221, 0.08)',
+          borderLeft: '4px solid rgba(8, 109, 221, 1)',
+          borderRadius: '4px',
+          padding: '6px 8px',
+          fontSize: '0.70rem',
+          color: '#1e3a8a',
+          lineHeight: 1.35,
+          marginTop: '6px'
+        }}
+      >
+        <div style={{ display: 'flex', gap: '6px', fontWeight: 600, alignItems: 'center', marginBottom: '2px' }}>
+          <span>ℹ️</span>
+          <span>Recomendación ATS</span>
+        </div>
+        <div>
+          El círculo estándar (•) garantiza compatibilidad universal y máxima puntuación en filtros ATS (Workday, Greenhouse).
+        </div>
+      </div>
     </div>
   );
 

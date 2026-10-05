@@ -79,9 +79,15 @@ describe('UX Test 6: AI Tools, Translation Hub, Prompts & Obsidian Suggestions',
   });
 
   it('Inspects Dynamic Obsidian Callout suggestions on technical keywords', () => {
-    // Hover on experience or skills to trigger dynamic suggestion tooltip
-    cy.get('#area-cv').within(() => {
-      cy.get('.skills__name, .experience__content').first().trigger('mouseover');
+    // 1. Click section-tips-toggle-btn on the first section supporting tips
+    cy.get('button[data-testid^="btn-section-tips-"]').first().then(($btn) => {
+      cy.wrap($btn).click({ force: true });
+      // 2. Verify suggestion tooltip opened and displays Obsidian callouts
+      cy.get('.suggestion-tooltip').should('be.visible');
+
+      // 3. Click again to toggle close
+      cy.wrap($btn).click({ force: true });
+      cy.get('.suggestion-tooltip').should('not.exist');
     });
 
     cy.trackObservation({
@@ -89,14 +95,14 @@ describe('UX Test 6: AI Tools, Translation Hub, Prompts & Obsidian Suggestions',
       feature: 'Obsidian Callout Suggestion Engine',
       userGoal: 'Get real-time feedback on ATS rules, tech casing, and action verbs',
       whatUserSaw: 'Contextual tooltip styled as Obsidian callout (Danger red, Warning orange, Info blue).',
-      actionTaken: 'Hovered over CV section.',
+      actionTaken: 'Triggered section tips via lightbulb button.',
       wasNatural: true,
-      clicksRequired: 0,
+      clicksRequired: 1,
       visualClarityScore: 5,
       legendsInformative: true,
       assumesPriorKnowledge: false,
       frictionSeverity: 'None',
-      recommendation: 'Rule-based deterministic engine provides instant guidance without external API lag.',
+      recommendation: 'Section-level tips button directly activates the pre-computed ATS suggestion engine.'
     });
   });
 });

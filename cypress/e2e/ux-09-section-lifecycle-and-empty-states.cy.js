@@ -124,16 +124,29 @@ describe('UX Test 9: Section Lifecycle, Dynamic Addition, Deletion & Empty State
             visualClarityScore: 4,
             legendsInformative: true,
             assumesPriorKnowledge: false,
-            frictionSeverity: 'High',
-            frictionAnalysis: 'Clicking the section delete button immediately and permanently wipes out the section and all of its items without ANY confirmation dialog ("¿Estás seguro de eliminar esta sección?"). A misclick can cause significant accidental data loss.',
-            recommendation: 'Implement a confirmation popover or undo toast ("Sección eliminada — Deshacer") when deleting an entire section.'
+            frictionSeverity: 'None',
+            frictionAnalysis: 'Section deletion is now safeguarded by an Obsidian Callout Danger confirmation popover anchored via getBoundingClientRect, preventing accidental deletion.',
+            recommendation: 'Safety confirmation popover fully implemented and verified.'
           });
 
-          // Click delete button
+          // 1. Click delete button to open safety confirmation
           cy.trackClick(delBtnSelector, 'Delete Section Button');
           cy.get(delBtnSelector).click({ force: true });
 
-          // Verify the section is gone
+          // 2. Verify confirmation popover appears with Obsidian Callout Danger styling
+          cy.get('[data-testid="section-delete-confirm-popover"]').should('be.visible');
+
+          // 3. Test cancellation first
+          cy.get('[data-testid="btn-cancel-delete-section"]').click();
+          cy.get('[data-testid="section-delete-confirm-popover"]').should('not.exist');
+          cy.get(`[data-section-id="${secId}"]`).should('exist');
+
+          // 4. Click delete again and confirm
+          cy.get(delBtnSelector).click({ force: true });
+          cy.get('[data-testid="section-delete-confirm-popover"]').should('be.visible');
+          cy.get('[data-testid="btn-confirm-delete-section"]').click();
+
+          // 5. Verify the section is gone
           cy.get(`[data-section-id="${secId}"]`).should('not.exist');
         }
       });
