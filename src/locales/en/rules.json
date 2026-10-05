@@ -5,8 +5,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "1 Page Maximum",
-    "suggestion_body": "Keep your resume to 1 page; recruiters scan it in 6 seconds.",
+    "suggestion_title": "Maximum Length: 1 Page",
+    "suggestion_body": "Maintain a single structured page; maximize information density and eliminate redundant descriptions.",
     "severity": "critical"
   },
   {
@@ -15,8 +15,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Purge Personal Pronouns",
-    "suggestion_body": "Delete 'I' and 'my'. Start every bullet directly with strong action verbs.",
+    "suggestion_title": "Omission of First-Person Pronouns",
+    "suggestion_body": "Omit first-person pronouns and possessives. Begin each bullet directly with strong action verbs.",
     "severity": "critical"
   },
   {
@@ -25,8 +25,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Zero Rating Bars",
-    "suggestion_body": "Remove progress bars and rating meters; recruiters ignore arbitrary skill percentages.",
+    "suggestion_title": "Prohibition of Percentage Meters",
+    "suggestion_body": "Replace graphic progress meters with technical listings; arbitrary percentages lack standardized empirical validity.",
     "severity": "critical"
   },
   {
@@ -35,8 +35,8 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "1-Column Vertical Flow",
-    "suggestion_body": "Use a single vertical stream; column splits scramble automated ATS parsers.",
+    "suggestion_title": "Single-Column Linear Stream",
+    "suggestion_body": "Enforce single-column vertical flow to guarantee deterministic token extraction across ATS parsers.",
     "severity": "critical"
   },
   {
@@ -45,8 +45,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "2-Column Visual Balance",
-    "suggestion_body": "Place contact and skills on the left; achievements on the right.",
+    "suggestion_title": "Two-Column Visual Hierarchy",
+    "suggestion_body": "Position skills and contact on left rail; reserve primary right column for trajectory.",
     "severity": "info"
   },
   {
@@ -55,8 +55,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Zero Dollar Signs ($)",
-    "suggestion_body": "Do not wrap text in dollar symbols; they trigger ATS parsing errors.",
+    "suggestion_title": "Syntax Without Reserved Delimiters",
+    "suggestion_body": "Avoid reserved syntax like dollar symbols; they trigger regex and tokenization parsing errors.",
     "severity": "critical"
   },
   {
@@ -65,8 +65,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Clean Links Without Spaces",
-    "suggestion_body": "Verify URLs contain no accidental spaces and point to live repositories.",
+    "suggestion_title": "URL Integrity and Normalization",
+    "suggestion_body": "Verify all hyperlinks point to active repositories or production deployments without whitespace.",
     "severity": "critical"
   },
   {
@@ -75,8 +75,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Suppress Checkboxes and Glyphs",
-    "suggestion_body": "Strip checkboxes and custom symbols; they export as broken, unreadable characters.",
+    "suggestion_title": "Standard Typography and Glyph Suppression",
+    "suggestion_body": "Use standard typographic bullets only; custom checkboxes and Unicode glyphs corrupt OCR extraction.",
     "severity": "warning"
   },
   {
@@ -85,8 +85,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Consistent Dates & Periods",
-    "suggestion_body": "Use identical date patterns and punctuation throughout every single section.",
+    "suggestion_title": "Standardized Chronological Format",
+    "suggestion_body": "Apply uniform chronological formatting (MM/YYYY – MM/YYYY or Present) across every temporal section.",
     "severity": "warning"
   },
   {
@@ -95,8 +95,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Magnetic Job Title",
-    "suggestion_body": "State your exact target role and core specialty instead of buzzwords.",
+    "suggestion_title": "Professional Title and Core Stack",
+    "suggestion_body": "State your target engineering role and core stack explicitly. Avoid vague subjective adjectives.",
     "severity": "critical"
   },
   {
@@ -105,8 +105,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "No Full Street Address",
-    "suggestion_body": "Omit street address; list only City, Country, Phone, Email, and LinkedIn.",
+    "suggestion_title": "Location and Jurisdiction Privacy",
+    "suggestion_body": "Specify only city and country of residence; omit full street address and postal codes.",
     "severity": "critical"
   },
   {
@@ -115,8 +115,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Kill the 'Career Objective'",
-    "suggestion_body": "Replace objectives with a 2-line executive summary focused on results.",
+    "suggestion_title": "Executive Impact Summary",
+    "suggestion_body": "Replace aspirational career objectives with a quantified technical overview of achievements and production impact.",
     "severity": "critical"
   },
   {
@@ -125,9 +125,19 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Clean LinkedIn Handle",
-    "suggestion_body": "Customize your LinkedIn link by removing trailing random letters and digits.",
+    "suggestion_title": "LinkedIn Profile URL Normalization",
+    "suggestion_body": "Configure a clean canonical vanity URL on LinkedIn, stripping trailing random numbers and characters.",
     "severity": "warning"
+  },
+  {
+    "id": "rule_en_profile_005",
+    "target_section": "profile",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Exclusion of Sensitive Personal Data",
+    "suggestion_body": "Exclude national ID, marital status, or birthdate; they introduce bias and trigger automatic rejection.",
+    "severity": "critical"
   },
   {
     "id": "rule_en_experience_001",
@@ -135,8 +145,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Google XYZ Formula",
-    "suggestion_body": "Format: 'Accomplished [X], measured by [Y], by doing [Z]'. Laszlo Bock.",
+    "suggestion_title": "Quantified Impact Structure",
+    "suggestion_body": "Structure accomplishments: objective impact achieved, measurable metric, and technical action executed (Laszlo Bock framework).",
     "severity": "critical"
   },
   {
@@ -145,8 +155,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Kill 'Responsible for'",
-    "suggestion_body": "Delete 'responsible for'; lead every bullet with a decisive action verb.",
+    "suggestion_title": "Action Verbs in Active Voice",
+    "suggestion_body": "Begin each bullet with decisive action verbs; suppress passive phrases such as 'responsible for'.",
     "severity": "critical"
   },
   {
@@ -155,8 +165,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Mandatory Metrics",
-    "suggestion_body": "Quantify accomplishments with numbers, percentages, or dollars on every bullet.",
+    "suggestion_title": "Quantification of Engineering Results",
+    "suggestion_body": "Support each achievement with objective production metrics: percentages, latency, cloud costs, or transaction throughput.",
     "severity": "critical"
   },
   {
@@ -165,8 +175,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "1 to 2 Lines Max",
-    "suggestion_body": "Trim long bullets; keep each achievement within 2 scannable lines.",
+    "suggestion_title": "Conciseness: 1 to 2 Lines per Item",
+    "suggestion_body": "Limit each bullet to two lines maximum; facilitate immediate technical scanning for engineering reviewers.",
     "severity": "warning"
   },
   {
@@ -175,8 +185,8 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "ATS Reverse Chronology",
-    "suggestion_body": "Position your current role first using standardized month/year dates.",
+    "suggestion_title": "Reverse Chronological Order",
+    "suggestion_body": "Sequence roles from most recent; use present tense for active positions and past for prior.",
     "severity": "warning"
   },
   {
@@ -185,8 +195,8 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Focus on Recent Roles",
-    "suggestion_body": "Dedicate 3-4 bullets to recent positions and condense older jobs.",
+    "suggestion_title": "Temporal Weighting of Roles",
+    "suggestion_body": "Allocate deeper detail to your recent roles and summarize older positions into high-level milestones.",
     "severity": "warning"
   },
   {
@@ -195,8 +205,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Cluster Skills Logically",
-    "suggestion_body": "Group into categories: Languages, Databases, Cloud. Remove percentage ratings.",
+    "suggestion_title": "Technical Categorization of Skills",
+    "suggestion_body": "Group technologies by functional domain: Languages, Frameworks, Relational Databases, Cloud Infrastructure, and DevOps Tooling.",
     "severity": "critical"
   },
   {
@@ -205,8 +215,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Purge Cliché Soft Skills",
-    "suggestion_body": "Delete 'team player'; prove leadership through quantifiable metrics in experience.",
+    "suggestion_title": "Exclusion of Subjective Soft Skills",
+    "suggestion_body": "Omit unsubstantiated soft skill claims; demonstrate leadership and collaboration through concrete delivered engineering outcomes.",
     "severity": "critical"
   },
   {
@@ -215,8 +225,8 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Frontload ATS Keywords",
-    "suggestion_body": "Place skills near the top to maximize ATS keyword search hits.",
+    "suggestion_title": "Early Keyword Indexing for ATS",
+    "suggestion_body": "Position mission-critical technical stack keywords in the top viewport to optimize automated ATS matching.",
     "severity": "critical"
   },
   {
@@ -225,29 +235,39 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Canonical Tech Casing",
-    "suggestion_body": "Write canonical names: 'TypeScript', 'PostgreSQL', 'Docker' instead of lowercased tags.",
+    "suggestion_title": "Canonical Technology Capitalization",
+    "suggestion_body": "Format every technology using official canonical capitalization (e.g. TypeScript, PostgreSQL, Docker) to avoid string mismatches.",
     "severity": "info"
   },
   {
     "id": "rule_en_projects_001",
     "target_section": "projects",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Problem + Solution + Impact",
-    "suggestion_body": "Highlight the problem solved, architecture used, and quantifiable outcome achieved.",
+    "suggestion_title": "Architecture, Solution, and Impact",
+    "suggestion_body": "Structure engineering projects detailing the problem context, architectural decisions made, and measurable outcomes achieved.",
     "severity": "critical"
   },
   {
     "id": "rule_en_projects_002",
     "target_section": "projects",
     "target_layout": "both",
-    "target_industry": "tech",
+    "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Verifiable GitHub Links",
-    "suggestion_body": "Link directly to public GitHub repositories or live deployed production demos.",
+    "suggestion_title": "Verifiable Repositories and Demos",
+    "suggestion_body": "Provide verifiable hyperlinks to clean public repositories or deployed production environments for code review.",
     "severity": "critical"
+  },
+  {
+    "id": "rule_en_projects_003",
+    "target_section": "projects",
+    "target_layout": "both",
+    "target_industry": "all",
+    "trigger_context": "on_edit_description",
+    "suggestion_title": "Documentation and Reproducible Setup",
+    "suggestion_body": "Every codebase must document architecture in a README.md or provide a reproducible Docker environment.",
+    "severity": "warning"
   },
   {
     "id": "rule_en_education_001",
@@ -255,8 +275,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Degree, School & Year",
-    "suggestion_body": "State official degree title, university name, and graduation year cleanly.",
+    "suggestion_title": "Official Degree Title and Institution",
+    "suggestion_body": "Specify full official degree title, educational institution, and graduation year; provide international equivalent naming.",
     "severity": "critical"
   },
   {
@@ -265,8 +285,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Drop High School",
-    "suggestion_body": "Delete secondary school completely once you have college education or experience.",
+    "suggestion_title": "Exclusion of Secondary Education",
+    "suggestion_body": "Omit high school education when presenting post-secondary, university, or professional technical credentials.",
     "severity": "critical"
   },
   {
@@ -275,8 +295,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Only Recognized Credentials",
-    "suggestion_body": "Feature verified industry exams (AWS, GCP, PMP, Scrum). Drop attendance webinars.",
+    "suggestion_title": "Standardized Industry Certifications",
+    "suggestion_body": "Prioritize proctored cloud provider credentials and recognized frameworks; exclude passive seminar attendance certificates.",
     "severity": "critical"
   },
   {
@@ -285,8 +305,8 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Standard Language Proficiency",
-    "suggestion_body": "Use CEFR levels (B2, C1) or formal tiers. No arbitrary percentages.",
+    "suggestion_title": "Standard Language Proficiency (CEFR)",
+    "suggestion_body": "Specify linguistic proficiency using CEFR standard descriptors (B2, C1, C2); eliminate arbitrary percentage ratings.",
     "severity": "critical"
   }
 ]
