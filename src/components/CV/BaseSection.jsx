@@ -172,6 +172,7 @@ const EditableBaseSection = ({ section }) => {
   });
 
   const { 
+    cvData,
     updateSectionTitle, 
     updateSectionBulletStyle,
     addSectionItem, 
@@ -181,10 +182,14 @@ const EditableBaseSection = ({ section }) => {
     activeTooltip
   } = useCV();
 
+  const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
+
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
+  const [bulletTriggerElement, setBulletTriggerElement] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteTriggerRect, setDeleteTriggerRect] = useState(null);
+  const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -226,20 +231,22 @@ const EditableBaseSection = ({ section }) => {
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button 
-            type="button"
-            className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
-            title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-            aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-            data-testid={`btn-section-tips-${section.id}`}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect());
-            }}
-          >
-            <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
-          </button>
+          {isAtsMode && (
+            <button 
+              type="button"
+              className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
+              title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
+              aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
+              data-testid={`btn-section-tips-${section.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect(), { current: e.currentTarget });
+              }}
+            >
+              <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
+            </button>
+          )}
 
           {allowBulletCustomization && (
             <button 
@@ -252,6 +259,7 @@ const EditableBaseSection = ({ section }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 setBulletTriggerRect(e.currentTarget.getBoundingClientRect());
+                setBulletTriggerElement(e.currentTarget);
                 setIsBulletPopoverOpen(prev => !prev);
               }}
             >
@@ -269,6 +277,7 @@ const EditableBaseSection = ({ section }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 setDeleteTriggerRect(e.currentTarget.getBoundingClientRect());
+                setDeleteTriggerElement(e.currentTarget);
                 setIsDeleteConfirmOpen(true);
               }}
             >
@@ -322,6 +331,7 @@ const EditableBaseSection = ({ section }) => {
           bulletStyle={section.bulletStyle}
           onUpdateStyle={(newStyle) => updateSectionBulletStyle(section.originalSectionId || section.id, newStyle)}
           triggerRect={bulletTriggerRect}
+          triggerElement={bulletTriggerElement}
         />
       )}
 
@@ -332,6 +342,7 @@ const EditableBaseSection = ({ section }) => {
           onConfirm={() => deleteSection(section.originalSectionId || section.id)}
           sectionTitle={section.title || descriptor.title || section.id}
           triggerRect={deleteTriggerRect}
+          triggerElement={deleteTriggerElement}
         />
       )}
 

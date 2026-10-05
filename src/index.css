@@ -1837,7 +1837,10 @@ body.ats-mode-active {
 .contact-del-btn {
   opacity: 0;
   pointer-events: none;
-  background: rgba(239, 68, 68, 0.12);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
   border: none;
   border-radius: 50%;
@@ -1850,9 +1853,17 @@ body.ats-mode-active {
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
-  margin-left: 4px;
+  margin: 0;
   padding: 0;
+  z-index: 20;
   transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+/* Expanded hit target for touch and precise cursor clicking */
+.contact-del-btn::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }
 
 .contact-item-pill:hover .contact-del-btn,

@@ -103,15 +103,16 @@ export const ensureProfileHeader = (data) => {
  * @returns {Object} Initialized CV state.
  */
 export const loadInitialCVData = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('cvData') || '');
+      if (parsed && typeof parsed === 'object') {
+        return ensureProfileHeader({ ...defaultSchema, ...parsed, layout: { ...defaultSchema.layout, ...(parsed.layout || {}) } });
+      }
+    } catch (_) {}
+  }
   const isTestEnv = typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || Boolean(process.env?.VITEST));
-  if (isTestEnv) return defaultSchema;
-  if (typeof window === 'undefined') return defaultSchema;
-  try {
-    const parsed = JSON.parse(localStorage.getItem('cvData') || '');
-    if (parsed && typeof parsed === 'object') {
-      return ensureProfileHeader({ ...defaultSchema, ...parsed, layout: { ...defaultSchema.layout, ...(parsed.layout || {}) } });
-    }
-  } catch (_) {}
+  if (isTestEnv || typeof window === 'undefined') return defaultSchema;
   return getAtsGoldenSchemaTemplate('es');
 };
 
@@ -186,8 +187,16 @@ export const useCVData = ({
       return { ...prev, profile: updatedProfile, sections: updatedSections };
     });
   }, [applyStateWithHistory]);
-  const addSection = useCallback((column = 'right', type = 'list', title = 'NUEVA SECCIÓN', bulletStyle = undefined) => {
-    applyStateWithHistory(prev => ({ ...prev, sections: [...prev.sections, createDefaultSection(column, type, title, bulletStyle)] }));
+  const addSection = useCallback((column = 'right', type = 'list', title = 'NUEVA SECCIÓN', bulletStyle = undefined, targetIndex = undefined) => {
+    applyStateWithHistory(prev => {
+      const newSection = createDefaultSection(column, type, title, bulletStyle);
+      if (typeof targetIndex === 'number' && targetIndex >= 0 && targetIndex <= prev.sections.length) {
+        const nextSections = [...prev.sections];
+        nextSections.splice(targetIndex, 0, newSection);
+        return { ...prev, sections: nextSections };
+      }
+      return { ...prev, sections: [...prev.sections, newSection] };
+    });
   }, [applyStateWithHistory]);
   const deleteSection = useCallback((sectionId) => {
     if (sectionId === 'profile_header') return;

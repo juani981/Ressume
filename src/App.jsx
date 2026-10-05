@@ -112,9 +112,11 @@ function App() {
    // 4. Modal State
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
    const [addSectionTargetColumn, setAddSectionTargetColumn] = useState("right");
+   const [addSectionTargetIndex, setAddSectionTargetIndex] = useState(undefined);
 
-   const handleOpenAddSection = (column = "right") => {
+   const handleOpenAddSection = (column = "right", targetIndex = undefined) => {
       setAddSectionTargetColumn(column);
+      setAddSectionTargetIndex(targetIndex);
       setIsAddSectionModalOpen(true);
    };
 
@@ -368,8 +370,17 @@ function App() {
                               type="button"
                               className="inter-page-add-btn no-print"
                               data-testid={`btn-add-section-interpage-${pageModel.pageNumber}`}
-                              data-editor-add="true"
-                              onClick={() => handleOpenAddSection(isAtsMode ? "single" : "left")}
+                              onClick={() => {
+                                 const sectionsOnPage = isAtsMode ? pageModel.singleSections : (pageModel.rightSections || []);
+                                 const lastSec = sectionsOnPage?.[sectionsOnPage.length - 1];
+                                 let spliceIdx = undefined;
+                                 if (lastSec && Array.isArray(cvData.sections)) {
+                                    const canonicalId = lastSec.originalSectionId || lastSec.id;
+                                    const foundIdx = cvData.sections.findIndex((s) => s.id === canonicalId);
+                                    if (foundIdx !== -1) spliceIdx = foundIdx + 1;
+                                 }
+                                 handleOpenAddSection(isAtsMode ? "single" : "left", spliceIdx);
+                              }}
                               title={`Agregar nueva sección entre Página ${pageModel.pageNumber} y Página ${pageModel.pageNumber + 1}`}
                               style={{
                                  display: "inline-flex",
@@ -418,6 +429,7 @@ function App() {
             isAddSectionModalOpen={isAddSectionModalOpen}
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
+            addSectionTargetIndex={addSectionTargetIndex}
             activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />

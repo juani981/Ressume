@@ -111,10 +111,10 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
   const clearActiveTooltip = useCallback(() => setActiveTooltip(null), []);
   const closeTooltip = clearActiveTooltip;
 
-  const toggleTooltipForSection = useCallback((section, rect) => {
+  const toggleTooltipForSection = useCallback((section, rect, anchorRef = null) => {
     setActiveTooltip(current => {
       if (current && current.section && current.section.id === section.id) return null;
-      return { section, rect };
+      return { section, rect, anchorRef };
     });
   }, []);
 

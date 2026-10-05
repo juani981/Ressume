@@ -47,7 +47,7 @@ const iconMap = {
  * Positions floating to the right of #area-cv container using available viewport space
  * instead of centering over the CV document. Strictly follows AGENTS.md Rule 3.
  */
-const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
+const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right', targetIndex = undefined }) => {
   const { addSection, cvData } = useCV();
   const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
   const [initialBulletStyle, setInitialBulletStyle] = useState({
@@ -147,7 +147,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
 
   const handleSelectType = (desc) => {
     const col = targetColumn || desc.defaultColumn || 'right';
-    addSection(col, desc.type, desc.defaultTitle, initialBulletStyle);
+    addSection(col, desc.type, desc.defaultTitle, initialBulletStyle, targetIndex);
     onClose();
   };
 

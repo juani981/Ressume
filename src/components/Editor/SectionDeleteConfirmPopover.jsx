@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { OctagonAlert, X } from 'lucide-react';
 
@@ -15,9 +15,15 @@ const SectionDeleteConfirmPopover = ({
   onConfirm,
   sectionTitle,
   triggerRect,
+  triggerElement,
   portalTarget
 }) => {
   const popoverRef = useRef(null);
+  const [activeRect, setActiveRect] = useState(triggerRect);
+
+  useEffect(() => {
+    setActiveRect(triggerRect);
+  }, [triggerRect]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -32,27 +38,38 @@ const SectionDeleteConfirmPopover = ({
       }
     };
 
+    const handleScrollOrResize = () => {
+      if (triggerElement) {
+        setActiveRect(triggerElement.getBoundingClientRect());
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScrollOrResize, { passive: true, capture: true });
+    window.addEventListener('resize', handleScrollOrResize, { passive: true });
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScrollOrResize, { capture: true });
+      window.removeEventListener('resize', handleScrollOrResize);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, triggerElement]);
 
   if (!isOpen) return null;
 
-  // Calculate dynamic coordinates anchored to triggerRect (Invariant 3)
+  // Calculate dynamic coordinates anchored to activeRect (Invariant 3)
   const calculatePosition = () => {
     const popoverWidth = 280;
     const padding = 12;
 
     let top = 100;
     let left = 100;
+    const r = activeRect || triggerRect;
 
-    if (triggerRect) {
-      top = triggerRect.bottom + 6;
-      left = triggerRect.right - popoverWidth;
+    if (r) {
+      top = r.bottom + 6;
+      left = r.right - popoverWidth;
 
       // Prevent escaping left edge
       if (left < padding) left = padding;
@@ -64,7 +81,7 @@ const SectionDeleteConfirmPopover = ({
 
       // Flip above if escaping viewport bottom
       if (typeof window !== 'undefined' && top + 160 > window.innerHeight - padding) {
-        top = Math.max(padding, triggerRect.top - 160);
+        top = Math.max(padding, r.top - 160);
       }
     }
 

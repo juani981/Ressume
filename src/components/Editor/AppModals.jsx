@@ -47,6 +47,7 @@ export function AppModals({
   isAddSectionModalOpen,
   onCloseAddSectionModal,
   addSectionTargetColumn,
+  addSectionTargetIndex,
   activeTooltip,
   layoutType,
 }) {
@@ -110,6 +111,7 @@ export function AppModals({
         isOpen={isAddSectionModalOpen}
         onClose={onCloseAddSectionModal}
         targetColumn={addSectionTargetColumn}
+        targetIndex={addSectionTargetIndex}
       />
 
       {/* Global Singleton AI Suggestion Tooltip */}
@@ -119,6 +121,7 @@ export function AppModals({
           isHovered={true}
           layoutType={layoutType}
           rect={activeTooltip.rect}
+          anchorRef={activeTooltip.anchorRef}
         />
       )}
 
