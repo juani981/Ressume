@@ -27,7 +27,7 @@ import { DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../constants/geometry.js';
 import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { sanitizeAndValidateCVSnapshot } from './cvSchemaValidator.js';
 import { stripHtml } from './richTextEngine.js';
-import ALL_RULES from '../ai-knowledge/index.js';
+import { getRules } from '../locales/index.js';
 import { A4_PRINT_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../constants';
 
 /**
@@ -213,7 +213,7 @@ const extractActionVerbsFromText = (text) => {
 /**
  * Parses and audits ATS compliance and extracts AI Knowledge suggestions.
  */
-export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
+export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode, options = {}) => {
   const sections = Array.isArray(cvData?.sections) ? cvData.sections : [];
   const profileInfo = extractNormalizedProfile(cvData);
 
@@ -325,9 +325,11 @@ export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
 
   score = Math.min(100, Math.max(0, score));
 
-  // 5. Query Relevant AI Knowledge Base Rules from src/ai-knowledge/
+  // 5. Query Relevant AI Knowledge Base Rules from locales SSOT
+  const activeLang = options?.lang || options?.language || 'es';
+  const rules = getRules(activeLang);
   const targetLayoutKey = isAtsMode ? 'ATS_1_col' : 'Human_2_col';
-  const relevantRules = ALL_RULES.filter(rule => {
+  const relevantRules = rules.filter(rule => {
     const matchLayout = rule.target_layout === targetLayoutKey || rule.target_layout === 'both';
     const matchSection = rule.target_section === 'global' || sections.some(s => s.type === rule.target_section || s.id === rule.target_section);
     return matchLayout && matchSection;
@@ -631,7 +633,7 @@ export const generateCVLivePdfAbstraction = (cvData, options = {}) => {
   const candidateProfile = extractNormalizedProfile(validated);
 
   // 3. Analyze ATS Compliance & AI Knowledge Rules
-  const atsAndKnowledge = analyzeCVWithATSKnowledge(validated, layout, isAts);
+  const atsAndKnowledge = analyzeCVWithATSKnowledge(validated, layout, isAts, options);
 
   // 4. Extract Normalized Sections
   const normalizedSections = extractNormalizedSections(validated, pageModels);

@@ -8,18 +8,19 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { EDITOR_PAGE_HEIGHT_MM, A4_GAP_PX } from '../../constants';
+import { SPACING_LIMITS } from '../../constants/spacing';
 
 /**
  * Visual indicators for A4 sheet boundaries and content margins in the live editor.
  *
  * @param {Object} props
  * @param {number} props.totalPages - Current estimated total pages
- * @param {number} [props.pagePadding=24] - Document page padding in pixels
+ * @param {number} [props.pagePadding=SPACING_LIMITS.pagePadding.default] - Document page padding in pixels
  * @param {Function} [props.onDeletePage] - Callback to delete a specific page
  * @returns {React.ReactElement}
  */
-export const A4PageGuides = ({ totalPages = 1, pagePadding = 24, onDeletePage }) => {
-  const pagePaddingPx = Number(pagePadding ?? 24);
+export const A4PageGuides = ({ totalPages = 1, pagePadding = SPACING_LIMITS.pagePadding.default, onDeletePage }) => {
+  const pagePaddingPx = Number(pagePadding ?? SPACING_LIMITS.pagePadding.default);
 
   return (
     <>

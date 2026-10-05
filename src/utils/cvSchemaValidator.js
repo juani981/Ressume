@@ -11,26 +11,22 @@
 
 import { defaultSchema } from './schema.js';
 import { normalizeAnyJSONToCVSnapshot } from './universalJsonImporter.js';
+import { SPACING_LIMITS, DEFAULT_LINE_HEIGHT } from '../constants/spacing.js';
+import { TYPOGRAPHY_SCALE_LIMITS, SUPPORTED_FONT_NAMES } from '../constants/typography.js';
 
 export const ALLOWED_LAYOUT_TYPES = Object.freeze(['1-column', '2-column']);
 export const ALLOWED_COLUMNS = Object.freeze(['left', 'right']);
-export const ALLOWED_FONT_FAMILIES = Object.freeze([
-  'Poppins',
-  'Inter',
-  'Roboto',
-  'Merriweather',
-  'JetBrains Mono'
-]);
+export const ALLOWED_FONT_FAMILIES = SUPPORTED_FONT_NAMES;
 
 export const NUMERIC_BOUNDS = Object.freeze({
-  pagePadding: { min: 0, max: 100, default: 24 },
-  sectionGap: { min: 0, max: 100, default: 20 },
-  itemGap: { min: 0, max: 50, default: 8 },
-  fontScale: { min: 0.5, max: 2.0, default: 1.0 },
-  titleScale: { min: 0.5, max: 2.0, default: 1.0 },
-  bodyScale: { min: 0.5, max: 2.0, default: 1.0 },
-  listScale: { min: 0.5, max: 2.0, default: 1.0 },
-  lineHeight: { min: 1.0, max: 2.5, default: 1.3 }
+  pagePadding: { min: 0, max: 100, default: SPACING_LIMITS.pagePadding.default },
+  sectionGap: { min: 0, max: 100, default: SPACING_LIMITS.sectionGap.default },
+  itemGap: { min: 0, max: 50, default: SPACING_LIMITS.itemGap.default },
+  fontScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.fontScale.default },
+  titleScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.titleScale.default },
+  bodyScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default },
+  listScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.listScale.default },
+  lineHeight: { min: 1.0, max: 2.5, default: DEFAULT_LINE_HEIGHT }
 });
 
 /**

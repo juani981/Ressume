@@ -47,3 +47,9 @@ export const SPACING_TOKENS = Object.freeze({
   minItemGapPx: 0,
   maxItemGapPx: 24,
 });
+
+export const SPACING_LIMITS = Object.freeze({
+  pagePadding: Object.freeze({ min: 0, max: 60, step: 2, default: 24 }),
+  sectionGap: Object.freeze({ min: 0, max: 50, step: 2, default: 20 }),
+  itemGap: Object.freeze({ min: 0, max: 30, step: 1, default: DEFAULT_ITEM_GAP_PX }),
+});

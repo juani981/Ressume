@@ -32,6 +32,27 @@ import {
 } from "./constants";
 import { isAtsLayout } from "./utils/pageDistributor";
 
+const AREA_CV_CONTAINER_STYLE = Object.freeze({
+   display: "flex",
+   flexDirection: "column",
+   alignItems: "center",
+   width: "100%",
+   minWidth: `${A4_WIDTH_PX}px`,
+   maxWidth: `${A4_WIDTH_PX}px`,
+   margin: "0 auto",
+   padding: 0,
+   background: "transparent",
+   boxShadow: "none",
+   borderRadius: 0,
+   border: "none",
+   minHeight: "auto",
+   position: "relative",
+   zIndex: 1,
+   gap: 0,
+   rowGap: 0,
+   columnGap: 0,
+});
+
 function App() {
    const {
       cvData,
@@ -155,24 +176,7 @@ function App() {
                   data-total-pages={totalPages}
                   ref={areaCvRef}
                   style={{
-                     display: "flex",
-                     flexDirection: "column",
-                     alignItems: "center",
-                     width: "100%",
-                     minWidth: `${A4_WIDTH_PX}px`,
-                     maxWidth: `${A4_WIDTH_PX}px`,
-                     margin: "0 auto",
-                     padding: 0,
-                     background: "transparent",
-                     boxShadow: "none",
-                     borderRadius: 0,
-                     border: "none",
-                     minHeight: "auto",
-                     position: "relative",
-                     zIndex: 1,
-                     gap: 0,
-                     rowGap: 0,
-                     columnGap: 0,
+                     ...AREA_CV_CONTAINER_STYLE,
                      ...(is2Col
                         ? {
                              "--grid-template-columns": gridTemplateColumns,

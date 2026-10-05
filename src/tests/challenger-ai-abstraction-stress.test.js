@@ -3,7 +3,6 @@ import YAML from 'yaml';
 import { JSDOM } from 'jsdom';
 import esPrompts from '../locales/es/prompts.json' with { type: 'json' };
 import enPrompts from '../locales/en/prompts.json' with { type: 'json' };
-import aiKnowledgePrompts from '../ai-knowledge/prompts.json' with { type: 'json' };
 import {
   exportToAIMarkdown,
   exportToAIJson,
