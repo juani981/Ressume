@@ -210,7 +210,13 @@ describe('UX Test 8: End-to-End Naive User Cognitive Journey & Master UX Audit',
     cy.get('.version-manager-modal').should('not.exist');
 
     // SCENARIO STEP 8: AI Prompts Exploration
-    cy.trackClick('#ia-prompts-item', 'Open AI Prompts Modal');
+    cy.get('body').then(($body) => {
+      const peekTab = $body.find('[data-testid="action-menu-peek-tab"]');
+      if (peekTab.length > 0 && peekTab.is(':visible')) {
+        cy.wrap(peekTab.first()).click({ force: true });
+      }
+    });
+    cy.trackClick('#ia-prompts-item', 'Open AI Prompts Modal', { force: true });
     cy.get('#ai-modal-title').should('be.visible');
 
     cy.trackObservation({
@@ -231,7 +237,13 @@ describe('UX Test 8: End-to-End Naive User Cognitive Journey & Master UX Audit',
 
     // SCENARIO STEP 9: Print & PDF Generation
     cy.stubPrint();
-    cy.trackClick('[data-testid="btn-action-native-print"]', 'Download / Print PDF');
+    cy.get('body').then(($body) => {
+      const peekTab = $body.find('[data-testid="action-menu-peek-tab"]');
+      if (peekTab.length > 0 && peekTab.is(':visible')) {
+        cy.wrap(peekTab.first()).click({ force: true });
+      }
+    });
+    cy.trackClick('[data-testid="btn-action-native-print"]', 'Download / Print PDF', { force: true });
     cy.get('[data-testid="toast-notification"]').should('be.visible');
 
     cy.trackObservation({
