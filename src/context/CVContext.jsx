@@ -67,6 +67,7 @@ export const CVProvider = ({ children, initialCV = null }) => {
   const contextValue = useMemo(() => ({
     // Data & CRUD
     cvData: data.cvData,
+    setCvData: data.setCvData,
     updateProfile: data.updateProfile,
     addSection: data.addSection,
     deleteSection: data.deleteSection,
@@ -95,6 +96,7 @@ export const CVProvider = ({ children, initialCV = null }) => {
     redo: history.redo,
     canUndo: history.canUndo,
     canRedo: history.canRedo,
+    recordHistoryTransition: history.recordHistoryTransition,
 
     // Layout & Pagination
     updateLayout: layout.updateLayout,

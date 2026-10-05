@@ -56,6 +56,8 @@ const AREA_CV_CONTAINER_STYLE = Object.freeze({
 function App() {
    const {
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
@@ -82,6 +84,8 @@ function App() {
       activeDragSection,
    } = useCVDndCoordinator({
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
    });
