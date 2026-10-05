@@ -11,10 +11,10 @@
     "test:watch": "vitest",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "cypress:chrome": "cypress run --browser chrome-for-testing",
+    "cypress:chrome": "cypress run --browser chrome",
     "cypress:firefox": "cypress run --browser firefox",
-    "cypress:all": "cypress run --browser chrome-for-testing && cypress run --browser firefox",
-    "test:e2e": "cypress run --browser chrome-for-testing",
+    "cypress:all": "cypress run --browser chrome && cypress run --browser firefox",
+    "test:e2e": "cypress run --browser chrome",
     "test:e2e:firefox": "cypress run --browser firefox",
     "test:e2e:docker": "docker compose run --rm cypress"
   },
