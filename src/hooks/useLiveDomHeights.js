@@ -12,25 +12,22 @@
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 
 /**
- * Extracts outer height (bounding client rect height + computed vertical margins) in CSS pixels.
+ * Extracts pure border-box height (bounding client rect height) in CSS pixels.
+ * Margins are intentionally excluded to avoid measurement oscillation and phantom trailing margins,
+ * conforming strictly to the formal N-1 gap model where external margins vary by :last-child.
  *
  * @param {Element} element
- * @returns {number} Outer height in px rounded to nearest integer
+ * @returns {number} Border-box height in px rounded to nearest integer
  */
-function getOuterHeight(element) {
+function getBorderBoxHeight(element) {
   if (!element || typeof element.getBoundingClientRect !== 'function') return 0;
   const rect = element.getBoundingClientRect();
   if (rect.height <= 0) return 0;
 
-  if (typeof window !== 'undefined' && typeof window.getComputedStyle === 'function') {
-    const style = window.getComputedStyle(element);
-    const marginTop = parseFloat(style.marginTop) || 0;
-    const marginBottom = parseFloat(style.marginBottom) || 0;
-    return Math.round(rect.height + marginTop + marginBottom);
-  }
-
   return Math.round(rect.height);
 }
+
+const getOuterHeight = getBorderBoxHeight;
 
 /**
  * Hook to extract and maintain live DOM element heights for exact A4 page partitioning.

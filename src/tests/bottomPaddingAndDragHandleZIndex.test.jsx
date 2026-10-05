@@ -14,6 +14,7 @@ import { render, screen } from '@testing-library/react';
 import { CVProvider } from '../context/CVContext';
 import App from '../App';
 import DragHandle from '../components/Editor/DragHandle';
+import BaseSection, { PrintBaseSection } from '../components/CV/BaseSection';
 import { A4PageBox } from '../components/CV/A4PageBox';
 import { A4_HEIGHT_CSS, A4_PAGE_HEIGHT_PX } from '../utils/pageGeometry';
 import { defaultSchema } from '../utils/schema';
@@ -149,6 +150,74 @@ describe('Bottom Margin Parity & Drag Handles Z-Index', () => {
       const box = container.querySelector('.a4-page-box');
       expect(box).toBeTruthy();
       expect(box.style.padding).toBe('0px');
+    });
+  });
+
+  describe('3. Elimination of Bottom Phantom Space (N-1 Gap Model)', () => {
+    const mockSection = {
+      id: 'experience-1',
+      type: 'experience',
+      title: 'Experiencia Laboral',
+      items: [
+        {
+          id: 'exp-item-1',
+          title: 'Senior Engineer',
+          subtitle: 'Tech Corp',
+          date: '2020 - Presente',
+          description: 'Leading frontend architecture',
+        },
+      ],
+    };
+
+    it('BaseSection in edit mode applies marginBottom: 0 and is-last-section class when isLast=true', () => {
+      const { container } = render(
+        <CVProvider>
+          <BaseSection section={mockSection} isLast={true} />
+        </CVProvider>
+      );
+      const sectionEl = container.querySelector('.cv-section');
+      expect(sectionEl).toBeTruthy();
+      expect(sectionEl.classList.contains('is-last-section')).toBe(true);
+      expect(sectionEl.style.marginBottom).toBe('0px');
+    });
+
+    it('BaseSection in edit mode applies section-gap and omits is-last-section when isLast=false', () => {
+      const { container } = render(
+        <CVProvider>
+          <BaseSection section={mockSection} isLast={false} />
+        </CVProvider>
+      );
+      const sectionEl = container.querySelector('.cv-section');
+      expect(sectionEl).toBeTruthy();
+      expect(sectionEl.classList.contains('is-last-section')).toBe(false);
+      expect(sectionEl.style.marginBottom).toBe('var(--section-gap, 20px)');
+    });
+
+    it('PrintBaseSection in print mode applies marginBottom: 0 and is-last-section class when isLast=true', () => {
+      const { container } = render(
+        <PrintBaseSection section={mockSection} isLast={true} />
+      );
+      const sectionEl = container.querySelector('.cv-section');
+      expect(sectionEl).toBeTruthy();
+      expect(sectionEl.classList.contains('is-last-section')).toBe(true);
+      expect(sectionEl.style.marginBottom).toBe('0px');
+    });
+
+    it('PrintBaseSection in print mode applies section-gap and omits is-last-section when isLast=false', () => {
+      const { container } = render(
+        <PrintBaseSection section={mockSection} isLast={false} />
+      );
+      const sectionEl = container.querySelector('.cv-section');
+      expect(sectionEl).toBeTruthy();
+      expect(sectionEl.classList.contains('is-last-section')).toBe(false);
+      expect(sectionEl.style.marginBottom).toBe('var(--section-gap, 20px)');
+    });
+
+    it('index.css declares margin-bottom: 0 !important for .is-last-section', () => {
+      const cssPath = path.resolve(__dirname, '../index.css');
+      const css = fs.readFileSync(cssPath, 'utf8');
+      expect(css).toMatch(/\.cv-section\.is-last-section/);
+      expect(css).toMatch(/margin-bottom:\s*0\s*!important;/);
     });
   });
 });

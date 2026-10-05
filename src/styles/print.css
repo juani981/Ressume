@@ -342,7 +342,14 @@
   .cv-section:last-child,
   .cv-section:last-of-type,
   .cv-block:last-child,
-  .cv-block:last-of-type {
+  .cv-block:last-of-type,
+  .editable-item-container:last-child,
+  .editable-item-container:last-of-type,
+  .bullet-item-row:last-child,
+  .bullet-item-row:last-of-type,
+  ul.experience__bullets li:last-child,
+  .experience__bullets li:last-child,
+  ul.simple-list-ul li:last-child {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }

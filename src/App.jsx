@@ -222,10 +222,11 @@ function App() {
                                  <SortableContext
                                     items={pageModel.leftSections.map((s) => s.id)}
                                     strategy={verticalListSortingStrategy}>
-                                    {pageModel.leftSections.map((section) => (
+                                    {pageModel.leftSections.map((section, idx) => (
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          isLast={idx === pageModel.leftSections.length - 1}
                                        />
                                     ))}
                                  </SortableContext>
@@ -277,10 +278,11 @@ function App() {
                                  <SortableContext
                                     items={pageModel.rightSections.map((s) => s.id)}
                                     strategy={verticalListSortingStrategy}>
-                                    {pageModel.rightSections.map((section) => (
+                                    {pageModel.rightSections.map((section, idx) => (
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          isLast={idx === pageModel.rightSections.length - 1}
                                        />
                                     ))}
                                  </SortableContext>
@@ -323,8 +325,12 @@ function App() {
                               <SortableContext
                                  items={pageModel.singleSections.map((s) => s.id)}
                                  strategy={verticalListSortingStrategy}>
-                                 {pageModel.singleSections.map((section) => (
-                                    <BaseSection key={section.id} section={section} />
+                                 {pageModel.singleSections.map((section, idx) => (
+                                    <BaseSection
+                                       key={section.id}
+                                       section={section}
+                                       isLast={idx === pageModel.singleSections.length - 1}
+                                    />
                                  ))}
                               </SortableContext>
 

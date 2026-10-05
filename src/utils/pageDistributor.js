@@ -149,7 +149,6 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
   }
   if (typeof item.height === 'number' && item.height > 0) return item.height;
 
-  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const dataGap = options.dataGapPx ?? DEFAULT_DATA_GAP_PX;
   const h3LineH = calcLineHeightPx('h3', options);
   const smallLineH = calcLineHeightPx('small', options);
@@ -170,7 +169,7 @@ export function estimateItemBaseHeight(item, sectionType = '', options = {}) {
     h += dataGap + descLines * normalLineH;
   }
 
-  return Math.round(h) + itemGap;
+  return Math.round(h);
 }
 
 /**
@@ -186,12 +185,11 @@ export function estimateSingleBulletHeight(bullet, sectionType = '', options = {
   if (bulletKey && options.measuredHeights && typeof options.measuredHeights[bulletKey] === 'number' && options.measuredHeights[bulletKey] > 0) {
     return options.measuredHeights[bulletKey];
   }
-  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const normalLineH = calcLineHeightPx('normal', options);
   const charsPerLine = getCharsPerLine(options, true);
   const bStr = typeof bullet === 'string' ? bullet : (bullet?.text || '');
   const bLines = Math.max(1, Math.ceil(bStr.length / charsPerLine));
-  return Math.round(bLines * normalLineH) + Math.round(itemGap / 2);
+  return Math.round(bLines * normalLineH);
 }
 
 /**
@@ -238,20 +236,29 @@ export function splitCandidateItemByBullets({
   if (!hasBullets) return null;
 
   const candId = candidate.originalItemId || candidate.id;
-  const baseH = estimateItemBaseHeight(candidate, sectionType, options);
-  const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], sectionType, options, `${candId}_bullet_0`);
+  const isAlreadyCont = Boolean(candidate.isContinuationItem);
+  const startOffset = candidate.bulletStartIndex || 0;
+  const baseH = isAlreadyCont ? 0 : estimateItemBaseHeight(candidate, sectionType, options);
+  const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], sectionType, options, `${candId}_bullet_${startOffset}`);
 
   if (currentAccumulated + baseH + firstBulletH > maxAvailable) {
     return null;
   }
 
-  let bAcc = baseH;
-  let bIdx = 0;
-  while (
-    bIdx < candidate.bullets.length &&
-    (currentAccumulated + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], sectionType, options, `${candId}_bullet_${bIdx}`) <= maxAvailable)
-  ) {
-    bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], sectionType, options, `${candId}_bullet_${bIdx}`);
+  const bulletGap = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
+  let bAcc = baseH + firstBulletH;
+  let bIdx = 1;
+  while (bIdx < candidate.bullets.length) {
+    const nextBulletH = estimateSingleBulletHeight(
+      candidate.bullets[bIdx],
+      sectionType,
+      options,
+      `${candId}_bullet_${startOffset + bIdx}`
+    );
+    if (currentAccumulated + bAcc + bulletGap + nextBulletH > maxAvailable) {
+      break;
+    }
+    bAcc += bulletGap + nextBulletH;
     bIdx++;
   }
 
@@ -259,23 +266,23 @@ export function splitCandidateItemByBullets({
     const partialCandidate = {
       ...candidate,
       bullets: candidate.bullets.slice(0, bIdx),
-      originalBullets: candidate.bullets,
-      bulletStartIndex: 0,
+      originalBullets: candidate.originalBullets || candidate.bullets,
+      bulletStartIndex: startOffset,
       isPartialItem: true,
     };
     // Continuación Asimétrica en P2: baseH = 0 (arranca directo con viñetas)
     const partialCandidateRemaining = {
       ...candidate,
-      id: `${candidate.id}__cont_${nextPageNumber}`,
-      originalItemId: candidate.id,
+      id: `${candId}__cont_${nextPageNumber}`,
+      originalItemId: candId,
       title: '',
       subtitle: '',
       date: '',
       link: '',
       description: '',
       bullets: candidate.bullets.slice(bIdx),
-      originalBullets: candidate.bullets,
-      bulletStartIndex: bIdx,
+      originalBullets: candidate.originalBullets || candidate.bullets,
+      bulletStartIndex: startOffset + bIdx,
       isContinuationItem: true,
     };
     return {
@@ -301,7 +308,6 @@ export function splitCandidateItemByBullets({
  * Default fallback estimator for unrecognized or generic section types.
  */
 export function defaultItemHeightEstimator(item, options = {}) {
-  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
   const normalLineH = calcLineHeightPx('normal', options);
   const charsPerLine = getCharsPerLine(options, false);
   const id = item?.originalItemId || item?.id;
@@ -314,7 +320,7 @@ export function defaultItemHeightEstimator(item, options = {}) {
   const bulletsH = Array.isArray(item?.bullets)
     ? estimateItemBulletsHeight(item.bullets, '', options, id)
     : 0;
-  return Math.round(baseH + bodyH + bulletsH) + itemGap;
+  return Math.round(baseH + bodyH + bulletsH);
 }
 
 /**
@@ -324,57 +330,50 @@ export function defaultItemHeightEstimator(item, options = {}) {
 export const SECTION_HEIGHT_ESTIMATORS = Object.freeze({
   photo: (item, options) => {
     if (isAtsLayout(options)) return 0;
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const size = Number(item.size) || (options.defaultPhotoSizePx ?? DEFAULT_PHOTO_SIZE_PX);
-    return size + itemGap;
+    return size;
   },
   title_subtitle: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const h1LineH = calcLineHeightPx('h1', options);
     const subLineH = calcLineHeightPx('subtitle', options);
-    return Math.round(h1LineH + (item.subtitle ? subLineH : 0)) + itemGap;
+    return Math.round(h1LineH + (item.subtitle ? subLineH : 0));
   },
   profile_header: (item, options) => {
     const isAts = isAtsLayout(options);
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const h1LineH = calcLineHeightPx('h1', options);
     const subLineH = calcLineHeightPx('subtitle', options);
     let h = h1LineH + (item.subtitle ? subLineH : 0);
     if (item.photo && !isAts) {
       h += Number(item.photoSize) || (options.defaultPhotoHeaderSizePx ?? DEFAULT_PHOTO_HEADER_SIZE_PX);
     }
-    return Math.round(h) + itemGap;
+    return Math.round(h);
   },
   contact: (item, options) => {
     const isAts = isAtsLayout(options);
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const smallLineH = calcLineHeightPx('small', options);
     const contacts = Array.isArray(item.contacts) ? item.contacts : [];
     if (contacts.length > 0) {
       const rows = isAts ? Math.ceil(contacts.length / 4) : Math.ceil(contacts.length / 2);
-      return Math.round(rows * smallLineH) + itemGap;
+      return Math.round(rows * smallLineH);
     }
-    return Math.round(smallLineH * 2) + itemGap;
+    return Math.round(smallLineH * 2);
   },
   about: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const charsPerLine = getCharsPerLine(options, false);
     const text = item.description || item.text || '';
     const paragraphs = String(text).split('\n');
     const lines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
-    return Math.round(lines * normalLineH) + itemGap;
+    return Math.round(lines * normalLineH);
   },
   skills: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const charsPerLine = getCharsPerLine(options, false);
     const fullText = (item.title ? item.title + ': ' : '') + (item.description || '');
     const lines = Math.max(1, Math.ceil(fullText.length / charsPerLine));
-    return Math.round(lines * normalLineH) + itemGap;
+    return Math.round(lines * normalLineH);
   },
   education: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const smallLineH = calcLineHeightPx('small', options);
     const charsPerLine = getCharsPerLine(options, false);
@@ -385,7 +384,7 @@ export const SECTION_HEIGHT_ESTIMATORS = Object.freeze({
       const descLines = paragraphs.reduce((acc, p) => acc + Math.max(1, Math.ceil(p.length / charsPerLine)), 0);
       h += descLines * normalLineH;
     }
-    return Math.round(h) + itemGap;
+    return Math.round(h);
   },
   list: (item, options) => {
     const id = item.originalItemId || item.id;
@@ -412,28 +411,25 @@ export const SECTION_HEIGHT_ESTIMATORS = Object.freeze({
     return baseH + bulletsH;
   },
   simple_list: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const charsPerLine = getCharsPerLine(options, false);
     const text = item.text || item.description || item.name || '';
     const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-    return Math.round(lines * normalLineH) + itemGap;
+    return Math.round(lines * normalLineH);
   },
   certificates: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const charsPerLine = getCharsPerLine(options, false);
     const text = item.text || item.description || item.name || '';
     const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-    return Math.round(lines * normalLineH) + itemGap;
+    return Math.round(lines * normalLineH);
   },
   languages: (item, options) => {
-    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
     const charsPerLine = getCharsPerLine(options, false);
     const text = item.text || item.description || item.name || '';
     const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-    return Math.round(lines * normalLineH) + itemGap;
+    return Math.round(lines * normalLineH);
   },
   spacer: (item, options) => {
     return item.height || (options.defaultSpacerHeightPx ?? DEFAULT_SPACER_HEIGHT_PX);
@@ -487,8 +483,17 @@ export function estimateSectionHeight(section, options = {}) {
   if (items.length === 0) {
     return headerH + (section.height || 0);
   }
-  const itemsH = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
-  return headerH + itemsH;
+  const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+  const bulletGap = Math.round(itemGap / 2);
+  const itemsNetH = items.reduce((sum, it) => sum + estimateItemHeight(it, section.type, options), 0);
+  const totalItemGaps = items.length > 1 ? (items.length - 1) * itemGap : 0;
+  const totalBulletGaps = items.reduce((acc, it) => {
+    if (Array.isArray(it?.bullets) && it.bullets.length > 1) {
+      return acc + (it.bullets.length - 1) * bulletGap;
+    }
+    return acc;
+  }, 0);
+  return headerH + itemsNetH + totalItemGaps + totalBulletGaps;
 }
 
 /**
@@ -578,8 +583,17 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
 
       currentPage = Math.max(currentPage, ...sortedPages);
       const lastPageItems = itemPageMap.get(currentPage) || [];
-      currentUsedHeight = estimateHeaderHeight(section, currentPage > minPage, options) +
-        lastPageItems.reduce((acc, it) => acc + estimateItemHeight(it, section.type, options), 0);
+      const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+      const bulletGap = Math.round(itemGap / 2);
+      const lastPageItemsNetH = lastPageItems.reduce((acc, it) => acc + estimateItemHeight(it, section.type, options), 0);
+      const lastPageGaps = lastPageItems.length > 1 ? (lastPageItems.length - 1) * itemGap : 0;
+      const lastPageBulletGaps = lastPageItems.reduce((acc, it) => {
+        if (Array.isArray(it?.bullets) && it.bullets.length > 1) {
+          return acc + (it.bullets.length - 1) * bulletGap;
+        }
+        return acc;
+      }, 0);
+      currentUsedHeight = estimateHeaderHeight(section, currentPage > minPage, options) + lastPageItemsNetH + lastPageGaps + lastPageBulletGaps;
       continue;
     }
 
@@ -594,10 +608,20 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
 
     // Case 3: Automatic capacity-based distribution with SSOT tokens
     const sectionGap = options.sectionGapPx ?? DEFAULT_SECTION_GAP_PX;
+    const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+    const bulletGap = Math.round(itemGap / 2);
     const gapBefore = currentUsedHeight > 0 ? sectionGap : 0;
     const headerHeight = estimateHeaderHeight(section, false, options);
     const itemHeights = items.map(it => estimateItemHeight(it, section.type, options));
-    const totalItemsHeight = itemHeights.reduce((acc, h) => acc + h, 0);
+    const totalItemsNetHeight = itemHeights.reduce((acc, h) => acc + h, 0);
+    const totalItemGaps = items.length > 1 ? (items.length - 1) * itemGap : 0;
+    const totalBulletGaps = items.reduce((acc, it) => {
+      if (Array.isArray(it?.bullets) && it.bullets.length > 1) {
+        return acc + (it.bullets.length - 1) * bulletGap;
+      }
+      return acc;
+    }, 0);
+    const totalItemsHeight = totalItemsNetHeight + totalItemGaps + totalBulletGaps;
     const totalSectionHeight = gapBefore + headerHeight + (items.length > 0 ? totalItemsHeight : (section.height || 0));
 
     // CRITERION 1: Fits entirely on current page
@@ -651,8 +675,15 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     let accumulated = currentGap + estimateHeaderHeight(section, false, options);
     let splitIdx = 0;
 
-    while (splitIdx < items.length && (accumulated + itemHeights[splitIdx] <= availableOnPage)) {
-      accumulated += itemHeights[splitIdx];
+    while (splitIdx < items.length) {
+      const it = items[splitIdx];
+      const gapToItem = splitIdx === 0 ? 0 : itemGap;
+      const itBulletGaps = Array.isArray(it?.bullets) && it.bullets.length > 1
+        ? (it.bullets.length - 1) * bulletGap
+        : 0;
+      const fullItemH = itemHeights[splitIdx] + itBulletGaps;
+      if (accumulated + gapToItem + fullItemH > availableOnPage) break;
+      accumulated += gapToItem + fullItemH;
       splitIdx++;
     }
 
@@ -666,18 +697,19 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     );
 
     if (allowGranularBullets && splitIdx < items.length) {
+      const gapBeforeCand = splitIdx === 0 ? 0 : itemGap;
       const splitResult = splitCandidateItemByBullets({
         candidate: items[splitIdx],
         sectionType: section.type,
         options,
-        currentAccumulated: accumulated,
+        currentAccumulated: accumulated + gapBeforeCand,
         maxAvailable: availableOnPage,
         nextPageNumber: currentPage + 1,
       });
       if (splitResult) {
         partialCandidate = splitResult.partialCandidate;
         partialCandidateRemaining = splitResult.partialCandidateRemaining;
-        accumulated += splitResult.consumedHeight;
+        accumulated += gapBeforeCand + splitResult.consumedHeight;
       }
     }
 
@@ -698,8 +730,15 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         let freshAccumulated = headerHeight;
         let freshSplitIdx = 0;
 
-        while (freshSplitIdx < items.length && (freshAccumulated + itemHeights[freshSplitIdx] <= freshAvailable)) {
-          freshAccumulated += itemHeights[freshSplitIdx];
+        while (freshSplitIdx < items.length) {
+          const it = items[freshSplitIdx];
+          const gapToItem = freshSplitIdx === 0 ? 0 : itemGap;
+          const itBulletGaps = Array.isArray(it?.bullets) && it.bullets.length > 1
+            ? (it.bullets.length - 1) * bulletGap
+            : 0;
+          const fullItemH = itemHeights[freshSplitIdx] + itBulletGaps;
+          if (freshAccumulated + gapToItem + fullItemH > freshAvailable) break;
+          freshAccumulated += gapToItem + fullItemH;
           freshSplitIdx++;
         }
 
@@ -707,24 +746,28 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         let freshPartialRemaining = null;
 
         if (allowGranularBullets && freshSplitIdx < items.length) {
+          const freshGapBeforeCand = freshSplitIdx === 0 ? 0 : itemGap;
           const splitResult = splitCandidateItemByBullets({
             candidate: items[freshSplitIdx],
             sectionType: section.type,
             options,
-            currentAccumulated: freshAccumulated,
+            currentAccumulated: freshAccumulated + freshGapBeforeCand,
             maxAvailable: freshAvailable,
             nextPageNumber: currentPage + 1,
           });
           if (splitResult) {
             freshPartial = splitResult.partialCandidate;
             freshPartialRemaining = splitResult.partialCandidateRemaining;
-            freshAccumulated += splitResult.consumedHeight;
+            freshAccumulated += freshGapBeforeCand + splitResult.consumedHeight;
           }
         }
 
         if (freshSplitIdx === 0 && !freshPartial) {
           freshSplitIdx = 1;
-          freshAccumulated += itemHeights[0];
+          const it0BulletGaps = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 1
+            ? (items[0].bullets.length - 1) * bulletGap
+            : 0;
+          freshAccumulated += itemHeights[0] + it0BulletGaps;
         }
 
         splitIdx = freshSplitIdx;
@@ -733,7 +776,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         partialCandidateRemaining = freshPartialRemaining;
       } else {
         splitIdx = 1;
-        accumulated += itemHeights[0];
+        const it0BulletGaps = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 1
+          ? (items[0].bullets.length - 1) * bulletGap
+          : 0;
+        accumulated += itemHeights[0] + it0BulletGaps;
       }
     }
 
@@ -775,8 +821,15 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         return estimateItemHeight(it, section.type, options);
       });
 
-      while (nextIdx < remItems.length && (contAcc + remHeights[nextIdx] <= pageCapacity)) {
-        contAcc += remHeights[nextIdx];
+      while (nextIdx < remItems.length) {
+        const it = remItems[nextIdx];
+        const gapToItem = nextIdx === 0 ? 0 : itemGap;
+        const itBulletGaps = Array.isArray(it?.bullets) && it.bullets.length > 1
+          ? (it.bullets.length - 1) * bulletGap
+          : 0;
+        const fullItemH = remHeights[nextIdx] + itBulletGaps;
+        if (contAcc + gapToItem + fullItemH > pageCapacity) break;
+        contAcc += gapToItem + fullItemH;
         nextIdx++;
       }
 
@@ -784,58 +837,28 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       let contPartialRemaining = null;
 
       if (allowGranularBullets && nextIdx < remItems.length) {
-        const candidate = remItems[nextIdx];
-        const hasBullets = Array.isArray(candidate?.bullets) && candidate.bullets.length > 1;
-
-        if (hasBullets) {
-          const candId = candidate.originalItemId || candidate.id;
-          const isAlreadyCont = Boolean(candidate.isContinuationItem);
-          const startOffset = candidate.bulletStartIndex || 0;
-          const baseH = isAlreadyCont ? 0 : estimateItemBaseHeight(candidate, section.type, options);
-          const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options, `${candId}_bullet_${startOffset}`);
-
-          if (contAcc + baseH + firstBulletH <= pageCapacity) {
-            let bAcc = baseH;
-            let bIdx = 0;
-            while (
-              bIdx < candidate.bullets.length &&
-              (contAcc + bAcc + estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${startOffset + bIdx}`) <= pageCapacity)
-            ) {
-              bAcc += estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${startOffset + bIdx}`);
-              bIdx++;
-            }
-
-            if (bIdx > 0 && bIdx < candidate.bullets.length) {
-              contPartial = {
-                ...candidate,
-                bullets: candidate.bullets.slice(0, bIdx),
-                originalBullets: candidate.originalBullets || candidate.bullets,
-                bulletStartIndex: (candidate.bulletStartIndex || 0),
-                isPartialItem: true,
-              };
-              contPartialRemaining = {
-                ...candidate,
-                id: `${candidate.originalItemId || candidate.id}__cont_${currentPage + 1}`,
-                originalItemId: candidate.originalItemId || candidate.id,
-                title: '',
-                subtitle: '',
-                date: '',
-                link: '',
-                description: '',
-                bullets: candidate.bullets.slice(bIdx),
-                originalBullets: candidate.originalBullets || candidate.bullets,
-                bulletStartIndex: (candidate.bulletStartIndex || 0) + bIdx,
-                isContinuationItem: true,
-              };
-              contAcc += bAcc;
-            }
-          }
+        const contGapBeforeCand = nextIdx === 0 ? 0 : itemGap;
+        const splitResult = splitCandidateItemByBullets({
+          candidate: remItems[nextIdx],
+          sectionType: section.type,
+          options,
+          currentAccumulated: contAcc + contGapBeforeCand,
+          maxAvailable: pageCapacity,
+          nextPageNumber: currentPage + 1,
+        });
+        if (splitResult) {
+          contPartial = splitResult.partialCandidate;
+          contPartialRemaining = splitResult.partialCandidateRemaining;
+          contAcc += contGapBeforeCand + splitResult.consumedHeight;
         }
       }
 
       if (nextIdx === 0 && !contPartial) {
         nextIdx = 1;
-        contAcc += remHeights[0];
+        const rem0BulletGaps = Array.isArray(remItems[0]?.bullets) && remItems[0].bullets.length > 1
+          ? (remItems[0].bullets.length - 1) * bulletGap
+          : 0;
+        contAcc += remHeights[0] + rem0BulletGaps;
       }
 
       const placedItems = remItems.slice(0, nextIdx);

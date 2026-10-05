@@ -2128,7 +2128,11 @@ body.ats-mode-active {
 #area-cv.has-a4-page-boxes .cv-section:last-child,
 #area-cv.has-a4-page-boxes .cv-section:last-of-type,
 #area-cv.has-a4-page-boxes .section:last-child,
-#area-cv.has-a4-page-boxes .section:last-of-type {
+#area-cv.has-a4-page-boxes .section:last-of-type,
+#area-cv.has-a4-page-boxes .cv-section.is-last-section,
+#area-cv.has-a4-page-boxes .section.is-last-section,
+.cv-section.is-last-section,
+.section.is-last-section {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
