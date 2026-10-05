@@ -1330,5 +1330,86 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       fireEvent.click(closeBtn);
       expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
     });
+
+    it('T8.3: clicking on an item (thumbnail or body) triggers onConfirmLoad as default action instead of preview', async () => {
+      const onConfirmLoad = vi.fn();
+      const mockVersion = {
+        id: 'v_click_default',
+        name: 'Staff Engineer Snapshot',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '1-column', isAtsMode: true } },
+      };
+
+      const { container } = render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={onConfirmLoad}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      // Clicking thumbnail triggers onConfirmLoad
+      const thumb = container.querySelector('.version-thumbnail-container');
+      fireEvent.click(thumb);
+      expect(onConfirmLoad).toHaveBeenCalledWith(mockVersion);
+      // And does NOT open preview
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+
+      // Clicking card title area also triggers onConfirmLoad
+      onConfirmLoad.mockClear();
+      const cardTitle = screen.getByText('Staff Engineer Snapshot');
+      fireEvent.click(cardTitle);
+      expect(onConfirmLoad).toHaveBeenCalledWith(mockVersion);
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+    });
+
+    it('T8.4: selecting the eye opens fullscreen scrollable preview with iframe and Escape key closes it', async () => {
+      const mockVersion = {
+        id: 'v_fullscreen_eye',
+        name: 'Fullscreen Snapshot',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '1-column', isAtsMode: true } },
+      };
+
+      render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={() => {}}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      const eyeBtn = screen.getByTestId('btn-preview-version');
+      fireEvent.click(eyeBtn);
+
+      const previewOverlay = screen.getByTestId('version-large-preview');
+      expect(previewOverlay).toBeInTheDocument();
+      expect(previewOverlay.style.width).toBe('100vw');
+      expect(previewOverlay.style.height).toBe('100vh');
+
+      // The preview iframe is rendered
+      const iframe = screen.getByTestId('version-preview-iframe');
+      expect(iframe).toBeInTheDocument();
+
+      // Pressing Escape closes the fullscreen preview
+      fireEvent.keyDown(window, { key: 'Escape' });
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+    });
   });
 });

@@ -56,6 +56,12 @@ const MIN_CARD_WIDTH = 120;
 const GAP_FROM_CV = 14;
 const VIEWPORT_MARGIN = 20;
 
+const SECTION_MAX_RULES = {
+  experience: 5,
+  skills: 5,
+  default: 3
+};
+
 /**
  * Filter and prioritize rules for a specific CV section.
  */
@@ -68,7 +74,7 @@ function getRulesForSection(sec, allRules, targetLayout, globalRules = []) {
     if (specific.length > 0) return specific;
   }
   if (sec.type === 'contact' || sec.id === 'contact') {
-    const specific = allRules.filter(r => r.id.includes('profile_002') || r.id.includes('profile_004'));
+    const specific = allRules.filter(r => r.id.includes('profile_002') || r.id.includes('profile_004') || r.id.includes('profile_005'));
     if (specific.length > 0) return specific;
   }
   if (sec.type === 'about' || sec.id === 'about_section') {
@@ -85,7 +91,7 @@ function getRulesForSection(sec, allRules, targetLayout, globalRules = []) {
 
   // Fallback to general strategy rules if no section-specific rule was found
   if (matching.length === 0 && globalRules.length > 0) {
-    matching = globalRules.slice(0, 2);
+    matching = globalRules.slice(0, SECTION_MAX_RULES.default);
   }
 
   // Prioritize critical severity first
@@ -151,12 +157,13 @@ const AITipsSidebar = () => {
       if (rules.length > 0) {
         // Alternating side: index 0 (Title/Header) -> 'left', index 1 (Contact) -> 'right', index 2 (Profile) -> 'left', etc.
         const side = items.length % 2 === 0 ? 'left' : 'right';
+        const maxRules = SECTION_MAX_RULES[sec.type] || SECTION_MAX_RULES[sec.id] || SECTION_MAX_RULES.default;
         items.push({
           key: sec.id,
           sectionId: sec.id,
           title: sec.title || SECTION_LABEL_MAP[sec.type] || sec.type,
           sectionLabel: SECTION_LABEL_MAP[sec.type] || SECTION_LABEL_MAP[sec.id] || sec.title || 'Sección',
-          rules: rules.slice(0, 2),
+          rules: rules.slice(0, maxRules),
           side
         });
       }
