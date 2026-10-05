@@ -13,9 +13,9 @@
   --a4-page-scale: 1.0;
 
   /* Spacing defaults */
-  --page-padding: 12px;
+  --page-padding: 24px;
   --section-gap: 12px;
-  --item-gap: 8px;
+  --item-gap: 6px;
   --line-height: 1.3;
 
   /* Typography defaults */

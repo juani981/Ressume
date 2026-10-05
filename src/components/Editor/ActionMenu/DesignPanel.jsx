@@ -356,15 +356,13 @@ export const DesignPanel = ({
               }}
             >
               <span>Escala General</span>
-              <b>
-                {formatPx(BASE_FONT_SIZES_PX.normal * fontScale)}
-              </b>
+              <b>{fontScale.toFixed(2)}x</b>
             </div>
             <input
               type="range"
               min={0.5}
-              max={1.25}
-              step={0.5 / BASE_FONT_SIZES_PX.normal}
+              max={1.3}
+              step={0.05}
               value={fontScale}
               onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}

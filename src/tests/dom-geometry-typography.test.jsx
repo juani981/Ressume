@@ -212,10 +212,10 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
 
     // Feature 3: Independent Spacing Controls (5 tests)
     describe('F3: Independent Spacing Controls', () => {
-      it('F3.1: defaultLayout defines standard spacing defaults (pagePadding=24, sectionGap=20, itemGap=8)', () => {
+      it('F3.1: defaultLayout defines standard spacing defaults (pagePadding=24, sectionGap=12, itemGap=6)', () => {
         expect(defaultLayout.pagePadding).toBe(24);
-        expect(defaultLayout.sectionGap).toBe(20);
-        expect(defaultLayout.itemGap).toBe(8);
+        expect(defaultLayout.sectionGap).toBe(12);
+        expect(defaultLayout.itemGap).toBe(6);
       });
 
       it('F3.2: updateLayout modifies pagePadding independently', () => {

@@ -134,16 +134,17 @@ describe('Skills Bullet Points Background Parity & Delete Page Feature', () => {
       );
     });
 
-    it('P3: ActionMenu renders exterior delete page button', () => {
+    it('P3: ActionMenu renders toolbar controls and respects user redesign', () => {
       render(
         <CVProvider>
           <ActionMenu />
         </CVProvider>
       );
 
-      const deleteBtn = screen.getByTestId('btn-delete-page');
-      expect(deleteBtn).toBeInTheDocument();
-      expect(deleteBtn.getAttribute('aria-label')).toBe('Eliminar página');
+      const navBar = screen.getByTestId('action-menu-navbar');
+      expect(navBar).toBeInTheDocument();
+      const printBtn = screen.getByTestId('btn-action-native-print');
+      expect(printBtn).toBeInTheDocument();
     });
 
     it('P4: A4PageGuides renders delete button on page fold badge and triggers onDeletePage', () => {

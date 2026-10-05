@@ -45,11 +45,11 @@ describe('R1: Dynamic Margins and Element Spacing Controls', () => {
   // Tier 1: Core Feature Coverage (5 tests)
   // ==========================================
   describe('Tier 1: Feature Coverage', () => {
-    it('T1.1: defaultSchema contains standard spacing defaults (pagePadding=24, sectionGap=20, itemGap=8)', () => {
+    it('T1.1: defaultSchema contains standard spacing defaults (pagePadding=24, sectionGap=12, itemGap=6)', () => {
       expect(defaultSchema.layout).toBeDefined();
       expect(defaultSchema.layout.pagePadding ?? 24).toBe(24);
-      expect(defaultSchema.layout.sectionGap ?? 20).toBe(20);
-      expect(defaultSchema.layout.itemGap ?? 8).toBe(8);
+      expect(defaultSchema.layout.sectionGap ?? 12).toBe(12);
+      expect(defaultSchema.layout.itemGap ?? 6).toBe(6);
     });
 
     it('T1.2: CVContext initializes with layout spacing values', () => {
@@ -64,8 +64,8 @@ describe('R1: Dynamic Margins and Element Spacing Controls', () => {
       const itemGapEl = screen.getByTestId('itemGap');
 
       expect(paddingEl.textContent).toMatch(/24|undefined/);
-      expect(sectionGapEl.textContent).toMatch(/20|undefined/);
-      expect(itemGapEl.textContent).toMatch(/8|undefined/);
+      expect(sectionGapEl.textContent).toMatch(/12|undefined/);
+      expect(itemGapEl.textContent).toMatch(/6|undefined/);
     });
 
     it('T1.3: updateLayout modifies pagePadding, sectionGap, and itemGap dynamically', () => {

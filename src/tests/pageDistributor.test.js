@@ -935,6 +935,52 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
                   'Creación de sitios web dinámicos y landing pages responsivas para clientes internacionales.',
                 ],
               },
+              {
+                id: 'e5',
+                title: 'Software Developer Intern',
+                subtitle: 'Startup Lab',
+                date: '2014 – 2015',
+                bullets: [
+                  'Implementación de componentes de interfaz y soporte en desarrollo backend.',
+                  'Automatización de pruebas unitarias y cobertura de código.',
+                ],
+              },
+              {
+                id: 'e6',
+                title: 'Junior Programmer',
+                subtitle: 'CodeStudio',
+                date: '2013 – 2014',
+                bullets: [
+                  'Mantenimiento de bases de datos relacionales y optimización de índices.',
+                  'Desarrollo de módulos auxiliares en Python y scripts de automatización.',
+                ],
+              },
+              {
+                id: 'e7',
+                title: 'QA Automation Engineer',
+                subtitle: 'Testing Lab',
+                date: '2012 – 2013',
+                bullets: [
+                  'Diseño y ejecución de planes de pruebas automatizadas end-to-end con Selenium.',
+                  'Reporte y seguimiento de incidencias críticas en Jira.',
+                ],
+              },
+            ],
+          },
+          {
+            id: 'projects',
+            type: 'projects',
+            title: 'Proyectos Destacados',
+            items: [
+              {
+                id: 'p1',
+                title: 'Open Source Cloud Orchestrator',
+                subtitle: 'Go, Kubernetes, Docker',
+                bullets: [
+                  'Herramienta de despliegue automatizado para clusters híbridos.',
+                  'Más de 500 estrellas en GitHub y 50 contribuidores activos.',
+                ],
+              },
             ],
           },
           {
