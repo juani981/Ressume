@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCV } from '../../../context/CVContext';
 import ColorPickerSwatch from '../ColorPickerSwatch';
-import { Palette, X, RotateCcw, Info } from 'lucide-react';
+import { SlidersHorizontal, X, RotateCcw, Info } from 'lucide-react';
 import { DEFAULT_LINE_HEIGHT, SPACING_LIMITS } from '../../../constants/spacing';
 import { COLUMN_RESIZER_LIMITS, DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../../constants/geometry';
 import {
@@ -95,7 +95,7 @@ export const DesignPanel = ({
             gap: '8px',
           }}
         >
-          <Palette size={18} color="#6366f1" /> Ajustes de Diseño
+          <SlidersHorizontal size={18} color="#6366f1" /> Ajustes de Diseño
         </span>
         <button
           type="button"
@@ -167,7 +167,7 @@ export const DesignPanel = ({
           Espaciado
         </button>
 
-        <button
+        {/* <button
           type="button"
           onClick={() => setActiveTab('colors')}
           style={{
@@ -186,7 +186,7 @@ export const DesignPanel = ({
           data-testid="tab-colors"
         >
           Colores
-        </button>
+        </button> */}
       </div>
 
       {/* TAB 1: Typography Section */}

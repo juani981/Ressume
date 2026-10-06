@@ -20,6 +20,7 @@ import {
   distributeSectionsToPages,
   estimateHeaderHeight,
   estimateItemHeight,
+  getItemNetHeight,
   estimateSectionHeight,
 } from '../utils/pageDistributor';
 
@@ -1013,4 +1014,112 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(p2.singleSections.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Boundary Rules & Terminal Element Flush Fitting', () => {
+    it('discounts itemGap in getItemNetHeight for standard items and preserves spacer height', () => {
+      const itemGap = 12;
+      const opts = { itemGapPx: itemGap };
+
+      const eduItem = { id: 'edu1', title: 'Degree', height: 100 };
+      expect(estimateItemHeight(eduItem, 'education', opts)).toBe(100);
+      expect(getItemNetHeight(eduItem, 'education', opts)).toBe(88); // 100 - 12
+
+      const spacerItem = { id: 'sp1', height: 40 };
+      expect(estimateItemHeight(spacerItem, 'spacer', opts)).toBe(40);
+      expect(getItemNetHeight(spacerItem, 'spacer', opts)).toBe(40); // Preserved
+    });
+
+    it('Criterion: item that exceeds remaining page capacity by <= itemGap fits completely as terminal item on page 1 without splitting into bullets', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20, itemGap: 10 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'simple_list',
+            title: '',
+            items: [{ id: 'item1', height: 800 }],
+          },
+          {
+            id: 'sec2',
+            type: 'experience',
+            title: '',
+            items: [
+              {
+                id: 'exp1',
+                height: 100,
+              },
+              {
+                id: 'exp2',
+                height: 100,
+                bullets: ['Bullet 1', 'Bullet 2'],
+              },
+            ],
+          },
+        ],
+      };
+
+      // sec1 takes 800.
+      // sec2 has gapBefore 20.
+      // exp1 takes 100. Accumulated = 20 + 100 = 120.
+      // exp2 gross height = 100. Total accumulated gross = 220.
+      // exp2 net height = 90. Total accumulated net = 210.
+      // With pageCapacity = 1015 (available for sec2 = 215):
+      // Gross 220 > 215 would split exp2 or push it to page 2.
+      // Net 210 <= 215 fits exp2 cleanly on page 1 without bullet split!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 1015,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      const p1Sec2 = pages[0].singleSections.find((s) => s.id === 'sec2');
+      expect(p1Sec2).toBeDefined();
+      expect(p1Sec2.items.length).toBe(2);
+      expect(p1Sec2.items[1].id).toBe('exp2');
+      expect(p1Sec2.items[1].isPartialItem).toBeFalsy();
+    });
+
+    it('Criterion: entire section that exceeds remaining page capacity by <= itemGap fits flush as terminal on page 1', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20, itemGap: 10 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'simple_list',
+            title: '',
+            items: [{ id: 'item1', height: 800 }],
+          },
+          {
+            id: 'sec2',
+            type: 'simple_list',
+            title: '',
+            items: [
+              { id: 'item2', height: 180 },
+            ],
+          },
+        ],
+      };
+
+      // sec1 takes 800.
+      // sec2: gapBefore = 20, header = 0, item = 180.
+      // totalSectionHeight = 200.
+      // trailingGap = 10.
+      // totalSectionHeight - trailingGap = 190.
+      // If pageCapacity = 995:
+      // sec1 (800) + totalSectionHeight (200) = 1000 > 995 (exceeds gross capacity by 5px <= 10px).
+      // With terminal flush rule: 800 + 190 = 990 <= 995, sec2 fits on Page 1!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 995,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1', 'sec2']);
+    });
+  });
 });
+

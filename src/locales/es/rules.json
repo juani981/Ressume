@@ -5,9 +5,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "page_count",
+    "auto_fixable": false,
     "suggestion_title": "Extensión Máxima: 1 Página",
-    "suggestion_body": "Mantén una única página estructurada; maximiza la densidad informativa y elimina redundancias de contenido.",
-    "severity": "critical"
+    "suggestion_body": "No superes una página; sintetizá tu impacto y eliminá cualquier relleno innecesario.",
+    "example_bad": "CV de 3 páginas con descripciones largas y redundantes",
+    "example_good": "1 página concisa enfocada en logros técnicos y resultados"
   },
   {
     "id": "rule_es_global_002",
@@ -15,9 +19,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Supresión de Pronombres Personales",
-    "suggestion_body": "Omite pronombres y posesivos de primera persona; inicia cada viñeta directamente con verbos de acción.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "Sin Pronombres Personales",
+    "suggestion_body": "No uses 'yo' ni 'mi'; empezá cada viñeta directamente con un verbo activo.",
+    "example_bad": "Yo lideré el equipo y desarrollé mi propia app de pagos",
+    "example_good": "Lideré el equipo técnico y desarrollé la plataforma de pagos"
   },
   {
     "id": "rule_es_global_003",
@@ -25,9 +33,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Prohibición de Barras Porcentuales",
-    "suggestion_body": "Sustituye escalas porcentuales o gráficas por listas técnicas; las métricas subjetivas carecen de validez.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
+    "suggestion_title": "Sin Barras de Nivel Porcentual",
+    "suggestion_body": "No uses barras porcentuales subjetivas; demostrá tu nivel listando proyectos y tecnologías reales.",
+    "example_bad": "Python: 85% | React: 90% | Docker: 70%",
+    "example_good": "Python (FastAPI, PyTest) | React (TypeScript, Redux) | Docker"
   },
   {
     "id": "rule_es_global_ats_flow",
@@ -35,9 +47,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Estructura Monocapa ATS",
-    "suggestion_body": "Aplica flujo lineal en una columna para garantizar la extracción determinística en sistemas ATS.",
-    "severity": "critical"
+    "suggestion_body": "No uses columnas paralelas en modo ATS; organizá todo en un flujo lineal vertical.",
+    "example_bad": "Tablas y columnas paralelas que desordenan la lectura del parser",
+    "example_good": "Flujo vertical de una sola columna sin tablas ni particiones"
   },
   {
     "id": "rule_es_global_2col_contrast",
@@ -45,9 +61,13 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Distribución Jerárquica Bicolumna",
-    "suggestion_body": "Ubica competencias y contacto a la izquierda; proyecta trayectoria profesional en la columna principal.",
-    "severity": "info"
+    "severity": "info",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
+    "suggestion_title": "Jerarquía Visual Bicolumna",
+    "suggestion_body": "No pongas textos densos en columnas angostas; reservá los laterales para contacto y habilidades.",
+    "example_bad": "Descripciones largas de experiencia laboral apretadas en la barra lateral",
+    "example_good": "Contacto y stack a la izquierda; trayectoria en la columna ancha"
   },
   {
     "id": "ats_crit_es_dollar_syntax",
@@ -55,9 +75,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Sintaxis Limpia sin Delimitadores",
-    "suggestion_body": "Evita caracteres reservados como signos de dólar; provocan errores de tokenización en parsers ATS.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "Sintaxis Limpia sin Signos Reservados",
+    "suggestion_body": "No uses signos de dólar innecesarios; rompen las expresiones regulares de filtros ATS.",
+    "example_bad": "Optimización +1$ en el pipeline de CI/CD",
+    "example_good": "Resolución del problema N+1 y optimización en CI/CD"
   },
   {
     "id": "ats_crit_es_url_integrity",
@@ -65,9 +89,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Integridad y Normalización de URLs",
-    "suggestion_body": "Verifica que cada hipervínculo apunte a repositorios o despliegues activos, sin espacios ni redirecciones.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "Enlaces Canónicos sin Espacios",
+    "suggestion_body": "No pegues enlaces rotos; usá URLs canónicas a tus repositorios o demos activas.",
+    "example_bad": "https://github. com/usuario /repo-temp-draft",
+    "example_good": "https://github.com/usuario/ecommerce-platform"
   },
   {
     "id": "ats_warn_es_glyph_overload",
@@ -75,9 +103,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Tipografía Estándar y Supresión de Glifos",
-    "suggestion_body": "Utiliza únicamente viñetas estándar; glifos personalizados, casillas o emojis rompen el motor OCR.",
-    "severity": "warning"
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "Viñetas Estándar sin Casillas ni Emojis",
+    "suggestion_body": "No uses casillas ni emojis; elegí viñetas estándar para asegurar la lectura OCR.",
+    "example_bad": "☑ Desarrollé la API de pagos en Node.js 🚀",
+    "example_good": "• Desarrollé la API de pagos en microservicios con Node.js"
   },
   {
     "id": "rule_es_global_004",
@@ -85,9 +117,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Formato Cronológico Estandarizado",
-    "suggestion_body": "Emplea formato cronológico uniforme (MM/AAAA – MM/AAAA o Presente) en todas las secciones temporales.",
-    "severity": "warning"
+    "suggestion_body": "No uses fechas ambiguas; escribí siempre 'MM/AAAA – Presente' o 'MM/AAAA – MM/AAAA'.",
+    "example_bad": "Hace 2 años | 2021 hasta ahora | 1 año y medio",
+    "example_good": "03/2022 – Presente"
   },
   {
     "id": "rule_es_profile_001",
@@ -95,9 +131,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Titular Profesional y Especialidad",
-    "suggestion_body": "Declara tu rol técnico formal y stack principal. Evita etiquetas ambiguas o adjetivos vacíos.",
-    "severity": "critical"
+    "suggestion_body": "No uses adjetivos vacíos; declará tu puesto técnico específico y tu stack principal.",
+    "example_bad": "Desarrollador apasionado con ganas de aprender cosas nuevas",
+    "example_good": "Full Stack Engineer | React, Node.js, TypeScript"
   },
   {
     "id": "rule_es_profile_002",
@@ -105,9 +145,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Privacidad: Localidad y Jurisdicción",
-    "suggestion_body": "Consigna únicamente ciudad y país de residencia; omite dirección postal completa y numeración física.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
+    "suggestion_title": "Privacidad: Localidad sin Dirección Exacta",
+    "suggestion_body": "No pongas tu dirección postal completa; indicá únicamente ciudad y país de residencia.",
+    "example_bad": "Av. Corrientes 1234 Piso 4 Depto B, CABA, CP 1043",
+    "example_good": "Buenos Aires, Argentina (Disponible para remoto)"
   },
   {
     "id": "rule_es_profile_003",
@@ -115,9 +159,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Resumen Ejecutivo de Impacto",
-    "suggestion_body": "Sustituye objetivos aspiracionales por un resumen técnico cuantificado de tu trayectoria y resultados profesionales.",
-    "severity": "critical"
+    "suggestion_body": "No escribas metas genéricas; resumí en pocas líneas tu experiencia y valor técnico.",
+    "example_bad": "Mi objetivo es formar parte de una empresa líder para sumar conocimientos",
+    "example_good": "Backend dev con 4 años optimizando microservicios y reduciendo latencias un 30%"
   },
   {
     "id": "rule_es_profile_004",
@@ -125,9 +173,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Normalización de Perfil LinkedIn",
-    "suggestion_body": "Configura un slug canónico personalizado en LinkedIn, suprimiendo identificadores numéricos y caracteres aleatorios.",
-    "severity": "warning"
+    "severity": "warning",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "URL Personalizada de LinkedIn",
+    "suggestion_body": "No dejes números aleatorios en LinkedIn; creá un enlace canónico con tu nombre.",
+    "example_bad": "https://linkedin.com/in/juan-perez-8b29141a",
+    "example_good": "https://linkedin.com/in/juanperez-dev"
   },
   {
     "id": "rule_es_profile_005",
@@ -135,9 +187,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Omisión de Datos Personales Sensibles",
-    "suggestion_body": "Excluye DNI, estado civil o fecha de nacimiento; introducen sesgos y descartes automáticos internacionales.",
-    "severity": "critical"
+    "suggestion_body": "No pongas DNI ni estado civil; en búsquedas internacionales provocan descarte inmediato.",
+    "example_bad": "DNI: 35.123.456 | Soltero | 28 años | Foto adjunta",
+    "example_good": "Perfil enfocado exclusivamente en competencias técnicas y código"
   },
   {
     "id": "rule_es_experience_001",
@@ -145,9 +201,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Estructura de Impacto Cuantificado",
-    "suggestion_body": "Estructura cada hito: Logro alcanzado, métrica medible y acción técnica ejecutada (marco Laszlo Bock).",
-    "severity": "critical"
+    "suggestion_body": "No listes tareas rutinarias; redactá qué lograste, con qué métrica y cómo (Laszlo Bock).",
+    "example_bad": "Mantenía la base de datos y corregía queries lentas",
+    "example_good": "Reduje tiempos de consulta SQL un 45% reestructurando índices y particionando tablas"
   },
   {
     "id": "rule_es_experience_002",
@@ -155,9 +215,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Verbos de Acción en Modo Activo",
-    "suggestion_body": "Inicia cada viñeta con un verbo de acción; suprime formulaciones pasivas como 'responsable de'.",
-    "severity": "critical"
+    "suggestion_body": "No uses 'responsable de'; comenzá cada viñeta con verbos de acción directa.",
+    "example_bad": "Responsable de coordinar deploys y tareas de backend",
+    "example_good": "Automaticé el pipeline de CI/CD reduciendo fallos en producción un 20%"
   },
   {
     "id": "rule_es_experience_003",
@@ -165,9 +229,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Cuantificación de Resultados",
-    "suggestion_body": "Respalda cada responsabilidad con métricas objetivas de producción: porcentajes, latencia, costos o volumen transaccional.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
+    "suggestion_title": "Cuantificación con Métricas Reales",
+    "suggestion_body": "No omitas datos clave; respaldá responsabilidades con métricas objetivas de impacto y producción.",
+    "example_bad": "Mejoré mucho la velocidad de respuesta de la plataforma",
+    "example_good": "Optimicé el bundle de frontend reduciendo el tiempo de carga de 3.2s a 1.1s"
   },
   {
     "id": "rule_es_experience_004",
@@ -175,9 +243,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Concisión: 1 a 2 Líneas por Ítem",
-    "suggestion_body": "Sintetiza cada logro en un máximo de dos líneas; optimiza el escaneo visual del evaluador.",
-    "severity": "warning"
+    "severity": "warning",
+    "validation_type": "word_count",
+    "auto_fixable": false,
+    "suggestion_title": "Concisión: 1 a 2 Líneas por Viñeta",
+    "suggestion_body": "No escribas párrafos largos; limitá cada logro a una o dos líneas concisas.",
+    "example_bad": "Bloque de 6 líneas detallando el contexto administrativo de la empresa",
+    "example_good": "Migré la arquitectura monolítica a microservicios en Go, tolerando 10k req/s"
   },
   {
     "id": "rule_es_experience_ats_recency",
@@ -185,9 +257,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "warning",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Orden Cronológico Inverso",
-    "suggestion_body": "Ordena las posiciones desde la más reciente; utiliza tiempo verbal presente para cargos activos.",
-    "severity": "warning"
+    "suggestion_body": "No pongas empleos antiguos arriba; ordená cronológicamente desde tu cargo más reciente.",
+    "example_bad": "Pasantía de 2018 ubicada al inicio de la sección de experiencia",
+    "example_good": "Rol actual (2024 – Presente) arriba de todo, seguido por 2022 y 2020"
   },
   {
     "id": "rule_es_experience_2col_visual",
@@ -195,9 +271,13 @@
     "target_layout": "Human_2_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
-    "suggestion_title": "Ponderación Temporal de Cargos",
-    "suggestion_body": "Asigna mayor densidad de viñetas a tus roles más recientes y sintetiza experiencias antiguas.",
-    "severity": "warning"
+    "severity": "warning",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
+    "suggestion_title": "Ponderación Visual de Experiencias",
+    "suggestion_body": "No sobrecargues puestos antiguos; dale más espacio y detalle a tus experiencias recientes.",
+    "example_bad": "5 viñetas extensas para un puesto junior de soporte de hace 8 años",
+    "example_good": "4 viñetas en tu puesto senior actual y 1 o 2 en roles anteriores"
   },
   {
     "id": "rule_es_skills_001",
@@ -205,9 +285,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Categorización Técnica de Habilidades",
-    "suggestion_body": "Agrupa tecnologías por dominio funcional: Lenguajes, Frameworks, Bases de Datos, Infraestructura y Herramientas DevOps.",
-    "severity": "critical"
+    "suggestion_body": "No listes herramientas desordenadas; agrupá tus tecnologías por áreas funcionales y stack.",
+    "example_bad": "JavaScript, Docker, Postgres, React, AWS, Git en una sola lista",
+    "example_good": "Frontend: React, TypeScript | Backend: Node.js, Go | DB: PostgreSQL"
   },
   {
     "id": "rule_es_skills_002",
@@ -215,9 +299,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
-    "suggestion_title": "Exclusión de Habilidades Subjetivas",
-    "suggestion_body": "Suprime afirmaciones sobre aptitudes blandas; demuestra liderazgo y colaboración mediante resultados técnicos empíricos.",
-    "severity": "critical"
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
+    "suggestion_title": "Exclusión de Habilidades Blandas Genéricas",
+    "suggestion_body": "No agregues aptitudes blandas genéricas; demostrá tu liderazgo y trabajo mediante resultados técnicos.",
+    "example_bad": "Proactivo, puntual, trabajo bajo presión, sociable",
+    "example_good": "Lideré squad de 5 devs coordinando entregas bisemanales y code reviews"
   },
   {
     "id": "rule_es_skills_ats_keywords",
@@ -225,9 +313,13 @@
     "target_layout": "ATS_1_col",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": true,
     "suggestion_title": "Indexación Temprana de Palabras Clave",
-    "suggestion_body": "Posiciona las competencias técnicas críticas en el tercio superior para asegurar coincidencias en ATS.",
-    "severity": "critical"
+    "suggestion_body": "No escondas tus tecnologías abajo; ubicalas arriba para acelerar la coincidencia ATS.",
+    "example_bad": "Habilidades técnicas relegadas al final de la segunda página",
+    "example_good": "Stack tecnológico ubicado en el tercio superior del documento"
   },
   {
     "id": "ats_info_es_technology_casing",
@@ -235,9 +327,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "info",
+    "validation_type": "dictionary_match",
+    "auto_fixable": true,
     "suggestion_title": "Capitalización Canónica de Tecnologías",
-    "suggestion_body": "Escribe cada tecnología respetando su ortografía y capitalización oficial de industria (ej: TypeScript, PostgreSQL, Docker).",
-    "severity": "info"
+    "suggestion_body": "No uses minúsculas informales; respetá el casing oficial de cada tecnología para filtros.",
+    "example_bad": "typescript, postgresql, docker, reactjs",
+    "example_good": "TypeScript, PostgreSQL, Docker, React"
   },
   {
     "id": "rule_es_projects_001",
@@ -245,9 +341,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Arquitectura, Solución e Impacto",
-    "suggestion_body": "Presenta cada proyecto exponiendo el desafío de ingeniería, arquitectura técnica implementada y métricas obtenidas.",
-    "severity": "critical"
+    "suggestion_body": "No resumas proyectos como tutoriales; explicá el problema, la arquitectura técnica y resultados.",
+    "example_bad": "Hice un clon de Netflix siguiendo un video de YouTube",
+    "example_good": "Plataforma de streaming con transcoding serverless en AWS Lambda y CDN"
   },
   {
     "id": "rule_es_projects_002",
@@ -255,9 +355,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Verificabilidad de Repositorios y Demos",
-    "suggestion_body": "Proporciona enlaces verificables a repositorios de código fuente público o despliegues operativos en producción.",
-    "severity": "critical"
+    "suggestion_body": "No dejes proyectos sin verificar; incluí enlaces al repositorio público o demo funcional.",
+    "example_bad": "Proyecto Ecommerce (corre solo en mi localhost:3000)",
+    "example_good": "Repo: github.com/user/shop | Demo en vivo: shop-app.vercel.app"
   },
   {
     "id": "rule_es_projects_003",
@@ -265,9 +369,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "warning",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Documentación y Entorno Reproducible",
-    "suggestion_body": "Todo repositorio debe documentar arquitectura y configuración en README.md o incorporar Dockerfile reproducible.",
-    "severity": "warning"
+    "suggestion_body": "No subas repositorios vacíos; agregá un README con arquitectura o un Dockerfile reproducible.",
+    "example_bad": "Repositorio con commit inicial sin instrucciones de instalación",
+    "example_good": "README con arquitectura, variables de entorno y Docker Compose listo"
   },
   {
     "id": "rule_es_education_001",
@@ -275,9 +383,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "format_scan",
+    "auto_fixable": false,
     "suggestion_title": "Titulación Académica y Denominación Oficial",
-    "suggestion_body": "Indica título oficial completo, casa de estudios y año de graduación; incluye equivalencia internacional.",
-    "severity": "critical"
+    "suggestion_body": "No uses siglas poco claras; poné título oficial completo, universidad y año de egreso.",
+    "example_bad": "Carrera de sistemas en la facultad (egresé hace poco)",
+    "example_good": "Licenciatura en Sistemas | Universidad de Buenos Aires (2019 – 2023)"
   },
   {
     "id": "rule_es_education_002",
@@ -285,9 +397,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "format_scan",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Supresión de Educación Secundaria",
-    "suggestion_body": "Omite antecedentes de educación media o secundaria si posees formación terciaria, universitaria o técnica.",
-    "severity": "critical"
+    "suggestion_body": "No incluyas educación secundaria si ya contás con estudios universitarios, técnicos o terciarios.",
+    "example_bad": "Bachiller mercantil | Colegio San Martín (2012 – 2017)",
+    "example_good": "Enfocar el espacio únicamente en formación universitaria y superior relevante"
   },
   {
     "id": "rule_es_certificates_001",
@@ -295,9 +411,13 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "content_quality",
+    "auto_fixable": false,
     "suggestion_title": "Certificaciones Industriales Estandarizadas",
-    "suggestion_body": "Prioriza acreditaciones de proveedores de nube o entidades reconocidas; omite certificados de asistencia informal.",
-    "severity": "critical"
+    "suggestion_body": "No sumes cursos breves informales; destacá certificaciones oficiales reconocidas por la industria.",
+    "example_bad": "Certificado de asistencia a taller de 2 horas de introducción a Python",
+    "example_good": "AWS Certified Solutions Architect – Associate (Credencial verificable)"
   },
   {
     "id": "rule_es_languages_001",
@@ -305,8 +425,12 @@
     "target_layout": "both",
     "target_industry": "all",
     "trigger_context": "on_edit_description",
+    "severity": "critical",
+    "validation_type": "regex_or_check",
+    "auto_fixable": false,
     "suggestion_title": "Competencia Lingüística Estándar (MCER)",
-    "suggestion_body": "Especifica nivel de competencia bajo el Marco Común Europeo (B2, C1, C2) sin porcentajes.",
-    "severity": "critical"
+    "suggestion_body": "No inventes porcentajes; usá la escala internacional estándar del marco europeo (B2, C1).",
+    "example_bad": "Inglés: 75% | Francés: nivel medio",
+    "example_good": "Inglés: C1 (Fluidez profesional avanzada en entornos de ingeniería)"
   }
 ]

@@ -338,7 +338,11 @@ export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode, options = {
     target_section: r.target_section,
     severity: r.severity,
     suggestion_title: r.suggestion_title,
-    suggestion_body: r.suggestion_body
+    suggestion_body: r.suggestion_body,
+    example_bad: r.example_bad,
+    example_good: r.example_good,
+    validation_type: r.validation_type,
+    auto_fixable: r.auto_fixable
   }));
 
   return {
