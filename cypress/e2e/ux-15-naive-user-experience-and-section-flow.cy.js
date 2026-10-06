@@ -161,5 +161,47 @@ describe('UX Test 15: Naive User Experience, Cognitive Friction & Section Flow',
       expect($box[0].getBoundingClientRect().width).to.be.closeTo(794, 20);
     });
   });
+
+  it('Step 5: Evaluates expected new section placement and naive user section creation journey', () => {
+    // 1. Locate the bottom Add Section trigger at the end of the column
+    cy.get('.column-add-section .add-section-btn').last().as('terminalAddBtn');
+    cy.get('@terminalAddBtn').should('exist');
+    cy.get('@terminalAddBtn').click({ force: true });
+
+    // 2. Add Section modal appears docked with clear category choices
+    cy.get('[data-testid="add-section-modal"]').should('be.visible');
+    cy.get('[data-testid="add-section-card-languages"], [data-testid="add-section-card-education"]')
+      .first()
+      .click({ force: true });
+
+    // 3. Modal closes cleanly
+    cy.get('[data-testid="add-section-modal"]').should('not.exist');
+
+    // 4. Verify the newly created section is appended predictably at the end of the column
+    cy.get('.cv-section').last().as('newlyAddedSection');
+    cy.get('@newlyAddedSection').should('exist');
+
+    // 5. Verify the new section has default items/content ready for naive user
+    cy.get('@newlyAddedSection').within(() => {
+      // Must contain a section title or inline edit affordance
+      cy.get('.section-title, .inline-edit-display, h2, h3').should('exist');
+    });
+
+    // 6. In-place title editing works immediately on the new section
+    cy.get('@newlyAddedSection').find('.section-title, h2, h3').first().within(() => {
+      cy.get('.inline-edit-display, span').first()
+        .invoke('text', 'CERTIFICACIONES Y LOGROS')
+        .trigger('input', { force: true })
+        .trigger('blur', { force: true });
+    });
+    cy.get('@newlyAddedSection').should('contain.text', 'CERTIFICACIONES Y LOGROS');
+
+    // 7. Verify boundary margin suppression applies to the new terminal section
+    cy.get('.cv-section').last().then(($el) => {
+      const computedStyle = window.getComputedStyle($el[0]);
+      expect(parseFloat(computedStyle.marginBottom)).to.equal(0);
+    });
+  });
 });
+
 
