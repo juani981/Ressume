@@ -125,4 +125,41 @@ describe('UX Test 15: Naive User Experience, Cognitive Friction & Section Flow',
     });
   });
 
+  it('Step 4: Evaluates flow of data (reactive updates across document model, item additions, instant synchronization)', () => {
+    // 1. Locate an editable experience or list section with item additions available
+    cy.get('.experience, [data-section-id="experience"], .editable-section-container')
+      .filter(':has(.round-btn-add)')
+      .first()
+      .then(($section) => {
+        const initialItemCount = $section.find('.experience__content, .editable-item-container, .skills__data').length;
+
+        // 2. Add an item reactively
+        cy.wrap($section).find('.round-btn-add').first().click({ force: true });
+
+        // 3. Verify item count increased reactively without page reload
+        cy.wrap($section).find('.experience__content, .editable-item-container, .skills__data')
+          .should('have.length', initialItemCount + 1);
+
+        // 4. Edit newly created item title in-place
+        cy.wrap($section).find('.experience__content, .editable-item-container, .skills__data')
+          .last()
+          .find('.inline-edit-display')
+          .first()
+          .invoke('text', 'Senior Cloud Infrastructure Architect')
+          .trigger('input', { force: true })
+          .trigger('blur', { force: true });
+
+        // 5. Verify the updated text is immediately rendered
+        cy.wrap($section).find('.experience__content, .editable-item-container, .skills__data')
+          .last()
+          .should('contain.text', 'Senior Cloud Infrastructure Architect');
+      });
+
+    // 6. Verify discrete A4 box integrity is maintained during data mutations
+    cy.get('.a4-page-box').each(($box) => {
+      // Must maintain fixed A4 width
+      expect($box[0].getBoundingClientRect().width).to.be.closeTo(794, 20);
+    });
+  });
 });
+
