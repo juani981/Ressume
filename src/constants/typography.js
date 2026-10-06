@@ -69,7 +69,7 @@ export function getFontAdvanceRatio(fontFamily) {
 export const DEFAULT_COLUMN_CHARS_CAPACITY = Object.freeze({
   left: Object.freeze({ text: 28, bullet: 26 }),
   right: Object.freeze({ text: 44, bullet: 42 }),
-  single: Object.freeze({ text: 72, bullet: 70 }),
+  single: Object.freeze({ text: 118, bullet: 114 }),
 });
 
 export const MIN_CHARS_PER_LINE = 12;

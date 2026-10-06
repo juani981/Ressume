@@ -30,6 +30,7 @@ import {
 import { getRulerHeightPx } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
+import { STATIC_PRINT_FONTS_CSS } from './printFonts';
 import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';
 
 export { renderRichHTML, stripHtml };
@@ -761,6 +762,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style id="cv-base-styles">
+${STATIC_PRINT_FONTS_CSS}
     :root,
     #area-cv {
       --page-padding: ${pagePadding}px;

@@ -8,6 +8,7 @@
 import { A4_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../../constants';
 import { getFontFamilyStack, computeTypographyTokens } from '../../utils/typographyUtils';
 import { baseStyles, printStyles } from '../../styles/bundle';
+import { STATIC_PRINT_FONTS_CSS } from './printFonts';
 import { getDynamicPdfTitle } from './pdfTitleService';
 import {
   escapeHTML,
@@ -155,6 +156,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style id="cv-base-styles">
+${STATIC_PRINT_FONTS_CSS}
 ${layoutVariablesCSS}
 ${activeBaseStyles}
   </style>

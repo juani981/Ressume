@@ -436,10 +436,21 @@ export const SECTION_HEIGHT_ESTIMATORS = Object.freeze({
   certificates: (item, options) => {
     const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
     const normalLineH = calcLineHeightPx('normal', options);
+    const smallLineH = calcLineHeightPx('small', options);
+    const dataGap = options.dataGapPx ?? DEFAULT_DATA_GAP_PX;
     const charsPerLine = getCharsPerLine(options, false);
-    const text = item.text || item.description || item.name || '';
-    const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
-    return Math.round(lines * normalLineH) + itemGap;
+    const titleText = item.title || item.text || item.description || item.name || '';
+    const titleLines = Math.max(1, Math.ceil(titleText.length / charsPerLine));
+    let h = titleLines * normalLineH;
+    if (item.subtitle || item.credentialId) {
+      const subText = (item.subtitle || '') + (item.credentialId ? ` · ID: ${item.credentialId}` : '');
+      const subLines = Math.max(1, Math.ceil(subText.length / charsPerLine));
+      h += dataGap + subLines * smallLineH;
+    }
+    if (item.link) {
+      h += dataGap + smallLineH;
+    }
+    return Math.round(h) + itemGap;
   },
   languages: (item, options) => {
     const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
