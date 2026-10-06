@@ -62,6 +62,7 @@ export const SectionItemsRenderer = ({
   sectionType,
   descriptor,
   isPrint = false,
+  hasContinuation = false,
 }) => {
   const ContainerTag = descriptor?.containerTag;
   const isList = isListContainerTag(ContainerTag);
@@ -70,16 +71,19 @@ export const SectionItemsRenderer = ({
     ? descriptor?.printContainerStyle || {}
     : descriptor?.containerStyle || {};
 
-  const renderedItems = items.map((item, index) => (
-    <BaseItem
-      key={item.id || index}
-      item={item}
-      sectionId={sectionId}
-      sectionType={sectionType}
-      isPrint={isPrint}
-      isLast={index === items.length - 1}
-    />
-  ));
+  const renderedItems = items.map((item, index) => {
+    const isItemLast = (index === items.length - 1) && !hasContinuation && !item?.isPartialItem;
+    return (
+      <BaseItem
+        key={item.id || index}
+        item={item}
+        sectionId={sectionId}
+        sectionType={sectionType}
+        isPrint={isPrint}
+        isLast={isItemLast}
+      />
+    );
+  });
 
   if (isList && ContainerTag) {
     return (
@@ -119,9 +123,10 @@ export const PrintBaseSection = ({ section }) => {
   return (
     <PrintModeContext.Provider value={true}>
       <section 
-        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
         id={section.id}
         data-section-id={section.id}
+        data-has-continuation={section.hasContinuation ? 'true' : undefined}
         style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
       >
         {descriptor.hasTitle !== false && section.title && (
@@ -140,6 +145,7 @@ export const PrintBaseSection = ({ section }) => {
             sectionType={section.type}
             descriptor={descriptor}
             isPrint={true}
+            hasContinuation={Boolean(section.hasContinuation)}
           />
         </div>
 
@@ -214,9 +220,10 @@ const EditableBaseSection = ({ section }) => {
     <section 
       ref={setNodeRef} 
       style={style} 
-      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
+      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
       id={section.id}
       data-section-id={section.id}
+      data-has-continuation={section.hasContinuation ? 'true' : undefined}
       {...attributes}
       {...containerDragListeners}
     >
@@ -301,6 +308,7 @@ const EditableBaseSection = ({ section }) => {
             sectionType={section.type}
             descriptor={descriptor}
             isPrint={false}
+            hasContinuation={Boolean(section.hasContinuation)}
           />
         </SortableContext>
       </div>

@@ -587,13 +587,15 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       const sortedPages = Array.from(itemPageMap.keys()).sort((a, b) => a - b);
       const minPage = sortedPages[0];
 
-      sortedPages.forEach((pageNum) => {
+      sortedPages.forEach((pageNum, pageIdx) => {
         const pageItems = itemPageMap.get(pageNum);
         const isContinuation = pageNum > minPage;
+        const hasContinuation = pageIdx < sortedPages.length - 1;
         const part = {
           ...section,
           id: (isContinuation && options.uniqueContinuationIds) ? `${section.id}__cont_${pageNum}` : section.id,
           originalSectionId: section.id,
+          hasContinuation,
           ...(isContinuation ? {
             continuationId: `${section.id}__cont_${pageNum}`,
             isContinuation: true,
@@ -819,13 +821,6 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       page1Items.push(partialCandidate);
     }
 
-    const part1 = {
-      ...section,
-      items: page1Items,
-    };
-    addToBucket(currentPage, part1);
-    currentUsedHeight += accumulated;
-
     // Remaining items for continuation pages
     let remItems = [];
     if (partialCandidateRemaining) {
@@ -833,6 +828,14 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     }
     const unplacedFullItems = items.slice(splitIdx + (partialCandidate ? 1 : 0));
     remItems.push(...unplacedFullItems);
+
+    const part1 = {
+      ...section,
+      hasContinuation: remItems.length > 0,
+      items: page1Items,
+    };
+    addToBucket(currentPage, part1);
+    currentUsedHeight += accumulated;
 
     let contPageNum = currentPage + 1;
 
@@ -944,12 +947,19 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         placedItems.push(contPartial);
       }
 
+      const nextRem = [];
+      if (contPartialRemaining) {
+        nextRem.push(contPartialRemaining);
+      }
+      nextRem.push(...remItems.slice(nextIdx + (contPartial ? 1 : 0)));
+
       const contPart = {
         ...section,
         id: options.uniqueContinuationIds ? `${section.id}__cont_${currentPage}` : section.id,
         originalSectionId: section.id,
         continuationId: `${section.id}__cont_${currentPage}`,
         isContinuation: true,
+        hasContinuation: nextRem.length > 0,
         continuationPage: currentPage,
         title: (options.omitContinuationHeader || options.omitContinuationTitle)
           ? ''
@@ -958,12 +968,6 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       };
       addToBucket(currentPage, contPart);
       currentUsedHeight = contAcc;
-
-      const nextRem = [];
-      if (contPartialRemaining) {
-        nextRem.push(contPartialRemaining);
-      }
-      nextRem.push(...remItems.slice(nextIdx + (contPartial ? 1 : 0)));
       remItems = nextRem;
       contPageNum++;
     }

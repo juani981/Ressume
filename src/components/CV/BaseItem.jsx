@@ -49,14 +49,16 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
   const hasPageBreak = Boolean(item?.pageBreak === 'before' || item?.breakBefore || item?.isForcedBreak);
   const isPartial = Boolean(item?.isPartialItem);
   const isContinuation = Boolean(item?.isContinuationItem);
+  const hasNextItem = !isLast;
 
   return (
     <ItemTag 
-      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} cv-block${hasPageBreak ? ' break-page-before' : ''}${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}`}
       data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}
       data-is-continuation={isContinuation ? 'true' : undefined}
+      data-has-next-item={hasNextItem ? 'true' : undefined}
       style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', ...style }}
     >
       {ItemComponent && (
@@ -75,9 +77,10 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
  * @param {Object} props.item - The item data object
  * @param {string} props.sectionId - ID of parent section
  * @param {string} props.sectionType - Type string of parent section
+ * @param {boolean} [props.isLast=false] - Whether this is the last item
  * @returns {React.ReactElement}
  */
-const EditableBaseItem = ({ item, sectionId, sectionType }) => {
+const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const { updateSectionItem, deleteSectionItem, deleteSection } = useCV();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
@@ -123,15 +126,17 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
 
   const isPartial = Boolean(item?.isPartialItem);
   const isContinuation = Boolean(item?.isContinuationItem);
+  const hasNextItem = !isLast;
 
   return (
     <ItemTag
       ref={setNodeRef}
-      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}`}
       data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}
       data-is-continuation={isContinuation ? 'true' : undefined}
+      data-has-next-item={hasNextItem ? 'true' : undefined}
       style={baseStyle}
       {...attributes}
       {...containerDragListeners}
@@ -154,6 +159,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType }) => {
         <ItemComponent 
           item={item} 
           sectionId={sectionId} 
+          isLast={isLast}
           onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
         />
       )}

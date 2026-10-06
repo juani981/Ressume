@@ -341,4 +341,40 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
     expect(pages[0].rightSections.some((s) => s.id === 'experience')).toBe(true);
     expect(pages[1].rightSections.length).toBeGreaterThan(0);
   });
+
+  it('TC8: renders timeline connector line on Page 1 when a timeline section splits across pages between whole items', async () => {
+    const { SectionItemsRenderer } = await import('../components/CV/BaseSection.jsx');
+    const { getSectionDescriptor } = await import('../registry/sectionRegistry.js');
+    const descriptor = getSectionDescriptor('projects');
+
+    const item1 = {
+      id: 'proj1',
+      title: 'Orquestador Moodle',
+      subtitle: 'Python, Docker',
+      date: '2026 - Actualidad',
+      description: 'Wizard por terminal de Linux...',
+      bullets: ['Bullet 1', 'Bullet 2'],
+    };
+
+    // Render SectionItemsRenderer on Page 1 where item1 is the ONLY item on Page 1, but section continues on Page 2
+    const { container } = render(
+      <SectionItemsRenderer
+        items={[item1]}
+        sectionId="projects"
+        sectionType="projects"
+        descriptor={descriptor}
+        isPrint={true}
+        hasContinuation={true}
+      />
+    );
+
+    // Connector line MUST be rendered because the section continues on Page 2
+    const line = container.querySelector('.experience__line');
+    expect(line).not.toBeNull();
+
+    // The container block must have .has-next-item and data-has-next-item="true"
+    const block = container.querySelector('.cv-block');
+    expect(block.classList.contains('has-next-item')).toBe(true);
+    expect(block.getAttribute('data-has-next-item')).toBe('true');
+  });
 });

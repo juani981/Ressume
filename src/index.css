@@ -532,7 +532,7 @@ img {
   display: none !important;
 }
 
-/* When an item is partial (starts on page N and continues on page N+1) or continuation, ALWAYS show its connector line */
+/* When an item is partial, continuation, or followed by another item across pages, ALWAYS show its connector line */
 .editable-item-container.item-is-partial .experience__line,
 .editable-item-container.item-is-partial .education__line,
 .editable-item-container.item-is-partial [class*="__line"],
@@ -549,12 +549,33 @@ img {
 .cv-block.item-is-continuation [class*="__line"],
 .experience__content.item-is-continuation .experience__line,
 .education__content.item-is-continuation .education__line,
+.editable-item-container.has-next-item .experience__line,
+.editable-item-container.has-next-item .education__line,
+.editable-item-container.has-next-item [class*="__line"],
+.cv-block.has-next-item .experience__line,
+.cv-block.has-next-item .education__line,
+.cv-block.has-next-item [class*="__line"],
+.experience__content.has-next-item .experience__line,
+.education__content.has-next-item .education__line,
+.section-has-continuation .editable-item-container:last-child .experience__line,
+.section-has-continuation .editable-item-container:last-child .education__line,
+.section-has-continuation .editable-item-container:last-child [class*="__line"],
+.section-has-continuation .cv-block:last-child .experience__line,
+.section-has-continuation .cv-block:last-child .education__line,
+.section-has-continuation .cv-block:last-child [class*="__line"],
+.section-has-continuation .experience__content:last-child .experience__line,
+.section-has-continuation .education__content:last-child .education__line,
+[data-has-continuation="true"] .editable-item-container:last-child [class*="__line"],
+[data-has-continuation="true"] .cv-block:last-child [class*="__line"],
 [data-is-partial="true"] .experience__line,
 [data-is-partial="true"] .education__line,
 [data-is-partial="true"] [class*="__line"],
 [data-is-continuation="true"] .experience__line,
 [data-is-continuation="true"] .education__line,
-[data-is-continuation="true"] [class*="__line"] {
+[data-is-continuation="true"] [class*="__line"],
+[data-has-next-item="true"] .experience__line,
+[data-has-next-item="true"] .education__line,
+[data-has-next-item="true"] [class*="__line"] {
   display: block !important;
 }
 
