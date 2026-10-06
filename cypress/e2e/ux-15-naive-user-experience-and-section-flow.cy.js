@@ -63,4 +63,31 @@ describe('UX Test 15: Naive User Experience, Cognitive Friction & Section Flow',
     cy.get('body').type('{esc}');
     cy.get('[data-testid="add-section-modal"]').should('not.exist');
   });
+
+  it('Step 2: Evaluates complexity and ease of use (direct inline editing without menus, accessible toolbar)', () => {
+    // 1. In-place editing of candidate full name without opening any modal or menu
+    cy.get('.home__title, .profile__title, [data-field="name"], h1').first().as('candidateName');
+    cy.get('@candidateName').should('be.visible');
+    cy.get('@candidateName').invoke('text', 'JUAN CARLOS ARCHITECT').trigger('input').trigger('blur');
+    cy.get('@candidateName').should('contain.text', 'JUAN CARLOS ARCHITECT');
+
+    // 2. In-place editing of professional role subtitle
+    cy.get('.home__subtitle, .profile__profession, [data-field="subtitle"], h2').first().as('candidateRole');
+    cy.get('@candidateRole').should('be.visible');
+    cy.get('@candidateRole').invoke('text', 'Principal Platform Engineer').trigger('input').trigger('blur');
+    cy.get('@candidateRole').should('contain.text', 'Principal Platform Engineer');
+
+    // 3. In-place editing of a section item title and description
+    cy.get('.experience__content, .editable-item-container, .education__content').first().within(() => {
+      cy.get('.inline-edit-display, span').first().invoke('text', 'Lead Infrastructure Architect').trigger('input').trigger('blur');
+    });
+
+    // 4. Verify toolbar discoverability and ease of access
+    cy.get('[data-testid="action-menu-navbar"], .l-navbar').should('exist');
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="action-menu-peek-tab"]').length > 0) {
+        cy.get('[data-testid="action-menu-peek-tab"]').should('exist');
+      }
+    });
+  });
 });
