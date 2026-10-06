@@ -90,4 +90,39 @@ describe('UX Test 15: Naive User Experience, Cognitive Friction & Section Flow',
       }
     });
   });
+
+  it('Step 3: Verifies proximity between elements and boundary margin suppression', () => {
+    // 1. Verify first element in column has top margin suppressed (0px) to prevent unwanted push-down
+    cy.get('.a4-page-box [class*="resume__"] > .cv-section')
+      .first()
+      .then(($firstSection) => {
+        const computedStyle = window.getComputedStyle($firstSection[0]);
+        const marginTop = parseFloat(computedStyle.marginTop);
+        // Expect boundary rule to suppress top margin to 0
+        expect(marginTop).to.equal(0);
+      });
+
+    // 2. Verify last element in column has bottom margin suppressed (0px) so it does not push to an unnecessary page
+    cy.get('.a4-page-box [class*="resume__"] > .cv-section')
+      .last()
+      .then(($lastSection) => {
+        const computedStyle = window.getComputedStyle($lastSection[0]);
+        const marginBottom = parseFloat(computedStyle.marginBottom);
+        // Expect boundary rule to suppress bottom margin to 0
+        expect(marginBottom).to.equal(0);
+      });
+
+    // 3. Verify internal sibling elements maintain consistent proximity without colliding
+    cy.get('.a4-page-box').first().within(() => {
+      cy.get('.cv-section').then(($sections) => {
+        if ($sections.length >= 2) {
+          const firstRect = $sections[0].getBoundingClientRect();
+          const secondRect = $sections[1].getBoundingClientRect();
+          // The second section should be positioned below the first
+          expect(secondRect.top).to.be.at.least(firstRect.bottom - 1);
+        }
+      });
+    });
+  });
+
 });
