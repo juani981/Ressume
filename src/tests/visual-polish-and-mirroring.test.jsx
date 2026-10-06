@@ -362,14 +362,14 @@ describe('Goal Verification: Visual Polish & State Mirroring Suite', () => {
       expect(actionContainer).toBeInTheDocument();
       expect(actionContainer).toHaveClass('section-action-buttons');
 
-      // Verify children buttons: 3 PUNTITOS (bullet style) - ELIMINAR (delete)
-      const buttons = actionContainer.querySelectorAll('button');
-      expect(buttons.length).toBe(2);
-      expect(buttons[0]).toHaveClass('section-bullet-style-btn');
-      expect(buttons[1]).toHaveClass('section-del-btn');
+      // Verify action buttons exist in section-action-buttons
+      const bulletBtn = actionContainer.querySelector('.section-bullet-style-btn');
+      const delBtn = actionContainer.querySelector('.section-del-btn');
+      expect(bulletBtn).toBeInTheDocument();
+      expect(delBtn).toBeInTheDocument();
 
-      // Click the 3-dots button to open the popover
-      fireEvent.click(buttons[0]);
+      // Click the 3-dots/list button to open the popover
+      fireEvent.click(bulletBtn);
       expect(screen.getByTestId('bullet-style-popover')).toBeInTheDocument();
       expect(actionContainer).toHaveClass('has-active-popover');
     });

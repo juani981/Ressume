@@ -30,12 +30,12 @@ export const TYPOGRAPHY_SCALE_LIMITS = Object.freeze({
  */
 export const BASE_FONT_SIZES_PX = Object.freeze({
   h1: 24,       // 1.5rem
-  h2: 20,       // 1.25rem (section titles)
-  h3: 16,       // 1.0rem (item titles)
-  subtitle: 17, // 1.05rem
-  normal: 15,   // 0.938rem (body & lists)
-  small: 14,    // 0.875rem (dates, companies, links)
-  smaller: 13,  // 0.813rem
+  h2: 18,       // 1.125rem (section titles)
+  h3: 15,       // (item titles)
+  subtitle: 15, // (subtitles)
+  normal: 12,   // 0.75rem (body & lists)
+  small: 11,    // 0.688rem (dates, companies, links)
+  smaller: 10,  // 0.625rem
 });
 
 /**

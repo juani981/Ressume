@@ -28,10 +28,11 @@ const DragHandle = ({ isInner = false, listeners, attributes, style = {} }) => {
         }
         style={{
            zIndex: 50,
+           ...(isInner ? { width: '12px', overflow: 'hidden', display: 'inline-flex', justifyContent: 'center' } : {}),
            ...style,
         }}
         >
-        <GripVertical size={16} />
+        <GripVertical size={isInner ? 14 : 16} />
      </div>
   );
 };

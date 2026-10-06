@@ -51,6 +51,18 @@ export const useCVHistory = (setCvData) => {
     });
   }, [setCvData]);
 
+  /**
+   * Commits a pre-computed state transition (e.g. from real-time live drag-and-drop)
+   * to undo/redo history as a single atomic step without redundant state invocation.
+   */
+  const recordHistoryTransition = useCallback((preState, nextState) => {
+    if (!preState || !nextState) return;
+    if (JSON.stringify(preState) === JSON.stringify(nextState)) return;
+    currentStateRef.current = nextState;
+    setPast(prevPast => [...prevPast.slice(-29), preState]);
+    setFuture([]);
+  }, []);
+
 
   /**
    * Reverts to the previous state.
@@ -143,6 +155,7 @@ export const useCVHistory = (setCvData) => {
     undo,
     redo,
     applyStateWithHistory,
+    recordHistoryTransition,
     clearHistory,
     setPast,
     setFuture,

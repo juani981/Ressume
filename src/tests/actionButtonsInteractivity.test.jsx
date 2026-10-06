@@ -201,6 +201,9 @@ describe('Action Buttons Interactivity & Non-Draggable Target Verification', () 
 
       fireEvent.pointerDown(delBtn);
       fireEvent.click(delBtn);
+      const confirmBtn = screen.getByTestId('btn-confirm-delete-section');
+      expect(confirmBtn).toBeTruthy();
+      fireEvent.click(confirmBtn);
       expect(mockDelete).toHaveBeenCalledWith('title_subtitle');
     });
   });
@@ -259,6 +262,9 @@ describe('Action Buttons Interactivity & Non-Draggable Target Verification', () 
           expect(isNonDraggableTarget(delBtn)).toBe(true);
           fireEvent.pointerDown(delBtn);
           fireEvent.click(delBtn);
+          const confirmBtn = screen.getByTestId('btn-confirm-delete-section');
+          expect(confirmBtn).toBeTruthy();
+          fireEvent.click(confirmBtn);
           expect(mockDelete).toHaveBeenCalledWith(`sec_${descriptor.type}`);
         }
       });

@@ -96,11 +96,11 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
       --left-bg: ${layout.leftBg || 'var(--container-color-alt)'};
       --right-bg: ${layout.rightBg || '#ffffff'};
       --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-      --h3-font-size: calc(1rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-      --small-font-size: calc(0.875rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+      --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+      --small-font-size: calc(0.688rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
@@ -786,11 +786,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       --list-scale: ${listScale};
       --line-height: ${lineHeight};
       --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-      --h3-font-size: calc(1rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-      --small-font-size: calc(0.875rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+      --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+      --small-font-size: calc(0.688rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));

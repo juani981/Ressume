@@ -3,15 +3,16 @@
  * 
  * Canonical Single Source of Truth (SSOT) for page padding, section gaps,
  * item gaps, and line height defaults across the CV editor and print engine.
+ * Invariant 19 of AGENTS.md.
  */
 
-export const DEFAULT_PAGE_PADDING_PX = 12;
+export const DEFAULT_PAGE_PADDING_PX = 24;
 export const DEFAULT_SECTION_GAP_PX = 12;
-export const DEFAULT_ITEM_GAP_PX = 8;
-export const DEFAULT_LINE_HEIGHT = 1.3;
+export const DEFAULT_ITEM_GAP_PX = 6;
+export const DEFAULT_LINE_HEIGHT = 1.30;
 export const PAGE_BOTTOM_CLEARANCE_PX = 14;
 export const DEFAULT_HEADER_MARGIN_BOTTOM_RATIO = 1.5;
-export const DEFAULT_DATA_GAP_PX = 8;
+export const DEFAULT_DATA_GAP_PX = 6;
 
 // Physical layout thresholds & fallback dimensions
 export const MIN_PAGE_CAPACITY_PX = 100;
@@ -49,7 +50,7 @@ export const SPACING_TOKENS = Object.freeze({
 });
 
 export const SPACING_LIMITS = Object.freeze({
-  pagePadding: Object.freeze({ min: 0, max: 60, step: 2, default: 24 }),
-  sectionGap: Object.freeze({ min: 0, max: 50, step: 2, default: 20 }),
+  pagePadding: Object.freeze({ min: 0, max: 60, step: 2, default: DEFAULT_PAGE_PADDING_PX }),
+  sectionGap: Object.freeze({ min: 0, max: 50, step: 2, default: DEFAULT_SECTION_GAP_PX }),
   itemGap: Object.freeze({ min: 0, max: 30, step: 1, default: DEFAULT_ITEM_GAP_PX }),
 });

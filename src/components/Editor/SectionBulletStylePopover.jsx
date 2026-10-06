@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { BULLET_SIZES, BULLET_VARIANTS, DEFAULT_BULLET_STYLE } from '../../utils/bulletStyles';
-import { X, Check } from 'lucide-react';
+import { X, Check, Info } from 'lucide-react';
 
 /**
  * SectionBulletStylePopover
@@ -15,9 +15,15 @@ const SectionBulletStylePopover = ({
   bulletStyle, 
   onUpdateStyle, 
   triggerRect,
+  triggerElement,
   portalTarget
 }) => {
   const popoverRef = useRef(null);
+  const [activeRect, setActiveRect] = useState(triggerRect);
+
+  useEffect(() => {
+    setActiveRect(triggerRect);
+  }, [triggerRect]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -32,19 +38,29 @@ const SectionBulletStylePopover = ({
       }
     };
 
+    const handleScrollOrResize = () => {
+      if (triggerElement) {
+        setActiveRect(triggerElement.getBoundingClientRect());
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScrollOrResize, { passive: true, capture: true });
+    window.addEventListener('resize', handleScrollOrResize, { passive: true });
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScrollOrResize, { capture: true });
+      window.removeEventListener('resize', handleScrollOrResize);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, triggerElement]);
 
   if (!isOpen) return null;
 
   const current = { ...DEFAULT_BULLET_STYLE, ...(bulletStyle || {}) };
 
-  // Calculate dynamic coordinates based on triggerRect (AGENTS.md Rule 3)
+  // Calculate dynamic coordinates based on activeRect (AGENTS.md Rule 3)
   const calculatePosition = () => {
     const popoverWidth = 260;
     const popoverHeight = 250;
@@ -52,14 +68,15 @@ const SectionBulletStylePopover = ({
 
     let top = 100;
     let left = 100;
+    const r = activeRect || triggerRect;
 
-    if (triggerRect) {
-      top = triggerRect.bottom + 6;
-      left = triggerRect.left - popoverWidth / 2 + triggerRect.width / 2;
+    if (r) {
+      top = r.bottom + 6;
+      left = r.left - popoverWidth / 2 + r.width / 2;
 
       // Flip above if escaping viewport bottom
       if (top + popoverHeight > window.innerHeight - padding) {
-        top = Math.max(padding, triggerRect.top - popoverHeight - 6);
+        top = Math.max(padding, r.top - popoverHeight - 6);
       }
 
       // Clamp horizontally
@@ -249,6 +266,30 @@ const SectionBulletStylePopover = ({
             {current.showLine === false && <Check size={12} color="#ffffff" />}
             <span>Sin Línea</span>
           </button>
+        </div>
+      </div>
+
+      {/* Obsidian Callout: ATS Recommendation (Invariant 1) */}
+      <div 
+        className="obsidian-callout"
+        data-testid="ats-bullet-callout-info"
+        style={{
+          background: 'rgba(8, 109, 221, 0.08)',
+          borderLeft: '4px solid rgba(8, 109, 221, 1)',
+          borderRadius: '4px',
+          padding: '6px 8px',
+          fontSize: '0.70rem',
+          color: '#1e3a8a',
+          lineHeight: 1.35,
+          marginTop: '6px'
+        }}
+      >
+        <div className="callout-title" style={{ display: 'flex', gap: '6px', fontWeight: 600, alignItems: 'center', marginBottom: '2px' }}>
+          <Info size={13} color="#086ddd" />
+          <span>Recomendación ATS</span>
+        </div>
+        <div className="callout-content">
+          El círculo estándar (•) garantiza compatibilidad universal y máxima puntuación en filtros ATS (Workday, Greenhouse).
         </div>
       </div>
     </div>

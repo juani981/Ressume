@@ -14,8 +14,8 @@ describe('Declarative CVSchemaValidator Suite', () => {
       expect(ALLOWED_LAYOUT_TYPES).toEqual(['1-column', '2-column']);
       expect(ALLOWED_COLUMNS).toEqual(['left', 'right']);
       expect(NUMERIC_BOUNDS.pagePadding.default).toBe(24);
-      expect(NUMERIC_BOUNDS.sectionGap.default).toBe(20);
-      expect(NUMERIC_BOUNDS.itemGap.default).toBe(8);
+      expect(NUMERIC_BOUNDS.sectionGap.default).toBe(12);
+      expect(NUMERIC_BOUNDS.itemGap.default).toBe(6);
     });
   });
 

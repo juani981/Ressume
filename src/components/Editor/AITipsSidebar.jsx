@@ -636,6 +636,29 @@ const AITipsSidebar = () => {
                         }}
                       >
                         {rule.suggestion_body}
+                        {rule.example_bad && rule.example_good && (
+                          <div
+                            className="callout-examples"
+                            style={{
+                              marginTop: '6px',
+                              paddingTop: '4px',
+                              borderTop: `1px dashed ${isAtsMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '2px',
+                              fontSize: '0.62rem'
+                            }}
+                          >
+                            <div style={{ color: isAtsMode ? '#fca5a5' : '#b91c1c' }}>
+                              <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evitá: '}</strong>
+                              <span>{rule.example_bad}</span>
+                            </div>
+                            <div style={{ color: isAtsMode ? '#86efac' : '#15803d' }}>
+                              <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Usá: '}</strong>
+                              <span>{rule.example_good}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

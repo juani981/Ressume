@@ -4,10 +4,15 @@
 
 import './commands';
 
-// Automatically disable the onboarding tour in all E2E tests to avoid backdrop click-blocking
+// Automatically disable the onboarding tour and ensure ActionMenu is pinned by default for standard E2E tests
 Cypress.on('window:before:load', (win) => {
   try {
-    win.localStorage.setItem('skip_onboarding_tour', 'true');
+    if (win.localStorage.getItem('skip_onboarding_tour') === null) {
+      win.localStorage.setItem('skip_onboarding_tour', 'true');
+    }
+    if (win.localStorage.getItem('action_menu_pinned') === null) {
+      win.localStorage.setItem('action_menu_pinned', 'true');
+    }
   } catch (_) {}
 });
 

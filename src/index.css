@@ -20,16 +20,16 @@
   --list-scale: 1;
   --line-height: 1.3;
   --body-font: 'Poppins', sans-serif;
-  --page-padding: 12px;
+  --page-padding: 24px;
   --section-gap: 12px;
-  --item-gap: 8px;
+  --item-gap: 6px;
 
   --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-  --h3-font-size: calc(1rem * var(--font-scale, 1));
-  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-  --small-font-size: calc(0.875rem * var(--font-scale, 1));
-  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+  --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+  --small-font-size: calc(0.688rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
   /*========== Font weight ==========*/
   --font-medium: 500;
@@ -111,11 +111,11 @@ body {
   word-break: break-word;
   /* Scoped typography re-declaration to guarantee immediate cascading when inline props update */
   --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-  --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-  --h3-font-size: calc(1rem * var(--font-scale, 1));
-  --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-  --small-font-size: calc(0.875rem * var(--font-scale, 1));
-  --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+  --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+  --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+  --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+  --small-font-size: calc(0.688rem * var(--font-scale, 1));
+  --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
   /* Categorical typography variables (Titles, Body, Lists) */
   --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
@@ -1837,23 +1837,37 @@ body.ats-mode-active {
 .contact-del-btn {
   opacity: 0;
   pointer-events: none;
-  background: rgba(239, 68, 68, 0.12);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
   border: none;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
-  margin-left: 3px;
+  margin: 0;
   padding: 0;
+  z-index: 20;
   transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.contact-item-pill:hover .contact-del-btn {
+/* Expanded hit target for touch and precise cursor clicking */
+.contact-del-btn::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+
+.contact-item-pill:hover .contact-del-btn,
+.contact-item-pill:focus-within .contact-del-btn {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1861,7 +1875,7 @@ body.ats-mode-active {
 .contact-del-btn:hover {
   background-color: #ef4444;
   color: #ffffff;
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .add-contact-btn {

@@ -136,19 +136,10 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
  * @param {Object|null} props.activeDragSection - Active dragged section data
  * @returns {React.ReactElement}
  */
-export const CVDragOverlay = ({ activeDragItem, activeDragSection }) => {
-  return (
-    <DragOverlay
-      dropAnimation={{
-        duration: 180,
-        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-      }}>
-      <CVDragOverlayContent
-        activeDragItem={activeDragItem}
-        activeDragSection={activeDragSection}
-      />
-    </DragOverlay>
-  );
+export const CVDragOverlay = () => {
+  // Suppress floating ghost clone tracking the mouse cursor.
+  // Real-time live sort dynamically reorders the document in-place as the user drags.
+  return null;
 };
 
 export default CVDragOverlay;

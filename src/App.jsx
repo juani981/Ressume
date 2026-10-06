@@ -56,6 +56,8 @@ const AREA_CV_CONTAINER_STYLE = Object.freeze({
 function App() {
    const {
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
@@ -82,6 +84,8 @@ function App() {
       activeDragSection,
    } = useCVDndCoordinator({
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
    });
@@ -112,9 +116,11 @@ function App() {
    // 4. Modal State
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
    const [addSectionTargetColumn, setAddSectionTargetColumn] = useState("right");
+   const [addSectionTargetIndex, setAddSectionTargetIndex] = useState(undefined);
 
-   const handleOpenAddSection = (column = "right") => {
+   const handleOpenAddSection = (column = "right", targetIndex = undefined) => {
       setAddSectionTargetColumn(column);
+      setAddSectionTargetIndex(targetIndex);
       setIsAddSectionModalOpen(true);
    };
 
@@ -190,8 +196,9 @@ function App() {
                      ...dynamicSpacing,
                   }}>
                   {pages.map((pageModel) => (
-                     <A4PageBox
-                        key={`page-${pageModel.pageNumber}`}
+                     <React.Fragment key={`page-wrapper-${pageModel.pageNumber}`}>
+                        <A4PageBox
+                           key={`page-${pageModel.pageNumber}`}
                         pageNumber={pageModel.pageNumber}
                         totalPages={pages.length}
                         is2Col={is2Col}
@@ -348,7 +355,69 @@ function App() {
                            </DroppableColumn>
                         )}
                      </A4PageBox>
-                  ))}
+
+                     {pageModel.pageNumber < pages.length && (
+                        <div
+                           className="inter-page-gap-adder no-print"
+                           data-editor-ui="true"
+                           data-editor-add="true"
+                           style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              height: "32px",
+                              margin: "-16px auto 16px auto",
+                              position: "relative",
+                              zIndex: 50
+                           }}>
+                           <button
+                              type="button"
+                              className="inter-page-add-btn no-print"
+                              data-testid={`btn-add-section-interpage-${pageModel.pageNumber}`}
+                              onClick={() => {
+                                 const sectionsOnPage = isAtsMode ? pageModel.singleSections : (pageModel.rightSections || []);
+                                 const lastSec = sectionsOnPage?.[sectionsOnPage.length - 1];
+                                 let spliceIdx = undefined;
+                                 if (lastSec && Array.isArray(cvData.sections)) {
+                                    const canonicalId = lastSec.originalSectionId || lastSec.id;
+                                    const foundIdx = cvData.sections.findIndex((s) => s.id === canonicalId);
+                                    if (foundIdx !== -1) spliceIdx = foundIdx + 1;
+                                 }
+                                 handleOpenAddSection(isAtsMode ? "single" : "left", spliceIdx);
+                              }}
+                              title={`Agregar nueva sección entre Página ${pageModel.pageNumber} y Página ${pageModel.pageNumber + 1}`}
+                              style={{
+                                 display: "inline-flex",
+                                 alignItems: "center",
+                                 gap: "6px",
+                                 padding: "4px 14px",
+                                 borderRadius: "16px",
+                                 border: "1px dashed #94a3b8",
+                                 background: "#ffffff",
+                                 color: "#475569",
+                                 fontSize: "11px",
+                                 fontWeight: 600,
+                                 cursor: "pointer",
+                                 boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
+                                 transition: "all 0.15s ease"
+                              }}
+                              onMouseEnter={(e) => {
+                                 e.currentTarget.style.borderColor = "#3874ff";
+                                 e.currentTarget.style.color = "#3874ff";
+                                 e.currentTarget.style.transform = "scale(1.04)";
+                              }}
+                              onMouseLeave={(e) => {
+                                 e.currentTarget.style.borderColor = "#94a3b8";
+                                 e.currentTarget.style.color = "#475569";
+                                 e.currentTarget.style.transform = "scale(1)";
+                              }}>
+                              <PlusCircle size={13} />
+                              <span>Agregar Sección entre Páginas</span>
+                           </button>
+                        </div>
+                     )}
+                  </React.Fragment>
+               ))}
                </div>
             </main>
 
@@ -364,6 +433,7 @@ function App() {
             isAddSectionModalOpen={isAddSectionModalOpen}
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
+            addSectionTargetIndex={addSectionTargetIndex}
             activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />

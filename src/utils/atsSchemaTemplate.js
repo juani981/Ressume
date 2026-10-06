@@ -19,8 +19,8 @@ export const getAtsGoldenSchemaTemplate = (lang = 'es') => {
       listScale: 1.0,
       lineHeight: 1.3,
       pagePadding: 24,
-      sectionGap: 20,
-      itemGap: 8
+      sectionGap: 12,
+      itemGap: 6
     },
     profile: {
       name: isEn ? 'Margaret Hamilton' : 'Margaret Hamilton',

@@ -29,6 +29,9 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'sk2', title: 'Backend Systems', description: 'Node.js, Express, PostgreSQL, Redis, Microservices, GraphQL, Docker, Kubernetes, AWS Cloud Infrastructure' },
               { id: 'sk3', title: 'DevOps & CI/CD', description: 'GitHub Actions, GitLab CI, Terraform, Ansible, Monitoring, Prometheus, Grafana, Datadog' },
               { id: 'sk4', title: 'Testing & QA', description: 'Vitest, Jest, Cypress, Playwright, TDD, BDD, Performance Profiling, Chaos Engineering' },
+              { id: 'sk5', title: 'Cloud Native', description: 'Serverless, Lambda, CloudFront, S3, IAM, CloudWatch, OpenTelemetry' },
+              { id: 'sk6', title: 'Security', description: 'OWASP, OAuth2, OpenID Connect, JWT, TLS, Vault, Vulnerability Scanning' },
+              { id: 'sk7', title: 'Data Engineering', description: 'Kafka, RabbitMQ, Flink, Spark, Airflow, ETL Pipelines, ClickHouse' },
             ],
           };
         }
@@ -39,6 +42,8 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'ed1', title: 'Master en Ingeniería de Software', subtitle: 'Universidad de Buenos Aires', date: '2020 - 2022' },
               { id: 'ed2', title: 'Ingeniería en Sistemas de Información', subtitle: 'UTN FRBA', date: '2015 - 2020' },
               { id: 'ed3', title: 'Licenciatura en Ciencias de la Computación', subtitle: 'UBA FCEN', date: '2012 - 2015' },
+              { id: 'ed4', title: 'Especialización en Arquitectura Cloud', subtitle: 'ITBA', date: '2011 - 2012' },
+              { id: 'ed5', title: 'Diplomatura en Seguridad Ofensiva', subtitle: 'Universidad Austral', date: '2010 - 2011' },
             ],
           };
         }
@@ -76,6 +81,9 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'e5', title: 'Fullstack Developer', subtitle: 'Startup Inc', date: '2015 - 2016', bullets: ['Fullstack development with React, Node, and GraphQL API gateway'] },
               { id: 'e6', title: 'Junior Developer', subtitle: 'WebAgency', date: '2014 - 2015', bullets: ['Built responsive client web applications and REST APIs'] },
               { id: 'e7', title: 'Software Engineer', subtitle: 'Global Systems', date: '2013 - 2014', bullets: ['Maintained scalable database systems and internal tools'] },
+              { id: 'e8', title: 'Backend Developer', subtitle: 'Solutions SL', date: '2012 - 2013', bullets: ['Designed REST services with Express and MongoDB', 'Automated unit tests with Vitest'] },
+              { id: 'e9', title: 'Frontend Developer', subtitle: 'Creative Labs', date: '2011 - 2012', bullets: ['Implemented single page applications with React', 'Improved web accessibility WCAG 2.1'] },
+              { id: 'e10', title: 'Junior Programmer', subtitle: 'Initial Software', date: '2010 - 2011', bullets: ['Maintained legacy codebase and bug fixes'] },
             ],
           };
         }
@@ -108,6 +116,9 @@ describe('Two-Column Multi-Page Dynamic Pagination in Editor', () => {
               { id: 'e5', title: 'Fullstack Developer', subtitle: 'Startup Inc', date: '2015 - 2016', bullets: ['Fullstack development with React, Node, and GraphQL API gateway'] },
               { id: 'e6', title: 'Junior Developer', subtitle: 'WebAgency', date: '2014 - 2015', bullets: ['Built responsive client web applications and REST APIs'] },
               { id: 'e7', title: 'Software Engineer', subtitle: 'Global Systems', date: '2013 - 2014', bullets: ['Maintained scalable database systems and internal tools'] },
+              { id: 'e8', title: 'Backend Developer', subtitle: 'Solutions SL', date: '2012 - 2013', bullets: ['Designed REST services with Express and MongoDB', 'Automated unit tests with Vitest'] },
+              { id: 'e9', title: 'Frontend Developer', subtitle: 'Creative Labs', date: '2011 - 2012', bullets: ['Implemented single page applications with React', 'Improved web accessibility WCAG 2.1'] },
+              { id: 'e10', title: 'Junior Programmer', subtitle: 'Initial Software', date: '2010 - 2011', bullets: ['Maintained legacy codebase and bug fixes'] },
             ],
           };
         }
