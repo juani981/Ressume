@@ -138,7 +138,19 @@
   .a4-page-box .editable-item-container:first-child,
   .a4-page-box .editable-item-container:first-of-type,
   .a4-page-box .cv-block:first-child,
-  .a4-page-box .cv-block:first-of-type {
+  .a4-page-box .cv-block:first-of-type,
+  .a4-page-box .bullet-item-row:first-child,
+  .a4-page-box .bullet-item-row:first-of-type,
+  .a4-page-box ul.experience__bullets li:first-child,
+  .a4-page-box ul.experience__bullets li:first-of-type,
+  .a4-page-box ul.simple-list-ul li:first-child,
+  .a4-page-box ul.simple-list-ul li:first-of-type,
+  .a4-page-box .simple-list-item:first-child,
+  .a4-page-box .simple-list-item:first-of-type,
+  .a4-page-box .skills__name:first-child,
+  .a4-page-box .skills__name:first-of-type,
+  .a4-page-box .languages__name:first-child,
+  .a4-page-box .languages__name:first-of-type {
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
@@ -164,7 +176,19 @@
   .a4-page-box .editable-item-container:last-child,
   .a4-page-box .editable-item-container:last-of-type,
   .a4-page-box .cv-block:last-child,
-  .a4-page-box .cv-block:last-of-type {
+  .a4-page-box .cv-block:last-of-type,
+  .a4-page-box .bullet-item-row:last-child,
+  .a4-page-box .bullet-item-row:last-of-type,
+  .a4-page-box ul.experience__bullets li:last-child,
+  .a4-page-box ul.experience__bullets li:last-of-type,
+  .a4-page-box ul.simple-list-ul li:last-child,
+  .a4-page-box ul.simple-list-ul li:last-of-type,
+  .a4-page-box .simple-list-item:last-child,
+  .a4-page-box .simple-list-item:last-of-type,
+  .a4-page-box .skills__name:last-child,
+  .a4-page-box .skills__name:last-of-type,
+  .a4-page-box .languages__name:last-child,
+  .a4-page-box .languages__name:last-of-type {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -632,6 +656,24 @@
     font-size: var(--list-font-size, var(--normal-font-size)) !important;
     color: inherit !important;
     text-align: left !important;
+  }
+
+  ul.experience__bullets li:first-child,
+  .experience__bullets li:first-child,
+  ul.simple-list-ul li:first-child,
+  .bullet-item-row:first-child,
+  .bullet-item-row:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  ul.experience__bullets li:last-child,
+  .experience__bullets li:last-child,
+  ul.simple-list-ul li:last-child,
+  .bullet-item-row:last-child,
+  .bullet-item-row:last-of-type {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   ul.experience__bullets li p,

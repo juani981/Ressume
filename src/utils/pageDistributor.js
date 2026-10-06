@@ -240,8 +240,11 @@ export function splitCandidateItemByBullets({
   const candId = candidate.originalItemId || candidate.id;
   const baseH = estimateItemBaseHeight(candidate, sectionType, options);
   const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], sectionType, options, `${candId}_bullet_0`);
+  const bulletGap0 = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
+  const netFirstBulletH = Math.max(1, firstBulletH - bulletGap0);
 
-  if (currentAccumulated + baseH + firstBulletH > maxAvailable) {
+  // Special terminal boundary rule: if candidate's first bullet fits flush without trailing bullet gap
+  if (currentAccumulated + baseH + netFirstBulletH > maxAvailable) {
     return null;
   }
 
@@ -261,7 +264,7 @@ export function splitCandidateItemByBullets({
     const bulletGap = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
     const netBulletH = Math.max(1, grossBulletH - bulletGap);
     if (currentAccumulated + bAcc + netBulletH <= maxAvailable) {
-      bAcc += grossBulletH;
+      bAcc += netBulletH;
       bIdx++;
     }
   }
@@ -638,10 +641,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     }
 
     // Special terminal boundary rule: if the section as a whole fits flush without the trailing gap of its last item
-    const trailingGap = items.length > 0 ? (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) : 0;
+    const trailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
     if (currentUsedHeight + (totalSectionHeight - trailingGap) <= pageCapacity) {
       addToBucket(currentPage, section);
-      currentUsedHeight += totalSectionHeight;
+      currentUsedHeight += (totalSectionHeight - trailingGap);
       continue;
     }
 
@@ -669,7 +672,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 0;
     const baseH0 = firstItemHasBullets ? estimateItemBaseHeight(items[0], section.type, options) : itemHeights[0];
     const firstBulletH0 = firstItemHasBullets ? estimateSingleBulletHeight(items[0].bullets[0], section.type, options) : 0;
-    const minNeededForFirstAtom = gapBefore + headerHeight + baseH0 + firstBulletH0;
+    const trailingAtomGap = firstItemHasBullets
+      ? Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2)
+      : (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX));
+    const minNeededForFirstAtom = Math.max(1, (gapBefore + headerHeight + baseH0 + firstBulletH0) - trailingAtomGap);
 
     if (currentUsedHeight > 0 && minNeededForFirstAtom > remainingOnCurrent) {
       currentPage++;
@@ -682,10 +688,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         continue;
       }
 
-      const freshTrailingGap = items.length > 0 ? (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) : 0;
+      const freshTrailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
       if (freshTotalHeight - freshTrailingGap <= pageCapacity) {
         addToBucket(currentPage, section);
-        currentUsedHeight = freshTotalHeight;
+        currentUsedHeight = freshTotalHeight - freshTrailingGap;
         continue;
       }
     }
@@ -706,7 +712,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     if (splitIdx < items.length) {
       const netH = getItemNetHeight(items[splitIdx], section.type, options);
       if (accumulated + netH <= availableOnPage) {
-        accumulated += itemHeights[splitIdx];
+        accumulated += netH;
         splitIdx++;
       }
     }
@@ -749,10 +755,10 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
           continue;
         }
 
-        const freshTrailingGap = items.length > 0 ? (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) : 0;
+        const freshTrailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
         if (freshTotalHeight - freshTrailingGap <= pageCapacity) {
           addToBucket(currentPage, section);
-          currentUsedHeight = freshTotalHeight;
+          currentUsedHeight = freshTotalHeight - freshTrailingGap;
           continue;
         }
 
@@ -769,7 +775,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         if (freshSplitIdx < items.length) {
           const netH = getItemNetHeight(items[freshSplitIdx], section.type, options);
           if (freshAccumulated + netH <= freshAvailable) {
-            freshAccumulated += itemHeights[freshSplitIdx];
+            freshAccumulated += netH;
             freshSplitIdx++;
           }
         }
@@ -859,7 +865,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         const trailingGap = isCont ? Math.round(itemGap / 2) : (cand.type === 'spacer' ? 0 : itemGap);
         const netH = Math.max(1, remHeights[nextIdx] - trailingGap);
         if (contAcc + netH <= pageCapacity) {
-          contAcc += remHeights[nextIdx];
+          contAcc += netH;
           nextIdx++;
         }
       }
@@ -895,7 +901,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
               const bulletGap = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
               const netBulletH = Math.max(1, grossBulletH - bulletGap);
               if (contAcc + bAcc + netBulletH <= pageCapacity) {
-                bAcc += grossBulletH;
+                bAcc += netBulletH;
                 bIdx++;
               }
             }

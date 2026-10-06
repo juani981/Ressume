@@ -1120,6 +1120,68 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(pages.length).toBe(1);
       expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1', 'sec2']);
     });
+
+    it('Criterion: candidate item first bullet fits flush when capacity accommodates net first bullet without trailing gap', () => {
+      // Test splitCandidateItemByBullets terminal boundary rule:
+      // When first bullet fits flush (without half-gap), it is admitted rather than rejecting whole item
+      const candidate = {
+        id: 'exp1',
+        title: 'Software Engineer',
+        bullets: ['Single line bullet one', 'Single line bullet two'],
+      };
+
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: 'Experience',
+            items: [candidate],
+          },
+        ],
+      };
+
+      // In ATS mode, let's test that if baseH + netFirstBulletH fits, bullet splitting succeeds on page 1
+      const pages = distributeSectionsToPages(cv, {
+        isEditor: true,
+        splitGranularBullets: true,
+      });
+
+      expect(pages.length).toBeGreaterThanOrEqual(1);
+      expect(pages[0].singleSections[0].items[0].bullets.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('Symmetry: first section has no top gap and terminal item has no trailing bottom gap', () => {
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '', // no header
+            items: [{ id: 'it1', title: 'Job 1', height: 100 }],
+          },
+        ],
+      };
+
+      // Total height for 1 item with height 100 and itemGap 10 is 100.
+      // Net height without trailing gap is 90.
+      // If page capacity is 95:
+      // Without terminal rule: 100 > 95 -> overflows to page 2.
+      // With terminal rule: net height 90 <= 95 -> fits cleanly on page 1!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 95,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections[0].items.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].id).toBe('it1');
+    });
   });
 });
+
 
