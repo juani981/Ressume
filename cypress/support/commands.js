@@ -7,7 +7,14 @@
  */
 Cypress.Commands.add('waitForFonts', () => {
   cy.document().then((doc) => {
-    return doc.fonts.ready.then(() => {
+    const readyPromise = doc.fonts?.ready
+      ? Promise.race([
+          doc.fonts.ready,
+          new Promise((resolve) => setTimeout(resolve, 1000)),
+        ])
+      : Promise.resolve();
+
+    return readyPromise.then(() => {
       const win = doc.defaultView;
       if (win) {
         win.dispatchEvent(new win.CustomEvent('cv-spacer-live-resize'));

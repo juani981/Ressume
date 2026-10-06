@@ -219,12 +219,6 @@ img {
   margin-bottom: 4px !important;
 }
 
-.cv-section:last-of-type,
-.editable-section-container:last-of-type,
-.section:last-of-type {
-  margin-bottom: 0 !important;
-}
-
 
 .cv-block,
 .editable-item-container,
@@ -2091,7 +2085,7 @@ body.ats-mode-active {
   height: 100% !important;
   min-height: 100% !important;
   align-self: stretch !important;
-  padding: var(--page-padding, 12px) !important;
+  padding: var(--page-padding, 24px) !important;
   box-sizing: border-box !important;
 }
 
@@ -2123,18 +2117,6 @@ body.ats-mode-active {
 #area-cv.has-a4-page-boxes .section:first-child > :first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
-}
-
-#area-cv.has-a4-page-boxes .cv-section:last-child,
-#area-cv.has-a4-page-boxes .cv-section:last-of-type,
-#area-cv.has-a4-page-boxes .section:last-child,
-#area-cv.has-a4-page-boxes .section:last-of-type,
-#area-cv.has-a4-page-boxes .cv-section.is-last-section,
-#area-cv.has-a4-page-boxes .section.is-last-section,
-.cv-section.is-last-section,
-.section.is-last-section {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
 }
 
 

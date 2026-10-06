@@ -912,8 +912,9 @@ export function distributeSectionsToPages(cvData, options = {}) {
   const pageHeight = options.pageHeightPx ?? layout.pageHeight ?? A4_PAGE_HEIGHT_PX;
   const padding = options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
   const clearance = options.pageBottomClearancePx ?? PAGE_BOTTOM_CLEARANCE_PX;
-  // SSOT: Height minus 2 * padding minus the micro-gasket clearance (14px)
-  const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding - clearance);
+  const sectionGap = options.sectionGapPx ?? layout.sectionGap ?? DEFAULT_SECTION_GAP_PX;
+  // SSOT: Height minus 2 * padding minus the micro-gasket clearance (14px) and trailing section gap
+  const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding - sectionGap - clearance);
 
   const mergedOptions = {
     omitContinuationHeader: options.omitContinuationHeader ?? false,
@@ -926,8 +927,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
     bodyScale: layout.bodyScale ?? 1.0,
     listScale: layout.listScale ?? 1.0,
     lineHeight: layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
-    sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
-    itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
+    sectionGapPx: sectionGap,
+    itemGapPx: options.itemGapPx ?? layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
     leftColumnWidth: layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
     ...options,
     isAts,

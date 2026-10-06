@@ -99,13 +99,13 @@ export const SectionItemsRenderer = ({
  * @param {Object} props.section - CV section data model
  * @returns {React.ReactElement|null}
  */
-export const PrintBaseSection = ({ section, isLast = false }) => {
+export const PrintBaseSection = ({ section }) => {
   if (!section) return null;
   const descriptor = getSectionDescriptor(section.type);
 
   if (descriptor?.sectionComponent) {
     const CustomSection = descriptor.sectionComponent;
-    return <CustomSection section={section} isPrint={true} isLast={isLast} />;
+    return <CustomSection section={section} isPrint={true} />;
   }
 
   const items = section.items || [];
@@ -118,10 +118,10 @@ export const PrintBaseSection = ({ section, isLast = false }) => {
   return (
     <PrintModeContext.Provider value={true}>
       <section 
-        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}${isLast ? ' is-last-section' : ''}`} 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
         id={section.id}
         data-section-id={section.id}
-        style={{ marginBottom: isLast ? 0 : 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+        style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
       >
         {descriptor.hasTitle !== false && section.title && (
           <h2 
@@ -157,12 +157,12 @@ export const PrintBaseSection = ({ section, isLast = false }) => {
  * @param {Object} props.section - CV section data model
  * @returns {React.ReactElement}
  */
-const EditableBaseSection = ({ section, isLast = false }) => {
+const EditableBaseSection = ({ section }) => {
   const descriptor = getSectionDescriptor(section?.type);
 
   if (descriptor?.sectionComponent) {
     const CustomSection = descriptor.sectionComponent;
-    return <CustomSection section={section} isPrint={false} isLast={isLast} />;
+    return <CustomSection section={section} isPrint={false} />;
   }
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
@@ -186,7 +186,7 @@ const EditableBaseSection = ({ section, isLast = false }) => {
     transition,
     position: 'relative',
     opacity: isDragging ? 0.4 : 1,
-    marginBottom: isLast ? 0 : 'var(--section-gap, 20px)',
+    marginBottom: 'var(--section-gap, 20px)',
     color: 'var(--text-color)',
     minWidth: 0,
     maxWidth: '100%',
@@ -204,7 +204,7 @@ const EditableBaseSection = ({ section, isLast = false }) => {
     <section 
       ref={setNodeRef} 
       style={style} 
-      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${isLast ? ' is-last-section' : ''}`} 
+      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
       id={section.id}
       data-section-id={section.id}
       {...attributes}
@@ -327,18 +327,18 @@ const EditableBaseSection = ({ section, isLast = false }) => {
  * @param {boolean} [props.isPrint=false] - Whether rendering in print mode
  * @returns {React.ReactElement|null}
  */
-const BaseSection = ({ isLast = false, ...props }) => {
+const BaseSection = ({ isLast, ...props }) => {
   const contextIsPrint = usePrintMode();
   const effectiveIsPrint = props.isPrint ?? contextIsPrint;
   const descriptor = getSectionDescriptor(props.section?.type);
   if (descriptor?.sectionComponent) {
     const CustomSection = descriptor.sectionComponent;
-    return <CustomSection {...props} isPrint={effectiveIsPrint} isLast={isLast} />;
+    return <CustomSection {...props} isPrint={effectiveIsPrint} />;
   }
   if (effectiveIsPrint) {
-    return <PrintBaseSection {...props} isPrint={true} isLast={isLast} />;
+    return <PrintBaseSection {...props} isPrint={true} />;
   }
-  return <EditableBaseSection {...props} isLast={isLast} />;
+  return <EditableBaseSection {...props} />;
 };
 
 export default BaseSection;
