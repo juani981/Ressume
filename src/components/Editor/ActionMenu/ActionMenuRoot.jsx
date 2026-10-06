@@ -20,7 +20,9 @@ import {
   Pin,
   PinOff,
   Sparkles,
+  BookOpen,
 } from 'lucide-react';
+import { BitacoraModal } from '../../Bitacora';
 
 const HOVER_INTENT_MS = 280;
 const EXIT_GRACE_MS = 350;
@@ -43,6 +45,7 @@ export const ActionMenuRoot = () => {
   const [aiModalPromptId, setAiModalPromptId] = useState('recruiter_audit');
   const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
@@ -76,7 +79,8 @@ export const ActionMenuRoot = () => {
     isHoverExpanded ||
     isDesignMenuOpen ||
     isAIModalOpen ||
-    isVersionModalOpen;
+    isVersionModalOpen ||
+    isBitacoraOpen;
 
   const handleTogglePin = useCallback(() => {
     setIsPinned((prev) => {
@@ -453,7 +457,23 @@ export const ActionMenuRoot = () => {
             <DatabaseSearch size={20} color="#3b82f6" />
           </button>
           <span className="action-menu-tooltip">Gestor de Versiones</span>
-          </div>
+        </div>
+
+        {/* Bitácora & Playbook de Carrera */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="version-hub-btn action-menu-hub-btn"
+            id="bitacora-item"
+            data-testid="btn-open-bitacora"
+            aria-label="Bitácora y Recursos de Carrera"
+            title="Bitácora y Playbook de Carrera"
+            onClick={() => setIsBitacoraOpen(true)}
+          >
+            <BookOpen size={20} color="#6366f1" />
+          </button>
+          <span className="action-menu-tooltip">Bitácora & Recursos</span>
+        </div>
           {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
         <div className="action-menu-btn-wrap">
           <button
@@ -679,6 +699,7 @@ export const ActionMenuRoot = () => {
         unidirectionalOnly={isUnidirectionalOnly}
       />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
+      <BitacoraModal isOpen={isBitacoraOpen} onClose={() => setIsBitacoraOpen(false)} />
     </>
   );
 };
