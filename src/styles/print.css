@@ -120,7 +120,25 @@
   .a4-page-box .cv-section:first-child,
   .a4-page-box .cv-section:first-of-type,
   .a4-page-box .section:first-child,
-  .a4-page-box .section:first-of-type {
+  .a4-page-box .section:first-of-type,
+  .a4-page-box .editable-section-container:first-child,
+  .a4-page-box .editable-section-container:first-of-type,
+  .a4-page-box .resume__left > .cv-section:first-child,
+  .a4-page-box .resume__left > .cv-section:first-of-type,
+  .a4-page-box .resume__right > .cv-section:first-child,
+  .a4-page-box .resume__right > .cv-section:first-of-type,
+  .a4-page-box .resume__single-column > .cv-section:first-child,
+  .a4-page-box .resume__single-column > .cv-section:first-of-type,
+  .a4-page-box .cv-section:first-child > :first-child,
+  .a4-page-box .cv-section:first-of-type > :first-child,
+  .a4-page-box .cv-section:first-child .editable-item-container:first-child,
+  .a4-page-box .cv-section:first-of-type .editable-item-container:first-of-type,
+  .a4-page-box .cv-section:first-child .cv-block:first-child,
+  .a4-page-box .cv-section:first-of-type .cv-block:first-of-type,
+  .a4-page-box .editable-item-container:first-child,
+  .a4-page-box .editable-item-container:first-of-type,
+  .a4-page-box .cv-block:first-child,
+  .a4-page-box .cv-block:first-of-type {
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
@@ -128,7 +146,25 @@
   .a4-page-box .cv-section:last-child,
   .a4-page-box .cv-section:last-of-type,
   .a4-page-box .section:last-child,
-  .a4-page-box .section:last-of-type {
+  .a4-page-box .section:last-of-type,
+  .a4-page-box .editable-section-container:last-child,
+  .a4-page-box .editable-section-container:last-of-type,
+  .a4-page-box .resume__left > .cv-section:last-child,
+  .a4-page-box .resume__left > .cv-section:last-of-type,
+  .a4-page-box .resume__right > .cv-section:last-child,
+  .a4-page-box .resume__right > .cv-section:last-of-type,
+  .a4-page-box .resume__single-column > .cv-section:last-child,
+  .a4-page-box .resume__single-column > .cv-section:last-of-type,
+  .a4-page-box .cv-section:last-child > :last-child,
+  .a4-page-box .cv-section:last-of-type > :last-child,
+  .a4-page-box .cv-section:last-child .editable-item-container:last-child,
+  .a4-page-box .cv-section:last-of-type .editable-item-container:last-of-type,
+  .a4-page-box .cv-section:last-child .cv-block:last-child,
+  .a4-page-box .cv-section:last-of-type .cv-block:last-of-type,
+  .a4-page-box .editable-item-container:last-child,
+  .a4-page-box .editable-item-container:last-of-type,
+  .a4-page-box .cv-block:last-child,
+  .a4-page-box .cv-block:last-of-type {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
