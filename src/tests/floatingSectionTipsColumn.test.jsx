@@ -366,7 +366,7 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
     expect(enProjects003.target_section).toBe('projects');
   });
 
-  it('9. Renders up to 5 tips for experience and skills and up to 3 for other sections', () => {
+  it('9. Renders 1 tip by default and expands up to 5 tips for experience/skills on demand via toggle button', () => {
     render(
       <CVProvider initialCV={mockCVData}>
         <AITipsSidebar />
@@ -375,12 +375,26 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
 
     const expCard = document.querySelector('.ai-tip-card-wrapper[data-section-id="experience"]');
     expect(expCard).toBeInTheDocument();
+    // Default progressive disclosure: 1 tip shown initially to prevent stretching layout
+    const initialExpTips = expCard.querySelectorAll('.obsidian-callout');
+    expect(initialExpTips.length).toBe(1);
+
+    // Expand tips on demand
+    const expToggleBtn = screen.getByTestId('btn-toggle-tips-experience');
+    expect(expToggleBtn).toBeInTheDocument();
+    expect(expToggleBtn.textContent).toMatch(/ver más consejos/i);
+    fireEvent.click(expToggleBtn);
+
     const expTips = expCard.querySelectorAll('.obsidian-callout');
     expect(expTips.length).toBeGreaterThan(2);
     expect(expTips.length).toBeLessThanOrEqual(5);
 
     const skillsCard = document.querySelector('.ai-tip-card-wrapper[data-section-id="skills"]');
     expect(skillsCard).toBeInTheDocument();
+    const skillsToggleBtn = screen.getByTestId('btn-toggle-tips-skills');
+    expect(skillsToggleBtn).toBeInTheDocument();
+    fireEvent.click(skillsToggleBtn);
+
     const skillsTips = skillsCard.querySelectorAll('.obsidian-callout');
     expect(skillsTips.length).toBeGreaterThan(2);
     expect(skillsTips.length).toBeLessThanOrEqual(5);
