@@ -18,9 +18,7 @@ import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
 import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
-import CVDragOverlay from "./components/Editor/CVDragOverlay";
 import DroppableColumn from "./components/Editor/DroppableColumn";
-import { DndDropTargetContext } from "./context/DndDropTargetContext";
 
 import {
    A4_WIDTH_PX,
@@ -164,7 +162,6 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
-            <DndDropTargetContext.Provider value={dropTarget}>
             <main
                className="l-main bd-container"
                style={{
@@ -363,13 +360,6 @@ function App() {
                ))}
                </div>
             </main>
-            </DndDropTargetContext.Provider>
-
-            {/* Drag Overlay for ghost preview */}
-            <CVDragOverlay
-               activeDragItem={activeDragItem}
-               activeDragSection={activeDragSection}
-            />
          </DndContext>
 
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}

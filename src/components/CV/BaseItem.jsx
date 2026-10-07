@@ -18,8 +18,7 @@ import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { usePrintMode } from '../../context/PrintModeContext';
-import { useDndDropTarget } from '../../context/DndDropTargetContext';
-import DropIndicatorPlaceholder from '../Editor/DropIndicatorPlaceholder';
+
 
 /**
  * PrintBaseItem
@@ -98,22 +97,12 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
     }
   });
 
-  const dropTarget = useDndDropTarget();
-
-  const isTargetItem = Boolean(
-    dropTarget?.type === 'item' &&
-    dropTarget.targetItemId === item?.id &&
-    dropTarget.activeItemId !== item?.id
-  );
-
-  const showPlaceholderAbove = isTargetItem && dropTarget?.position === 'above';
-  const showPlaceholderBelow = isTargetItem && dropTarget?.position === 'below';
-
   const baseStyle = {
-    transform: (isDragging || dropTarget) ? undefined : CSS.Transform.toString(transform),
+    transform: CSS.Transform.toString(transform),
     transition,
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
+    zIndex: isDragging ? 100 : undefined,
     color: 'var(--text-color)',
     minWidth: 0,
     maxWidth: '100%',
@@ -142,45 +131,41 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const hasNextItem = !isLast;
 
   return (
-    <React.Fragment>
-      {showPlaceholderAbove && <DropIndicatorPlaceholder type="item" as={ItemTag} />}
-      <ItemTag
-        ref={setNodeRef}
-        className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}`}
-        data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
-        data-section-id={sectionId}
-        data-is-partial={isPartial ? 'true' : undefined}
-        data-is-continuation={isContinuation ? 'true' : undefined}
-        data-has-next-item={hasNextItem ? 'true' : undefined}
-        style={baseStyle}
-        {...attributes}
-        {...containerDragListeners}
-      >
-        {hasItemDrag && !item?.isContinuationItem && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
-        {allowDelete && !item?.isContinuationItem && (
-          <button
-            type="button"
-            className="round-btn-del item-del-btn no-print"
-            data-editor-ui="true"
-            data-testid={`btn-delete-item-${item?.id || sectionType}`}
-            title="Eliminar este elemento"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={handleDelete}
-          >
-            <Minus size={14} strokeWidth={2.5} />
-          </button>
-        )}
-        {ItemComponent && (
-          <ItemComponent 
-            item={item} 
-            sectionId={sectionId} 
-            isLast={isLast}
-            onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
-          />
-        )}
-      </ItemTag>
-      {showPlaceholderBelow && <DropIndicatorPlaceholder type="item" as={ItemTag} />}
-    </React.Fragment>
+    <ItemTag
+      ref={setNodeRef}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}`}
+      data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
+      data-section-id={sectionId}
+      data-is-partial={isPartial ? 'true' : undefined}
+      data-is-continuation={isContinuation ? 'true' : undefined}
+      data-has-next-item={hasNextItem ? 'true' : undefined}
+      style={baseStyle}
+      {...attributes}
+      {...containerDragListeners}
+    >
+      {hasItemDrag && !item?.isContinuationItem && <DragHandle isInner={true} listeners={listeners} attributes={attributes} />}
+      {allowDelete && !item?.isContinuationItem && (
+        <button
+          type="button"
+          className="round-btn-del item-del-btn no-print"
+          data-editor-ui="true"
+          data-testid={`btn-delete-item-${item?.id || sectionType}`}
+          title="Eliminar este elemento"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={handleDelete}
+        >
+          <Minus size={14} strokeWidth={2.5} />
+        </button>
+      )}
+      {ItemComponent && (
+        <ItemComponent 
+          item={item} 
+          sectionId={sectionId} 
+          isLast={isLast}
+          onUpdateItem={(secId, itemId, key, val) => updateSectionItem(secId, item?.originalItemId || itemId, key, val)} 
+        />
+      )}
+    </ItemTag>
   );
 };
 
