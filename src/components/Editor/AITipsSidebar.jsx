@@ -670,12 +670,12 @@ const AITipsSidebar = () => {
                                   }}
                                 >
                                   <div style={{ color: isAtsMode ? '#fca5a5' : '#b91c1c' }}>
-                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evitá: '}</strong>
-                                    <span>{rule.example_bad}</span>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evite: '}</strong>
+                                    <span>"{rule.example_bad}"</span>
                                   </div>
                                   <div style={{ color: isAtsMode ? '#86efac' : '#15803d' }}>
-                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Usá: '}</strong>
-                                    <span>{rule.example_good}</span>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Es mejor: '}</strong>
+                                    <span>"{rule.example_good}"</span>
                                   </div>
                                 </div>
                               )}
