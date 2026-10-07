@@ -1058,9 +1058,10 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       clickSpy.mockRestore();
     });
 
-    it('T5.3: version cards display dedicated JSON download button', async () => {
+    it('T5.3: version cards display dedicated PDF download button and trigger PDF export', async () => {
       if (!VersionManagerModal || !versionStorage) return;
 
+      const cleanPrintSpy = vi.spyOn(cleanPrintEngine, 'executeCleanPrint').mockResolvedValue();
       await versionStorage.saveVersion('Snapshot Download Test', defaultSchema, 'thumb_test');
 
       render(
@@ -1070,9 +1071,20 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       );
 
       await waitFor(() => {
-        const downloadBtns = screen.getAllByTestId('btn-download-version-json');
+        const downloadBtns = screen.getAllByTestId('btn-download-version-pdf');
         expect(downloadBtns.length).toBeGreaterThan(0);
       });
+
+      const downloadBtn = screen.getAllByTestId('btn-download-version-pdf')[0];
+      fireEvent.click(downloadBtn);
+
+      await waitFor(() => {
+        expect(cleanPrintSpy).toHaveBeenCalled();
+        const calledData = cleanPrintSpy.mock.calls[0][0];
+        expect(calledData.versionName).toBe('Snapshot Download Test');
+      });
+
+      cleanPrintSpy.mockRestore();
     });
 
     it('T5.4: importing valid JSON file parses, saves version and notifies user', async () => {
@@ -1283,7 +1295,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       expect(screen.getByTestId('btn-load-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-preview-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-duplicate-version')).toBeInTheDocument();
-      expect(screen.getByTestId('btn-download-version-json')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-download-version-pdf')).toBeInTheDocument();
       expect(screen.getByTestId('btn-delete-version')).toBeInTheDocument();
     });
 

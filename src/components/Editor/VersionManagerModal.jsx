@@ -11,6 +11,7 @@ import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { sanitizeAndValidateCVSnapshot, normalizeAnyJSONToCVSnapshot } from '../../utils/versionValidator';
 import { cleanAndParseRawJSON } from '../../utils/universalJsonImporter';
 import { blankSchema } from '../../utils/schema';
+import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
 import { History, X, Layers } from 'lucide-react';
 import {
   VersionActionBar,
@@ -38,7 +39,7 @@ export const VersionManagerModal = ({
   initialConfirmBlank = false
 }) => {
   const context = useCV() || {};
-  const { cvData, loadVersionSnapshot, showToast } = context;
+  const { cvData, loadVersionSnapshot, showToast, exportCleanPDF, activeLanguage } = context;
   const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
 
   const [versions, setVersions] = useState([]);
@@ -330,6 +331,36 @@ export const VersionManagerModal = ({
       console.error('Error exporting active CV JSON:', err);
       if (showToast) {
         showToast('Error al exportar el archivo JSON', 'error');
+      }
+    }
+  };
+
+  // Download a specific saved version snapshot as PDF
+  const handleDownloadVersionPDF = async (version) => {
+    try {
+      if (!version) return;
+      const rawData = version.cvData || cvData;
+      const targetData = {
+        ...rawData,
+        versionName: version.name || (rawData?.versionName || 'CV'),
+        activeVersionName: version.name,
+      };
+
+      if (exportCleanPDF) {
+        await exportCleanPDF(targetData, activeLanguage || 'es', { forceStaticHtml: true });
+      } else {
+        if (showToast) {
+          showToast(`Generando PDF para "${version.name}"...`, 'loading', 2000);
+        }
+        await executeCleanPrint(targetData, activeLanguage || 'es', { forceStaticHtml: true });
+        if (showToast) {
+          showToast(`PDF de "${version.name}" preparado para descarga`, 'success');
+        }
+      }
+    } catch (err) {
+      console.error('Error exporting version PDF:', err);
+      if (showToast) {
+        showToast('Error al exportar la versión como PDF', 'error');
       }
     }
   };
@@ -691,7 +722,8 @@ export const VersionManagerModal = ({
                 onChangeRenameText={setRenameText}
                 onConfirmLoad={setConfirmLoadVersion}
                 onDuplicate={handleDuplicate}
-                onDownloadJSON={handleDownloadVersionJSON}
+                onDownloadPDF={handleDownloadVersionPDF}
+                onDownloadJSON={handleDownloadVersionPDF}
                 onConfirmDelete={setConfirmDeleteVersion}
               />
             ))

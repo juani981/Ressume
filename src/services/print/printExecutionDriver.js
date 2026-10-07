@@ -115,7 +115,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     const docLang = lang || cvData?.layout?.language || 'es';
 
     let bodyMarkup = '';
-    if (liveAreaCv) {
+    if (liveAreaCv && !snapshot?.forceStaticHtml) {
       const sanitizedClone = createSanitizedPrintClone(liveAreaCv);
       if (sanitizedClone) {
         bodyMarkup = sanitizedClone.outerHTML;

@@ -75,6 +75,7 @@ export const VersionCard = ({
   onConfirmLoad,
   onDuplicate,
   onDownloadJSON,
+  onDownloadPDF,
   onConfirmDelete,
   theme = 'dark',
 }) => {
@@ -676,13 +677,19 @@ export const VersionCard = ({
             <Copy size={14} />
           </button>
 
-          {/* 3. btn-download-version-json */}
+          {/* 3. btn-download-version-pdf */}
           <button
             type="button"
-            data-testid="btn-download-version-json"
-            aria-label="Descargar esta versión como JSON"
-            title="Descargar como JSON"
-            onClick={() => onDownloadJSON(version)}
+            data-testid="btn-download-version-pdf"
+            aria-label="Descargar esta versión como PDF"
+            title="Descargar como PDF"
+            onClick={() => {
+              if (onDownloadPDF) {
+                onDownloadPDF(version);
+              } else if (onDownloadJSON) {
+                onDownloadJSON(version);
+              }
+            }}
             style={{
               width: '30px',
               height: '30px',
