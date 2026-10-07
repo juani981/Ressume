@@ -25,6 +25,8 @@ import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
+import { useDndDropTarget } from '../../context/DndDropTargetContext';
+import DropIndicatorPlaceholder from '../Editor/DropIndicatorPlaceholder';
 
 /**
  * Checks whether the container tag should be rendered as a list container (ul/ol).
@@ -197,11 +199,32 @@ const EditableBaseSection = ({ section }) => {
   const [deleteTriggerRect, setDeleteTriggerRect] = useState(null);
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
+  const dropTarget = useDndDropTarget();
+
+  const canonicalId = section?.originalSectionId || (typeof section?.id === 'string' ? section.id.split('__cont_')[0] : section?.id);
+  const isTargetSection = Boolean(
+    dropTarget?.type === 'section' &&
+    dropTarget.targetSectionId &&
+    (dropTarget.targetSectionId === section?.id || dropTarget.targetSectionId === canonicalId) &&
+    dropTarget.activeSectionId !== section?.id &&
+    dropTarget.activeSectionId !== canonicalId
+  );
+
+  const showPlaceholderAbove = isTargetSection && dropTarget?.position === 'above';
+  const showPlaceholderBelow = isTargetSection && dropTarget?.position === 'below';
+
+  const isTargetEmptySectionForItem = Boolean(
+    dropTarget?.type === 'item' &&
+    (dropTarget.targetSectionId === section?.id || dropTarget.targetSectionId === canonicalId) &&
+    !dropTarget.targetItemId &&
+    (!section?.items || section.items.length === 0)
+  );
+
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: (isDragging || dropTarget) ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.35 : 1,
     marginBottom: 'var(--section-gap, 20px)',
     color: 'var(--text-color)',
     minWidth: 0,
@@ -217,16 +240,18 @@ const EditableBaseSection = ({ section }) => {
   const wrapperClass = resolveSectionWrapperClass(descriptor);
 
   return (
-    <section 
-      ref={setNodeRef} 
-      style={style} 
-      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
-      id={section.id}
-      data-section-id={section.id}
-      data-has-continuation={section.hasContinuation ? 'true' : undefined}
-      {...attributes}
-      {...containerDragListeners}
-    >
+    <React.Fragment>
+      {showPlaceholderAbove && <DropIndicatorPlaceholder type="section" />}
+      <section 
+        ref={setNodeRef} 
+        style={style} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
+        id={section.id}
+        data-section-id={section.id}
+        data-has-continuation={section.hasContinuation ? 'true' : undefined}
+        {...attributes}
+        {...containerDragListeners}
+      >
       {!section.isContinuation && (
         <DragHandle listeners={listeners} attributes={attributes} />
       )}
@@ -311,6 +336,7 @@ const EditableBaseSection = ({ section }) => {
             hasContinuation={Boolean(section.hasContinuation)}
           />
         </SortableContext>
+        {isTargetEmptySectionForItem && <DropIndicatorPlaceholder type="item" />}
       </div>
 
       {allowAddItem && (
@@ -364,6 +390,8 @@ const EditableBaseSection = ({ section }) => {
         }}
       />
     </section>
+    {showPlaceholderBelow && <DropIndicatorPlaceholder type="section" />}
+  </React.Fragment>
   );
 };
 

@@ -25,6 +25,10 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
   const declaredItemParentName = itemDescriptor?.label || 'Elemento';
 
   if (activeDragItem) {
+    const itemWidth = activeDragItem?.initialWidth
+      ? `${Math.min(Math.max(activeDragItem.initialWidth, 240), 380)}px`
+      : '280px';
+
     return (
       <div
         data-testid="drag-overlay-item"
@@ -35,7 +39,11 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
           boxShadow: '0 12px 28px rgba(0,0,0,0.22)',
           border: '2px solid var(--first-color, #3874ff)',
           opacity: 0.95,
-          maxWidth: '400px',
+          minWidth: '240px',
+          maxWidth: '380px',
+          width: itemWidth,
+          boxSizing: 'border-box',
+          pointerEvents: 'none',
         }}>
         <div
           data-testid="drag-overlay-item-badge"
@@ -78,6 +86,10 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
   }
 
   if (activeDragSection) {
+    const sectionWidth = activeDragSection?.initialWidth
+      ? `${Math.min(Math.max(activeDragSection.initialWidth, 280), 420)}px`
+      : '320px';
+
     return (
       <div
         data-testid="drag-overlay-section"
@@ -89,6 +101,10 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
           border: '2px solid var(--first-color, #3874ff)',
           opacity: 0.95,
           minWidth: '280px',
+          maxWidth: '420px',
+          width: sectionWidth,
+          boxSizing: 'border-box',
+          pointerEvents: 'none',
         }}>
         <div
           data-testid="drag-overlay-section-title"
@@ -134,12 +150,29 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
  * @param {Object} props
  * @param {Object|null} props.activeDragItem - Active dragged item data
  * @param {Object|null} props.activeDragSection - Active dragged section data
- * @returns {React.ReactElement}
+ * @returns {React.ReactElement|null}
  */
-export const CVDragOverlay = () => {
-  // Suppress floating ghost clone tracking the mouse cursor.
-  // Real-time live sort dynamically reorders the document in-place as the user drags.
-  return null;
+export const CVDragOverlay = ({ activeDragItem, activeDragSection }) => {
+  if (!activeDragItem && !activeDragSection) {
+    return null;
+  }
+
+  return (
+    <DragOverlay
+      dropAnimation={{
+        duration: 180,
+        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+      }}
+      style={{
+        cursor: 'grabbing',
+      }}
+    >
+      <CVDragOverlayContent
+        activeDragItem={activeDragItem}
+        activeDragSection={activeDragSection}
+      />
+    </DragOverlay>
+  );
 };
 
 export default CVDragOverlay;
