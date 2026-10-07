@@ -172,9 +172,17 @@ const EditableBaseSection = ({ section }) => {
     return <CustomSection section={section} isPrint={false} />;
   }
 
+  const isMoveDisabled = Boolean(
+    descriptor?.isMoveDisabled ||
+    descriptor?.allowSectionDrag === false ||
+    ['profile_header', 'title_subtitle', 'contact', 'about'].includes(section?.type) ||
+    ['profile_header', 'title_subtitle', 'contact', 'about_section', 'about'].includes(section?.id)
+  );
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: section.id,
-    data: { type: 'section', section }
+    disabled: isMoveDisabled,
+    data: { type: 'section', section, isMoveDisabled }
   });
 
   const { 
@@ -214,7 +222,7 @@ const EditableBaseSection = ({ section }) => {
   const allowDelete = descriptor.allowDelete !== false;
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
-  const containerDragListeners = createContainerDragListeners(listeners, false);
+  const containerDragListeners = !isMoveDisabled ? createContainerDragListeners(listeners, false) : {};
   const wrapperClass = resolveSectionWrapperClass(descriptor);
 
   return (
@@ -228,7 +236,7 @@ const EditableBaseSection = ({ section }) => {
         {...attributes}
         {...containerDragListeners}
       >
-      {!section.isContinuation && (
+      {!section.isContinuation && !isMoveDisabled && (
         <DragHandle listeners={listeners} attributes={attributes} />
       )}
       

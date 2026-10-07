@@ -20,6 +20,7 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { adaptItemToSectionType } from '../utils/itemAdapter';
+import { isFixedSection } from '../utils/dndUtils';
 
 /**
  * Extracts canonical section ID ignoring any __cont_ split-continuation suffix.
@@ -302,6 +303,9 @@ export function useCVDndCoordinator({
 
     if (data?.type === 'section' || (!data?.type && foundSection)) {
       const section = data?.section || foundSection;
+      if (isFixedSection(section)) {
+        return;
+      }
       setActiveDragSection({ ...data, section, initialWidth });
       setActiveDragItem(null);
     } else if (data?.type === 'item' || !foundSection) {
@@ -553,7 +557,7 @@ export function useCVDndCoordinator({
       const activeSection = (cvDataRef.current?.sections || []).find(
         (s) => s.id === activeSectionId,
       );
-      if (!activeSection) return;
+      if (!activeSection || isFixedSection(activeSection)) return;
 
       let targetColumn = activeSection.column;
       let overSectionId = null;

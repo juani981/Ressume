@@ -46,6 +46,7 @@ export const ActionMenuRoot = () => {
   const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
+  const isBitacoraEnabled = import.meta.env?.VITE_ENABLE_BITACORA === 'true';
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
@@ -459,21 +460,23 @@ export const ActionMenuRoot = () => {
           <span className="action-menu-tooltip">Gestor de Versiones</span>
         </div>
 
-        {/* Bitácora & Playbook de Carrera */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="version-hub-btn action-menu-hub-btn"
-            id="bitacora-item"
-            data-testid="btn-open-bitacora"
-            aria-label="Bitácora y Recursos de Carrera"
-            title="Bitácora y Playbook de Carrera"
-            onClick={() => setIsBitacoraOpen(true)}
-          >
-            <BookOpen size={20} color="#6366f1" />
-          </button>
-          <span className="action-menu-tooltip">Bitácora & Recursos</span>
-        </div>
+        {/* Bitácora & Playbook de Carrera (Feature flag: VITE_ENABLE_BITACORA) */}
+        {isBitacoraEnabled && (
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="version-hub-btn action-menu-hub-btn"
+              id="bitacora-item"
+              data-testid="btn-open-bitacora"
+              aria-label="Bitácora y Recursos de Carrera"
+              title="Bitácora y Playbook de Carrera"
+              onClick={() => setIsBitacoraOpen(true)}
+            >
+              <BookOpen size={20} color="#6366f1" />
+            </button>
+            <span className="action-menu-tooltip">Bitácora & Recursos</span>
+          </div>
+        )}
           {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
         <div className="action-menu-btn-wrap">
           <button
@@ -699,7 +702,9 @@ export const ActionMenuRoot = () => {
         unidirectionalOnly={isUnidirectionalOnly}
       />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
-      <BitacoraModal isOpen={isBitacoraOpen} onClose={() => setIsBitacoraOpen(false)} />
+      {isBitacoraEnabled && (
+        <BitacoraModal isOpen={isBitacoraOpen} onClose={() => setIsBitacoraOpen(false)} />
+      )}
     </>
   );
 };

@@ -14,6 +14,8 @@ export const titleSubtitleDescriptor = {
   allowDeleteItem: false,
   hasTitle: false,
   hasItemDrag: false,
+  allowSectionDrag: false,
+  isMoveDisabled: true,
   supportsBulletCustomization: false,
   isHeader: true,
   sectionClass: 'home',

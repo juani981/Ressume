@@ -15,6 +15,8 @@ export const contactDescriptor = {
   allowDeleteItem: false,
   hasTitle: false,
   hasItemDrag: false,
+  allowSectionDrag: false,
+  isMoveDisabled: true,
   supportsBulletCustomization: false,
   sectionClass: 'social',
   wrapperClass: '',

@@ -110,3 +110,38 @@ export const createContainerDragListeners = (listeners, shouldStopPropagation = 
     }
   };
 };
+
+export const FIXED_HEADER_SECTION_TYPES = Object.freeze([
+  'profile_header',
+  'title_subtitle',
+  'contact',
+  'about'
+]);
+
+export const FIXED_HEADER_SECTION_IDS = Object.freeze([
+  'profile_header',
+  'title_subtitle',
+  'contact',
+  'about_section',
+  'about'
+]);
+
+/**
+ * Checks whether a section is a fixed header section (title, contact, about)
+ * that cannot be moved, dragged, or reordered.
+ *
+ * @param {Object|string} sectionOrId
+ * @returns {boolean}
+ */
+export const isFixedSection = (sectionOrId) => {
+  if (!sectionOrId) return false;
+  if (typeof sectionOrId === 'string') {
+    return FIXED_HEADER_SECTION_IDS.includes(sectionOrId) || FIXED_HEADER_SECTION_TYPES.includes(sectionOrId);
+  }
+  return (
+    FIXED_HEADER_SECTION_IDS.includes(sectionOrId?.id) ||
+    FIXED_HEADER_SECTION_TYPES.includes(sectionOrId?.type) ||
+    sectionOrId?.isMoveDisabled === true ||
+    sectionOrId?.allowSectionDrag === false
+  );
+};

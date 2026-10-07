@@ -506,14 +506,30 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       });
 
       it('F7.3: BaseSection renders drag handle for sortable section interactions', () => {
-        const section = defaultSchema.sections[0];
+        const sortableSection = defaultSchema.sections.find(s => s.type === 'list' || s.type === 'skills') || {
+          id: 'custom_sec',
+          type: 'list',
+          title: 'Custom Section',
+          items: []
+        };
         render(
           <CVProvider>
-            <BaseSection section={section} />
+            <BaseSection section={sortableSection} />
           </CVProvider>
         );
         const sectionHandle = document.querySelector('.section-drag-handle');
         expect(sectionHandle).toBeInTheDocument();
+      });
+
+      it('F7.3b: BaseSection does not render drag handle for fixed header sections', () => {
+        const fixedSection = defaultSchema.sections.find(s => s.type === 'contact' || s.type === 'about' || s.type === 'profile_header');
+        render(
+          <CVProvider>
+            <BaseSection section={fixedSection} />
+          </CVProvider>
+        );
+        const sectionHandle = document.querySelector('.section-drag-handle');
+        expect(sectionHandle).not.toBeInTheDocument();
       });
 
       it('F7.4: BaseItem renders item drag handle for draggable items', () => {
