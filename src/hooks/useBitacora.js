@@ -4,21 +4,26 @@
  * Manages filtering, search, tag selection, polymorphic content detail, and anti-abuse voting.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { BITACORA_CATEGORIES } from '../data/bitacora/categories';
 import { INITIAL_BITACORA_ITEMS } from '../data/bitacora/items';
 import {
   getVotedItemIds,
-  toggleItemVote,
   getCustomBitacoraItems,
-  saveCustomBitacoraItem,
 } from '../utils/bitacoraStorage';
+import {
+  fetchBitacoraPosts,
+  toggleVote as toggleVoteService,
+  submitBitacoraPost,
+} from '../services/bitacoraService';
+import { isSupabaseConfigured } from '../services/supabaseClient';
 
 export const useBitacora = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState(null);
   const [activeItem, setActiveItem] = useState(null); // For detail modal reader
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize all items (default static items + local user-submitted items)
   const [items, setItems] = useState(() => {
@@ -28,6 +33,32 @@ export const useBitacora = () => {
 
   // Track which items have been voted on by this client
   const [votedIds, setVotedIds] = useState(() => new Set(getVotedItemIds()));
+
+  // Fetch posts from Supabase only if remote backend is configured
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        const { data, source } = await fetchBitacoraPosts();
+        if (isMounted && source === 'supabase' && data && data.length > 0) {
+          setItems(data);
+        }
+      } catch (err) {
+        console.warn('Bitacora: error fetching posts from Supabase:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadPosts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Count items per category
   const categoryCounts = useMemo(() => {
@@ -82,55 +113,85 @@ export const useBitacora = () => {
   }, [items, selectedCategory, selectedTag, searchQuery]);
 
   // Upvote / Useful vote handler with anti-abuse check
-  const handleVote = useCallback((itemId) => {
-    const result = toggleItemVote(itemId);
-    if (!result.success) {
-      return result;
-    }
+  const handleVote = useCallback(
+    async (itemId) => {
+      // Determine optimistic toggle
+      const wasVoted = votedIds.has(itemId);
+      const willBeVoted = !wasVoted;
 
-    setVotedIds((prev) => {
-      const next = new Set(prev);
-      if (result.hasVoted) {
-        next.add(itemId);
-      } else {
-        next.delete(itemId);
-      }
-      return next;
-    });
-
-    setItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === itemId) {
-          const delta = result.hasVoted ? 1 : -1;
-          return {
-            ...item,
-            upvotes: Math.max(0, (item.upvotes || 0) + delta),
-          };
+      // Optimistic state update
+      setVotedIds((prev) => {
+        const next = new Set(prev);
+        if (willBeVoted) {
+          next.add(itemId);
+        } else {
+          next.delete(itemId);
         }
-        return item;
-      })
-    );
+        return next;
+      });
 
-    return result;
-  }, []);
+      setItems((prevItems) =>
+        prevItems.map((item) => {
+          if (item.id === itemId) {
+            const delta = willBeVoted ? 1 : -1;
+            return {
+              ...item,
+              upvotes: Math.max(0, (item.upvotes || 0) + delta),
+            };
+          }
+          return item;
+        })
+      );
 
-  // Add a new item (extensible for user submission)
-  const addNewItem = useCallback((newItem) => {
-    const createdItem = {
-      ...newItem,
-      id: newItem.id || `custom-${Date.now()}`,
-      upvotes: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      author: newItem.author || {
-        name: 'Tú (Borrador)',
-        role: 'Colaborador',
-        isOfficial: false,
-      },
-    };
+      // Call service (Supabase RPC or local fallback)
+      const result = await toggleVoteService(itemId);
 
-    saveCustomBitacoraItem(createdItem);
-    setItems((prev) => [createdItem, ...prev]);
-    return createdItem;
+      if (!result.success) {
+        // Rollback optimistic update on error or rate-limit
+        setVotedIds((prev) => {
+          const rollback = new Set(prev);
+          if (wasVoted) rollback.add(itemId);
+          else rollback.delete(itemId);
+          return rollback;
+        });
+
+        setItems((prevItems) =>
+          prevItems.map((item) => {
+            if (item.id === itemId) {
+              const delta = wasVoted ? 1 : -1;
+              return {
+                ...item,
+                upvotes: Math.max(0, (item.upvotes || 0) + delta),
+              };
+            }
+            return item;
+          })
+        );
+        return result;
+      }
+
+      // If backend returned authoritative upvotes count, synchronize it
+      if (typeof result.upvotes === 'number') {
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === itemId ? { ...item, upvotes: result.upvotes } : item
+          )
+        );
+      }
+
+      return result;
+    },
+    [votedIds]
+  );
+
+  // Add a new item (persists to Supabase or local storage)
+  const addNewItem = useCallback(async (newItem) => {
+    const result = await submitBitacoraPost(newItem);
+    if (result.success && result.item) {
+      setItems((prev) => [result.item, ...prev]);
+      return result.item;
+    }
+    return null;
   }, []);
 
   return {

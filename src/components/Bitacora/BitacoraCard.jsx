@@ -3,6 +3,7 @@
  * @description Polymorphic card renderer for Bitácora items.
  * Handles diverse content shapes: short tips, long-form guides, resource links,
  * Obsidian Callouts (Rule 1 compliance), and anti-abuse upvoting.
+ * Supports dark mode by default with opt-in light mode.
  */
 
 import React from 'react';
@@ -24,6 +25,7 @@ export const BitacoraCard = ({
   onOpenDetail,
   onSelectTag,
   categoryConfig,
+  theme = 'dark',
 }) => {
   const {
     id,
@@ -38,6 +40,7 @@ export const BitacoraCard = ({
     tags = [],
   } = item;
 
+  const isDark = theme === 'dark';
   const hasLongContent = Boolean(content && content.trim());
   const hasLinks = Array.isArray(links) && links.length > 0;
   const badgeColor = categoryConfig?.badgeColor || '#6366f1';
@@ -45,11 +48,18 @@ export const BitacoraCard = ({
   return (
     <article
       className="bitacora-card"
+      data-testid="bitacora-card"
+      data-theme={theme}
+      onClick={(e) => {
+        if (hasLongContent && onOpenDetail && !e.target.closest('button, a, input')) {
+          onOpenDetail(item);
+        }
+      }}
       style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
         borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)',
+        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+        boxShadow: isDark ? '0 4px 14px rgba(0, 0, 0, 0.25)' : '0 4px 14px rgba(0, 0, 0, 0.05)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -93,7 +103,7 @@ export const BitacoraCard = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '3px',
-                  color: '#64748b',
+                  color: isDark ? '#94a3b8' : '#64748b',
                   fontSize: '0.75rem',
                 }}
                 title={`Tiempo estimado de lectura: ${readTimeMinutes} min`}
@@ -107,6 +117,7 @@ export const BitacoraCard = ({
           {/* Upvote / Useful Action Button */}
           <button
             type="button"
+            data-testid="bitacora-upvote-btn"
             onClick={() => onVote(id)}
             aria-label={isVoted ? 'Quitar voto de utilidad' : 'Marcar como útil'}
             title={isVoted ? 'Ya votaste este consejo como útil' : 'Votar consejo como útil'}
@@ -116,16 +127,22 @@ export const BitacoraCard = ({
               gap: '5px',
               padding: '4px 10px',
               borderRadius: '8px',
-              border: isVoted ? '1px solid #3b82f6' : '1px solid #e2e8f0',
-              backgroundColor: isVoted ? 'rgba(59, 130, 246, 0.1)' : '#f8fafc',
-              color: isVoted ? '#2563eb' : '#475569',
+              border: isVoted
+                ? (isDark ? '1px solid #6366f1' : '1px solid #3b82f6')
+                : (isDark ? '1px solid #334155' : '1px solid #e2e8f0'),
+              backgroundColor: isVoted
+                ? (isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(59, 130, 246, 0.1)')
+                : (isDark ? '#0f172a' : '#f8fafc'),
+              color: isVoted
+                ? (isDark ? '#a5b4fc' : '#2563eb')
+                : (isDark ? '#cbd5e1' : '#475569'),
               fontSize: '0.78rem',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
           >
-            <ThumbsUp size={13} fill={isVoted ? '#2563eb' : 'none'} />
+            <ThumbsUp size={13} fill={isVoted ? (isDark ? '#a5b4fc' : '#2563eb') : 'none'} />
             <span>{upvotes}</span>
           </button>
         </div>
@@ -136,7 +153,7 @@ export const BitacoraCard = ({
             margin: '0 0 0.5rem 0',
             fontSize: '1.05rem',
             fontWeight: 700,
-            color: '#0f172a',
+            color: isDark ? '#f8fafc' : '#0f172a',
             lineHeight: 1.35,
           }}
         >
@@ -149,7 +166,7 @@ export const BitacoraCard = ({
             style={{
               margin: '0 0 0.75rem 0',
               fontSize: '0.86rem',
-              color: '#475569',
+              color: isDark ? '#cbd5e1' : '#475569',
               lineHeight: 1.5,
             }}
           >
@@ -185,9 +202,9 @@ export const BitacoraCard = ({
                 type="button"
                 onClick={() => onSelectTag && onSelectTag(tag)}
                 style={{
-                  background: '#f1f5f9',
-                  border: 'none',
-                  color: '#475569',
+                  background: isDark ? '#0f172a' : '#f1f5f9',
+                  border: isDark ? '1px solid #334155' : 'none',
+                  color: isDark ? '#94a3b8' : '#475569',
                   fontSize: '0.72rem',
                   fontWeight: 500,
                   padding: '2px 7px',
@@ -228,7 +245,7 @@ export const BitacoraCard = ({
                   gap: '6px',
                   fontSize: '0.8rem',
                   fontWeight: 600,
-                  color: '#2563eb',
+                  color: isDark ? '#60a5fa' : '#2563eb',
                   textDecoration: 'none',
                 }}
               >
@@ -239,15 +256,15 @@ export const BitacoraCard = ({
           </div>
         )}
 
-        {/* Footer Meta & Expansion Trigger */}
+        {/* Card Footer: Author + Reader View Trigger */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderTop: '1px solid #f1f5f9',
             paddingTop: '0.75rem',
-            gap: '8px',
+            borderTop: isDark ? '1px solid #334155' : '1px solid #f1f5f9',
+            marginTop: '0.5rem',
           }}
         >
           {/* Author Badge */}
@@ -257,11 +274,15 @@ export const BitacoraCard = ({
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
-                backgroundColor: author?.isOfficial ? '#eff6ff' : '#f1f5f9',
+                backgroundColor: isDark
+                  ? (author?.isOfficial ? 'rgba(59, 130, 246, 0.25)' : '#334155')
+                  : (author?.isOfficial ? '#eff6ff' : '#f1f5f9'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: author?.isOfficial ? '#2563eb' : '#64748b',
+                color: isDark
+                  ? (author?.isOfficial ? '#93c5fd' : '#cbd5e1')
+                  : (author?.isOfficial ? '#2563eb' : '#64748b'),
                 fontSize: '0.65rem',
                 fontWeight: 700,
               }}
@@ -269,36 +290,48 @@ export const BitacoraCard = ({
               {author?.name ? author.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155' }}>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: isDark ? '#cbd5e1' : '#334155',
+                }}
+              >
                 {author?.name || 'Comunidad'}
               </span>
               {author?.isOfficial && (
-                <CheckCircle2 size={13} color="#2563eb" title="Consejo Oficial Verificado" />
+                <CheckCircle2
+                  size={13}
+                  color={isDark ? '#60a5fa' : '#2563eb'}
+                  title="Consejo Oficial Verificado"
+                />
               )}
             </div>
           </div>
 
-          {/* Deep Guide Trigger */}
+          {/* Reader Modal Trigger (for long guides) */}
           {hasLongContent && (
             <button
               type="button"
               onClick={() => onOpenDetail(item)}
+              aria-label={`Leer guía completa: ${title}`}
               style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                background: 'none',
-                border: 'none',
-                color: '#2563eb',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                color: isDark ? '#f8fafc' : '#0f172a',
                 fontSize: '0.78rem',
                 fontWeight: 600,
                 cursor: 'pointer',
-                padding: '4px 6px',
-                borderRadius: '6px',
+                transition: 'background-color 0.15s ease',
               }}
             >
-              <BookOpen size={13} />
-              <span>Leer guía</span>
+              <BookOpen size={13} color={isDark ? '#818cf8' : '#4f46e5'} />
+              <span>Leer Guía</span>
             </button>
           )}
         </div>

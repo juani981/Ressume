@@ -17,14 +17,16 @@ export const VersionActionBar = ({
   fileInputRef,
   onImportFile,
   onDownloadActiveJSON,
+  theme = 'dark',
 }) => {
+  const isDark = theme === 'dark';
   return (
     <div
       className="version-action-bar"
       style={{
         padding: '0.75rem 1.25rem',
-        backgroundColor: '#f8fafc',
-        borderBottom: '1px solid #e2e8f0',
+        backgroundColor: isDark ? '#1e293b' : '#f8fafc',
+        borderBottom: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -64,10 +66,10 @@ export const VersionActionBar = ({
               width: '100%',
               padding: '0.45rem 0.75rem',
               fontSize: '0.85rem',
-              border: '1px solid #cbd5e1',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               borderRadius: '7px',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
+              backgroundColor: isDark ? '#0f172a' : '#ffffff',
+              color: isDark ? '#f8fafc' : '#0f172a',
               outline: 'none',
               boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
               transition: 'border-color 0.15s ease',
@@ -123,9 +125,9 @@ export const VersionActionBar = ({
             alignItems: 'center',
             gap: '5px',
             padding: '0.45rem 0.8rem',
-            backgroundColor: '#ffffff',
-            color: '#4f46e5',
-            border: '1px solid #c7d2fe',
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#a5b4fc' : '#4f46e5',
+            border: isDark ? '1px solid #4338ca' : '1px solid #c7d2fe',
             borderRadius: '7px',
             fontSize: '0.82rem',
             fontWeight: 600,
@@ -135,7 +137,7 @@ export const VersionActionBar = ({
             whiteSpace: 'nowrap',
           }}
         >
-          <FilePlus size={14} color="#4f46e5" />
+          <FilePlus size={14} color={isDark ? '#a5b4fc' : '#4f46e5'} />
           <span>Plantilla en blanco</span>
         </button>
 
@@ -151,9 +153,9 @@ export const VersionActionBar = ({
             alignItems: 'center',
             gap: '5px',
             padding: '0.45rem 0.8rem',
-            backgroundColor: '#ffffff',
-            color: '#0f172a',
-            border: '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
             borderRadius: '7px',
             fontSize: '0.82rem',
             fontWeight: 600,
@@ -163,7 +165,7 @@ export const VersionActionBar = ({
             whiteSpace: 'nowrap',
           }}
         >
-          <Upload size={14} color="#2563eb" />
+          <Upload size={14} color="#38bdf8" />
           <span>Importar JSON</span>
         </button>
 
@@ -179,9 +181,9 @@ export const VersionActionBar = ({
             alignItems: 'center',
             gap: '5px',
             padding: '0.45rem 0.8rem',
-            backgroundColor: '#ffffff',
-            color: '#0f172a',
-            border: '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
             borderRadius: '7px',
             fontSize: '0.82rem',
             fontWeight: 600,
@@ -191,7 +193,7 @@ export const VersionActionBar = ({
             whiteSpace: 'nowrap',
           }}
         >
-          <Download size={14} color="#10b981" />
+          <Download size={14} color="#34d399" />
           <span>Descargar JSON</span>
         </button>
       </div>

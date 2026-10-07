@@ -1,6 +1,7 @@
 /**
  * @file BitacoraDetailModal.jsx
  * @description Reader view dialog for reading comprehensive guide content in Bitácora.
+ * Supports dark mode by default with opt-in light mode.
  */
 
 import React, { useEffect } from 'react';
@@ -21,6 +22,7 @@ export const BitacoraDetailModal = ({
   isVoted,
   onVote,
   categoryConfig,
+  theme = 'dark',
 }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -48,6 +50,7 @@ export const BitacoraDetailModal = ({
     createdAt,
   } = item;
 
+  const isDark = theme === 'dark';
   const badgeColor = categoryConfig?.badgeColor || '#6366f1';
 
   return (
@@ -55,6 +58,7 @@ export const BitacoraDetailModal = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="bitacora-detail-title"
+      data-theme={theme}
       className="bitacora-detail-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -67,7 +71,7 @@ export const BitacoraDetailModal = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.7)',
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         zIndex: 1200,
@@ -79,28 +83,30 @@ export const BitacoraDetailModal = ({
     >
       <div
         className="bitacora-detail-dialog"
+        data-testid="bitacora-detail-modal"
+        data-theme={theme}
         style={{
           maxWidth: '720px',
           width: '100%',
           maxHeight: '88vh',
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           borderRadius: '16px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid #e2e8f0',
+          border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
         }}
       >
         {/* Header */}
         <div
           style={{
             padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid #f1f5f9',
+            borderBottom: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#ffffff',
+            background: isDark ? '#0f172a' : '#ffffff',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -124,7 +130,7 @@ export const BitacoraDetailModal = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#64748b',
+                  color: isDark ? '#94a3b8' : '#64748b',
                   fontSize: '0.75rem',
                 }}
               >
@@ -136,6 +142,7 @@ export const BitacoraDetailModal = ({
 
           <button
             type="button"
+            data-testid="bitacora-detail-close-btn"
             onClick={onClose}
             aria-label="Cerrar guía"
             title="Cerrar guía (Esc)"
@@ -143,7 +150,7 @@ export const BitacoraDetailModal = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748b',
+              color: isDark ? '#94a3b8' : '#64748b',
               padding: '6px',
               borderRadius: '8px',
               display: 'flex',
@@ -161,7 +168,7 @@ export const BitacoraDetailModal = ({
             padding: '1.5rem',
             overflowY: 'auto',
             flex: 1,
-            color: '#1e293b',
+            color: isDark ? '#cbd5e1' : '#1e293b',
           }}
         >
           <h2
@@ -170,7 +177,7 @@ export const BitacoraDetailModal = ({
               margin: '0 0 0.75rem 0',
               fontSize: '1.35rem',
               fontWeight: 800,
-              color: '#0f172a',
+              color: isDark ? '#f8fafc' : '#0f172a',
               lineHeight: 1.3,
             }}
           >
@@ -185,7 +192,7 @@ export const BitacoraDetailModal = ({
               gap: '8px',
               marginBottom: '1.25rem',
               fontSize: '0.82rem',
-              color: '#64748b',
+              color: isDark ? '#94a3b8' : '#64748b',
             }}
           >
             <div
@@ -193,22 +200,24 @@ export const BitacoraDetailModal = ({
                 width: '24px',
                 height: '24px',
                 borderRadius: '50%',
-                backgroundColor: author?.isOfficial ? '#eff6ff' : '#f1f5f9',
+                backgroundColor: author?.isOfficial
+                  ? (isDark ? 'rgba(37, 99, 235, 0.25)' : '#eff6ff')
+                  : (isDark ? '#1e293b' : '#f1f5f9'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: author?.isOfficial ? '#2563eb' : '#64748b',
+                color: author?.isOfficial ? '#3b82f6' : (isDark ? '#cbd5e1' : '#64748b'),
                 fontWeight: 700,
                 fontSize: '0.7rem',
               }}
             >
               {author?.name ? author.name.charAt(0).toUpperCase() : 'U'}
             </div>
-            <span style={{ fontWeight: 600, color: '#334155' }}>
+            <span style={{ fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>
               {author?.name || 'Comunidad'}
             </span>
             {author?.isOfficial && (
-              <CheckCircle2 size={14} color="#2563eb" title="Consejo Oficial Verificado" />
+              <CheckCircle2 size={14} color="#3b82f6" title="Consejo Oficial Verificado" />
             )}
             {createdAt && <span>• {createdAt}</span>}
           </div>
@@ -218,12 +227,12 @@ export const BitacoraDetailModal = ({
             <p
               style={{
                 fontSize: '0.95rem',
-                color: '#475569',
+                color: isDark ? '#cbd5e1' : '#475569',
                 lineHeight: 1.6,
-                backgroundColor: '#f8fafc',
+                backgroundColor: isDark ? '#1e293b' : '#f8fafc',
                 padding: '12px 14px',
                 borderRadius: '8px',
-                borderLeft: '3px solid #94a3b8',
+                borderLeft: isDark ? '3px solid #6366f1' : '3px solid #94a3b8',
                 marginBottom: '1.25rem',
               }}
             >
@@ -247,7 +256,7 @@ export const BitacoraDetailModal = ({
                 marginTop: '1.25rem',
                 fontSize: '0.92rem',
                 lineHeight: 1.65,
-                color: '#334155',
+                color: isDark ? '#cbd5e1' : '#334155',
                 whiteSpace: 'pre-line',
               }}
             >
@@ -257,8 +266,14 @@ export const BitacoraDetailModal = ({
 
           {/* Links Section */}
           {links.length > 0 && (
-            <div style={{ marginTop: '1.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#0f172a' }}>
+            <div
+              style={{
+                marginTop: '1.5rem',
+                borderTop: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9',
+                paddingTop: '1rem',
+              }}
+            >
+              <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: isDark ? '#f8fafc' : '#0f172a' }}>
                 Recursos y Enlaces Recomendados:
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -272,7 +287,7 @@ export const BitacoraDetailModal = ({
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
-                      color: '#2563eb',
+                      color: isDark ? '#60a5fa' : '#2563eb',
                       fontSize: '0.86rem',
                       fontWeight: 600,
                       textDecoration: 'none',
@@ -293,8 +308,9 @@ export const BitacoraDetailModal = ({
                 <span
                   key={tag}
                   style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#94a3b8' : '#475569',
+                    border: isDark ? '1px solid #334155' : 'none',
                     fontSize: '0.75rem',
                     padding: '3px 8px',
                     borderRadius: '6px',
@@ -315,11 +331,11 @@ export const BitacoraDetailModal = ({
         <div
           style={{
             padding: '1rem 1.5rem',
-            borderTop: '1px solid #f1f5f9',
+            borderTop: isDark ? '1px solid #1e293b' : '1px solid #f1f5f9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#ffffff',
+            background: isDark ? '#0f172a' : '#ffffff',
           }}
         >
           <button
@@ -331,15 +347,21 @@ export const BitacoraDetailModal = ({
               gap: '6px',
               padding: '6px 14px',
               borderRadius: '8px',
-              border: isVoted ? '1px solid #3b82f6' : '1px solid #e2e8f0',
-              backgroundColor: isVoted ? 'rgba(59, 130, 246, 0.1)' : '#f8fafc',
-              color: isVoted ? '#2563eb' : '#475569',
+              border: isVoted
+                ? (isDark ? '1px solid #6366f1' : '1px solid #3b82f6')
+                : (isDark ? '1px solid #334155' : '1px solid #e2e8f0'),
+              backgroundColor: isVoted
+                ? (isDark ? 'rgba(99, 102, 241, 0.25)' : 'rgba(59, 130, 246, 0.1)')
+                : (isDark ? '#1e293b' : '#f8fafc'),
+              color: isVoted
+                ? (isDark ? '#a5b4fc' : '#2563eb')
+                : (isDark ? '#cbd5e1' : '#475569'),
               fontSize: '0.84rem',
               fontWeight: 600,
               cursor: 'pointer',
             }}
           >
-            <ThumbsUp size={15} fill={isVoted ? '#2563eb' : 'none'} />
+            <ThumbsUp size={15} fill={isVoted ? (isDark ? '#a5b4fc' : '#2563eb') : 'none'} />
             <span>{isVoted ? '¡Marcado como útil!' : '¿Te resultó útil?'} ({upvotes})</span>
           </button>
 
@@ -349,9 +371,9 @@ export const BitacoraDetailModal = ({
             style={{
               padding: '6px 14px',
               borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#334155',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              color: isDark ? '#f8fafc' : '#334155',
               fontSize: '0.84rem',
               fontWeight: 600,
               cursor: 'pointer',

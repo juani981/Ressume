@@ -5,10 +5,13 @@
  * polymorphic card rendering, and Obsidian Callout integration.
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useBitacora } from '../../hooks/useBitacora';
+import { useModalTheme } from '../../hooks/useModalTheme';
+import { ModalThemeToggle } from '../common/ModalThemeToggle';
 import { BitacoraCard } from './BitacoraCard';
 import { BitacoraDetailModal } from './BitacoraDetailModal';
+import { BitacoraSubmitModal } from './BitacoraSubmitModal';
 import {
   Compass,
   Search,
@@ -21,6 +24,9 @@ import {
 } from 'lucide-react';
 
 export const BitacoraModal = ({ isOpen, onClose }) => {
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
+
   const {
     categories,
     selectedCategory,
@@ -37,19 +43,20 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
     handleVote,
     activeItem,
     setActiveItem,
+    addNewItem,
   } = useBitacora();
 
   // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !activeItem) {
+      if (e.key === 'Escape' && !activeItem && !isSubmitOpen) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, activeItem, onClose]);
+  }, [isOpen, activeItem, isSubmitOpen, onClose]);
 
   // Lookup map for fast category styling
   const categoryMap = useMemo(() => {
@@ -64,12 +71,9 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="bitacora-modal-title"
       className="bitacora-modal-overlay"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !activeItem) {
+        if (e.target === e.currentTarget && !activeItem && !isSubmitOpen) {
           onClose();
         }
       }}
@@ -90,19 +94,27 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bitacora-modal-title"
         className="bitacora-modal-container"
+        data-theme={modalTheme}
         style={{
           maxWidth: 'min(1240px, 95vw)',
           width: '100%',
           height: '92vh',
           maxHeight: '92vh',
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           borderRadius: '18px',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4)',
+          boxShadow: isDark
+            ? '0 25px 60px -15px rgba(0, 0, 0, 0.7)'
+            : '0 25px 60px -15px rgba(0, 0, 0, 0.4)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid rgba(226, 232, 240, 0.9)',
+          border: isDark
+            ? '1px solid #334155'
+            : '1px solid rgba(226, 232, 240, 0.9)',
         }}
       >
         {/* =====================================================================
@@ -111,11 +123,11 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
         <header
           style={{
             padding: '1.25rem 1.75rem',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#ffffff',
+            background: isDark ? '#0f172a' : '#ffffff',
             gap: '1rem',
           }}
         >
@@ -144,7 +156,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                     margin: 0,
                     fontSize: '1.25rem',
                     fontWeight: 800,
-                    color: '#0f172a',
+                    color: isDark ? '#f8fafc' : '#0f172a',
                     lineHeight: 1.2,
                   }}
                 >
@@ -154,8 +166,10 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                   style={{
                     fontSize: '0.72rem',
                     fontWeight: 700,
-                    backgroundColor: '#eff6ff',
-                    color: '#2563eb',
+                    backgroundColor: isDark
+                      ? 'rgba(59, 130, 246, 0.2)'
+                      : '#eff6ff',
+                    color: isDark ? '#93c5fd' : '#2563eb',
                     padding: '2px 8px',
                     borderRadius: '999px',
                     letterSpacing: '0.04em',
@@ -169,7 +183,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                 style={{
                   margin: '3px 0 0 0',
                   fontSize: '0.82rem',
-                  color: '#64748b',
+                  color: isDark ? '#94a3b8' : '#64748b',
                 }}
               >
                 Conocimiento táctico, filtros ATS, redacción de viñetas y recursos curados para conseguir empleo.
@@ -177,26 +191,55 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar bitácora"
-            title="Cerrar (Esc)"
-            style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '10px',
-              padding: '8px',
-              cursor: 'pointer',
-              color: '#64748b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.15s ease, color 0.15s ease',
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Modal Opt-in Theme Switcher */}
+            <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
+
+            <button
+              type="button"
+              onClick={() => setIsSubmitOpen(true)}
+              aria-label="Compartir un consejo"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                backgroundColor: '#4f46e5',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                transition: 'background-color 0.15s ease',
+              }}
+            >
+              <PlusCircle size={16} />
+              <span>Compartir Consejo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar bitácora"
+              title="Cerrar (Esc)"
+              style={{
+                background: isDark ? '#1e293b' : '#f8fafc',
+                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '8px',
+                cursor: 'pointer',
+                color: isDark ? '#cbd5e1' : '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background-color 0.15s ease, color 0.15s ease',
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </header>
 
         {/* =====================================================================
@@ -205,8 +248,8 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
         <div
           style={{
             padding: '1rem 1.75rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
+            backgroundColor: isDark ? '#1e293b' : '#f8fafc',
+            borderBottom: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.85rem',
@@ -223,7 +266,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
             >
               <Search
                 size={16}
-                color="#94a3b8"
+                color={isDark ? '#94a3b8' : '#94a3b8'}
                 style={{
                   position: 'absolute',
                   left: '12px',
@@ -241,10 +284,10 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                   width: '100%',
                   padding: '9px 36px 9px 36px',
                   borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
+                  border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
+                  backgroundColor: isDark ? '#0f172a' : '#ffffff',
                   fontSize: '0.88rem',
-                  color: '#0f172a',
+                  color: isDark ? '#f8fafc' : '#0f172a',
                   outline: 'none',
                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                   boxSizing: 'border-box',
@@ -263,7 +306,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#94a3b8',
+                    color: isDark ? '#cbd5e1' : '#94a3b8',
                     padding: '2px',
                   }}
                 >
@@ -279,8 +322,9 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  backgroundColor: '#ede9fe',
-                  color: '#6d28d9',
+                  backgroundColor: isDark ? 'rgba(124, 58, 237, 0.25)' : '#ede9fe',
+                  color: isDark ? '#c4b5fd' : '#6d28d9',
+                  border: isDark ? '1px solid rgba(139, 92, 246, 0.4)' : 'none',
                   padding: '5px 10px',
                   borderRadius: '8px',
                   fontSize: '0.8rem',
@@ -296,7 +340,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#6d28d9',
+                    color: isDark ? '#c4b5fd' : '#6d28d9',
                     padding: '0 2px',
                   }}
                   title="Quitar filtro de etiqueta"
@@ -324,6 +368,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
               return (
                 <button
                   key={cat.id}
+                  data-testid={`bitacora-filter-${cat.id}`}
                   type="button"
                   onClick={() => {
                     setSelectedCategory(cat.id);
@@ -338,10 +383,22 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                     fontWeight: 600,
                     border: isActive
                       ? `1.5px solid ${cat.badgeColor || '#4f46e5'}`
+                      : isDark
+                      ? '1px solid #334155'
                       : '1px solid #e2e8f0',
-                    backgroundColor: isActive ? '#ffffff' : '#ffffff',
-                    color: isActive ? (cat.badgeColor || '#4f46e5') : '#475569',
-                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.08)' : 'none',
+                    backgroundColor: isActive
+                      ? isDark
+                        ? 'rgba(99, 102, 241, 0.2)'
+                        : '#ffffff'
+                      : isDark
+                      ? '#0f172a'
+                      : '#ffffff',
+                    color: isActive
+                      ? cat.badgeColor || '#4f46e5'
+                      : isDark
+                      ? '#cbd5e1'
+                      : '#475569',
+                    boxShadow: isActive ? '0 2px 8px rgba(0, 0, 0, 0.12)' : 'none',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     transition: 'all 0.15s ease',
@@ -355,9 +412,17 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                       padding: '1px 6px',
                       borderRadius: '999px',
                       backgroundColor: isActive
-                        ? `${cat.badgeColor || '#4f46e5'}20`
+                        ? isDark
+                          ? 'rgba(99, 102, 241, 0.35)'
+                          : `${cat.badgeColor || '#4f46e5'}20`
+                        : isDark
+                        ? '#1e293b'
                         : '#f1f5f9',
-                      color: isActive ? (cat.badgeColor || '#4f46e5') : '#64748b',
+                      color: isActive
+                        ? cat.badgeColor || '#4f46e5'
+                        : isDark
+                        ? '#94a3b8'
+                        : '#64748b',
                     }}
                   >
                     {count}
@@ -376,7 +441,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
             flex: 1,
             overflowY: 'auto',
             padding: '1.75rem',
-            backgroundColor: '#f8fafc',
+            backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
           }}
         >
           {items.length === 0 ? (
@@ -395,11 +460,11 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                   width: '56px',
                   height: '56px',
                   borderRadius: '50%',
-                  backgroundColor: '#f1f5f9',
+                  backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#94a3b8',
+                  color: isDark ? '#94a3b8' : '#94a3b8',
                   marginBottom: '1rem',
                 }}
               >
@@ -410,7 +475,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                   margin: '0 0 0.5rem 0',
                   fontSize: '1.1rem',
                   fontWeight: 700,
-                  color: '#1e293b',
+                  color: isDark ? '#f8fafc' : '#1e293b',
                 }}
               >
                 No se encontraron recursos con los filtros seleccionados
@@ -419,7 +484,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                 style={{
                   margin: '0 0 1.25rem 0',
                   fontSize: '0.86rem',
-                  color: '#64748b',
+                  color: isDark ? '#94a3b8' : '#64748b',
                   maxWidth: '420px',
                 }}
               >
@@ -434,10 +499,10 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                 }}
                 style={{
                   padding: '7px 16px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #cbd5e1',
+                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                  border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
                   borderRadius: '8px',
-                  color: '#2563eb',
+                  color: isDark ? '#93c5fd' : '#2563eb',
                   fontWeight: 600,
                   fontSize: '0.84rem',
                   cursor: 'pointer',
@@ -459,6 +524,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
                 <BitacoraCard
                   key={item.id}
                   item={item}
+                  theme={modalTheme}
                   isVoted={votedIds.has(item.id)}
                   onVote={handleVote}
                   onOpenDetail={(targetItem) => setActiveItem(targetItem)}
@@ -476,13 +542,13 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
         <footer
           style={{
             padding: '0.85rem 1.75rem',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
+            borderTop: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0',
+            backgroundColor: isDark ? '#0f172a' : '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             fontSize: '0.8rem',
-            color: '#64748b',
+            color: isDark ? '#94a3b8' : '#64748b',
           }}
         >
           <div>
@@ -498,10 +564,21 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
       {activeItem && (
         <BitacoraDetailModal
           item={activeItem}
+          theme={modalTheme}
           onClose={() => setActiveItem(null)}
           isVoted={votedIds.has(activeItem.id)}
           onVote={handleVote}
           categoryConfig={categoryMap[activeItem.category]}
+        />
+      )}
+
+      {/* Submission Modal for User Suggestions */}
+      {isSubmitOpen && (
+        <BitacoraSubmitModal
+          isOpen={isSubmitOpen}
+          theme={modalTheme}
+          onClose={() => setIsSubmitOpen(false)}
+          onSubmit={addNewItem}
         />
       )}
     </div>

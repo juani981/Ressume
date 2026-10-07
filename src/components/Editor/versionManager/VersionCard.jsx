@@ -76,7 +76,9 @@ export const VersionCard = ({
   onDuplicate,
   onDownloadJSON,
   onConfirmDelete,
+  theme = 'dark',
 }) => {
+  const isDark = theme === 'dark';
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Generate complete, authentic standalone HTML for the version snapshot (Invariants 15 & 16)
@@ -153,13 +155,15 @@ export const VersionCard = ({
   return (
     <div
       key={version.id}
+      data-testid={`version-card-${version.id}`}
+      data-theme={theme}
       className={`version-card ${isActive ? 'version-card--active' : ''}`}
       onClick={() => {
         if (!isEditing && onConfirmLoad) onConfirmLoad(version);
       }}
       style={{
-        backgroundColor: '#ffffff',
-        border: isActive ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: isActive ? '1.5px solid #10b981' : (isDark ? '1px solid #334155' : '1px solid #e2e8f0'),
         borderRadius: '12px',
         overflow: 'hidden',
         display: 'flex',
@@ -169,7 +173,7 @@ export const VersionCard = ({
         maxHeight: '310px',
         boxShadow: isActive
           ? '0 4px 14px rgba(16, 185, 129, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)'
-          : '0 2px 4px rgba(0, 0, 0, 0.04)',
+          : (isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.04)'),
         transition: 'all 0.15s ease',
         flexShrink: 0,
         position: 'relative',
@@ -185,13 +189,13 @@ export const VersionCard = ({
           minHeight: '190px',
           maxHeight: '190px',
           flexShrink: 0,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
           position: 'relative',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           cursor: isEditing ? 'default' : 'pointer',
           width: '100%',
           zIndex: 1,
@@ -228,12 +232,12 @@ export const VersionCard = ({
               textAlign: 'center',
               height: '100%',
               width: '100%',
-              backgroundColor: '#f8fafc',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
               zIndex: 1,
             }}
           >
-            <FileText size={24} color="#94a3b8" />
-            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
+            <FileText size={24} color={isDark ? '#475569' : '#94a3b8'} />
+            <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
               Sin vista previa
             </span>
           </div>
@@ -430,7 +434,7 @@ export const VersionCard = ({
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
           position: 'relative',
           zIndex: 2,
           overflow: 'hidden',
@@ -466,7 +470,8 @@ export const VersionCard = ({
                 border: '1px solid #3b82f6',
                 borderRadius: '4px',
                 outline: 'none',
-                backgroundColor: '#eff6ff',
+                backgroundColor: isDark ? '#0f172a' : '#eff6ff',
+                color: isDark ? '#f8fafc' : '#0f172a',
               }}
             />
           ) : (
@@ -489,7 +494,7 @@ export const VersionCard = ({
                   margin: 0,
                   fontSize: '0.9rem',
                   fontWeight: 600,
-                  color: '#0f172a',
+                  color: isDark ? '#f8fafc' : '#0f172a',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -511,7 +516,7 @@ export const VersionCard = ({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#94a3b8',
+                  color: isDark ? '#64748b' : '#94a3b8',
                   padding: '2px',
                   display: 'flex',
                   alignItems: 'center',
@@ -532,7 +537,7 @@ export const VersionCard = ({
             alignItems: 'center',
             gap: '6px',
             fontSize: '0.72rem',
-            color: '#64748b',
+            color: isDark ? '#94a3b8' : '#64748b',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -550,7 +555,7 @@ export const VersionCard = ({
             <Calendar size={12} />
             <span>{relativeTime}</span>
           </span>
-          <span style={{ color: '#cbd5e1' }}>•</span>
+          <span style={{ color: isDark ? '#475569' : '#cbd5e1' }}>•</span>
           <span>{isAts ? 'ATS 1-Columna' : '2 Columnas'}</span>
         </div>
       </div>
@@ -565,14 +570,14 @@ export const VersionCard = ({
           left: 0,
           right: 0,
           height: '46px',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #e2e8f0',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           padding: '0 0.75rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.45rem',
           zIndex: 10,
-          boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.03)',
+          boxShadow: isDark ? '0 -2px 6px rgba(0, 0, 0, 0.25)' : '0 -2px 6px rgba(0, 0, 0, 0.03)',
         }}
       >
         {/* Primary Button: Load / Active */}
@@ -588,9 +593,17 @@ export const VersionCard = ({
             justifyContent: 'center',
             gap: '5px',
             padding: '0 0.65rem',
-            backgroundColor: isActive ? '#ecfdf5' : '#eff6ff',
-            color: isActive ? '#059669' : '#2563eb',
-            border: `1px solid ${isActive ? '#a7f3d0' : '#bfdbfe'}`,
+            backgroundColor: isActive 
+              ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#ecfdf5') 
+              : (isDark ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff'),
+            color: isActive 
+              ? (isDark ? '#34d399' : '#059669') 
+              : (isDark ? '#60a5fa' : '#2563eb'),
+            border: `1px solid ${
+              isActive 
+                ? (isDark ? '#059669' : '#a7f3d0') 
+                : (isDark ? '#2563eb' : '#bfdbfe')
+            }`,
             borderRadius: '6px',
             fontSize: '0.78rem',
             fontWeight: 600,
@@ -625,9 +638,11 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: (version.thumbnail || version.cvData) ? '#334155' : '#94a3b8',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: (version.thumbnail || version.cvData) 
+                ? (isDark ? '#cbd5e1' : '#334155') 
+                : (isDark ? '#475569' : '#94a3b8'),
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: (version.thumbnail || version.cvData) ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s ease',
             }}
@@ -651,9 +666,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -677,9 +692,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -703,8 +718,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#fff1f2',
-              color: '#e11d48',
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fff1f2',
+              color: isDark ? '#f87171' : '#e11d48',
+              border: isDark ? '1px solid #b91c1c' : '1px solid transparent',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}

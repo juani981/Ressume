@@ -6,6 +6,8 @@ import { saveVersion } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { cleanAndParseRawJSON, normalizeAnyJSONToCVSnapshot } from '../../utils/universalJsonImporter';
 import { formatBackupVersionTitle } from '../../services/ai/bidirectionalPromptContract';
+import { useModalTheme } from '../../hooks/useModalTheme';
+import { ModalThemeToggle } from '../common/ModalThemeToggle';
 import { 
   BrainCircuit, 
   Target, 
@@ -69,6 +71,7 @@ const AIExportModal = ({
     switchLanguage, 
     showToast 
   } = useCV();
+  const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
   const [selectedPromptId, setSelectedPromptId] = useState(initialPromptId || 'recruiter_audit');
   const selectedFormat = 'markdown'; // Fixed to Semantic Markdown per R1
   const [userCommentary, setUserCommentary] = useState('');
@@ -478,23 +481,26 @@ const AIExportModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="ai-modal-title"
+        data-theme={modalTheme}
+        className="ai-modal-dialog"
         style={{
-        background: 'var(--container-color, #ffffff)',
-        color: 'var(--text-color, #333333)',
+        background: isDark ? '#0f172a' : '#ffffff',
+        color: isDark ? '#f8fafc' : '#0f172a',
         borderRadius: '16px',
         width: '100%',
         maxWidth: '900px',
         maxHeight: '90vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
-        border: '1px solid rgba(150, 150, 150, 0.2)',
+        boxShadow: isDark ? '0 25px 50px -12px rgba(0, 0, 0, 0.6)' : '0 20px 40px rgba(0,0,0,0.25)',
+        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.2)',
         overflow: 'hidden'
       }}>
         {/* Modal Header */}
         <div style={{
           padding: '1.25rem 1.5rem',
-          borderBottom: '1px solid rgba(150, 150, 150, 0.2)',
+          borderBottom: isDark ? '1px solid #1e293b' : '1px solid rgba(150, 150, 150, 0.2)',
+          background: isDark ? '#0f172a' : '#ffffff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -502,14 +508,14 @@ const AIExportModal = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <BrainCircuit size={28} color="#3874ff" />
             <div>
-              <h3 id="ai-modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+              <h3 id="ai-modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: isDark ? '#f8fafc' : '#0f172a' }}>
                 {selectedPromptId === 'translate_english'
                   ? 'Traducción y Localización Cultural a Inglés (US Tech)'
                   : selectedPromptId === 'bring_your_own_cv'
                   ? 'Trae tu propio CV (Conversor PDF a JSON ATS 1:1)'
                   : 'Generar Prompts de IA con los datos de tu CV'}
               </h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color-light, #777)' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: isDark ? '#94a3b8' : 'var(--text-color-light, #777)' }}>
                 {selectedPromptId === 'translate_english'
                   ? 'Adapta títulos académicos, cargos y experiencia a otro idioma'
                   : selectedPromptId === 'bring_your_own_cv'
@@ -518,24 +524,27 @@ const AIExportModal = ({
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            data-testid="ai-modal-close-btn"
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              color: 'var(--text-color-light, #888)',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
+            <button 
+              onClick={onClose}
+              aria-label="Cerrar modal"
+              data-testid="ai-modal-close-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: isDark ? '#94a3b8' : 'var(--text-color-light, #888)',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
@@ -565,9 +574,9 @@ const AIExportModal = ({
                 style={{
                   padding: '0.45rem 0.75rem',
                   borderRadius: '8px',
-                  border: '1px solid rgba(150, 150, 150, 0.3)',
-                  background: 'var(--body-color, #f9f9f9)',
-                  color: 'inherit',
+                  border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                  background: isDark ? '#1e293b' : '#f8fafc',
+                  color: isDark ? '#f8fafc' : 'inherit',
                   fontSize: '0.85rem',
                   fontWeight: 500,
                   cursor: 'pointer'
@@ -663,9 +672,9 @@ const AIExportModal = ({
                         style={{
                           padding: '0.35rem 0.65rem',
                           borderRadius: '6px',
-                          border: '1px solid rgba(150, 150, 150, 0.3)',
-                          background: 'var(--body-color, #f9f9f9)',
-                          color: 'inherit',
+                          border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                          background: isDark ? '#1e293b' : '#f8fafc',
+                          color: isDark ? '#f8fafc' : 'inherit',
                           fontSize: '0.8rem',
                           cursor: 'pointer'
                         }}
@@ -906,9 +915,9 @@ const AIExportModal = ({
                       width: '100%',
                       padding: '0.75rem',
                       borderRadius: '8px',
-                      border: '1px solid rgba(150, 150, 150, 0.3)',
-                      background: 'var(--body-color, #f9f9f9)',
-                      color: 'inherit',
+                      border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                      background: isDark ? '#1e293b' : '#f8fafc',
+                      color: isDark ? '#f8fafc' : 'inherit',
                       fontFamily: 'inherit',
                       fontSize: '0.85rem',
                       resize: 'vertical',
@@ -1001,9 +1010,9 @@ const AIExportModal = ({
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '8px',
-                    border: '1px solid rgba(150, 150, 150, 0.3)',
-                    background: 'var(--body-color, #f9f9f9)',
-                    color: 'inherit',
+                    border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                    background: isDark ? '#1e293b' : '#f8fafc',
+                    color: isDark ? '#f8fafc' : 'inherit',
                     fontFamily: 'inherit',
                     fontSize: '0.85rem',
                     resize: 'vertical',
@@ -1112,9 +1121,9 @@ const AIExportModal = ({
                   minHeight: isWaitingForAI ? '260px' : '100px',
                   padding: '0.75rem',
                   borderRadius: '8px',
-                  border: '1px solid rgba(150, 150, 150, 0.35)',
-                  background: 'var(--body-color, #f9f9f9)',
-                  color: 'inherit',
+                  border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.35)',
+                  background: isDark ? '#1e293b' : '#f8fafc',
+                  color: isDark ? '#f8fafc' : 'inherit',
                   fontFamily: '"Cascadia Code", Consolas, Monaco, monospace',
                   fontSize: '0.84rem',
                   lineHeight: '1.4',
@@ -1293,7 +1302,7 @@ const AIExportModal = ({
         {!isResponseImportablePrompt && (
           <div style={{
             padding: '1rem 1.5rem',
-            borderTop: '1px solid rgba(150, 150, 150, 0.2)',
+            borderTop: isDark ? '1px solid #1e293b' : '1px solid rgba(150, 150, 150, 0.2)',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: '0.75rem',
@@ -1310,9 +1319,9 @@ const AIExportModal = ({
               style={{
                 padding: '0.6rem 1.2rem',
                 borderRadius: '8px',
-                border: '1px solid rgba(150, 150, 150, 0.3)',
-                background: 'var(--body-color, #f0f0f0)',
-                color: 'inherit',
+                border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                background: isDark ? '#1e293b' : 'var(--body-color, #f0f0f0)',
+                color: isDark ? '#f8fafc' : 'inherit',
                 cursor: 'pointer',
                 fontWeight: 500,
                 fontSize: '0.85rem',

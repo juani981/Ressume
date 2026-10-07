@@ -11,7 +11,7 @@
   --text-color-light: #64748b;
   --container-color: #FFFFFF;
   --container-color-alt: #F8FAFC;
-  --body-color: #e2e8f0;
+  --body-color: #0f172a;
 
   /*========== Font and typography ==========*/
   --font-scale: 1;
@@ -2292,7 +2292,7 @@ body.ats-mode-active .a4-page-box .a4-page-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--body-color, #e2e8f0);
+  background-color: var(--body-color, #0f172a);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 -2px 4px rgba(0, 0, 0, 0.08);
 }
 
