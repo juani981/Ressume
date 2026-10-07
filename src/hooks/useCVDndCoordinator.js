@@ -295,12 +295,40 @@ export function useCVDndCoordinator({
       ? JSON.parse(JSON.stringify(cvDataRef.current))
       : null;
 
-    if (data?.type === 'item') {
-      setActiveDragItem({ ...data, initialWidth });
-      setActiveDragSection(null);
-    } else if (data?.type === 'section') {
-      setActiveDragSection({ ...data, initialWidth });
+    const activeCanonical = toCanonicalSectionId(active?.id);
+    const foundSection = (cvDataRef.current?.sections || []).find(
+      (s) => s.id === activeCanonical,
+    );
+
+    if (data?.type === 'section' || (!data?.type && foundSection)) {
+      const section = data?.section || foundSection;
+      setActiveDragSection({ ...data, section, initialWidth });
       setActiveDragItem(null);
+    } else if (data?.type === 'item' || !foundSection) {
+      let item = data?.item;
+      let sectionId = data?.sectionId;
+      let sectionType = data?.sectionType;
+
+      if (!item && cvDataRef.current?.sections) {
+        for (const sec of cvDataRef.current.sections) {
+          const found = (sec.items || []).find((i) => i.id === active?.id);
+          if (found) {
+            item = found;
+            sectionId = sec.id;
+            sectionType = sec.type;
+            break;
+          }
+        }
+      }
+
+      setActiveDragItem({
+        ...data,
+        item,
+        sectionId: sectionId ? toCanonicalSectionId(sectionId) : undefined,
+        sectionType,
+        initialWidth,
+      });
+      setActiveDragSection(null);
     }
     setDropTarget(null);
   };

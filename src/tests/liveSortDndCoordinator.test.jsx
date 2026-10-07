@@ -52,7 +52,7 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('renders friendly section preview card in CVDragOverlayContent', () => {
+    it('renders friendly section preview card and full component in CVDragOverlayContent', () => {
       const { getByTestId } = render(
         <CVDragOverlayContent
           activeDragSection={{
@@ -63,9 +63,10 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
       const sectionOverlay = getByTestId('drag-overlay-section');
       expect(sectionOverlay).toBeDefined();
       expect(getByTestId('drag-overlay-section-title').textContent).toContain('Experiencia Laboral');
+      expect(sectionOverlay.querySelector('.drag-overlay-rendered-section')).toBeTruthy();
     });
 
-    it('renders friendly item preview card with badge in CVDragOverlayContent', () => {
+    it('renders friendly item preview card and full item component in CVDragOverlayContent', () => {
       const { getByTestId } = render(
         <CVDragOverlayContent
           activeDragItem={{
@@ -74,9 +75,11 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
           }}
         />
       );
-      expect(getByTestId('drag-overlay-item')).toBeDefined();
+      const itemOverlay = getByTestId('drag-overlay-item');
+      expect(itemOverlay).toBeDefined();
       expect(getByTestId('drag-overlay-item-title').textContent).toBe('Senior Dev');
       expect(getByTestId('drag-overlay-item-badge').textContent).toContain('Experiencia Laboral');
+      expect(itemOverlay.querySelector('.drag-overlay-rendered-item')).toBeTruthy();
     });
   });
 
