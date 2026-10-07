@@ -702,7 +702,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     }
 
     // INVARIANTE ANTI-HUÉRFANOS: El encabezado nunca queda solo
-    const remainingOnCurrent = pageCapacity - currentUsedHeight;
+    const remainingOnCurrent = (pageCapacity + terminalTolerance) - currentUsedHeight;
     const firstItemHasBullets = Array.isArray(items[0]?.bullets) && items[0].bullets.length > 0;
     const baseH0 = firstItemHasBullets ? estimateItemBaseHeight(items[0], section.type, options) : itemHeights[0];
     const firstBulletH0 = firstItemHasBullets ? estimateSingleBulletHeight(items[0].bullets[0], section.type, options) : 0;
@@ -723,7 +723,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       }
 
       const freshTrailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
-      if (freshTotalHeight - freshTrailingGap <= pageCapacity) {
+      if (freshTotalHeight - freshTrailingGap <= pageCapacity + terminalTolerance) {
         addToBucket(currentPage, section);
         currentUsedHeight = freshTotalHeight - freshTrailingGap;
         continue;
@@ -733,22 +733,26 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     // CRITERION 3: Partición granular (ítem por ítem y viñeta por viñeta)
     const currentGap = currentUsedHeight > 0 ? sectionGap : 0;
     const availableOnPage = pageCapacity - currentUsedHeight;
+    const effectiveAvailable = availableOnPage + terminalTolerance;
     let accumulated = currentGap + estimateHeaderHeight(section, false, options);
     let splitIdx = 0;
 
-    while (splitIdx < items.length && (accumulated + itemHeights[splitIdx] <= availableOnPage)) {
-      accumulated += itemHeights[splitIdx];
-      splitIdx++;
+    // Greedy item packing: pack as many items as fit flush within effective available capacity
+    while (splitIdx < items.length) {
+      const grossH = itemHeights[splitIdx];
+      const netH = getItemNetHeight(items[splitIdx], section.type, options);
+
+      if (accumulated + netH <= effectiveAvailable) {
+        splitIdx++;
+        accumulated += grossH;
+      } else {
+        break;
+      }
     }
 
-    // Special terminal boundary rule: if candidate item fits flush without trailing bottom gap,
-    // it belongs completely to current page as the terminal element (no split, no push).
-    if (splitIdx < items.length) {
-      const netH = getItemNetHeight(items[splitIdx], section.type, options);
-      if (accumulated + netH <= availableOnPage + terminalTolerance) {
-        accumulated += netH;
-        splitIdx++;
-      }
+    let trailingItemGap = 0;
+    if (splitIdx > 0) {
+      trailingItemGap = items[splitIdx - 1]?.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX);
     }
 
     let partialCandidate = null;
@@ -779,7 +783,11 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
           partialCandidateRemaining = splitResult.partialCandidateRemaining;
           accumulated += splitResult.consumedHeight;
         }
+      } else if (splitIdx > 0) {
+        accumulated -= trailingItemGap;
       }
+    } else if (splitIdx > 0) {
+      accumulated -= trailingItemGap;
     }
 
     // Si nada cupo en la página actual con contenido previo, avanzar a página fresca
@@ -803,21 +811,26 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         }
 
         const freshAvailable = pageCapacity;
+        const freshEffectiveAvailable = freshAvailable + terminalTolerance;
         let freshAccumulated = headerHeight;
         let freshSplitIdx = 0;
 
-        while (freshSplitIdx < items.length && (freshAccumulated + itemHeights[freshSplitIdx] <= freshAvailable)) {
-          freshAccumulated += itemHeights[freshSplitIdx];
-          freshSplitIdx++;
+        // Greedy item packing on fresh page
+        while (freshSplitIdx < items.length) {
+          const grossH = itemHeights[freshSplitIdx];
+          const netH = getItemNetHeight(items[freshSplitIdx], section.type, options);
+
+          if (freshAccumulated + netH <= freshEffectiveAvailable) {
+            freshSplitIdx++;
+            freshAccumulated += grossH;
+          } else {
+            break;
+          }
         }
 
-        // Special terminal boundary rule on fresh page:
-        if (freshSplitIdx < items.length) {
-          const netH = getItemNetHeight(items[freshSplitIdx], section.type, options);
-          if (freshAccumulated + netH <= freshAvailable + terminalTolerance) {
-            freshAccumulated += netH;
-            freshSplitIdx++;
-          }
+        let freshTrailingItemGap = 0;
+        if (freshSplitIdx > 0) {
+          freshTrailingItemGap = items[freshSplitIdx - 1]?.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX);
         }
 
         let freshPartial = null;
@@ -842,7 +855,11 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
               freshPartialRemaining = splitResult.partialCandidateRemaining;
               freshAccumulated += splitResult.consumedHeight;
             }
+          } else if (freshSplitIdx > 0) {
+            freshAccumulated -= freshTrailingItemGap;
           }
+        } else if (freshSplitIdx > 0) {
+          freshAccumulated -= freshTrailingItemGap;
         }
 
         if (freshSplitIdx === 0 && !freshPartial) {
@@ -899,22 +916,29 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         return estimateItemHeight(it, section.type, options);
       });
 
-      while (nextIdx < remItems.length && (contAcc + remHeights[nextIdx] <= pageCapacity)) {
-        contAcc += remHeights[nextIdx];
-        nextIdx++;
-      }
-
-      // Special terminal boundary rule on continuation page:
-      if (nextIdx < remItems.length) {
+      const contEffectiveCapacity = pageCapacity + terminalTolerance;
+      while (nextIdx < remItems.length) {
         const cand = remItems[nextIdx];
         const isCont = Boolean(cand.isContinuationItem);
         const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
         const trailingGap = isCont ? Math.round(itemGap / 2) : (cand.type === 'spacer' ? 0 : itemGap);
-        const netH = Math.max(1, remHeights[nextIdx] - trailingGap);
-        if (contAcc + netH <= pageCapacity + terminalTolerance) {
-          contAcc += netH;
+        const grossH = remHeights[nextIdx];
+        const netH = Math.max(1, grossH - trailingGap);
+
+        if (contAcc + netH <= contEffectiveCapacity) {
           nextIdx++;
+          contAcc += grossH;
+        } else {
+          break;
         }
+      }
+
+      let contTrailingGap = 0;
+      if (nextIdx > 0) {
+        const lastCand = remItems[nextIdx - 1];
+        const isLastCont = Boolean(lastCand.isContinuationItem);
+        const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
+        contTrailingGap = isLastCont ? Math.round(itemGap / 2) : (lastCand.type === 'spacer' ? 0 : itemGap);
       }
 
       let contPartial = null;
@@ -990,6 +1014,8 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
       if (nextIdx === 0 && !contPartial) {
         nextIdx = 1;
         contAcc += remHeights[0];
+      } else if (!contPartial && nextIdx > 0) {
+        contAcc -= contTrailingGap;
       }
 
       const placedItems = remItems.slice(0, nextIdx);
