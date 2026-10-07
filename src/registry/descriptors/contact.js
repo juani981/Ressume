@@ -12,7 +12,7 @@ export const contactDescriptor = {
   description: 'Datos de contacto, redes sociales, enlaces profesionales y canales de comunicación.',
   allowDelete: true,
   allowAddItem: false,
-  allowDeleteItem: true,
+  allowDeleteItem: false,
   hasTitle: false,
   hasItemDrag: false,
   supportsBulletCustomization: false,
