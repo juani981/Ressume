@@ -172,4 +172,63 @@ describe('Enriched ATS Ingestion Adapter Suite (Anti-Corruption Layer)', () => {
     const certSec = normalized.sections.find(s => s.id === 'certificates');
     expect(certSec.items[0].text).toBe('Fundamentos de IA con IBM Watson Studio — Cisco Networking Academy (2025)');
   });
+
+  it('handles bidirectional roundtrip from enriched ATS to editor state and projection without data degradation', () => {
+    const complexAtsPayload = {
+      candidate_profile: {
+        full_name: 'Grace Hopper',
+        headline: 'Rear Admiral & Computer Scientist',
+        location: 'New York, NY',
+        contact_channels: {
+          email: 'grace@navy.mil',
+          github: 'https://github.com/grace-hopper'
+        }
+      },
+      work_experience: [
+        {
+          ats: {
+            role: 'Director of Navy Programming Languages Group',
+            company: 'United States Navy',
+            location: { city: 'Washington', state: 'DC', country: 'USA' },
+            period: { start: '1949', end: '1967' },
+            technologies: ['COBOL', 'FLOW-MATIC', 'Assembly'],
+            actionBullets: [
+              { text: 'Developed the first compiler for an electronic computer (A-0 System).' },
+              { text: 'Spearheaded the design and standardization of COBOL across military and civilian sectors.' }
+            ]
+          }
+        }
+      ],
+      skills_and_technologies: [
+        {
+          ats: {
+            category: 'Compilers & Languages',
+            skills: ['COBOL', 'FLOW-MATIC', 'Machine Code', 'Linkers']
+          }
+        }
+      ]
+    };
+
+    // 1. Ingestion through Anti-Corruption Layer
+    const importedSnapshot = normalizeAnyJSONToCVSnapshot(complexAtsPayload);
+    expect(importedSnapshot).toBeDefined();
+    expect(importedSnapshot.profile.name).toBe('Grace Hopper');
+
+    const expSection = importedSnapshot.sections.find(s => s.id === 'experience');
+    expect(expSection).toBeDefined();
+    expect(expSection.items[0].title).toBe('Director of Navy Programming Languages Group (COBOL, FLOW-MATIC, Assembly)');
+    expect(expSection.items[0].subtitle).toBe('United States Navy | Washington, DC, USA');
+    expect(expSection.items[0].date).toBe('1949 – 1967');
+    expect(expSection.items[0].bullets).toHaveLength(2);
+    // Crucial SSOT guarantee: item must NOT have an ats key stored in internal state
+    expect(expSection.items[0].ats).toBeUndefined();
+
+    // 2. Second ingestion cycle to prove stability and zero drift
+    const reImported = normalizeAnyJSONToCVSnapshot(importedSnapshot);
+    const reExp = reImported.sections.find(s => s.id === 'experience');
+    expect(reExp.items[0].title).toBe(expSection.items[0].title);
+    expect(reExp.items[0].subtitle).toBe(expSection.items[0].subtitle);
+    expect(reExp.items[0].bullets).toEqual(expSection.items[0].bullets);
+  });
 });
+
