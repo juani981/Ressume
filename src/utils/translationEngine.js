@@ -45,25 +45,29 @@ export const extractDictionaryFromCV = (cvData) => {
 
   const dict = {};
   const sections = Array.isArray(cvData.sections) ? cvData.sections : [];
+  const docLang = cvData?.layout?.language || cvData?.language || 'es';
+  const isEn = String(docLang).toLowerCase().startsWith('en');
   
   // Profile
   const profileSec = sections.find(s => s?.type === 'profile_header');
   const profItem = Array.isArray(profileSec?.items) ? profileSec.items[0] || {} : {};
   dict['profile_title'] = profItem.name || cvData.profile?.name || '';
-  dict['profile_subtitle'] = profItem.subtitle || '';
+  dict['profile_subtitle'] = profItem.subtitle || cvData.profile?.subtitle || cvData.profile?.title || '';
   dict['profile_location'] = profItem.location || '';
-  dict['section_social'] = 'Contacto';
+  
+  const contactSec = sections.find(s => s?.id === 'contact');
+  dict['section_social'] = contactSec?.title || (isEn ? 'Contact' : 'Contacto');
 
   // About
   const aboutSec = sections.find(s => s?.type === 'about');
   const aboutItem = Array.isArray(aboutSec?.items) ? aboutSec.items[0] || {} : {};
-  dict['section_profile'] = aboutSec?.title || 'Perfil Profesional';
+  dict['section_profile'] = aboutSec?.title || (isEn ? 'Professional Summary' : 'Perfil Profesional');
   dict['profile_desc'] = aboutItem.description || '';
 
   // Experience
   const expSec = sections.find(s => s?.id === 'experience' || s?.type === 'list');
   if (expSec) {
-    dict['section_experience'] = expSec.title || 'Experiencia Laboral';
+    dict['section_experience'] = expSec.title || (isEn ? 'Work Experience' : 'Experiencia Laboral');
     const items = Array.isArray(expSec.items) ? expSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -82,7 +86,7 @@ export const extractDictionaryFromCV = (cvData) => {
   // Projects
   const projSec = sections.find(s => s?.id === 'projects');
   if (projSec) {
-    dict['section_projects'] = projSec.title || 'Proyectos Destacados';
+    dict['section_projects'] = projSec.title || (isEn ? 'Featured Projects' : 'Proyectos Destacados');
     const items = Array.isArray(projSec.items) ? projSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -97,7 +101,7 @@ export const extractDictionaryFromCV = (cvData) => {
   // Skills
   const skillsSec = sections.find(s => s?.type === 'skills');
   if (skillsSec) {
-    dict['section_skills'] = skillsSec.title || 'Habilidades Técnicas';
+    dict['section_skills'] = skillsSec.title || (isEn ? 'Technical Skills' : 'Habilidades Técnicas');
     const items = Array.isArray(skillsSec.items) ? skillsSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -110,7 +114,7 @@ export const extractDictionaryFromCV = (cvData) => {
   // Education
   const eduSec = sections.find(s => s?.type === 'education');
   if (eduSec) {
-    dict['section_education'] = eduSec.title || 'Educación';
+    dict['section_education'] = eduSec.title || (isEn ? 'Education' : 'Educación');
     const items = Array.isArray(eduSec.items) ? eduSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -124,7 +128,7 @@ export const extractDictionaryFromCV = (cvData) => {
   // Certificates
   const certSec = sections.find(s => s?.id === 'certificates');
   if (certSec) {
-    dict['section_certificates'] = certSec.title || 'Certificaciones';
+    dict['section_certificates'] = certSec.title || (isEn ? 'Certifications' : 'Certificaciones');
     const items = Array.isArray(certSec.items) ? certSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -136,7 +140,7 @@ export const extractDictionaryFromCV = (cvData) => {
   // Languages
   const langSec = sections.find(s => s?.id === 'languages');
   if (langSec) {
-    dict['section_languages'] = langSec.title || 'Idiomas';
+    dict['section_languages'] = langSec.title || (isEn ? 'Languages' : 'Idiomas');
     const items = Array.isArray(langSec.items) ? langSec.items : [];
     items.forEach((item, index) => {
       if (!item) return;
@@ -165,17 +169,41 @@ export const buildTranslationPrompt = (sourceDict, targetLangCode = 'en', source
   prompt.push('');
 
   prompt.push(`[STRICT LOCALIZATION DIRECTIVES]`);
-  prompt.push(`1. ACADEMIC & DEGREE LOCALIZATION:`);
-  prompt.push(`   - "Programador Universitario" -> "Associate Degree in Computer Programming / Software Development"`);
-  prompt.push(`   - "Ingeniería en Informática (En etapa de tesis final)" -> "B.S. in Computer Science & Engineering (Final Thesis Stage / In Progress)"`);
-  prompt.push(`   - Preserve institution names (e.g. "Universidad Nacional de Tucumán (UNT) – FACET") without garbling.`);
-  prompt.push(`2. TECHNICAL ACTION VERBS & TENSE RULES:`);
-  prompt.push(`   - Past roles/projects: Use active, strong past-tense verbs (e.g., "Led", "Architected", "Spearheaded", "Refactored", "Optimized", "Streamlined").`);
-  prompt.push(`   - Current active roles: Use active present-tense verbs (e.g., "Lead", "Architect", "Spearhead", "Optimize").`);
-  prompt.push(`3. HTML & FORMATTING INTEGRITY:`);
-  prompt.push(`   - If a string contains HTML tags like <br>, <b>, or <strong>, PRESERVE them exactly in the translated string.`);
-  prompt.push(`4. PROPER NOUNS & TECH STACKS:`);
-  prompt.push(`   - Do NOT translate technology names, libraries, frameworks, or database products (e.g., PHP, Laravel, .NET, C#, FastAPI, PostgreSQL, Oracle, Docker, GitHub Actions).`);
+  if (targetLangCode === 'es') {
+    prompt.push(`1. ACADEMIC & DEGREE LOCALIZATION (SPANISH):`);
+    prompt.push(`   - "Associate Degree in Computer Programming / Software Development" -> "Técnico Universitario en Programación / Tecnicatura Superior en Desarrollo de Software"`);
+    prompt.push(`   - "B.S. in Computer Science & Engineering" -> "Licenciatura en Informática / Ingeniería en Sistemas / Computación"`);
+    prompt.push(`   - "High School Diploma" -> "Título Secundario / Bachiller"`);
+    prompt.push(`   - Preserve institution names (e.g. "Universidad Nacional de Tucumán (UNT) – FACET") without garbling.`);
+    prompt.push(`2. TECHNICAL ACTION VERBS & TENSE RULES:`);
+    prompt.push(`   - Past roles/projects: Use active Spanish past-tense verbs (pretérito perfecto simple: "Lideró / Lideré", "Diseñó / Diseñé", "Desarrolló / Desarrollé", "Optimizó / Optimizé", "Implementó / Implementé", "Refactorizó / Refactoricé").`);
+    prompt.push(`   - Current active roles: Use active present-tense verbs ("Lidera / Lidero", "Diseña / Diseño", "Desarrolla / Desarrollo", "Optimiza / Optimizo").`);
+    prompt.push(`3. CANONICAL SPANISH RESUME SECTION TITLES:`);
+    prompt.push(`   - "WORK EXPERIENCE" -> "EXPERIENCIA LABORAL"`);
+    prompt.push(`   - "TECHNICAL SKILLS" -> "HABILIDADES TÉCNICAS"`);
+    prompt.push(`   - "EDUCATION" -> "EDUCACIÓN"`);
+    prompt.push(`   - "FEATURED PROJECTS" -> "PROYECTOS DESTACADOS"`);
+    prompt.push(`   - "PROFESSIONAL SUMMARY" -> "PERFIL PROFESIONAL"`);
+    prompt.push(`   - "CERTIFICATIONS" -> "CERTIFICACIONES"`);
+    prompt.push(`   - "LANGUAGES" -> "IDIOMAS"`);
+    prompt.push(`   - "CONTACT" -> "CONTACTO"`);
+    prompt.push(`4. HTML & FORMATTING INTEGRITY:`);
+    prompt.push(`   - If a string contains HTML tags like <br>, <b>, or <strong>, PRESERVE them exactly in the translated string.`);
+    prompt.push(`5. PROPER NOUNS & TECH STACKS:`);
+    prompt.push(`   - Do NOT translate technology names, libraries, frameworks, or database products (e.g., PHP, Laravel, .NET, C#, FastAPI, PostgreSQL, Oracle, Docker, GitHub Actions, AWS, React, Node.js).`);
+  } else {
+    prompt.push(`1. ACADEMIC & DEGREE LOCALIZATION:`);
+    prompt.push(`   - "Programador Universitario" -> "Associate Degree in Computer Programming / Software Development"`);
+    prompt.push(`   - "Ingeniería en Informática (En etapa de tesis final)" -> "B.S. in Computer Science & Engineering (Final Thesis Stage / In Progress)"`);
+    prompt.push(`   - Preserve institution names (e.g. "Universidad Nacional de Tucumán (UNT) – FACET") without garbling.`);
+    prompt.push(`2. TECHNICAL ACTION VERBS & TENSE RULES:`);
+    prompt.push(`   - Past roles/projects: Use active, strong past-tense verbs (e.g., "Led", "Architected", "Spearheaded", "Refactored", "Optimized", "Streamlined").`);
+    prompt.push(`   - Current active roles: Use active present-tense verbs (e.g., "Lead", "Architect", "Spearhead", "Optimize").`);
+    prompt.push(`3. HTML & FORMATTING INTEGRITY:`);
+    prompt.push(`   - If a string contains HTML tags like <br>, <b>, or <strong>, PRESERVE them exactly in the translated string.`);
+    prompt.push(`4. PROPER NOUNS & TECH STACKS:`);
+    prompt.push(`   - Do NOT translate technology names, libraries, frameworks, or database products (e.g., PHP, Laravel, .NET, C#, FastAPI, PostgreSQL, Oracle, Docker, GitHub Actions).`);
+  }
   
   if (customGuidelines && customGuidelines.trim()) {
     prompt.push(`5. ADDITIONAL USER GUIDELINES:`);
@@ -360,6 +388,9 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
   if (translatedDict['profile_title']) {
     newCvData.profile = { ...(newCvData.profile || {}), name: translatedDict['profile_title'] };
   }
+  if (translatedDict['profile_subtitle']) {
+    newCvData.profile = { ...(newCvData.profile || {}), subtitle: translatedDict['profile_subtitle'] };
+  }
 
   if (!Array.isArray(newCvData.sections)) {
     return newCvData;
@@ -482,6 +513,8 @@ export const applyDictionaryToCVState = (cvData, translatedDict = {}) => {
           text: newText || item.text
         };
       });
+    } else if (sec.id === 'contact') {
+      if (translatedDict['section_social']) sec.title = translatedDict['section_social'];
     }
 
     return sec;

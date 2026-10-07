@@ -25,7 +25,7 @@ export const useCV = () => useContext(CVContext);
  * @param {React.ReactNode} props.children - Child components.
  * @returns {JSX.Element} Provider wrapping children.
  */
-export const CVProvider = ({ children, initialCV = null }) => {
+export const CVProvider = ({ children, initialCV = null, initialLanguage = null }) => {
   // Shared CV document state holder
   const [cvData, setCvData] = useState(() => {
     if (initialCV) {
@@ -52,6 +52,7 @@ export const CVProvider = ({ children, initialCV = null }) => {
     setCvData,
     applyStateWithHistory: history.applyStateWithHistory,
     clearHistory: history.clearHistory,
+    initialLanguage: initialLanguage || (initialCV && typeof initialCV === 'object' ? (initialCV.language || initialCV.layout?.language) : null),
   });
 
   // 3. Layout modes, column moves, sticky pagination, tooltips & toolbars

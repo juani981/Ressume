@@ -125,7 +125,8 @@ export const useCVData = ({
   cvData: externalCvData,
   setCvData: externalSetCvData,
   applyStateWithHistory: externalApplyState,
-  clearHistory: externalClearHistory
+  clearHistory: externalClearHistory,
+  initialLanguage = null
 } = {}) => {
   const [internalCvData, setInternalCvData] = useState(loadInitialCVData);
   const cvData = externalCvData !== undefined ? externalCvData : internalCvData;
@@ -138,9 +139,13 @@ export const useCVData = ({
     catch (_) { return baseDefaultContent; }
   });
 
-  const [activeLanguage, setActiveLanguage] = useState(() => (
-    typeof window === 'undefined' ? 'es' : (localStorage.getItem('cvActiveLanguage') || 'es')
-  ));
+  const [activeLanguage, setActiveLanguage] = useState(() => {
+    if (initialLanguage) return initialLanguage;
+    if (cvData?.language) return cvData.language;
+    if (cvData?.layout?.language) return cvData.layout.language;
+    if (typeof window === 'undefined') return 'es';
+    return localStorage.getItem('cvActiveLanguage') || 'es';
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') localStorage.setItem('cvData', JSON.stringify(cvData));

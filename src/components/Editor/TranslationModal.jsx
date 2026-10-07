@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import {
   SUPPORTED_LANGUAGES,
@@ -44,12 +44,17 @@ const TranslationModal = ({ isOpen, onClose }) => {
   } = useCV();
 
   const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'import' | 'slots'
-  const [targetLangCode, setTargetLangCode] = useState('en');
+  const [targetLangCode, setTargetLangCode] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
   const [customLangCode, setCustomLangCode] = useState('');
   const [customGuidelines, setCustomGuidelines] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [isWaitingAI, setIsWaitingAI] = useState(false);
+
+  // Synchronize targetLangCode when activeLanguage changes
+  useEffect(() => {
+    setTargetLangCode(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+  }, [activeLanguage]);
 
   // Import Tab State
   const [rawAIInput, setRawAIInput] = useState('');

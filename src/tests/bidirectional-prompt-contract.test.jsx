@@ -11,6 +11,9 @@ import {
   registerBidirectionalHandler 
 } from '../services/ai/bidirectionalPromptContract.js';
 import { getAllVersions } from '../utils/versionStorage.js';
+import { buildAIPromptPayload } from '../utils/aiExporter.js';
+import { normalizeAnyJSONToCVSnapshot } from '../utils/universalJsonImporter.js';
+import { buildTranslationPrompt } from '../utils/translationEngine.js';
 
 describe('Bidirectional Prompt Contract & Multi-Provider Launcher Suite', () => {
   const mockCV = {
@@ -194,4 +197,98 @@ describe('Bidirectional Prompt Contract & Multi-Provider Launcher Suite', () => 
       expect(container.style.display).toBe('flex');
     });
   });
+
+  describe('3. Bidirectional Localization & English Import Fidelity', () => {
+    it('T3.1: buildAIPromptPayload generates Spanish directives when targetLang is es', () => {
+      const promptPayload = buildAIPromptPayload(mockCV, 'translate_english', {
+        format: 'markdown',
+        lang: 'en',
+        targetLang: 'es'
+      });
+
+      expect(promptPayload).toContain('Spanish Tech Localization');
+      expect(promptPayload).toContain('Técnico Superior / Tecnicatura');
+      expect(promptPayload).toContain('EXPERIENCIA LABORAL');
+      expect(promptPayload).toContain('language: \'es\'');
+    });
+
+    it('T3.2: buildAIPromptPayload generates English directives when targetLang is en', () => {
+      const promptPayload = buildAIPromptPayload(mockCV, 'translate_english', {
+        format: 'markdown',
+        lang: 'es',
+        targetLang: 'en'
+      });
+
+      expect(promptPayload).toContain('US Tech Localization');
+      expect(promptPayload).toContain('Associate Degree');
+      expect(promptPayload).toContain('WORK EXPERIENCE');
+      expect(promptPayload).toContain('language: \'en\'');
+    });
+
+    it('T3.3: buildTranslationPrompt provides Spanish localization directives when targetLangCode is es', () => {
+      const prompt = buildTranslationPrompt({ profile_title: 'Ada Lovelace' }, 'es', 'en');
+      expect(prompt).toContain('ACADEMIC & DEGREE LOCALIZATION (SPANISH)');
+      expect(prompt).toContain('Técnico Universitario en Programación');
+      expect(prompt).toContain('EXPERIENCIA LABORAL');
+      expect(prompt).toContain('HABILIDADES TÉCNICAS');
+    });
+
+    it('T3.4: normalizeAnyJSONToCVSnapshot preserves English titles and subtitles when importing English CV', () => {
+      const englishCVJson = {
+        language: 'en',
+        candidate_profile: {
+          fullName: 'Grace Hopper',
+          headline: 'Computer Pioneer & Rear Admiral'
+        },
+        work_experience: [
+          {
+            title: 'Director',
+            company: 'US Navy',
+            startDate: '1943',
+            endDate: '1986',
+            description: 'Led compiler development and standards.'
+          }
+        ],
+        technical_skills: [
+          {
+            category: 'Systems',
+            skills: ['COBOL', 'Compilers', 'Mainframes']
+          }
+        ]
+      };
+
+      const normalized = normalizeAnyJSONToCVSnapshot(englishCVJson);
+      expect(normalized.language).toBe('en');
+      expect(normalized.layout.language).toBe('en');
+      expect(normalized.profile.name).toBe('Grace Hopper');
+      expect(normalized.profile.subtitle).toBe('Computer Pioneer & Rear Admiral');
+
+      const expSec = normalized.sections.find(s => s.id === 'experience');
+      expect(expSec).toBeDefined();
+      expect(expSec.title).toBe('WORK EXPERIENCE');
+
+      const skillsSec = normalized.sections.find(s => s.id === 'skills');
+      expect(skillsSec).toBeDefined();
+      expect(skillsSec.title).toBe('TECHNICAL SKILLS');
+    });
+
+    it('T3.5: AIExportModal targets Spanish by default when activeLanguage is English', () => {
+      const englishCV = {
+        ...mockCV,
+        language: 'en',
+        layout: { ...mockCV.layout, language: 'en' }
+      };
+
+      render(
+        <CVProvider initialCV={englishCV} initialLanguage="en">
+          <AIExportModal isOpen={true} onClose={vi.fn()} initialPromptId="translate_english" />
+        </CVProvider>
+      );
+
+      const targetSelect = screen.getByTestId('ai-target-lang-select');
+      expect(targetSelect).toBeInTheDocument();
+      expect(targetSelect.value).toBe('es');
+    });
+  });
 });
+

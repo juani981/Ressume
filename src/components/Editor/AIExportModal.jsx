@@ -90,7 +90,12 @@ const AIExportModal = ({
   const [externalLLMResponse, setExternalLLMResponse] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [applyStatus, setApplyStatus] = useState(null);
-  const [targetTranslationLang, setTargetTranslationLang] = useState('en');
+  const [targetTranslationLang, setTargetTranslationLang] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
+
+  // Synchronize targetTranslationLang when activeLanguage changes
+  useEffect(() => {
+    setTargetTranslationLang(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+  }, [activeLanguage]);
 
   // UX States: Collapsible Prompt Preview & External AI Waiting Hand-off Mode
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
@@ -215,9 +220,10 @@ const AIExportModal = ({
       format: selectedFormat,
       jobDescription,
       userCommentary,
-      lang: activeLanguage
+      lang: activeLanguage,
+      targetLang: targetTranslationLang
     });
-  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage]);
+  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage, targetTranslationLang]);
 
   const handleApplyResponse = async () => {
     if (!externalLLMResponse || !externalLLMResponse.trim()) {
@@ -270,6 +276,11 @@ const AIExportModal = ({
 
       const newSnapshotToSave = {
         ...validatedCV,
+        layout: {
+          ...(validatedCV.layout || {}),
+          language: effectiveTargetLang
+        },
+        language: effectiveTargetLang,
         versionName: newVersionTitle,
         activeVersionName: newVersionTitle
       };

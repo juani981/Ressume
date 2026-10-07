@@ -77,7 +77,88 @@ const LAYOUT_KEY_MAP = {
   right_background: 'rightBg',
   left_column_width: 'leftColumnWidth',
   leftcolumnwidth: 'leftColumnWidth',
-  leftColumnWidth: 'leftColumnWidth'
+  leftColumnWidth: 'leftColumnWidth',
+  language: 'language',
+  lang: 'language',
+  locale: 'language'
+};
+
+export const SECTION_DEFAULT_TITLES = {
+  es: {
+    profile_header: '',
+    about_section: 'PERFIL PROFESIONAL',
+    experience: 'EXPERIENCIA LABORAL',
+    skills: 'HABILIDADES TÉCNICAS',
+    education: 'EDUCACIÓN',
+    projects: 'PROYECTOS DESTACADOS',
+    certificates: 'CERTIFICACIONES',
+    languages: 'IDIOMAS',
+    awards: 'PREMIOS Y RECONOCIMIENTOS',
+    volunteering: 'VOLUNTARIADO',
+    publications: 'PUBLICACIONES',
+    contact: 'CONTACTO'
+  },
+  en: {
+    profile_header: '',
+    about_section: 'PROFESSIONAL SUMMARY',
+    experience: 'WORK EXPERIENCE',
+    skills: 'TECHNICAL SKILLS',
+    education: 'EDUCATION',
+    projects: 'FEATURED PROJECTS',
+    certificates: 'CERTIFICATIONS',
+    languages: 'LANGUAGES',
+    awards: 'AWARDS & HONORS',
+    volunteering: 'VOLUNTEER EXPERIENCE',
+    publications: 'PUBLICATIONS',
+    contact: 'CONTACT'
+  }
+};
+
+export const getSectionDefaultTitle = (secId, docLang = 'es') => {
+  const langKey = (docLang && String(docLang).toLowerCase().startsWith('en')) ? 'en' : 'es';
+  const langMap = SECTION_DEFAULT_TITLES[langKey] || SECTION_DEFAULT_TITLES.es;
+  return langMap[secId] || (SECTION_DEFAULT_TITLES.es[secId] || '');
+};
+
+export const detectDocumentLanguage = (raw) => {
+  if (!raw || typeof raw !== 'object') return 'es';
+
+  // 1. Explicit language declarations in root or layout
+  const explicit = raw.language || raw.lang || raw.locale ||
+    raw.layout?.language || raw.layout?.lang || raw.physical_page_layout?.language ||
+    raw.document_context?.language || raw.document_context?.locale;
+  if (typeof explicit === 'string') {
+    const clean = explicit.toLowerCase().trim();
+    if (clean.startsWith('en')) return 'en';
+    if (clean.startsWith('es')) return 'es';
+    if (clean.startsWith('pt')) return 'pt';
+    if (clean.startsWith('de')) return 'de';
+    if (clean.startsWith('fr')) return 'fr';
+    if (clean.startsWith('it')) return 'it';
+  }
+
+  // 2. Scan section titles and candidate texts
+  const textCorpus = [];
+  if (raw.candidate_profile?.headline) textCorpus.push(raw.candidate_profile.headline);
+  if (raw.profile?.subtitle) textCorpus.push(raw.profile.subtitle);
+  if (raw.profile?.title) textCorpus.push(raw.profile.title);
+
+  const sections = Array.isArray(raw.normalized_sections)
+    ? raw.normalized_sections
+    : (Array.isArray(raw.sections) ? raw.sections : []);
+
+  sections.forEach(s => {
+    if (s?.title) textCorpus.push(s.title);
+    if (s?.display_title) textCorpus.push(s.display_title);
+  });
+
+  const fullText = textCorpus.join(' ').toLowerCase();
+
+  const enMatches = (fullText.match(/\b(work\s+)?experience|education|skills|summary|projects|certifications|languages|contact|awards|software\s+engineer|developer|lead\b/gi) || []).length;
+  const esMatches = (fullText.match(/\b(experiencia(\s+laboral)?|educaci[oó]n|habilidades|perfil|proyectos|certificaciones|idiomas|contacto|premios|desarrollador|ingeniero|licenciatura)\b/gi) || []).length;
+
+  if (enMatches > esMatches) return 'en';
+  return 'es';
 };
 
 /**
@@ -433,17 +514,22 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
   const profileData = extractProfileData(root);
 
   // If root is already a standard Ressume CV snapshot with native sections and profile_header:
+  const docLang = detectDocumentLanguage(root);
+
   if (Array.isArray(root.sections) && root.sections.some(s => s?.id === 'profile_header' || s?.type === 'profile_header')) {
     const candidateSnapshot = {
       _isNormalizedInternal: true,
       profile: {
         ...(root.profile || {}),
-        name: profileData.fullName || root.profile?.name || 'Nombre Profesional'
+        name: profileData.fullName || root.profile?.name || (docLang === 'en' ? 'Professional Name' : 'Nombre Profesional'),
+        subtitle: profileData.headline || root.profile?.subtitle || root.profile?.title || ''
       },
       layout: {
         ...layout,
+        language: layout.language || docLang,
         type: layout.isAtsMode ? '1-column' : (layout.type || '2-column')
       },
+      language: layout.language || docLang,
       sections: root.sections
     };
     return sanitizeAndValidateCVSnapshot(candidateSnapshot);
@@ -464,11 +550,13 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
       .map((it, idx) => normalizeItemToInternal(it, config.type, secId, idx))
       .filter(Boolean);
 
+    const resolvedDefaultTitle = config.defaultTitle || getSectionDefaultTitle(config.id, docLang);
+
     sectionsList.push({
       id: secId,
       column: column === 'right' ? 'right' : 'left',
       type: config.type,
-      title: config.defaultTitle || config.title || '',
+      title: config.title || resolvedDefaultTitle || '',
       items: mappedItems
     });
   };
@@ -481,7 +569,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
 
   const headerItem = {
     id: 'ph_main',
-    name: profileData.fullName || 'Nombre Profesional',
+    name: profileData.fullName || (docLang === 'en' ? 'Professional Name' : 'Nombre Profesional'),
     subtitle: profileData.headline || '',
     location: profileData.location || '',
     contacts: contactItems
@@ -506,7 +594,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
       id: 'about_section',
       column: 'left',
       type: 'about',
-      title: 'PERFIL PROFESIONAL',
+      title: getSectionDefaultTitle('about_section', docLang),
       items: [{
         id: 'about_1',
         description: profileData.summary
@@ -527,7 +615,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
       const mappedConfig = SECTION_TYPE_MAP[keyOrType] || {
         id: sec.id || keyOrType.toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'custom_sec',
         type: sec.type || 'list',
-        defaultTitle: sec.title || sec.display_title || 'SECCIÓN'
+        defaultTitle: sec.title || sec.display_title || getSectionDefaultTitle(keyOrType, docLang) || 'SECCIÓN'
       };
 
       // Skip duplicating profile_header or about if already injected
@@ -536,40 +624,34 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
 
       let secTitle = sec.display_title || sec.title;
       if (secTitle && (/^sec_[a-zA-Z0-9_-]+$/i.test(secTitle) || /^[0-9a-f-]{36}$/i.test(secTitle))) {
-        secTitle = mappedConfig.defaultTitle;
+        secTitle = getSectionDefaultTitle(mappedConfig.id, docLang);
       }
-      const finalTitle = secTitle || mappedConfig.defaultTitle;
+      const finalTitle = secTitle || getSectionDefaultTitle(mappedConfig.id, docLang);
 
       appendSection(
         {
           id: mappedConfig.id,
           type: mappedConfig.type,
-          defaultTitle: finalTitle
+          title: finalTitle
         },
         Array.isArray(sec.items) ? sec.items : [],
         sec.display_column || sec.column || 'left'
       );
     });
   } else {
-    // 4. Flavor C & D: Process dictionary keys (work_experience, skills, education, etc.)
-    const standardKeys = [
-      'work_experience', 'experience', 'work',
-      'skills_and_technologies', 'skills',
-      'education',
-      'projects',
-      'certifications', 'certificates',
-      'languages',
-      'awards',
-      'volunteering',
-      'publications'
-    ];
+    // 4. Flavor C & D: Process dictionary keys (work_experience, technical_skills, skills, education, etc.)
+    const recognizedKeys = Object.keys(SECTION_TYPE_MAP);
 
-    standardKeys.forEach(k => {
+    recognizedKeys.forEach(k => {
       const val = root[k];
       if (Array.isArray(val) && val.length > 0) {
         const config = SECTION_TYPE_MAP[k];
-        if (config && !seenSectionIds.has(config.id)) {
-          appendSection(config, val, k === 'experience' || k === 'work_experience' || k === 'projects' ? 'right' : 'left');
+        if (config && config.id !== 'profile_header' && config.id !== 'about_section' && !seenSectionIds.has(config.id)) {
+          const isRightCol = config.id === 'experience' || config.id === 'projects';
+          appendSection({
+            ...config,
+            title: getSectionDefaultTitle(config.id, docLang)
+          }, val, isRightCol ? 'right' : 'left');
         }
       }
     });
@@ -579,12 +661,15 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
   const candidateSnapshot = {
     _isNormalizedInternal: true,
     profile: {
-      name: profileData.fullName || 'Nombre Profesional'
+      name: profileData.fullName || (docLang === 'en' ? 'Professional Name' : 'Nombre Profesional'),
+      subtitle: profileData.headline || root.profile?.subtitle || root.profile?.title || ''
     },
     layout: {
       ...layout,
+      language: layout.language || docLang,
       type: layout.isAtsMode ? '1-column' : (layout.type || '2-column')
     },
+    language: layout.language || docLang,
     sections: sectionsList
   };
 
