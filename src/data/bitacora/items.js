@@ -20,24 +20,24 @@ export const INITIAL_BITACORA_ITEMS = [
   {
     id: 'tip-google-xyz',
     category: 'bullets',
-    title: 'Fórmula Google X-Y-Z para redactar logros irresistibles',
-    summary: 'La estructura de redacción de viñetas más respetada en la industria tecnológica para demostrar impacto real.',
+    title: 'Fórmula Google X-Y-Z para redactar logros verificables',
+    summary: 'Estructura técnica de viñetas utilizada para acreditar impacto en ingeniería de software.',
     readTimeMinutes: 2,
     callout: {
       type: 'info',
       title: 'Estructura Canónica',
-      text: 'Logré [X], medido por [Y], haciendo [Z]. Por ejemplo: "Reduje la latencia de respuesta de la API en un 38% (Y) mediante la implementación de Redis caching distribuido (Z), acelerando la carga para 500k usuarios diarios (X)".'
+      text: 'Logré [X], medido por [Y], haciendo [Z]. Por ejemplo: "Reduje la latencia de respuesta de la API en un 38% (Y) mediante la implementación de almacenamiento en caché distribuido con Redis (Z), soportando un tráfico concurrente de 500k usuarios diarios (X)".'
     },
     content: `
-### ¿Por qué la mayoría de los CVs son ignorados?
-El 90% de los candidatos escribe listas de **tareas cotidianas** en lugar de **resultados medibles**:
+### Análisis de descarte en revisión técnica
+La mayoría de los perfiles omiten resultados concretos y se limitan a enumerar asignaciones diarias:
 - ❌ *"Encargado de desarrollar endpoints en Node.js y mantener la base de datos."*
-- ✅ *"Diseñé y desplegué 14 microservicios en Node.js, reduciendo el tiempo de onboarding de clientes en un 45% y soportando picos de 12.000 req/s."*
+- ✅ *"Diseñé y desplegué 14 microservicios en Node.js, reduciendo el tiempo de incorporación de clientes en un 45% y tolerando picos de 12.000 req/s."*
 
-### Los 3 componentes de la fórmula:
-1. **Acción/Resultado [X]:** Qué lograste cambiar en el negocio o producto.
-2. **Métrica [Y]:** Un número, porcentaje o ahorro cuantificable.
-3. **Mecanismo [Z]:** La tecnología, patrón o arquitectura que aplicaste.
+### Los tres componentes de la fórmula:
+1. **Acción/Resultado [X]:** Modificación funcional concreta introducida en el sistema o producto.
+2. **Métrica [Y]:** Indicador numérico cuantificable de rendimiento, costo o latencia.
+3. **Mecanismo [Z]:** Patrón arquitectónico, tecnología o solución implementada.
     `,
     tags: ['Métricas', 'Bullets', 'Impacto', 'Google'],
     author: {
@@ -51,25 +51,25 @@ El 90% de los candidatos escribe listas de **tareas cotidianas** en lugar de **r
   {
     id: 'guide-ats-myths-vs-reality',
     category: 'ats',
-    title: 'Mitos vs. Realidad de los sistemas ATS en 2026',
-    summary: 'Qué parsean realmente Workday, Taleo y Greenhouse, y por qué los diseños a dos columnas no siempre fallan si la jerarquía es semántica.',
+    title: 'Funcionamiento real de los sistemas ATS en procesos técnicos',
+    summary: 'Mecanismo de indexación de plataformas como Greenhouse, Workday y Taleo frente a estructuras de una o dos columnas.',
     readTimeMinutes: 4,
     callout: {
       type: 'warning',
-      title: 'Alerta de Formato',
-      text: 'Nunca incrustes texto crítico dentro de imágenes, tablas complejas anidadas o cuadros de texto flotantes no estándar. El parser extrae el flujo en texto plano secuencial.'
+      title: 'Restricción de Formato',
+      text: 'No incruste información dentro de imágenes, tablas complejas o capas flotantes sin flujo semántico. El analizador extrae texto plano secuencial.'
     },
     content: `
-### La mentira de "el robot que te rechaza automáticamente"
-Los ATS no son inteligencias artificiales maquiavélicas que descartan CVs por diversión. Son **sistemas de gestión de base de datos** (Applicant Tracking Systems) que:
-1. Extraen el texto del PDF/Word en campos estructurados (*Name*, *Experience*, *Skills*).
-2. Permiten a los reclutadores humanos buscar por palabras clave (ej: \`React AND TypeScript AND AWS\`).
-3. Si el texto está codificado como curvas vectoriales o dentro de un Canvas/SVG, el ATS ve una hoja en blanco.
+### Funcionamiento técnico de los analizadores
+Los ATS son sistemas de gestión de bases de datos relacionales configurados para:
+1. Extraer el contenido del documento hacia campos estructurados (*Nombre*, *Experiencia*, *Habilidades*).
+2. Facilitar búsquedas booleanas a los equipos técnicos (por ejemplo: \`React AND TypeScript AND AWS\`).
+3. Si el texto se renderiza como mapa de bits o trazos vectoriales cerrados sin codificación de caracteres, el sistema procesa un documento vacío.
 
-### Reglas para un PDF 100% parseable:
-- Usar tipografías estándar o incrustadas correctamente.
-- Encabezados claros de sección (\`Experiencia Laboral\`, \`Educación\`, etc.).
-- Fechas consistentes (ej: \`MM/AAAA - MM/AAAA\` o \`2022 - 2024\`).
+### Criterios de compatibilidad estructural:
+- Emplear fuentes con mapa tipográfico estándar incrustado.
+- Encabezados unívocos de sección (\`EXPERIENCIA LABORAL\`, \`EDUCACIÓN\`, \`HABILIDADES\`).
+- Fechas normalizadas (\`MM/AAAA – MM/AAAA\` o \`AAAA – AAAA\`).
 - Exportación vectorial directa con texto seleccionable.
     `,
     links: [
@@ -91,22 +91,22 @@ Los ATS no son inteligencias artificiales maquiavélicas que descartan CVs por d
   {
     id: 'resource-tech-interview-handbook',
     category: 'interviews',
-    title: 'Guía de preguntas trampa en entrevistas de comportamiento (STAR)',
-    summary: 'Cómo responder "¿Cuál es tu mayor debilidad?" y "¿Contame una vez que fallaste?" sin sonar cliché ni arruinar tu candidatura.',
+    title: 'Estructuración de respuestas en entrevistas conductuales (Método STAR)',
+    summary: 'Metodología para abordar preguntas sobre fallas técnicas y debilidades profesionales con rigor y criterio de ingeniería.',
     readTimeMinutes: 3,
     callout: {
       type: 'danger',
-      title: 'Peligro Crítico',
-      text: 'Nunca respondas "Soy demasiado perfeccionista" o "Trabajo demasiado". Los entrevistadores experimentados consideran esto una falta de autoconciencia o un intento barato de evasión.'
+      title: 'Error Frecuente',
+      text: 'Evite respuestas evasivas como "trabajo en exceso" o "soy perfeccionista". Los evaluadores consideran estas respuestas como falta de autocrítica técnica.'
     },
     content: `
-### El Método STAR aplicado a errores reales:
-Cuando te pregunten sobre un fracaso o debilidad, están evaluando tu **capacidad de autorreflexión y aprendizaje**.
+### Método STAR aplicado a incidentes y resolución técnica:
+Las preguntas sobre incidentes evalúan la capacidad de diagnóstico, mitigación y prevención sistemática:
 
-1. **Situación (S):** Contexto breve de qué problema real existía.
-2. **Tarea (T):** Tu responsabilidad en ese momento.
-3. **Acción (A):** El error honesto que cometiste y qué hiciste inmediatamente para mitigar el daño.
-4. **Resultado (R) + Aprendizaje:** La regla, proceso o automatización que implementaste para asegurar que ese error NUNCA más se repita.
+1. **Situación (S):** Contexto técnico del problema o falla detectada.
+2. **Tarea (T):** Responsabilidad directa asumida durante la contingencia.
+3. **Acción (A):** Diagnóstico realizado, contención inmediata y corrección de fondo.
+4. **Resultado (R) y Prevención:** Pruebas automatizadas, monitoreo o políticas implementadas para impedir la recurrencia del fallo.
     `,
     links: [
       {
@@ -127,13 +127,13 @@ Cuando te pregunten sobre un fracaso o debilidad, están evaluando tu **capacida
   {
     id: 'tip-linkedin-headline',
     category: 'strategy',
-    title: 'Tu titular de LinkedIn: Dejá de poner "Buscando activamente"',
-    summary: 'El algoritmo de LinkedIn favorece términos de búsqueda de cargos y stack técnico exacto por sobre estados de necesidad.',
+    title: 'Titular profesional: indexación por especialidad y stack técnico',
+    summary: 'Los algoritmos de búsqueda priorizan denominaciones de cargo estandarizadas y tecnologías concretas frente a estados de disponibilidad.',
     readTimeMinutes: 2,
     callout: {
       type: 'warning',
-      title: 'SEO de Reclutamiento',
-      text: 'Los reclutadores buscan "Senior Frontend Engineer | React, TypeScript" en su barra de búsqueda. Nadie tipea "En búsqueda de nuevas oportunidades" cuando necesita cubrir una vacante.'
+      title: 'Indexación en Búsquedas',
+      text: 'Las consultas de perfiles utilizan filtros como "Senior Frontend Engineer | React, TypeScript". Las expresiones de búsqueda no incorporan frases genéricas de disponibilidad.'
     },
     tags: ['LinkedIn', 'SEO', 'Marca Personal', 'Recruiters'],
     author: {
@@ -147,13 +147,13 @@ Cuando te pregunten sobre un fracaso o debilidad, están evaluando tu **capacida
   {
     id: 'resource-salary-negotiation',
     category: 'strategy',
-    title: 'Reglas inquebrantables de negociación salarial en Tech',
-    summary: 'Cómo evitar anclarte con un número bajo en la primera llamada de screening telefónico.',
+    title: 'Criterios de negociación y rangos salariales en ingeniería',
+    summary: 'Procedimiento para contextualizar expectativas de compensación durante las etapas iniciales de evaluación técnica.',
     readTimeMinutes: 3,
     callout: {
       type: 'info',
-      title: 'Táctica de Respuesta',
-      text: 'Cuando te pregunten "¿Cuáles son tus expectativas salariales?", respondé: "Para darte un número exacto me gustaría entender mejor las responsabilidades y el paquete total de beneficios. ¿Cuál es el rango presupuestado que tienen definido para esta posición?".'
+      title: 'Formulación Técnica',
+      text: 'Ante la consulta sobre pretensiones salariales iniciales, una formulación adecuada es: "Para establecer un parámetro certero es necesario dimensionar el alcance técnico del rol y el esquema integral de compensación. ¿Cuál es el rango presupuestado definido para esta posición?".'
     },
     links: [
       {
@@ -174,8 +174,8 @@ Cuando te pregunten sobre un fracaso o debilidad, están evaluando tu **capacida
   {
     id: 'resource-awesome-cheat-sheets',
     category: 'resources',
-    title: 'Repositorio de Cheatsheets y Roadmap de Arquitectura',
-    summary: 'Colección de diagramas de diseño de sistemas, estructuras de datos y guías de patrones limpios para repasar antes de una entrevista.',
+    title: 'Compendio de arquitectura y diseño de sistemas',
+    summary: 'Colección de diagramas de sistemas distribuidos, estructuras de datos y patrones de concurrencia para preparación técnica.',
     readTimeMinutes: 1,
     links: [
       {
