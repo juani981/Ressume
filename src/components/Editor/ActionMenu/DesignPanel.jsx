@@ -2,6 +2,8 @@ import React from 'react';
 import { useCV } from '../../../context/CVContext';
 import ColorPickerSwatch from '../ColorPickerSwatch';
 import { SlidersHorizontal, X, RotateCcw, Info } from 'lucide-react';
+import ModalHelpButton from '../../common/ModalHelpButton';
+import { TOUR_IDS } from '../../../context/TourContext';
 import { DEFAULT_LINE_HEIGHT, SPACING_LIMITS } from '../../../constants/spacing';
 import { COLUMN_RESIZER_LIMITS, DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../../constants/geometry';
 import {
@@ -97,21 +99,24 @@ export const DesignPanel = ({
         >
           <SlidersHorizontal size={18} color="#6366f1" /> Ajustes de Diseño
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar panel de diseño"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#888',
-            padding: '4px',
-            display: 'flex',
-          }}
-        >
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ModalHelpButton tourId={TOUR_IDS.DESIGN} />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar panel de diseño"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#888',
+              padding: '4px',
+              display: 'flex',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Submenu Navigation Tabs */}

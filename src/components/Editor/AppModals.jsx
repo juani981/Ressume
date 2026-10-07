@@ -1,47 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Joyride } from 'react-joyride';
 import { CustomTooltip } from '../CustomTooltip';
 import AddSectionModal from './AddSectionModal';
 import SuggestionTooltip from './SuggestionTooltip';
 import AITipsSidebar from './AITipsSidebar';
 import ToastNotification from './ToastNotification';
-
-const TOUR_STEPS = [
-  {
-    content: (
-      <>
-        <p>
-          Editá tu CV una vez, y siempre podés tenerlo en dos formatos.
-        </p>
-        <p>
-          Para humanos, que pueden entender el diseño y personalidad que
-          intentas demostrar. Y para Sistemas Automáticos que sólo deben
-          leer los datos de manera directa y ordenada
-        </p>
-      </>
-    ),
-    blockTargetInteraction: true,
-    id: 'disabled-interaction',
-    placement: 'right',
-    skipBeacon: true,
-    styles: {
-      tooltipContent: {
-        paddingTop: 0,
-      },
-    },
-    target: '.layout-mode-toggle-pill',
-  },
-  {
-    content:
-      'Podés generar prompts para refinar el contenido y orden de tu CV con un sólo click!',
-    target: '#ia-prompts-item',
-  },
-  {
-    content:
-      'Gestioná tus versiones para tener múltiples idiomas, enfoques, o diseños',
-    target: '#versiones-item',
-  },
-];
+import ModalHelpDialog from '../common/ModalHelpDialog';
+import {
+  useTourManager,
+  TOUR_IDS,
+  ONBOARDING_TOUR_STEPS,
+  BITACORA_NUDGE_STEPS,
+} from '../../context/TourContext';
+import { useModalTheme } from '../../hooks/useModalTheme';
 
 export function AppModals({
   isAddSectionModalOpen,
@@ -51,26 +22,18 @@ export function AppModals({
   activeTooltip,
   layoutType,
 }) {
-  const [runTour, setRunTour] = useState(false);
+  const { activeTour, endTour } = useTourManager();
+  const { isDark } = useModalTheme();
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-      return;
-    }
-    if (
-      typeof process !== 'undefined' &&
-      (process.env?.NODE_ENV === 'test' || process.env?.VITEST)
-    ) {
-      return;
-    }
-    try {
-      const hasSeenTour = localStorage.getItem('skip_onboarding_tour');
-      if (!hasSeenTour) {
-        setRunTour(true);
-      }
-    } catch (_) {}
-  }, []);
+  const isJoyrideRunning = Boolean(
+    activeTour === TOUR_IDS.ONBOARDING || activeTour === TOUR_IDS.BITACORA_NUDGE
+  );
+
+  const currentSteps =
+    activeTour === TOUR_IDS.BITACORA_NUDGE
+      ? BITACORA_NUDGE_STEPS
+      : ONBOARDING_TOUR_STEPS;
 
   const handleJoyrideCallback = (data) => {
     const { status, type } = data || {};
@@ -79,27 +42,31 @@ export function AppModals({
       status === 'skipped' ||
       type === 'tour:end'
     ) {
-      if (
-        dontShowAgain ||
-        localStorage.getItem('skip_onboarding_tour') === 'true'
-      ) {
-        localStorage.setItem('skip_onboarding_tour', 'true');
-      }
-      setRunTour(false);
+      endTour(activeTour, dontShowAgain || status === 'finished' || status === 'skipped');
     }
   };
 
   return (
     <>
       <Joyride
-        run={runTour}
-        steps={TOUR_STEPS}
+        run={isJoyrideRunning}
+        steps={currentSteps}
         continuous={true}
         onEvent={handleJoyrideCallback}
         callback={handleJoyrideCallback}
+        disableOverlayClose={true}
+        spotlightClicks={false}
+        styles={{
+          options: {
+            zIndex: 10000,
+            overlayColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(0, 0, 0, 0.5)',
+            primaryColor: '#3874ff',
+          },
+        }}
         tooltipComponent={(props) => (
           <CustomTooltip
             {...props}
+            tourId={activeTour || TOUR_IDS.ONBOARDING}
             dontShowAgain={dontShowAgain}
             setDontShowAgain={setDontShowAgain}
           />
@@ -113,6 +80,9 @@ export function AppModals({
         targetColumn={addSectionTargetColumn}
         targetIndex={addSectionTargetIndex}
       />
+
+      {/* Global Modal Help Step-by-Step Dialog */}
+      <ModalHelpDialog />
 
       {/* Global Singleton AI Suggestion Tooltip */}
       {activeTooltip && activeTooltip.section && activeTooltip.rect && (

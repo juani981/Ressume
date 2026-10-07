@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getAllSectionDescriptors } from '../../registry/sectionRegistry';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
 import { 
   X, 
   Briefcase, 
@@ -201,23 +203,26 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right', targetIndex 
             
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-color-light, #888)',
-              padding: '0.35rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalHelpButton tourId={TOUR_IDS.ADD_SECTION} />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar modal"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-color-light, #888)',
+                padding: '0.35rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Bullet & Timeline Initial Style Selector */}

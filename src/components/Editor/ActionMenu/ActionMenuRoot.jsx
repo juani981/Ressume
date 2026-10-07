@@ -23,6 +23,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { BitacoraModal } from '../../Bitacora';
+import { useTourManager } from '../../../context/TourContext';
 
 const HOVER_INTENT_MS = 280;
 const EXIT_GRACE_MS = 350;
@@ -39,6 +40,16 @@ export const ActionMenuRoot = () => {
     totalPages,
     deletePage,
   } = useCV();
+
+  const tourManager = useTourManager ? (function() {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useTourManager();
+    } catch (_) {
+      return {};
+    }
+  })() : {};
+  const notifyPrintSuccess = tourManager?.notifyPrintSuccess;
 
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -173,6 +184,9 @@ export const ActionMenuRoot = () => {
       }
       setLoading(false);
       showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
+      if (typeof notifyPrintSuccess === 'function') {
+        notifyPrintSuccess();
+      }
     };
 
     if (typeof window !== 'undefined') {

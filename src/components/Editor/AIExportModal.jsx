@@ -8,6 +8,8 @@ import { cleanAndParseRawJSON, normalizeAnyJSONToCVSnapshot } from '../../utils/
 import { formatBackupVersionTitle } from '../../services/ai/bidirectionalPromptContract';
 import { useModalTheme } from '../../hooks/useModalTheme';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
 import { 
   BrainCircuit, 
   Target, 
@@ -536,6 +538,7 @@ const AIExportModal = ({
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalHelpButton tourId={TOUR_IDS.AI_EXPORT} isDark={isDark} />
             <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
             <button 
               onClick={onClose}

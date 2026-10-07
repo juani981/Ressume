@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useTourManager, TOUR_STORAGE_PREFIX, TOUR_IDS } from '../context/TourContext';
+import { useModalTheme } from '../hooks/useModalTheme';
 
-const TOUR_STORAGE_KEY = 'skip_onboarding_tour';
+const DEFAULT_TOUR_STORAGE_KEY = 'skip_onboarding_tour';
 
 export function CustomTooltip({
   index = 0,
@@ -13,15 +15,38 @@ export function CustomTooltip({
   tooltipProps = {},
   dontShowAgain: controlledDontShowAgain,
   setDontShowAgain: controlledSetDontShowAgain,
+  tourId = TOUR_IDS.ONBOARDING,
   ...rest
 }) {
+  const { markTourCompleted } = useTourManager ? (function() {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useTourManager();
+    } catch (_) {
+      return {};
+    }
+  })() : {};
+
+  let isDark = false;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const themeState = useModalTheme();
+    isDark = themeState?.isDark || false;
+  } catch (_) {
+    isDark = false;
+  }
+
+  const storageKey = tourId === TOUR_IDS.ONBOARDING 
+    ? DEFAULT_TOUR_STORAGE_KEY 
+    : `${TOUR_STORAGE_PREFIX}${tourId}`;
+
   // Read initial state from localStorage or from controlled prop if provided
   const [isChecked, setIsChecked] = useState(() => {
     if (typeof controlledDontShowAgain === 'boolean') {
       return controlledDontShowAgain;
     }
     try {
-      return typeof window !== 'undefined' && localStorage.getItem(TOUR_STORAGE_KEY) === 'true';
+      return typeof window !== 'undefined' && localStorage.getItem(storageKey) === 'true';
     } catch {
       return false;
     }
@@ -41,9 +66,15 @@ export function CustomTooltip({
     // Save preference directly into localStorage immediately
     try {
       if (nextChecked) {
-        localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+        localStorage.setItem(storageKey, 'true');
+        if (tourId === TOUR_IDS.ONBOARDING) {
+          localStorage.setItem(DEFAULT_TOUR_STORAGE_KEY, 'true');
+        }
       } else {
-        localStorage.removeItem(TOUR_STORAGE_KEY);
+        localStorage.removeItem(storageKey);
+        if (tourId === TOUR_IDS.ONBOARDING) {
+          localStorage.removeItem(DEFAULT_TOUR_STORAGE_KEY);
+        }
       }
     } catch (err) {
       console.warn('Could not persist tour preference to localStorage:', err);
@@ -58,7 +89,10 @@ export function CustomTooltip({
   const handleSkipClick = (e) => {
     if (isChecked) {
       try {
-        localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+        localStorage.setItem(storageKey, 'true');
+        if (tourId === TOUR_IDS.ONBOARDING) {
+          localStorage.setItem(DEFAULT_TOUR_STORAGE_KEY, 'true');
+        }
       } catch (_) {}
     }
     if (skipProps?.onClick) {
@@ -69,7 +103,10 @@ export function CustomTooltip({
   const handlePrimaryClick = (e) => {
     if (isLastStep && isChecked) {
       try {
-        localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+        localStorage.setItem(storageKey, 'true');
+        if (tourId === TOUR_IDS.ONBOARDING) {
+          localStorage.setItem(DEFAULT_TOUR_STORAGE_KEY, 'true');
+        }
       } catch (_) {}
     }
     if (primaryProps?.onClick) {
@@ -82,22 +119,24 @@ export function CustomTooltip({
       className="react-joyride__tooltip"
       {...tooltipProps}
       style={{
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 8,
-        maxWidth: 400,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        ...tooltipProps?.style
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        color: isDark ? '#f8fafc' : '#0f172a',
+        padding: '20px 22px',
+        borderRadius: 12,
+        maxWidth: 420,
+        boxShadow: isDark
+          ? '0 18px 40px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px #334155'
+          : '0 16px 36px -8px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+        ...tooltipProps?.style,
       }}
     >
       {/* Contenido dinámico que viene del array de pasos */}
-      <div className="react-joyride__content" style={{ marginBottom: 15 }}>
+      <div className="react-joyride__content" style={{ marginBottom: 16 }}>
         {step?.content}
       </div>
 
       {/* FOOTER: Checkbox + Botones */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        
         {/* Checkbox "No volver a mostrar" */}
         <label
           htmlFor="dont-show-tour-checkbox"
@@ -107,10 +146,10 @@ export function CustomTooltip({
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            fontSize: '14px',
+            fontSize: '13px',
             cursor: 'pointer',
-            color: '#555',
-            userSelect: 'none'
+            color: isDark ? '#94a3b8' : '#64748b',
+            userSelect: 'none',
           }}
         >
           <input
@@ -126,13 +165,23 @@ export function CustomTooltip({
         </label>
 
         {/* Botones de Control */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
           <div>
             {index > 0 && (
               <button
                 {...backProps}
                 type="button"
-                style={{ marginRight: 8, padding: '6px 12px', cursor: 'pointer' }}
+                style={{
+                  marginRight: 8,
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#f1f5f9' : '#334155',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: '13px',
+                  fontWeight: 500,
+                }}
               >
                 Atrás
               </button>
@@ -142,29 +191,32 @@ export function CustomTooltip({
               type="button"
               onClick={handleSkipClick}
               style={{
-                padding: '6px 12px',
+                padding: '6px 10px',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#888'
+                color: isDark ? '#94a3b8' : '#64748b',
+                fontSize: '13px',
               }}
             >
               Saltar
             </button>
           </div>
-          
+
           <button
             {...primaryProps}
             type="button"
             onClick={handlePrimaryClick}
             style={{
-              padding: '6px 12px',
-              backgroundColor: '#0070f3',
-              color: '#fff',
+              padding: '7px 16px',
+              backgroundColor: '#3874ff',
+              color: '#ffffff',
               border: 'none',
-              borderRadius: 4,
+              borderRadius: 6,
               cursor: 'pointer',
-              fontWeight: 500
+              fontWeight: 600,
+              fontSize: '13px',
+              boxShadow: '0 2px 6px rgba(56, 116, 255, 0.35)',
             }}
           >
             {isLastStep ? 'Finalizar' : 'Siguiente'}

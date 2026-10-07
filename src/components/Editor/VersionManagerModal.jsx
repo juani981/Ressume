@@ -20,6 +20,8 @@ import {
 } from './versionManager';
 import { useModalTheme } from '../../hooks/useModalTheme';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
 
 /**
  * Full-screen Version Manager Hub modal dialog.
@@ -580,6 +582,7 @@ export const VersionManagerModal = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalHelpButton tourId={TOUR_IDS.VERSION_MANAGER} isDark={isDark} />
             <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
             <button
               type="button"
