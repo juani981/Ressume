@@ -13,6 +13,9 @@ export const DEFAULT_LINE_HEIGHT = 1.30;
 export const PAGE_BOTTOM_CLEARANCE_PX = 14;
 export const DEFAULT_HEADER_MARGIN_BOTTOM_RATIO = 1.5;
 export const DEFAULT_DATA_GAP_PX = 6;
+export const DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO = 0.30;
+export const DEFAULT_TERMINAL_TOLERANCE_PX = Math.round((DEFAULT_PAGE_PADDING_PX + PAGE_BOTTOM_CLEARANCE_PX) * DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO);
+
 
 // Physical layout thresholds & fallback dimensions
 export const MIN_PAGE_CAPACITY_PX = 100;
@@ -33,6 +36,8 @@ export const SPACING_TOKENS = Object.freeze({
   itemGapPx: DEFAULT_ITEM_GAP_PX,
   lineHeight: DEFAULT_LINE_HEIGHT,
   pageBottomClearancePx: PAGE_BOTTOM_CLEARANCE_PX,
+  terminalSafetyToleranceRatio: DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO,
+  defaultTerminalTolerancePx: DEFAULT_TERMINAL_TOLERANCE_PX,
   headerMarginBottomRatio: DEFAULT_HEADER_MARGIN_BOTTOM_RATIO,
   dataGapPx: DEFAULT_DATA_GAP_PX,
   minPageCapacityPx: MIN_PAGE_CAPACITY_PX,

@@ -1181,6 +1181,120 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(pages[0].singleSections[0].items.length).toBe(1);
       expect(pages[0].singleSections[0].items[0].id).toBe('it1');
     });
+
+    it('Safety Margin Tolerance: keeps terminal item on page 1 when within 30% safety margin tolerance (<= 11px)', () => {
+      // Base page capacity: 1000px
+      // Item 1 consumes 950px.
+      // Item 2 has gross height 66px, itemGap 10px -> net height = 56px.
+      // Item 2 exceeds standard capacity (1000px) by 6px (950 + 56 = 1006px > 1000px).
+      // With 30% safety tolerance (11px), effective capacity is 1011px >= 1006px -> stays on Page 1!
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '',
+            items: [
+              { id: 'it1', title: 'Job 1', height: 950 },
+              { id: 'it2', title: 'Job 2', height: 66 },
+            ],
+          },
+        ],
+      };
+
+      const pagesWithinTolerance = distributeSectionsToPages(cv, {
+        pageCapacity: 1000,
+        itemGapPx: 10,
+        sectionGapPx: 0,
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+      });
+
+      expect(pagesWithinTolerance.length).toBe(1);
+      expect(pagesWithinTolerance[0].singleSections[0].items.length).toBe(2);
+      expect(pagesWithinTolerance[0].singleSections[0].items[1].id).toBe('it2');
+
+      // Now with item 2 height = 75px -> net height = 65px (950 + 65 = 1015px > 1011px).
+      // Exceeds 30% safety tolerance -> splits or moves to Page 2!
+      const cvExceeding = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '',
+            items: [
+              { id: 'it1', title: 'Job 1', height: 950 },
+              { id: 'it2', title: 'Job 2', height: 75 },
+            ],
+          },
+        ],
+      };
+
+      const pagesExceedingTolerance = distributeSectionsToPages(cvExceeding, {
+        pageCapacity: 1000,
+        itemGapPx: 10,
+        sectionGapPx: 0,
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+      });
+
+      expect(pagesExceedingTolerance.length).toBe(2);
+      expect(pagesExceedingTolerance[0].singleSections[0].items.length).toBe(1);
+      expect(pagesExceedingTolerance[1].singleSections[0].items[0].id).toBe('it2');
+    });
+
+    it('Safety Margin Tolerance: keeps newly added bullet on page 1 when within 30% tolerance', () => {
+      // Single experience item where adding a 2nd bullet extends 5px beyond pageCapacity.
+      // With 30% tolerance (11px), the full item with both bullets fits on Page 1 without splitting.
+      const candidateWithTwoBullets = {
+        id: 'exp1',
+        title: 'Lead Architect',
+        subtitle: 'Tech Corp',
+        bullets: [
+          'Spearheaded core microservices migration with zero downtime.',
+          'Mentored 10+ junior engineers in clean code and testing patterns.',
+        ],
+      };
+
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'exp-sec',
+            type: 'experience',
+            title: 'Experience',
+            items: [candidateWithTwoBullets],
+          },
+        ],
+      };
+
+      // Let's compute exact height
+      const options = {
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+        splitGranularBullets: true,
+      };
+
+      const grossH = estimateItemHeight(candidateWithTwoBullets, 'experience', options);
+      const headerH = estimateHeaderHeight(cv.sections[0], false, options);
+      // Set pageCapacity such that totalSectionHeight exceeds pageCapacity by 7px (well within 11px tolerance)
+      const exactCapacity = headerH + grossH - 7;
+
+      const pages = distributeSectionsToPages(cv, {
+        ...options,
+        pageCapacity: exactCapacity,
+      });
+
+      // Should fit completely on Page 1 without splitting into continuation item
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].bullets.length).toBe(2);
+      expect(pages[0].singleSections[0].items[0].isPartialItem).toBeFalsy();
+    });
   });
 });
 

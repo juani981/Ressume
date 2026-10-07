@@ -25,6 +25,8 @@ import {
   PAGE_BOTTOM_CLEARANCE_PX,
   DEFAULT_HEADER_MARGIN_BOTTOM_RATIO,
   DEFAULT_DATA_GAP_PX,
+  DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO,
+  DEFAULT_TERMINAL_TOLERANCE_PX,
   MIN_PAGE_CAPACITY_PX,
   ATS_HEADER_BORDER_PADDING_PX,
   FALLBACK_ITEM_HEIGHT_PX,
@@ -223,7 +225,8 @@ export function estimateItemBulletsHeight(bullets, sectionType = '', options = {
  * @param {number} params.currentAccumulated - Height currently accumulated on page
  * @param {number} params.maxAvailable - Maximum capacity available on page
  * @param {number} params.nextPageNumber - Target page number for continuation item ID
- * @returns {{ partialCandidate: Object, partialCandidateRemaining: Object, consumedHeight: number } | null}
+ * @param {number} [params.terminalTolerance=0] - Additional safety margin tolerance for terminal item
+ * @returns {{ partialCandidate: Object, partialCandidateRemaining: Object, consumedHeight: number, fitsCompletely?: boolean } | null}
  */
 export function splitCandidateItemByBullets({
   candidate,
@@ -232,10 +235,14 @@ export function splitCandidateItemByBullets({
   currentAccumulated = 0,
   maxAvailable = 0,
   nextPageNumber = 2,
+  terminalTolerance = 0,
 }) {
   if (!candidate) return null;
   const hasBullets = Array.isArray(candidate.bullets) && candidate.bullets.length > 1;
   if (!hasBullets) return null;
+
+  const effectiveTolerance = terminalTolerance || (options.terminalTolerance ?? 0);
+  const effectiveMaxAvailable = maxAvailable + effectiveTolerance;
 
   const candId = candidate.originalItemId || candidate.id;
   const baseH = estimateItemBaseHeight(candidate, sectionType, options);
@@ -243,8 +250,8 @@ export function splitCandidateItemByBullets({
   const bulletGap0 = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
   const netFirstBulletH = Math.max(1, firstBulletH - bulletGap0);
 
-  // Special terminal boundary rule: if candidate's first bullet fits flush without trailing bullet gap
-  if (currentAccumulated + baseH + netFirstBulletH > maxAvailable) {
+  // Special terminal boundary rule: if candidate's first bullet fits flush within effective capacity
+  if (currentAccumulated + baseH + netFirstBulletH > effectiveMaxAvailable) {
     return null;
   }
 
@@ -258,15 +265,27 @@ export function splitCandidateItemByBullets({
     bIdx++;
   }
 
-  // Special terminal boundary rule for partial bullets:
-  if (bIdx < candidate.bullets.length - 1) {
+  // Terminal flush & tolerance loop: evaluate remaining bullets without trailing gap under effectiveMaxAvailable
+  while (bIdx < candidate.bullets.length) {
     const grossBulletH = estimateSingleBulletHeight(candidate.bullets[bIdx], sectionType, options, `${candId}_bullet_${bIdx}`);
     const bulletGap = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
     const netBulletH = Math.max(1, grossBulletH - bulletGap);
-    if (currentAccumulated + bAcc + netBulletH <= maxAvailable) {
+    if (currentAccumulated + bAcc + netBulletH <= effectiveMaxAvailable) {
       bAcc += netBulletH;
       bIdx++;
+    } else {
+      break;
     }
+  }
+
+  // If ALL bullets fit on this page within effective capacity, entire item fits without splitting!
+  if (bIdx === candidate.bullets.length) {
+    return {
+      partialCandidate: candidate,
+      partialCandidateRemaining: null,
+      consumedHeight: bAcc,
+      fitsCompletely: true,
+    };
   }
 
   if (bIdx > 0 && bIdx < candidate.bullets.length) {
@@ -296,6 +315,7 @@ export function splitCandidateItemByBullets({
       partialCandidate,
       partialCandidateRemaining,
       consumedHeight: bAcc,
+      fitsCompletely: false,
     };
   }
 
@@ -544,6 +564,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
   let currentUsedHeight = 0;
   const minCapacity = options.minPageCapacityPx ?? MIN_PAGE_CAPACITY_PX;
   const pageCapacity = Math.max(minCapacity, capacity);
+  const terminalTolerance = options.terminalTolerance ?? 0;
   const isAts = isAtsLayout(options);
 
   function addToBucket(pageNum, sec) {
@@ -655,7 +676,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
 
     // Special terminal boundary rule: if the section as a whole fits flush without the trailing gap of its last item
     const trailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
-    if (currentUsedHeight + (totalSectionHeight - trailingGap) <= pageCapacity) {
+    if (currentUsedHeight + (totalSectionHeight - trailingGap) <= pageCapacity + terminalTolerance) {
       addToBucket(currentPage, section);
       currentUsedHeight += (totalSectionHeight - trailingGap);
       continue;
@@ -724,7 +745,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
     // it belongs completely to current page as the terminal element (no split, no push).
     if (splitIdx < items.length) {
       const netH = getItemNetHeight(items[splitIdx], section.type, options);
-      if (accumulated + netH <= availableOnPage) {
+      if (accumulated + netH <= availableOnPage + terminalTolerance) {
         accumulated += netH;
         splitIdx++;
       }
@@ -747,11 +768,17 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         currentAccumulated: accumulated,
         maxAvailable: availableOnPage,
         nextPageNumber: currentPage + 1,
+        terminalTolerance,
       });
       if (splitResult) {
-        partialCandidate = splitResult.partialCandidate;
-        partialCandidateRemaining = splitResult.partialCandidateRemaining;
-        accumulated += splitResult.consumedHeight;
+        if (splitResult.fitsCompletely) {
+          accumulated += splitResult.consumedHeight;
+          splitIdx++;
+        } else {
+          partialCandidate = splitResult.partialCandidate;
+          partialCandidateRemaining = splitResult.partialCandidateRemaining;
+          accumulated += splitResult.consumedHeight;
+        }
       }
     }
 
@@ -769,7 +796,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         }
 
         const freshTrailingGap = items.length > 0 ? (section.type === 'spacer' ? 0 : (options.itemGapPx ?? DEFAULT_ITEM_GAP_PX)) : 0;
-        if (freshTotalHeight - freshTrailingGap <= pageCapacity) {
+        if (freshTotalHeight - freshTrailingGap <= pageCapacity + terminalTolerance) {
           addToBucket(currentPage, section);
           currentUsedHeight = freshTotalHeight - freshTrailingGap;
           continue;
@@ -787,7 +814,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         // Special terminal boundary rule on fresh page:
         if (freshSplitIdx < items.length) {
           const netH = getItemNetHeight(items[freshSplitIdx], section.type, options);
-          if (freshAccumulated + netH <= freshAvailable) {
+          if (freshAccumulated + netH <= freshAvailable + terminalTolerance) {
             freshAccumulated += netH;
             freshSplitIdx++;
           }
@@ -804,11 +831,17 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
             currentAccumulated: freshAccumulated,
             maxAvailable: freshAvailable,
             nextPageNumber: currentPage + 1,
+            terminalTolerance,
           });
           if (splitResult) {
-            freshPartial = splitResult.partialCandidate;
-            freshPartialRemaining = splitResult.partialCandidateRemaining;
-            freshAccumulated += splitResult.consumedHeight;
+            if (splitResult.fitsCompletely) {
+              freshAccumulated += splitResult.consumedHeight;
+              freshSplitIdx++;
+            } else {
+              freshPartial = splitResult.partialCandidate;
+              freshPartialRemaining = splitResult.partialCandidateRemaining;
+              freshAccumulated += splitResult.consumedHeight;
+            }
           }
         }
 
@@ -878,7 +911,7 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
         const itemGap = options.itemGapPx ?? DEFAULT_ITEM_GAP_PX;
         const trailingGap = isCont ? Math.round(itemGap / 2) : (cand.type === 'spacer' ? 0 : itemGap);
         const netH = Math.max(1, remHeights[nextIdx] - trailingGap);
-        if (contAcc + netH <= pageCapacity) {
+        if (contAcc + netH <= pageCapacity + terminalTolerance) {
           contAcc += netH;
           nextIdx++;
         }
@@ -898,7 +931,8 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
           const baseH = isAlreadyCont ? 0 : estimateItemBaseHeight(candidate, section.type, options);
           const firstBulletH = estimateSingleBulletHeight(candidate.bullets[0], section.type, options, `${candId}_bullet_${startOffset}`);
 
-          if (contAcc + baseH + firstBulletH <= pageCapacity) {
+          const effectivePageCapacity = pageCapacity + terminalTolerance;
+          if (contAcc + baseH + firstBulletH <= effectivePageCapacity) {
             let bAcc = baseH;
             let bIdx = 0;
             while (
@@ -910,17 +944,22 @@ function distributeSectionListToPageBuckets(sectionList, capacity, options = {})
             }
 
             // Special terminal boundary rule for partial bullets on continuation page:
-            if (bIdx < candidate.bullets.length - 1) {
+            while (bIdx < candidate.bullets.length) {
               const grossBulletH = estimateSingleBulletHeight(candidate.bullets[bIdx], section.type, options, `${candId}_bullet_${startOffset + bIdx}`);
               const bulletGap = Math.round((options.itemGapPx ?? DEFAULT_ITEM_GAP_PX) / 2);
               const netBulletH = Math.max(1, grossBulletH - bulletGap);
-              if (contAcc + bAcc + netBulletH <= pageCapacity) {
+              if (contAcc + bAcc + netBulletH <= effectivePageCapacity) {
                 bAcc += netBulletH;
                 bIdx++;
+              } else {
+                break;
               }
             }
 
-            if (bIdx > 0 && bIdx < candidate.bullets.length) {
+            if (bIdx === candidate.bullets.length) {
+              contAcc += bAcc;
+              nextIdx++;
+            } else if (bIdx > 0 && bIdx < candidate.bullets.length) {
               contPartial = {
                 ...candidate,
                 bullets: candidate.bullets.slice(0, bIdx),
@@ -1008,6 +1047,9 @@ export function distributeSectionsToPages(cvData, options = {}) {
   // SSOT: Height minus 2 * padding minus the micro-gasket clearance (14px)
   const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding - clearance);
 
+  const toleranceRatio = options.terminalToleranceRatio ?? layout.terminalToleranceRatio ?? DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO;
+  const terminalTolerance = options.terminalTolerance ?? options.terminalTolerancePx ?? Math.round((padding + clearance) * toleranceRatio);
+
   const mergedOptions = {
     omitContinuationHeader: options.omitContinuationHeader ?? false,
     omitContinuationTitle: options.omitContinuationTitle ?? false,
@@ -1022,6 +1064,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
     sectionGapPx: layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
     itemGapPx: layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
     leftColumnWidth: layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+    terminalTolerance,
+    terminalToleranceRatio: toleranceRatio,
     ...options,
     isAts,
   };
