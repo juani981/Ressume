@@ -1070,7 +1070,7 @@ export function distributeSectionsToPages(cvData, options = {}) {
   const pageHeight = options.pageHeightPx ?? layout.pageHeight ?? A4_PAGE_HEIGHT_PX;
   const padding = options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING_PX;
   const clearance = options.pageBottomClearancePx ?? PAGE_BOTTOM_CLEARANCE_PX;
-  // SSOT: Height minus 2 * padding minus the micro-gasket clearance (14px)
+  // SSOT: Height minus 2 * padding (strictly pagePadding, clearance is 0)
   const usefulCapacity = options.pageCapacity ?? (pageHeight - 2 * padding - clearance);
 
   const toleranceRatio = options.terminalToleranceRatio ?? layout.terminalToleranceRatio ?? DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO;

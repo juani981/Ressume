@@ -786,10 +786,10 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(p1Sec2).toBeDefined();
       expect(p2Sec2).toBeDefined();
 
-      // Verify n first items are on Page 1
-      expect(p1Sec2.items.map((it) => it.id)).toEqual(['it1', 'it2']);
+      // Verify n first items are on Page 1 (under 0px clearance, it1, it2, it3 fit on Page 1)
+      expect(p1Sec2.items.map((it) => it.id)).toEqual(['it1', 'it2', 'it3']);
       // Verify remaining items are on Page 2
-      expect(p2Sec2.items.map((it) => it.id)).toEqual(['it3', 'it4', 'it5']);
+      expect(p2Sec2.items.map((it) => it.id)).toEqual(['it4', 'it5']);
     });
 
     it('DnD Reordering: placing a section into page 1 with available space does not push it to page 2', () => {

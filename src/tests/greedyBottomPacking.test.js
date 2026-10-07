@@ -43,14 +43,14 @@ describe('Greedy bottom margin packing verification', () => {
 
     const pages8 = distributeSectionsToPages(cv8, {
       isEditor: true,
-      pageCapacity: 224, // 224 + 11 = 235 effective
+      pageCapacity: 227, // 227 + 7 = 234 effective
       itemGapPx: 6,
       sectionGapPx: 0,
     });
 
     const pages9 = distributeSectionsToPages(cv9, {
       isEditor: true,
-      pageCapacity: 224,
+      pageCapacity: 227,
       itemGapPx: 6,
       sectionGapPx: 0,
     });

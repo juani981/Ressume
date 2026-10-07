@@ -34,14 +34,14 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
   // 1. Mathematical Rigor & SSOT Constants
   // =========================================================================
   describe('1. SSOT Constants & Mathematical Formulation', () => {
-    it('verifies that DEFAULT_TERMINAL_TOLERANCE_PX equals Math.round((24 + 14) * 0.30) = 11px', () => {
+    it('verifies that DEFAULT_TERMINAL_TOLERANCE_PX equals Math.round((24 + 0) * 0.30) = 7px', () => {
       const bottomSafetyMargin = DEFAULT_PAGE_PADDING_PX + PAGE_BOTTOM_CLEARANCE_PX;
-      expect(bottomSafetyMargin).toBe(38);
+      expect(bottomSafetyMargin).toBe(24);
 
       const calculatedTolerance = Math.round(bottomSafetyMargin * DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO);
-      expect(calculatedTolerance).toBe(11);
-      expect(DEFAULT_TERMINAL_TOLERANCE_PX).toBe(11);
-      expect(SPACING_TOKENS.defaultTerminalTolerancePx).toBe(11);
+      expect(calculatedTolerance).toBe(7);
+      expect(DEFAULT_TERMINAL_TOLERANCE_PX).toBe(7);
+      expect(SPACING_TOKENS.defaultTerminalTolerancePx).toBe(7);
       expect(SPACING_TOKENS.terminalSafetyToleranceRatio).toBe(0.30);
     });
 
