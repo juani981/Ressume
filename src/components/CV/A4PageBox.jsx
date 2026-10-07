@@ -129,10 +129,23 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   // Grid columns template
   const effectiveGridColumns = gridTemplateColumns || `var(--grid-template-columns, ${DEFAULT_GRID_TEMPLATE_COLUMNS})`;
 
-  // Immutable physical A4 container dimensions
-  const effectivePadding = pagePadding != null
-    ? (typeof pagePadding === 'number' ? `${pagePadding}px` : pagePadding)
-    : `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`;
+  // Immutable physical A4 container dimensions:
+  // TOP, RIGHT, LEFT take user slider padding; BOTTOM takes 1/2 of slider padding
+  let effectivePadding;
+  if (pagePadding != null) {
+    if (typeof pagePadding === 'number') {
+      const bPad = Math.round(pagePadding / 2);
+      effectivePadding = `${pagePadding}px ${pagePadding}px ${bPad}px ${pagePadding}px`;
+    } else if (typeof pagePadding === 'string' && pagePadding.includes('px')) {
+      const num = parseInt(pagePadding, 10);
+      const bPad = Math.round(num / 2);
+      effectivePadding = `${num}px ${num}px ${bPad}px ${num}px`;
+    } else {
+      effectivePadding = pagePadding;
+    }
+  } else {
+    effectivePadding = `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding-bottom, calc(${DEFAULT_PAGE_PADDING_PX}px / 2)) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`;
+  }
 
   // Effective height: defaults to standard A4 height (297mm), overridable by prop
   const effectiveHeight = pageHeight || A4_HEIGHT_CSS;

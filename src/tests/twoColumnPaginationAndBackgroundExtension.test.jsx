@@ -329,6 +329,17 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                   'Participación activa en reuniones de planificación de requerimientos técnicos y retrospectivas ágiles.',
                 ],
               },
+              {
+                id: 'exp4',
+                title: 'Frontend Intern',
+                subtitle: 'Tech Hub | Rosario',
+                date: '2017 - 2018',
+                description: 'Asistencia en desarrollo frontend inicial.',
+                bullets: [
+                  'Maquetación de landing pages responsivas.',
+                  'Soporte a equipos de diseño y QA.',
+                ],
+              },
             ],
           };
         }

@@ -87,12 +87,12 @@ describe('useDocumentPages Hook', () => {
       },
     };
 
-    // With huge padding (320px) to drastically reduce capacity
+    // With huge padding (450px) to drastically reduce capacity
     const largePaddingSchema = {
       ...defaultSchema,
       layout: {
         ...defaultSchema.layout,
-        pagePadding: 320,
+        pagePadding: 450,
       },
     };
 

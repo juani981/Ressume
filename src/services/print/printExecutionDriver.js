@@ -260,9 +260,13 @@ ${activePrintStyles}
           const pageBoxes = doc.querySelectorAll ? doc.querySelectorAll('.a4-page-box') : [];
           const hasA4PageBoxes = pageBoxes.length > 0 || areaCv?.classList?.contains('has-a4-page-boxes');
           const isAtsOrSingle = isAtsMode || !is2Col || areaCv?.classList?.contains('resume__single-column');
-          const pagePaddingVal = cvData?.layout?.pagePadding != null
+          const padTop = cvData?.layout?.pagePadding != null
             ? `${cvData.layout.pagePadding}px`
             : 'var(--page-padding, 24px)';
+          const padBottom = cvData?.layout?.pagePadding != null
+            ? `${Math.round(cvData.layout.pagePadding / 2)}px`
+            : 'var(--page-padding-bottom, calc(var(--page-padding, 24px) / 2))';
+          const pagePaddingVal = `${padTop} ${padTop} ${padBottom} ${padTop}`;
 
           if (areaCv && areaCv.style) {
             areaCv.style.setProperty('margin', '0', 'important');
