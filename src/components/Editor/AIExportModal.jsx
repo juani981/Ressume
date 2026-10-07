@@ -10,6 +10,7 @@ import { useModalTheme } from '../../hooks/useModalTheme';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
 import ModalHelpButton from '../common/ModalHelpButton';
 import { TOUR_IDS } from '../../context/TourContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { 
   BrainCircuit, 
   Target, 
@@ -74,6 +75,9 @@ const AIExportModal = ({
     showToast 
   } = useCV();
   const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { isOpen, onClose });
+
   const [selectedPromptId, setSelectedPromptId] = useState(initialPromptId || 'recruiter_audit');
   const selectedFormat = 'markdown'; // Fixed to Semantic Markdown per R1
   const [userCommentary, setUserCommentary] = useState('');
@@ -125,6 +129,11 @@ const AIExportModal = ({
           }
         }
       };
+      reader.onerror = () => {
+        if (typeof showToast === 'function') {
+          showToast('Error al leer el archivo del disco', 'error', 3500);
+        }
+      };
       reader.readAsText(file);
     } else {
       if (typeof showToast === 'function') {
@@ -148,6 +157,11 @@ const AIExportModal = ({
           if (typeof showToast === 'function') {
             showToast(`Archivo "${file.name}" leído (${text.split(/\s+/).filter(Boolean).length} palabras)`, 'success', 3000);
           }
+        }
+      };
+      reader.onerror = () => {
+        if (typeof showToast === 'function') {
+          showToast('Error al leer el archivo del disco', 'error', 3500);
         }
       };
       reader.readAsText(file);
@@ -491,6 +505,7 @@ const AIExportModal = ({
       padding: '1.5rem'
     }}>
       <div 
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="ai-modal-title"

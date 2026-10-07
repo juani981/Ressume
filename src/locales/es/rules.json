@@ -51,7 +51,7 @@
     "validation_type": "format_scan",
     "auto_fixable": true,
     "suggestion_title": "Estructura Monocapa ATS",
-    "suggestion_body": "No utilice columnas paralelas en modo ATS. Organice el contenido en un flujo lineal vertical continuo.",
+    "suggestion_body": "Evite columnas paralelas en ATS. Organice el contenido en un flujo lineal vertical continuo.",
     "example_bad": "Tablas y columnas paralelas que desordenan la lectura del parser",
     "example_good": "Flujo vertical de una sola columna sin tablas ni particiones"
   },
@@ -65,7 +65,7 @@
     "validation_type": "format_scan",
     "auto_fixable": false,
     "suggestion_title": "Jerarquía Visual Bicolumna",
-    "suggestion_body": "Evite bloques de texto densos en columnas estrechas. Reserve los laterales para datos breves de contacto y tecnologías.",
+    "suggestion_body": "Evite texto denso en columnas estrechas; reserve los laterales para contacto y habilidades.",
     "example_bad": "Descripciones largas de experiencia laboral apretadas en la barra lateral",
     "example_good": "Contacto y stack a la izquierda; trayectoria en la columna ancha"
   },
@@ -79,7 +79,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Sintaxis Limpia sin Signos Reservados",
-    "suggestion_body": "Evite signos de moneda o caracteres reservados aislados. Pueden interferir con expresiones regulares de los filtros automáticos.",
+    "suggestion_body": "Evite caracteres reservados o monedas aisladas que interfieran con los filtros automáticos del analizador.",
     "example_bad": "Optimización +1$ en el pipeline de CI/CD",
     "example_good": "Resolución del problema N+1 y optimización en CI/CD"
   },
@@ -107,7 +107,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Viñetas Estándar sin Casillas ni Emojis",
-    "suggestion_body": "No emplee casillas gráficas ni emojis. Utilice viñetas tipográficas estándar para asegurar el procesamiento de texto.",
+    "suggestion_body": "Evite emojis y casillas gráficas. Utilice viñetas estándar para asegurar el procesamiento del texto.",
     "example_bad": "☑ Desarrollé la API de pagos en Node.js 🚀",
     "example_good": "• Desarrollé la API de pagos en microservicios con Node.js"
   },
@@ -135,7 +135,7 @@
     "validation_type": "content_quality",
     "auto_fixable": false,
     "suggestion_title": "Titular Profesional y Especialidad",
-    "suggestion_body": "Evite adjetivos sin respaldo técnico. Declare su especialidad técnica principal y el conjunto central de herramientas.",
+    "suggestion_body": "Evite adjetivos sin respaldo. Declare su especialidad técnica principal y sus herramientas centrales.",
     "example_bad": "Desarrollador apasionado con ganas de aprender cosas nuevas",
     "example_good": "Full Stack Engineer | React, Node.js, TypeScript"
   },
@@ -163,7 +163,7 @@
     "validation_type": "content_quality",
     "auto_fixable": false,
     "suggestion_title": "Resumen Profesional de Impacto",
-    "suggestion_body": "Evite declaraciones genéricas de intenciones. Sintetice en dos o tres líneas su experiencia técnica y resultados alcanzados.",
+    "suggestion_body": "Evite declaraciones genéricas. Sintetice en dos o tres líneas su experiencia y resultados técnicos.",
     "example_bad": "Mi objetivo es formar parte de una empresa líder para sumar conocimientos",
     "example_good": "Backend dev con 4 años optimizando microservicios y reduciendo latencias un 30%"
   },
@@ -205,7 +205,7 @@
     "validation_type": "content_quality",
     "auto_fixable": false,
     "suggestion_title": "Estructura de Impacto Cuantificado",
-    "suggestion_body": "No enumere tareas rutinarias. Especifique qué objetivo alcanzó, con qué métrica de comprobación y mediante qué técnica.",
+    "suggestion_body": "Evite listas pasivas; detalle qué logró, medido con qué y cómo (fórmula Laszlo Bock).",
     "example_bad": "Mantenía la base de datos y corregía queries lentas",
     "example_good": "Reduje tiempos de consulta SQL un 45% reestructurando índices y particionando tablas"
   },
@@ -219,7 +219,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Verbos de Acción en Modo Activo",
-    "suggestion_body": "Evite formulaciones pasivas como 'responsable de'. Inicie cada logro con un verbo de acción directa en pasado o presente.",
+    "suggestion_body": "Evite 'responsable de'; inicie cada viñeta con verbos de acción directa y contundente.",
     "example_bad": "Responsable de coordinar deploys y tareas de backend",
     "example_good": "Automaticé el pipeline de CI/CD reduciendo fallos en producción un 20%"
   },
@@ -303,7 +303,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Exclusión de Habilidades Blandas Genéricas",
-    "suggestion_body": "Evite adjetivos genéricos de comportamiento. Demuestre el trabajo en equipo a través de resultados técnicos y coordinación comprobable.",
+    "suggestion_body": "Evite adjetivos blandos; demuestre trabajo en equipo mediante resultados técnicos y coordinación comprobable.",
     "example_bad": "Proactivo, puntual, trabajo bajo presión, sociable",
     "example_good": "Lideré squad de 5 devs coordinando entregas bisemanales y code reviews"
   },
@@ -317,7 +317,7 @@
     "validation_type": "format_scan",
     "auto_fixable": true,
     "suggestion_title": "Indexación Temprana de Términos Técnicos",
-    "suggestion_body": "Posicione las habilidades técnicas principales en la mitad superior del documento para optimizar la indexación del perfil.",
+    "suggestion_body": "Ubique habilidades técnicas clave en la mitad superior para optimizar la indexación del perfil.",
     "example_bad": "Habilidades técnicas relegadas al final de la segunda página",
     "example_good": "Stack tecnológico ubicado en el tercio superior del documento"
   },
@@ -345,7 +345,7 @@
     "validation_type": "content_quality",
     "auto_fixable": false,
     "suggestion_title": "Arquitectura, Solución e Impacto",
-    "suggestion_body": "No redacte proyectos como guías de estudio. Detalle el problema abordado, las decisiones de arquitectura técnica y el resultado funcional.",
+    "suggestion_body": "Evite tutoriales; detalle el problema abordado, las decisiones de arquitectura y el resultado funcional.",
     "example_bad": "Hice un clon de Netflix siguiendo un video de YouTube",
     "example_good": "Plataforma de streaming con transcoding serverless en AWS Lambda y CDN"
   },
@@ -359,7 +359,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Verificabilidad de Repositorios y Demos",
-    "suggestion_body": "Proporcione enlaces a repositorios públicos o demostraciones en línea para permitir la verificación directa del código.",
+    "suggestion_body": "Incluya enlaces a repositorios públicos o demostraciones para permitir la verificación directa del código.",
     "example_bad": "Proyecto Ecommerce (corre solo en mi localhost:3000)",
     "example_good": "Repo: github.com/user/shop | Demo en vivo: shop-app.vercel.app"
   },
@@ -401,7 +401,7 @@
     "validation_type": "content_quality",
     "auto_fixable": false,
     "suggestion_title": "Supresión de Educación Secundaria",
-    "suggestion_body": "Omita la educación secundaria cuando ya se cuente con formación universitaria, técnica superior o terciaria completada.",
+    "suggestion_body": "Omita la secundaria cuando ya cuente con formación universitaria o técnica superior completada.",
     "example_bad": "Bachiller mercantil | Colegio San Martín (2012 – 2017)",
     "example_good": "Enfocar el espacio únicamente en formación universitaria y superior relevante"
   },
@@ -429,7 +429,7 @@
     "validation_type": "regex_or_check",
     "auto_fixable": false,
     "suggestion_title": "Competencia Lingüística Estándar (MCER)",
-    "suggestion_body": "Utilice descriptores estandarizados internacionales (A1 a C2 o Nativo / Profesional) en lugar de porcentajes subjetivos.",
+    "suggestion_body": "Utilice descriptores estandarizados (A1-C2 o Profesional) en lugar de porcentajes subjetivos o barras.",
     "example_bad": "Inglés: 75% | Francés: nivel medio",
     "example_good": "Inglés: C1 (Fluidez profesional avanzada en entornos de ingeniería)"
   }

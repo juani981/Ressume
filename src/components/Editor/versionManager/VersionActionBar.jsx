@@ -59,6 +59,7 @@ export const VersionActionBar = ({
           <input
             type="text"
             data-testid="input-new-version-name"
+            aria-label="Nombre de la nueva versión"
             placeholder="Nombre de la nueva versión (ej: CV Tech Lead 2026)"
             value={newVersionName}
             onChange={(e) => setNewVersionName(e.target.value)}

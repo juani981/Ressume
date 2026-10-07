@@ -25,6 +25,8 @@ import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
+import { DEFAULT_SECTION_GAP_PX } from '../../constants/spacing';
+import SectionErrorBoundary from './SectionErrorBoundary';
 
 /**
  * Checks whether the container tag should be rendered as a list container (ul/ol).
@@ -119,15 +121,17 @@ export const PrintBaseSection = ({ section }) => {
 
   const hasPageBreak = Boolean(section.pageBreak === 'before' || section.breakBefore || section.isForcedBreak);
   const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
+  const isContinuation = Boolean(section.isContinuation);
 
   return (
     <PrintModeContext.Provider value={true}>
       <section 
-        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}${section.hasContinuation ? ' section-has-continuation' : ''}${isContinuation ? ' section-is-continuation' : ''}`} 
         id={section.id}
         data-section-id={section.id}
         data-has-continuation={section.hasContinuation ? 'true' : undefined}
-        style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+        data-is-continuation={isContinuation ? 'true' : undefined}
+        style={{ marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`, color: 'var(--text-color)' }}
       >
         {descriptor.hasTitle !== false && section.title && (
           <h2 
@@ -139,14 +143,16 @@ export const PrintBaseSection = ({ section }) => {
         )}
 
         <div className={wrapperClass}>
-          <SectionItemsRenderer
-            items={items}
-            sectionId={section.originalSectionId || section.id}
-            sectionType={section.type}
-            descriptor={descriptor}
-            isPrint={true}
-            hasContinuation={Boolean(section.hasContinuation)}
-          />
+          <SectionErrorBoundary sectionId={section.id} sectionTitle={section.title}>
+            <SectionItemsRenderer
+              items={items}
+              sectionId={section.originalSectionId || section.id}
+              sectionType={section.type}
+              descriptor={descriptor}
+              isPrint={true}
+              hasContinuation={Boolean(section.hasContinuation)}
+            />
+          </SectionErrorBoundary>
         </div>
 
         <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
@@ -211,7 +217,7 @@ const EditableBaseSection = ({ section }) => {
     position: 'relative',
     opacity: isDragging ? 0.35 : 1,
     zIndex: isDragging ? 100 : undefined,
-    marginBottom: 'var(--section-gap, 20px)',
+    marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`,
     color: 'var(--text-color)',
     minWidth: 0,
     maxWidth: '100%',
@@ -311,14 +317,16 @@ const EditableBaseSection = ({ section }) => {
       
       <div className={wrapperClass} style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
-          <SectionItemsRenderer
-            items={section.items || []}
-            sectionId={section.originalSectionId || section.id}
-            sectionType={section.type}
-            descriptor={descriptor}
-            isPrint={false}
-            hasContinuation={Boolean(section.hasContinuation)}
-          />
+          <SectionErrorBoundary sectionId={section.id} sectionTitle={section.title}>
+            <SectionItemsRenderer
+              items={section.items || []}
+              sectionId={section.originalSectionId || section.id}
+              sectionType={section.type}
+              descriptor={descriptor}
+              isPrint={false}
+              hasContinuation={Boolean(section.hasContinuation)}
+            />
+          </SectionErrorBoundary>
         </SortableContext>
       </div>
 

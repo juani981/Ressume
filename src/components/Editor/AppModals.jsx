@@ -6,6 +6,7 @@ import SuggestionTooltip from './SuggestionTooltip';
 import AITipsSidebar from './AITipsSidebar';
 import ToastNotification from './ToastNotification';
 import ModalHelpDialog from '../common/ModalHelpDialog';
+import ModalErrorBoundary from '../common/ModalErrorBoundary';
 import {
   useTourManager,
   TOUR_IDS,
@@ -74,15 +75,19 @@ export function AppModals({
       />
 
       {/* Add Section Selection Modal */}
-      <AddSectionModal
-        isOpen={isAddSectionModalOpen}
-        onClose={onCloseAddSectionModal}
-        targetColumn={addSectionTargetColumn}
-        targetIndex={addSectionTargetIndex}
-      />
+      <ModalErrorBoundary modalName="modal de agregar sección" onClose={onCloseAddSectionModal}>
+        <AddSectionModal
+          isOpen={isAddSectionModalOpen}
+          onClose={onCloseAddSectionModal}
+          targetColumn={addSectionTargetColumn}
+          targetIndex={addSectionTargetIndex}
+        />
+      </ModalErrorBoundary>
 
       {/* Global Modal Help Step-by-Step Dialog */}
-      <ModalHelpDialog />
+      <ModalErrorBoundary modalName="diálogo de ayuda">
+        <ModalHelpDialog />
+      </ModalErrorBoundary>
 
       {/* Global Singleton AI Suggestion Tooltip */}
       {activeTooltip && activeTooltip.section && activeTooltip.rect && (

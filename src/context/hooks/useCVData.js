@@ -99,17 +99,50 @@ export const ensureProfileHeader = (data) => {
 };
 
 /**
+ * Safely writes to localStorage, guarding against QuotaExceededError and private mode restrictions.
+ */
+const safeSetItem = (key, value) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    if (error?.name === 'QuotaExceededError' || error?.code === 22) {
+      console.warn(`[Almacenamiento] Cuota de almacenamiento local excedida al guardar ${key}.`);
+    } else {
+      console.warn(`[Almacenamiento] No fue posible persistir ${key} en almacenamiento local:`, error);
+    }
+  }
+};
+
+/**
  * Loads initial CV data from localStorage with fallback to defaultSchema.
+ * Automatically quarantines corrupt payloads and normalizes through sanitizeAndValidateCVSnapshot.
  * @returns {Object} Initialized CV state.
  */
 export const loadInitialCVData = () => {
   if (typeof window !== 'undefined') {
     try {
-      const parsed = JSON.parse(localStorage.getItem('cvData') || '');
-      if (parsed && typeof parsed === 'object') {
-        return ensureProfileHeader({ ...defaultSchema, ...parsed, layout: { ...defaultSchema.layout, ...(parsed.layout || {}) } });
+      const raw = localStorage.getItem('cvData');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          const sanitized = sanitizeAndValidateCVSnapshot({
+            ...defaultSchema,
+            ...parsed,
+            layout: { ...defaultSchema.layout, ...(parsed.layout || {}) }
+          });
+          return ensureProfileHeader(sanitized);
+        }
       }
-    } catch (_) {}
+    } catch (_) {
+      try {
+        const rawCorrupted = localStorage.getItem('cvData');
+        if (rawCorrupted) {
+          safeSetItem('ressume_quarantined_snapshots', rawCorrupted);
+          localStorage.removeItem('cvData');
+        }
+      } catch (_) {}
+    }
   }
   const isTestEnv = typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || Boolean(process.env?.VITEST));
   if (isTestEnv || typeof window === 'undefined') return defaultSchema;
@@ -148,14 +181,14 @@ export const useCVData = ({
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') localStorage.setItem('cvData', JSON.stringify(cvData));
+    safeSetItem('cvData', JSON.stringify(cvData));
   }, [cvData]);
   useEffect(() => {
-    if (typeof window !== 'undefined') localStorage.setItem('cvLanguagePacks', JSON.stringify(languagePacks));
+    safeSetItem('cvLanguagePacks', JSON.stringify(languagePacks));
   }, [languagePacks]);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem('cvActiveLanguage', activeLanguage);
+    safeSetItem('cvActiveLanguage', activeLanguage);
     if (typeof document !== 'undefined') document.documentElement.lang = activeLanguage || 'es';
   }, [activeLanguage]);
   useEffect(() => {

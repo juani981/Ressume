@@ -11,6 +11,7 @@ import {
   BASE_FONT_SIZES_PX,
   DEFAULT_FONT_FAMILY_NAME,
 } from '../../../constants/typography';
+import { COLOR_TOKENS } from '../../../constants/colors';
 
 const formatPx = (val) => {
   const rounded = Math.round(val * 2) / 2;
@@ -54,6 +55,9 @@ export const DesignPanel = ({
   return (
     <div
       className="design-popover no-print"
+      role="region"
+      aria-label="Panel de Ajustes de Diseño"
+      aria-hidden={!isOpen}
       style={{
         position: 'fixed',
         left: '4.75rem',
@@ -68,11 +72,12 @@ export const DesignPanel = ({
         width: '320px',
         maxHeight: '90vh',
         overflowY: 'auto',
-        display: 'flex',
+        display: isOpen ? 'flex' : 'none',
         flexDirection: 'column',
         gap: '1rem',
         opacity: isOpen ? 1 : 0,
         pointerEvents: isOpen ? 'auto' : 'none',
+        visibility: isOpen ? 'visible' : 'hidden',
         transition: 'opacity 0.2s ease, transform 0.2s ease',
       }}
       data-testid="design-submenu"
@@ -277,8 +282,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.4}
+              min={TYPOGRAPHY_SCALE_LIMITS.titleScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.titleScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.h2 * (fontScale || 1.0))}
               value={titleScale}
               onChange={(e) => updateLayout('titleScale', Number(e.target.value))}
@@ -305,8 +310,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
+              min={TYPOGRAPHY_SCALE_LIMITS.bodyScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.bodyScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={bodyScale}
               onChange={(e) => updateLayout('bodyScale', Number(e.target.value))}
@@ -333,8 +338,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
+              min={TYPOGRAPHY_SCALE_LIMITS.listScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.listScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={listScale}
               onChange={(e) => updateLayout('listScale', Number(e.target.value))}
@@ -365,9 +370,9 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
-              step={0.05}
+              min={TYPOGRAPHY_SCALE_LIMITS.fontScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.fontScale.max}
+              step={TYPOGRAPHY_SCALE_LIMITS.fontScale.step}
               value={fontScale}
               onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -390,9 +395,9 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={1.15}
-              max={1.85}
-              step={0.05}
+              min={TYPOGRAPHY_SCALE_LIMITS.lineHeight.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.lineHeight.max}
+              step={TYPOGRAPHY_SCALE_LIMITS.lineHeight.step}
               value={lineHeight}
               onChange={(e) => updateLayout('lineHeight', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -533,7 +538,7 @@ export const DesignPanel = ({
               }}
             >
               <span>Ancho Columna Lateral</span>
-              <b style={{ color: '#3874ff' }}>
+              <b style={{ color: COLOR_TOKENS.primaryAccent }}>
                 {Math.round(leftColumnWidth)}% / {100 - Math.round(leftColumnWidth)}%
               </b>
             </div>

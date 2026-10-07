@@ -272,6 +272,15 @@ export const ActionMenuRoot = () => {
         <div
           className="action-menu-edge-handle"
           data-testid="action-menu-peek-tab"
+          role="button"
+          tabIndex={!isExpanded ? 0 : -1}
+          onClick={!isExpanded ? handlePeekClick : undefined}
+          onKeyDown={(e) => {
+            if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              handlePeekClick();
+            }
+          }}
           style={{
             position: 'absolute',
             right: 0,

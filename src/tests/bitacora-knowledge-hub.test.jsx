@@ -217,7 +217,7 @@ describe('Bitácora / Knowledge Hub System', () => {
       const submitBtn = screen.getByRole('button', { name: /Publicar en la Bitácora/i });
       fireEvent.click(submitBtn);
 
-      expect(screen.getByText(/Por favor, ingresá un título claro/i)).toBeInTheDocument();
+      expect(screen.getByText(/Por favor, ingres[eá] un título claro/i)).toBeInTheDocument();
       expect(onSubmit).not.toHaveBeenCalled();
     });
 

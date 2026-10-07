@@ -5,9 +5,10 @@
  * polymorphic card rendering, and Obsidian Callout integration.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useBitacora } from '../../hooks/useBitacora';
 import { useModalTheme } from '../../hooks/useModalTheme';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
 import { BitacoraCard } from './BitacoraCard';
 import { BitacoraDetailModal } from './BitacoraDetailModal';
@@ -26,6 +27,12 @@ import {
 export const BitacoraModal = ({ isOpen, onClose }) => {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
+  const dialogRef = useRef(null);
+
+  useFocusTrap(dialogRef, {
+    isOpen: isOpen && !isSubmitOpen,
+    onClose,
+  });
 
   const {
     categories,
@@ -94,6 +101,7 @@ export const BitacoraModal = ({ isOpen, onClose }) => {
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="bitacora-modal-title"

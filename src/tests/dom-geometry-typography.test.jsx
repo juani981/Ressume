@@ -854,8 +854,10 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
 
       it('F13.5: Clicking spacing button opens Espaciado y Márgenes popover with range sliders', () => {
         render(<CVProvider><ActionMenu /></CVProvider>);
-        const spacingBtn = screen.getByRole('button', { name: /ajustes de márgenes y espaciado/i });
-        fireEvent.click(spacingBtn);
+        const designBtn = screen.getByTestId('btn-open-design');
+        fireEvent.click(designBtn);
+        const spacingTab = screen.getByTestId('tab-spacing');
+        fireEvent.click(spacingTab);
 
         expect(screen.getByText('Espaciado y Márgenes')).toBeInTheDocument();
         expect(screen.getByLabelText(/control de margen de página/i)).toBeInTheDocument();

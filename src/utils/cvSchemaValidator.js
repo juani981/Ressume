@@ -19,14 +19,14 @@ export const ALLOWED_COLUMNS = Object.freeze(['left', 'right']);
 export const ALLOWED_FONT_FAMILIES = SUPPORTED_FONT_NAMES;
 
 export const NUMERIC_BOUNDS = Object.freeze({
-  pagePadding: { min: 0, max: 100, default: SPACING_LIMITS.pagePadding.default },
-  sectionGap: { min: 0, max: 100, default: SPACING_LIMITS.sectionGap.default },
-  itemGap: { min: 0, max: 50, default: SPACING_LIMITS.itemGap.default },
-  fontScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.fontScale.default },
-  titleScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.titleScale.default },
-  bodyScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default },
-  listScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.listScale.default },
-  lineHeight: { min: 1.0, max: 2.5, default: DEFAULT_LINE_HEIGHT }
+  pagePadding: { min: SPACING_LIMITS.pagePadding.min, max: SPACING_LIMITS.pagePadding.max, default: SPACING_LIMITS.pagePadding.default },
+  sectionGap: { min: SPACING_LIMITS.sectionGap.min, max: SPACING_LIMITS.sectionGap.max, default: SPACING_LIMITS.sectionGap.default },
+  itemGap: { min: SPACING_LIMITS.itemGap.min, max: SPACING_LIMITS.itemGap.max, default: SPACING_LIMITS.itemGap.default },
+  fontScale: { min: TYPOGRAPHY_SCALE_LIMITS.fontScale.min, max: TYPOGRAPHY_SCALE_LIMITS.fontScale.max, default: TYPOGRAPHY_SCALE_LIMITS.fontScale.default },
+  titleScale: { min: TYPOGRAPHY_SCALE_LIMITS.titleScale.min, max: TYPOGRAPHY_SCALE_LIMITS.titleScale.max, default: TYPOGRAPHY_SCALE_LIMITS.titleScale.default },
+  bodyScale: { min: TYPOGRAPHY_SCALE_LIMITS.bodyScale.min, max: TYPOGRAPHY_SCALE_LIMITS.bodyScale.max, default: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default },
+  listScale: { min: TYPOGRAPHY_SCALE_LIMITS.listScale.min, max: TYPOGRAPHY_SCALE_LIMITS.listScale.max, default: TYPOGRAPHY_SCALE_LIMITS.listScale.default },
+  lineHeight: { min: TYPOGRAPHY_SCALE_LIMITS.lineHeight.min, max: TYPOGRAPHY_SCALE_LIMITS.lineHeight.max, default: DEFAULT_LINE_HEIGHT }
 });
 
 export const CANONICAL_SECTION_TITLES = Object.freeze({

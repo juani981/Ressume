@@ -4,8 +4,9 @@
  * Supports dark mode by default with opt-in light mode.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ObsidianCallout } from './ObsidianCallout';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import {
   X,
   ExternalLink,
@@ -24,6 +25,12 @@ export const BitacoraDetailModal = ({
   categoryConfig,
   theme = 'dark',
 }) => {
+  const dialogRef = useRef(null);
+
+  useFocusTrap(dialogRef, {
+    isOpen: Boolean(item),
+    onClose,
+  });
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -55,9 +62,6 @@ export const BitacoraDetailModal = ({
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="bitacora-detail-title"
       data-theme={theme}
       className="bitacora-detail-backdrop"
       onClick={(e) => {
@@ -82,6 +86,10 @@ export const BitacoraDetailModal = ({
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bitacora-detail-title"
         className="bitacora-detail-dialog"
         data-testid="bitacora-detail-modal"
         data-theme={theme}

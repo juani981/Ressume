@@ -22,6 +22,7 @@ import { useModalTheme } from '../../hooks/useModalTheme';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
 import ModalHelpButton from '../common/ModalHelpButton';
 import { TOUR_IDS } from '../../context/TourContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 /**
  * Full-screen Version Manager Hub modal dialog.
@@ -48,6 +49,7 @@ export const VersionManagerModal = ({
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newVersionName, setNewVersionName] = useState('');
+  const modalRef = useRef(null);
 
   // Inline rename state: versionId | null
   const [editingVersionId, setEditingVersionId] = useState(null);
@@ -59,6 +61,27 @@ export const VersionManagerModal = ({
   const [confirmLoadVersion, setConfirmLoadVersion] = useState(null);
   const [confirmDeleteVersion, setConfirmDeleteVersion] = useState(initialDeleteVersion);
   const [confirmBlankCV, setConfirmBlankCV] = useState(initialConfirmBlank);
+
+  const handleModalClose = useCallback((e) => {
+    if (editingVersionId) return;
+    if (confirmLoadVersion) {
+      setConfirmLoadVersion(null);
+      return;
+    }
+    if (confirmDeleteVersion) {
+      setConfirmDeleteVersion(null);
+      return;
+    }
+    if (confirmBlankCV) {
+      setConfirmBlankCV(false);
+      return;
+    }
+    if (typeof onClose === 'function') {
+      onClose(e);
+    }
+  }, [editingVersionId, confirmLoadVersion, confirmDeleteVersion, confirmBlankCV, onClose]);
+
+  useFocusTrap(modalRef, { isOpen, onClose: handleModalClose });
 
   // Generate suggested version name based on candidate & date
   const generateSuggestedName = useCallback(() => {
@@ -123,33 +146,6 @@ export const VersionManagerModal = ({
     };
   }, [isOpen, initialDeleteVersion, initialConfirmBlank, generateSuggestedName]);
 
-  // Window Escape key handler (closes modal unless focused in inline edit)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        // If inline rename is active, don't close modal (handled in input onKeyDown)
-        if (editingVersionId) return;
-        if (confirmLoadVersion) {
-          setConfirmLoadVersion(null);
-          return;
-        }
-        if (confirmDeleteVersion) {
-          setConfirmDeleteVersion(null);
-          return;
-        }
-        if (confirmBlankCV) {
-          setConfirmBlankCV(false);
-          return;
-        }
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, editingVersionId, confirmLoadVersion, confirmDeleteVersion, confirmBlankCV, onClose]);
 
   // Focus rename input when editing starts
   useEffect(() => {
@@ -468,6 +464,7 @@ export const VersionManagerModal = ({
       }}
     >
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="version-modal-title"

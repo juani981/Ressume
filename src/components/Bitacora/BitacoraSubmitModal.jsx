@@ -4,9 +4,10 @@
  * Includes interactive Obsidian Callout builder, link manager, and live card preview.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { BITACORA_CATEGORIES } from '../../data/bitacora/categories';
 import { ObsidianCallout } from './ObsidianCallout';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import {
   X,
   Plus,
@@ -20,6 +21,12 @@ import {
 
 export const BitacoraSubmitModal = ({ isOpen, onClose, onSubmit, theme = 'dark' }) => {
   const isDark = theme === 'dark';
+  const dialogRef = useRef(null);
+
+  useFocusTrap(dialogRef, {
+    isOpen,
+    onClose,
+  });
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('bullets');
   const [summary, setSummary] = useState('');
@@ -65,11 +72,11 @@ export const BitacoraSubmitModal = ({ isOpen, onClose, onSubmit, theme = 'dark' 
     setError('');
 
     if (!title.trim()) {
-      setError('Por favor, ingresá un título claro para el consejo.');
+      setError('Por favor, ingrese un título claro para el consejo.');
       return;
     }
     if (!summary.trim()) {
-      setError('Por favor, agregá una bajada o resumen breve del consejo.');
+      setError('Por favor, agregue una bajada o resumen breve del consejo.');
       return;
     }
 
@@ -109,9 +116,6 @@ export const BitacoraSubmitModal = ({ isOpen, onClose, onSubmit, theme = 'dark' 
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="submit-modal-title"
       className="bitacora-submit-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -135,6 +139,10 @@ export const BitacoraSubmitModal = ({ isOpen, onClose, onSubmit, theme = 'dark' 
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submit-modal-title"
         className="bitacora-submit-container"
         style={{
           maxWidth: '680px',

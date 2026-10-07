@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { HelpCircle, X, CheckCircle2 } from 'lucide-react';
 import { useTourManager, MODAL_HELP_CONTENT } from '../../context/TourContext';
 import { useModalTheme } from '../../hooks/useModalTheme';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 /**
  * ModalHelpDialog
@@ -12,6 +13,12 @@ import { useModalTheme } from '../../hooks/useModalTheme';
 export const ModalHelpDialog = () => {
   const { helpModalTourId, closeModalHelp } = useTourManager();
   const { isDark } = useModalTheme();
+  const dialogRef = useRef(null);
+
+  useFocusTrap(dialogRef, {
+    isOpen: Boolean(helpModalTourId),
+    onClose: closeModalHelp,
+  });
 
   if (!helpModalTourId) return null;
 
@@ -20,10 +27,7 @@ export const ModalHelpDialog = () => {
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-help-title"
-      data-testid="modal-help-dialog"
+      className="modal-help-backdrop"
       style={{
         position: 'fixed',
         top: 0,
@@ -44,6 +48,11 @@ export const ModalHelpDialog = () => {
       }}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-help-title"
+        data-testid="modal-help-dialog"
         style={{
           width: '100%',
           maxWidth: '560px',

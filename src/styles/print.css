@@ -155,40 +155,41 @@
     padding-top: 0 !important;
   }
 
-  .a4-page-box .cv-section:last-child,
-  .a4-page-box .cv-section:last-of-type,
-  .a4-page-box .section:last-child,
-  .a4-page-box .section:last-of-type,
-  .a4-page-box .editable-section-container:last-child,
-  .a4-page-box .editable-section-container:last-of-type,
-  .a4-page-box .resume__left > .cv-section:last-child,
-  .a4-page-box .resume__left > .cv-section:last-of-type,
-  .a4-page-box .resume__right > .cv-section:last-child,
-  .a4-page-box .resume__right > .cv-section:last-of-type,
-  .a4-page-box .resume__single-column > .cv-section:last-child,
-  .a4-page-box .resume__single-column > .cv-section:last-of-type,
-  .a4-page-box .cv-section:last-child > :last-child,
-  .a4-page-box .cv-section:last-of-type > :last-child,
-  .a4-page-box .cv-section:last-child .editable-item-container:last-child,
-  .a4-page-box .cv-section:last-of-type .editable-item-container:last-of-type,
-  .a4-page-box .cv-section:last-child .cv-block:last-child,
-  .a4-page-box .cv-section:last-of-type .cv-block:last-of-type,
-  .a4-page-box .editable-item-container:last-child,
-  .a4-page-box .editable-item-container:last-of-type,
-  .a4-page-box .cv-block:last-child,
-  .a4-page-box .cv-block:last-of-type,
-  .a4-page-box .bullet-item-row:last-child,
-  .a4-page-box .bullet-item-row:last-of-type,
-  .a4-page-box ul.experience__bullets li:last-child,
-  .a4-page-box ul.experience__bullets li:last-of-type,
-  .a4-page-box ul.simple-list-ul li:last-child,
-  .a4-page-box ul.simple-list-ul li:last-of-type,
-  .a4-page-box .simple-list-item:last-child,
-  .a4-page-box .simple-list-item:last-of-type,
-  .a4-page-box .skills__name:last-child,
-  .a4-page-box .skills__name:last-of-type,
-  .a4-page-box .languages__name:last-child,
-  .a4-page-box .languages__name:last-of-type {
+  /* Exclude partial/continuation items and sections from terminal margin removal */
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .editable-section-container:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .editable-section-container:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__left > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__left > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__right > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__right > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__single-column > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__single-column > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) > :last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) > :last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) .editable-item-container:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) .editable-item-container:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .editable-item-container:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .editable-item-container:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .bullet-item-row:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .bullet-item-row:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.experience__bullets li:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.simple-list-ul li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.simple-list-ul li:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .simple-list-item:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .simple-list-item:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .skills__name:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .skills__name:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .languages__name:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .languages__name:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -399,10 +400,11 @@
   }
 
   /* 6. Supresión de márgenes terminales para evitar desbordes y hojas en blanco */
-  .cv-section:last-child,
-  .cv-section:last-of-type,
-  .cv-block:last-child,
-  .cv-block:last-of-type {
+  /* Exclude partial/continuation items and sections from terminal margin removal */
+  .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -442,12 +444,12 @@
     margin-bottom: var(--section-gap, 12px) !important;
   }
 
-  .resume--ats-mode .cv-section:last-child,
-  .resume--ats-mode .cv-section:last-of-type,
-  .resume__single-column .cv-section:last-child,
-  .resume__single-column .cv-section:last-of-type,
-  .resume--ats-mode section:last-of-type,
-  .resume__single-column section:last-of-type {
+  .resume--ats-mode .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .resume--ats-mode .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume--ats-mode section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -667,11 +669,11 @@
     padding-top: 0 !important;
   }
 
-  ul.experience__bullets li:last-child,
-  .experience__bullets li:last-child,
-  ul.simple-list-ul li:last-child,
-  .bullet-item-row:last-child,
-  .bullet-item-row:last-of-type {
+  ul.experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  ul.simple-list-ul li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .bullet-item-row:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .bullet-item-row:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
