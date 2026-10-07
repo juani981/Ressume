@@ -412,19 +412,57 @@ export const extractProfileData = (raw) => {
 };
 
 /**
- * Converts items from any section into standard internal item structures.
+ * Formats a location entity ({ city, state, countryCode }) or string into a clean string.
  */
-const normalizeItemToInternal = (item, secType, secId, itemIdx) => {
+const formatLocationString = (loc) => {
+  if (!loc) return '';
+  if (typeof loc === 'string') return loc.trim();
+  if (typeof loc === 'object') {
+    const parts = [loc.city, loc.state || loc.region, loc.countryCode || loc.country].filter(Boolean);
+    return parts.join(', ');
+  }
+  return '';
+};
+
+/**
+ * Formats a period entity ({ start, end, isCurrent }) into a standardized range string.
+ */
+const formatPeriodString = (p, defaultCurrentLabel = 'Actualidad') => {
+  if (!p) return '';
+  if (typeof p === 'string') return p.trim();
+  if (typeof p === 'object') {
+    const start = p.start || p.startDate || p.from || '';
+    const isCurrent = Boolean(p.isCurrent || p.is_current || p.current);
+    const end = isCurrent ? defaultCurrentLabel : (p.end || p.endDate || p.to || '');
+    if (start && end) return `${start} – ${end}`;
+    if (start) return `${start} – ${defaultCurrentLabel}`;
+    if (end) return String(end);
+  }
+  return '';
+};
+
+/**
+ * Converts items from any section into standard internal item structures.
+ * Folds semantic ATS metadata (ats.role, ats.company, ats.period, ats.skills)
+ * into canonical flat properties (title, subtitle, date, bullets, description).
+ */
+const normalizeItemToInternal = (item, secType, secId, itemIdx, docLang = 'es') => {
   if (!item) return null;
   const stableId = item.id && typeof item.id === 'string' && item.id.trim()
     ? item.id.trim()
     : `${secId}_item_${itemIdx}`;
 
+  const currentLabel = docLang === 'en' ? 'Present' : 'Actualidad';
+  const ats = (item.ats && typeof item.ats === 'object') ? item.ats : {};
+
   // Skills
   if (secType === 'skills') {
-    let title = item.category_name || item.category || item.title || item.name || '';
+    let title = ats.category || ats.title || item.category_name || item.category || item.title || item.name || '';
     let desc = '';
-    if (Array.isArray(item.technologies)) {
+    const skillsList = Array.isArray(ats.skills) ? ats.skills : (Array.isArray(ats.technologies) ? ats.technologies : null);
+    if (skillsList) {
+      desc = skillsList.join(', ');
+    } else if (Array.isArray(item.technologies)) {
       desc = item.technologies.join(', ');
     } else if (Array.isArray(item.skills)) {
       desc = item.skills.join(', ');
@@ -443,11 +481,34 @@ const normalizeItemToInternal = (item, secType, secId, itemIdx) => {
 
   // Simple lists (Languages, Certifications, Awards, Publications)
   if (secType === 'simple_list' || secType === 'certificates' || secType === 'languages') {
-    let text = item.text || item.title || item.name || item.language || '';
-    const sub = item.subtitle || item.issuer || item.issuer_or_institution || item.proficiency_level || item.date || '';
-    if (sub && !text.includes(sub)) {
-      text = `${text} (${sub})`.trim();
+    let text = '';
+    if (secType === 'languages' || secId.includes('lang')) {
+      const langName = ats.language || item.language || item.name || item.text || item.title || '';
+      const prof = ats.proficiency || ats.proficiency_level || item.proficiency_level || item.subtitle || item.description || '';
+      if (langName && prof && !langName.includes(prof)) {
+        text = `${langName}: ${prof}`;
+      } else {
+        text = langName || prof;
+      }
+    } else if (secType === 'certificates' || secId.includes('cert')) {
+      const certName = ats.name || ats.title || item.title || item.name || item.text || '';
+      const issuer = ats.issuer || ats.organization || item.issuer || item.issuer_or_institution || item.subtitle || '';
+      const year = ats.year || ats.date || item.date || '';
+      if (certName && issuer && !certName.includes(issuer)) {
+        text = `${certName} — ${issuer}${year && !certName.includes(String(year)) && !issuer.includes(String(year)) ? ` (${year})` : ''}`;
+      } else if (certName) {
+        text = year && !certName.includes(String(year)) ? `${certName} (${year})` : certName;
+      } else {
+        text = item.text || '';
+      }
+    } else {
+      text = item.text || item.title || item.name || item.language || '';
+      const sub = item.subtitle || item.issuer || item.issuer_or_institution || item.proficiency_level || item.date || '';
+      if (sub && !text.includes(sub)) {
+        text = `${text} (${sub})`.trim();
+      }
     }
+
     return {
       id: stableId,
       text: stripHtml(text).trim(),
@@ -458,10 +519,12 @@ const normalizeItemToInternal = (item, secType, secId, itemIdx) => {
 
   // Education
   if (secType === 'education') {
-    const title = item.degree || item.studyType || item.area || item.title || '';
-    const subtitle = item.institution || item.school || item.university || item.subtitle || '';
-    const date = item.period || item.date || item.dates || item.graduation_date || item.endDate || item.year || '';
-    const description = item.description || item.summary || (Array.isArray(item.courses) ? item.courses.join(', ') : '');
+    const title = ats.degree || ats.title || item.degree || item.studyType || item.area || item.title || '';
+    const inst = ats.institution || ats.school || ats.university || item.institution || item.school || item.university || item.subtitle || '';
+    const loc = formatLocationString(ats.location || item.location);
+    const subtitle = inst && loc && !inst.includes(loc) ? `${inst} | ${loc}` : (inst || loc);
+    const date = formatPeriodString(ats.period, currentLabel) || item.period || item.date || item.dates || item.graduation_date || item.endDate || item.year || '';
+    const description = ats.description || item.description || item.summary || (Array.isArray(item.courses) ? item.courses.join(', ') : '');
 
     return {
       id: stableId,
@@ -473,21 +536,35 @@ const normalizeItemToInternal = (item, secType, secId, itemIdx) => {
   }
 
   // Work Experience, Projects, List, Volunteering
-  const title = item.role_title || item.role || item.position || item.project_name || item.title || item.name || '';
-  const subtitle = item.organization || item.company || item.employer || item.organization_or_context || item.subtitle || '';
-  const date = item.period || item.date || item.dates || item.duration || (item.startDate ? `${item.startDate} – ${item.endDate || 'Present'}` : '');
-  const link = item.project_url || item.repository_url || item.link || item.url || '';
-  const description = item.summary || item.description || item.details || '';
+  const role = ats.role || ats.role_title || item.role_title || item.role || item.position || item.project_name || item.title || item.name || '';
+  const techList = Array.isArray(ats.technologies) ? ats.technologies : (Array.isArray(item.technologies) ? item.technologies : []);
+  const techSuffix = techList.length > 0 && !role.includes('(') ? ` (${techList.join(', ')})` : '';
+  const title = (item.title && !ats.role) ? item.title : (role ? `${role}${techSuffix}` : '');
 
-  let bullets = [];
-  if (Array.isArray(item.achievements)) bullets = item.achievements;
-  else if (Array.isArray(item.highlights)) bullets = item.highlights;
-  else if (Array.isArray(item.bullets)) bullets = item.bullets;
-  else if (Array.isArray(item.responsibilities)) bullets = item.responsibilities;
-  else if (Array.isArray(item.points)) bullets = item.points;
+  const company = ats.company || ats.organization || item.organization || item.company || item.employer || item.organization_or_context || item.subtitle || '';
+  const loc = formatLocationString(ats.location || item.location);
+  const subtitle = (item.subtitle && !ats.company) ? item.subtitle : (company && loc && !company.includes(loc) ? `${company} | ${loc}` : (company || loc));
+
+  const date = formatPeriodString(ats.period, currentLabel) || item.period || item.date || item.dates || item.duration || (item.startDate ? `${item.startDate} – ${item.endDate || currentLabel}` : '');
+  const link = item.project_url || item.repository_url || item.link || item.url || '';
+  const description = ats.summary || ats.description || item.summary || item.description || item.details || '';
+
+  let rawBullets = [];
+  if (Array.isArray(ats.actionBullets)) rawBullets = ats.actionBullets;
+  else if (Array.isArray(ats.bullets)) rawBullets = ats.bullets;
+  else if (Array.isArray(item.achievements)) rawBullets = item.achievements;
+  else if (Array.isArray(item.highlights)) rawBullets = item.highlights;
+  else if (Array.isArray(item.bullets)) rawBullets = item.bullets;
+  else if (Array.isArray(item.responsibilities)) rawBullets = item.responsibilities;
+  else if (Array.isArray(item.points)) rawBullets = item.points;
   else if (typeof item.description === 'string' && item.description.includes('\n')) {
-    bullets = item.description.split('\n').map(b => b.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
+    rawBullets = item.description.split('\n').map(b => b.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
   }
+
+  const bullets = rawBullets.map(b => {
+    if (typeof b === 'object' && b !== null) return stripHtml(b.text || '').trim();
+    return stripHtml(String(b)).trim();
+  }).filter(Boolean);
 
   return {
     id: stableId,
@@ -496,7 +573,7 @@ const normalizeItemToInternal = (item, secType, secId, itemIdx) => {
     date: stripHtml(date).trim(),
     ...(link ? { link: sanitizeContactUrl(link) } : {}),
     ...(description ? { description: stripHtml(description).trim() } : {}),
-    ...(bullets.length > 0 ? { bullets: bullets.map(b => stripHtml(b).trim()).filter(Boolean) } : {})
+    ...(bullets.length > 0 ? { bullets } : {})
   };
 };
 
@@ -517,6 +594,23 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
   const docLang = detectDocumentLanguage(root);
 
   if (Array.isArray(root.sections) && root.sections.some(s => s?.id === 'profile_header' || s?.type === 'profile_header')) {
+    const cleanedSections = root.sections.map((sec, secIdx) => {
+      if (!sec) return sec;
+      const secType = sec.type || 'list';
+      const secId = sec.id || `sec_${secIdx}`;
+      if (!Array.isArray(sec.items)) return sec;
+      const normalizedItems = sec.items.map((it, itemIdx) => {
+        if (it && !it.ats && !it.role_title && !it.technologies && !it.achievements && !it.degree && !it.company) {
+          return it;
+        }
+        return normalizeItemToInternal(it, secType, secId, itemIdx, docLang);
+      }).filter(Boolean);
+      return {
+        ...sec,
+        items: normalizedItems
+      };
+    });
+
     const candidateSnapshot = {
       _isNormalizedInternal: true,
       profile: {
@@ -530,7 +624,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
         type: layout.isAtsMode ? '1-column' : (layout.type || '2-column')
       },
       language: layout.language || docLang,
-      sections: root.sections
+      sections: cleanedSections
     };
     return sanitizeAndValidateCVSnapshot(candidateSnapshot);
   }
