@@ -25,7 +25,8 @@ import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
-import { DEFAULT_SECTION_GAP_PX } from '../../constants/spacing';
+import { useDndStatus } from '../../context/DndStatusContext';
+import { DEFAULT_SECTION_GAP_PX } from '../../constants';
 import SectionErrorBoundary from './SectionErrorBoundary';
 
 /**
@@ -202,6 +203,8 @@ const EditableBaseSection = ({ section }) => {
     activeTooltip
   } = useCV();
 
+  const { justDroppedId } = useDndStatus();
+
   const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
@@ -212,10 +215,10 @@ const EditableBaseSection = ({ section }) => {
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.35 : 1,
+    opacity: isDragging ? undefined : 1,
     zIndex: isDragging ? 100 : undefined,
     marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`,
     color: 'var(--text-color)',
@@ -231,11 +234,13 @@ const EditableBaseSection = ({ section }) => {
   const containerDragListeners = !isMoveDisabled ? createContainerDragListeners(listeners, false) : {};
   const wrapperClass = resolveSectionWrapperClass(descriptor);
 
+  const isJustDropped = Boolean(justDroppedId && (justDroppedId === section.id || justDroppedId === section.originalSectionId));
+
   return (
     <section 
         ref={setNodeRef} 
         style={style} 
-        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}`} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
         id={section.id}
         data-section-id={section.id}
         data-has-continuation={section.hasContinuation ? 'true' : undefined}

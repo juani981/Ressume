@@ -1,9 +1,3 @@
-import {
-  Link,
-  ShieldCheck,
-} from 'lucide-react';
-
-
 export const Footer = () => {
 
   return (

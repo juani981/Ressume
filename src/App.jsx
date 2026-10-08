@@ -85,6 +85,7 @@ function App() {
       activeDragItem,
       activeDragSection,
       dropTarget,
+      justDroppedId,
    } = useCVDndCoordinator({
       cvData,
       setCvData,
@@ -164,6 +165,7 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
+            
             <main
                className="l-main bd-container"
                style={{

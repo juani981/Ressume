@@ -119,15 +119,13 @@ export function CustomTooltip({
       className="react-joyride__tooltip"
       {...tooltipProps}
       style={{
-        backgroundColor: isDark ? '#1e293b' : '#ffffff',
-        color: isDark ? '#f8fafc' : '#0f172a',
-        padding: '20px 22px',
+        backgroundColor: '#fff',
+        padding: 20,
         borderRadius: 12,
-        maxWidth: 420,
-        boxShadow: isDark
-          ? '0 18px 40px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px #334155'
-          : '0 16px 36px -8px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.08)',
-        ...tooltipProps?.style,
+        maxWidth: step?.maxWidth || 400,
+        boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        ...tooltipProps?.style
       }}
     >
       {/* Contenido dinámico que viene del array de pasos */}
@@ -219,7 +217,7 @@ export function CustomTooltip({
               boxShadow: '0 2px 6px rgba(56, 116, 255, 0.35)',
             }}
           >
-            {isLastStep ? 'Finalizar' : 'Siguiente'}
+            {isLastStep ? 'Finalizar' : (index === 0 && step?.isWelcome ? 'Comenzar recorrido' : 'Siguiente')}
           </button>
         </div>
       </div>

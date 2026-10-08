@@ -14,5 +14,6 @@ export {
 } from './CVContext';
 export { PrintModeContext, usePrintMode } from './PrintModeContext';
 export { DndDropTargetContext, useDndDropTarget } from './DndDropTargetContext';
+export { DndStatusContext, useDndStatus } from './DndStatusContext';
 export { useCVHistory, useCVData, useCVLayout, useCVExport } from './hooks';
 export { default } from './CVContext';

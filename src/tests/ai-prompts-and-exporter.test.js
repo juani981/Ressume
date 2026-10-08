@@ -15,6 +15,7 @@ import {
   validateCVSnapshot 
 } from '../utils/versionValidator.js';
 import { importUniversalCV } from '../utils/universalJsonImporter.js';
+import { defaultSchema } from '../utils/schema.js';
 
 describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
 
@@ -781,4 +782,101 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(validated.sections.find(s => s.id === 'education').items[0].title).toBe('Associate Degree in Software Development');
     });
   });
+
+  // =========================================================================
+  // Suite 5: Decoupled Contact Section & ATS Single-Source Export
+  // =========================================================================
+  describe('Suite 5: Decoupled Contact Section & ATS Single-Source Export', () => {
+    it('T5.1: defaultSchema preserves candidate contacts in Markdown header and emits zero duplicate body contact sections', () => {
+      // 2-column mode (visual recruiter)
+      const md2Col = exportToAIMarkdown(defaultSchema);
+      expect(md2Col).toContain('tuemail@ejemplo.com');
+      expect(md2Col).toContain('+00 123 456 789');
+      expect(md2Col).toContain('linkedin.com/in/tu-perfil');
+      expect(md2Col).toContain('github.com/tu-usuario');
+      expect(md2Col).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+
+      // Verify frontmatter section lists do not include contact
+      expect(md2Col).not.toContain('- "contact"');
+      expect(md2Col).not.toContain("- 'contact'");
+
+      // 1-column ATS mode
+      const atsSchema = {
+        ...defaultSchema,
+        layout: {
+          ...defaultSchema.layout,
+          type: '1-column',
+          isAtsMode: true
+        }
+      };
+      const md1Col = exportToAIMarkdown(atsSchema);
+      expect(md1Col).toContain('tuemail@ejemplo.com');
+      expect(md1Col).toContain('+00 123 456 789');
+      expect(md1Col).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+      expect(md1Col).not.toContain('- "contact"');
+    });
+
+    it('T5.2: exportToAIXML resolves contacts into <candidate><contact> and omits contact section from <sections>', () => {
+      const xml = exportToAIXML(defaultSchema);
+      expect(xml).toContain('<candidate>');
+      expect(xml).toContain('<email>tuemail@ejemplo.com</email>');
+      expect(xml).toContain('<phone>+00 123 456 789</phone>');
+      expect(xml).toContain('<linkedin>linkedin.com/in/tu-perfil</linkedin>');
+      expect(xml).toContain('<github>github.com/tu-usuario</github>');
+      expect(xml).not.toContain('<section id="contact"');
+      expect(xml).not.toContain('type="contact"');
+    });
+
+    it('T5.3: exportToATSPlainText places candidate contacts in top header line and omits contact section from body', () => {
+      const plain = exportToATSPlainText(defaultSchema);
+      expect(plain).toContain('TU NOMBRE Y APELLIDO');
+      expect(plain).toContain('tuemail@ejemplo.com');
+      expect(plain).toContain('+00 123 456 789');
+      expect(plain).not.toMatch(/\nINFORMACIÓN DE CONTACTO\n/i);
+      expect(plain).not.toMatch(/\nCONTACTO\n-{3,}/i);
+    });
+
+    it('T5.4: composite profile_header with embedded contacts exports cleanly without duplicate body section', () => {
+      const compositeCv = {
+        layout: { type: '1-column', isAtsMode: true },
+        profile: { name: 'Ada Lovelace' },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            items: [{
+              name: 'Ada Lovelace',
+              subtitle: 'Computing Pioneer',
+              email: 'ada@analytical-engine.org',
+              phone: '+44 20 7946 0912',
+              linkedin: 'linkedin.com/in/adalovelace'
+            }]
+          },
+          {
+            id: 'experience',
+            type: 'list',
+            title: 'WORK EXPERIENCE',
+            items: [{
+              title: 'Mathematician & Collaborator',
+              subtitle: 'Babbage Analytical Engine',
+              date: '1843'
+            }]
+          }
+        ]
+      };
+
+      const md = exportToAIMarkdown(compositeCv);
+      expect(md).toContain('ada@analytical-engine.org');
+      expect(md).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+
+      const xml = exportToAIXML(compositeCv);
+      expect(xml).toContain('<email>ada@analytical-engine.org</email>');
+      expect(xml).not.toContain('id="contact"');
+
+      const plain = exportToATSPlainText(compositeCv);
+      expect(plain).toContain('ada@analytical-engine.org');
+      expect(plain).not.toMatch(/\n(?:INFORMACIÓN DE CONTACTO|CONTACTO)\n/i);
+    });
+  });
 });
+

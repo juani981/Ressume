@@ -2,15 +2,16 @@
  * useCVDndCoordinator.js
  *
  * Custom React hook encapsulating @dnd-kit sensor configuration, collision detection,
- * and static snap-in-place drag-and-drop coordination for sections and items.
+ * and live drag-and-drop coordination with pointer-first collision detection, immediate swap,
+ * shaded placeholder preview, and smooth drop entrance tracking.
  *
  * UX Principles:
- * 1. Document layout remains completely static while dragging (zero micro-movement layout thrashing).
+ * 1. Immediate Swap / Live Reorder: entering target by even 1px triggers reorder in real-time.
  * 2. Visual snap-in-place drop indicator ('sombra') displays exact insertion location.
- * 3. Atomic commit on drop via moveSectionToColumnAndIndex / moveItemBetweenSections.
+ * 3. Atomic commit on drop via recordHistoryTransition and rollback on cancel.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   useSensor,
   useSensors,
@@ -128,6 +129,24 @@ export const getDirectionalPosition = (active, over, delta) => {
 };
 
 /**
+ * Pointer-first collision detection:
+ * 1. pointerWithin (entering by even 1px triggers collision immediately)
+ * 2. rectIntersection (bounding box overlap)
+ * 3. closestCenter (fallback for edge-cases or keyboard nav)
+ */
+export const pointerFirstCollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+  const rectCollisions = rectIntersection(args);
+  if (rectCollisions.length > 0) {
+    return rectCollisions;
+  }
+  return closestCenter(args);
+};
+
+/**
  * Calculates new sections array when reordering sections.
  * Returns null if no change is needed.
  */
@@ -135,16 +154,27 @@ export function calculateReorderedSections(currentSections, activeId, over, posi
   const activeSectionId = toCanonicalSectionId(activeId);
   const activeSec = currentSections.find((s) => s.id === activeSectionId);
   if (!activeSec) return null;
+  if (isFixedSection(activeSec)) return null;
 
   const overData = over?.data?.current;
   let targetColumn = activeSec.column;
   let overSectionId = null;
 
+  const cleanOver = toCanonicalSectionId(over?.id);
+
   if (overData?.type === 'column') {
     targetColumn = overData.column;
     overSectionId = null;
+  } else if (cleanOver === 'column-left' || cleanOver?.startsWith('column-left')) {
+    targetColumn = 'left';
+    overSectionId = null;
+  } else if (cleanOver === 'column-right' || cleanOver?.startsWith('column-right')) {
+    targetColumn = 'right';
+    overSectionId = null;
+  } else if (cleanOver === 'column-single' || cleanOver?.startsWith('column-single')) {
+    targetColumn = 'single';
+    overSectionId = null;
   } else if (overData?.type === 'section') {
-    const cleanOver = toCanonicalSectionId(over.id);
     const overSection = currentSections.find((s) => s.id === cleanOver);
     if (overSection) {
       targetColumn = overSection.column;
@@ -158,9 +188,8 @@ export function calculateReorderedSections(currentSections, activeId, over, posi
       overSectionId = overSection.id;
     }
   } else {
-    const cleanOver = toCanonicalSectionId(over.id);
     const foundSec = currentSections.find(
-      (s) => s.id === cleanOver || (s.items || []).some((i) => i.id === over.id),
+      (s) => s.id === cleanOver || (s.items || []).some((i) => i.id === over?.id),
     );
     if (foundSec) {
       targetColumn = foundSec.column;
@@ -172,6 +201,30 @@ export function calculateReorderedSections(currentSections, activeId, over, posi
     return null;
   }
 
+  // Intra-column reordering: use arrayMove between oldIdx and newIdx
+  if (targetColumn === activeSec.column && overSectionId) {
+    if (isFixedSection(overSectionId)) {
+      return null;
+    }
+    const oldIdx = currentSections.findIndex((s) => s.id === activeSectionId);
+    const newIdx = currentSections.findIndex((s) => s.id === overSectionId);
+    if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) {
+      return null;
+    }
+    if ((position === 'below' || position === 'after') && oldIdx > newIdx) {
+      return null;
+    }
+    if ((position === 'above' || position === 'before') && oldIdx < newIdx) {
+      return null;
+    }
+    const newSections = arrayMove(currentSections, oldIdx, newIdx);
+    const isSame =
+      newSections.length === currentSections.length &&
+      newSections.every((s, i) => s.id === currentSections[i].id && s.column === currentSections[i].column);
+    return isSame ? null : newSections;
+  }
+
+  // Cross-column movement
   const updatedSec = { ...activeSec, column: targetColumn };
   const remainingSections = currentSections.filter((s) => s.id !== activeSectionId);
 
@@ -179,26 +232,7 @@ export function calculateReorderedSections(currentSections, activeId, over, posi
   if (overSectionId && overSectionId !== activeSectionId) {
     const overIndexInRemaining = remainingSections.findIndex((s) => s.id === overSectionId);
     if (overIndexInRemaining !== -1) {
-      let shouldPlaceBelow = false;
-      if (position === 'below' || position === 'after') {
-        shouldPlaceBelow = true;
-      } else if (position === 'above' || position === 'before') {
-        shouldPlaceBelow = false;
-      } else {
-        const colSections = currentSections.filter((s) => s.column === targetColumn);
-        const oldColIdx = colSections.findIndex((s) => s.id === activeSectionId);
-        const overColIdx = colSections.findIndex((s) => s.id === overSectionId);
-        if (oldColIdx !== -1 && overColIdx !== -1) {
-          shouldPlaceBelow = oldColIdx < overColIdx;
-        } else if (activeSec.column === targetColumn) {
-          const oldIdx = currentSections.findIndex((s) => s.id === activeSectionId);
-          const overIdx = currentSections.findIndex((s) => s.id === overSectionId);
-          shouldPlaceBelow = oldIdx !== -1 && overIdx !== -1 && oldIdx < overIdx;
-        } else {
-          shouldPlaceBelow = false;
-        }
-      }
-
+      const shouldPlaceBelow = position === 'below' || position === 'after';
       insertIndex = shouldPlaceBelow ? overIndexInRemaining + 1 : overIndexInRemaining;
     }
   }
@@ -209,6 +243,15 @@ export function calculateReorderedSections(currentSections, activeId, over, posi
       -1,
     );
     insertIndex = lastColIndex !== -1 ? lastColIndex + 1 : remainingSections.length;
+  }
+
+  // Ensure dynamic sections cannot precede fixed header sections in the target column
+  const lastFixedIndexInCol = remainingSections.reduce((lastIdx, s, idx) => {
+    return s.column === targetColumn && isFixedSection(s) ? idx : lastIdx;
+  }, -1);
+
+  if (lastFixedIndexInCol !== -1 && insertIndex <= lastFixedIndexInCol) {
+    insertIndex = lastFixedIndexInCol + 1;
   }
 
   const newSections = [...remainingSections];
@@ -244,14 +287,14 @@ export function calculateReorderedItems(currentSections, activeItemId, activeSec
       targetSectionId = colSections[colSections.length - 1].id;
     }
   } else {
-    const cleanOver = toCanonicalSectionId(over.id);
+    const cleanOver = toCanonicalSectionId(over?.id);
     const foundSec = currentSections.find(
-      (s) => s.id === cleanOver || (s.items || []).some((i) => i.id === over.id),
+      (s) => s.id === cleanOver || (s.items || []).some((i) => i.id === over?.id),
     );
     if (foundSec) {
       targetSectionId = foundSec.id;
       if (foundSec.id !== cleanOver) {
-        overItemId = over.id;
+        overItemId = over?.id;
       }
     }
   }
@@ -267,19 +310,22 @@ export function calculateReorderedItems(currentSections, activeItemId, activeSec
   const sourceItem = (sourceSec.items || []).find((i) => i.id === activeItemId);
   if (!sourceItem) return null;
 
-  const shouldPlaceBelow = position === 'below' || position === 'after';
-
-  // Intra-section reordering
+  // Intra-section reordering: use arrayMove between oldIdx and newIdx
   if (sourceSec.id === targetSec.id) {
     if (!overItemId || activeItemId === overItemId) return null;
 
-    const remainingItems = sourceSec.items.filter((i) => i.id !== activeItemId);
-    const overIndexInRemaining = remainingItems.findIndex((i) => i.id === overItemId);
-    if (overIndexInRemaining === -1) return null;
+    const oldIdx = (sourceSec.items || []).findIndex((i) => i.id === activeItemId);
+    const newIdx = (sourceSec.items || []).findIndex((i) => i.id === overItemId);
+    if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return null;
 
-    const insertIndex = shouldPlaceBelow ? overIndexInRemaining + 1 : overIndexInRemaining;
-    const newItems = [...remainingItems];
-    newItems.splice(insertIndex, 0, sourceItem);
+    if ((position === 'below' || position === 'after') && oldIdx > newIdx) {
+      return null;
+    }
+    if ((position === 'above' || position === 'before') && oldIdx < newIdx) {
+      return null;
+    }
+
+    const newItems = arrayMove(sourceSec.items, oldIdx, newIdx);
 
     const isSame =
       newItems.length === sourceSec.items.length &&
@@ -291,13 +337,14 @@ export function calculateReorderedItems(currentSections, activeItemId, activeSec
     );
   }
 
-  // Cross-section move
+  // Cross-section move: insert at target section before/after overItemId
+  const shouldPlaceBelow = position === 'below' || position === 'after';
   const adaptedItem =
     typeof adaptItemToSectionType === 'function'
       ? adaptItemToSectionType(sourceItem, targetSec.type)
       : sourceItem;
 
-  const newSourceItems = sourceSec.items.filter((i) => i.id !== activeItemId);
+  const newSourceItems = (sourceSec.items || []).filter((i) => i.id !== activeItemId);
   const remainingTargetItems = (targetSec.items || []).filter((i) => i.id !== activeItemId);
 
   let insertIndex = -1;
@@ -323,7 +370,7 @@ export function calculateReorderedItems(currentSections, activeItemId, activeSec
 }
 
 /**
- * Coordinates DnD sensors and event handlers for sections and items with static snap-in-place UX.
+ * Coordinates DnD sensors and event handlers for sections and items with live reordering UX.
  *
  * @param {Object} options
  * @param {Object} options.cvData - Current CV data model
@@ -333,14 +380,15 @@ export function calculateReorderedItems(currentSections, activeItemId, activeSec
  * @param {Function} [options.moveSectionToColumnAndIndex] - Context handler for moving sections
  * @returns {{
  *   sensors: ReturnType<typeof useSensors>,
- *   collisionDetection: typeof closestCorners,
+ *   collisionDetection: typeof pointerFirstCollisionDetection,
  *   handleDragStart: (event: any) => void,
  *   handleDragOver: (event: any) => void,
  *   handleDragEnd: (event: any) => void,
  *   handleDragCancel: () => void,
  *   activeDragItem: any,
  *   activeDragSection: any,
- *   dropTarget: any
+ *   dropTarget: any,
+ *   justDroppedId: string|null
  * }}
  */
 export function useCVDndCoordinator({
@@ -353,11 +401,21 @@ export function useCVDndCoordinator({
   const [activeDragItem, setActiveDragItem] = useState(null);
   const [activeDragSection, setActiveDragSection] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
+  const [justDroppedId, setJustDroppedId] = useState(null);
+  const dropTimerRef = useRef(null);
 
   const cvDataRef = useRef(cvData);
   cvDataRef.current = cvData;
 
   const dragStartSnapshotRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (dropTimerRef.current) {
+        clearTimeout(dropTimerRef.current);
+      }
+    };
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -439,6 +497,7 @@ export function useCVDndCoordinator({
     const overData = over?.data?.current;
 
     const activeCanonical = toCanonicalSectionId(active.id);
+    const cleanOver = toCanonicalSectionId(over.id);
     const isSection =
       activeData?.type === 'section' ||
       Boolean(activeDragSection) ||
@@ -465,7 +524,6 @@ export function useCVDndCoordinator({
         targetColumn = overData.column;
         overSectionId = null;
       } else if (overData?.type === 'section') {
-        const cleanOver = toCanonicalSectionId(over.id);
         const overSection = currentData.sections.find((s) => s.id === cleanOver);
         if (overSection) {
           targetColumn = overSection.column;
@@ -479,7 +537,6 @@ export function useCVDndCoordinator({
           overSectionId = overSection.id;
         }
       } else {
-        const cleanOver = toCanonicalSectionId(over.id);
         if (cleanOver === 'column-left' || cleanOver.startsWith('column-left')) {
           targetColumn = 'left';
         } else if (cleanOver === 'column-right' || cleanOver.startsWith('column-right')) {
@@ -560,6 +617,7 @@ export function useCVDndCoordinator({
 
       let targetSectionId = null;
       let overItemId = null;
+      const overData = over?.data?.current;
 
       if (overData?.type === 'item') {
         targetSectionId = toCanonicalSectionId(overData.sectionId);
@@ -775,6 +833,7 @@ export function useCVDndCoordinator({
       setCvData(dragStartSnapshotRef.current);
       cvDataRef.current = dragStartSnapshotRef.current;
     }
+    setJustDroppedId(null);
     setActiveDragItem(null);
     setActiveDragSection(null);
     setDropTarget(null);
@@ -791,6 +850,7 @@ export function useCVDndCoordinator({
     activeDragItem,
     activeDragSection,
     dropTarget,
+    justDroppedId,
   };
 }
 

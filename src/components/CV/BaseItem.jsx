@@ -18,6 +18,7 @@ import { useCV } from '../../context/CVContext';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { usePrintMode } from '../../context/PrintModeContext';
+import { useDndStatus } from '../../context/DndStatusContext';
 
 
 /**
@@ -83,6 +84,7 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
  */
 const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const { updateSectionItem, deleteSectionItem, deleteSection } = useCV();
+  const { justDroppedId } = useDndStatus();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
   const ItemTag = descriptor.itemTag || 'div';
@@ -98,10 +100,10 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   });
 
   const baseStyle = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.35 : 1,
+    opacity: isDragging ? undefined : 1,
     zIndex: isDragging ? 100 : undefined,
     color: 'var(--text-color)',
     minWidth: 0,
@@ -129,11 +131,12 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const isPartial = Boolean(item?.isPartialItem);
   const isContinuation = Boolean(item?.isContinuationItem);
   const hasNextItem = !isLast;
+  const isJustDropped = Boolean(justDroppedId && (justDroppedId === item?.id || justDroppedId === item?.originalItemId));
 
   return (
     <ItemTag
       ref={setNodeRef}
-      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`}
       data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}
