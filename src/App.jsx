@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ActionMenu from "./components/Editor/ActionMenu";
 import LayoutModeToggle from "./components/Editor/LayoutModeToggle";
 import AppModals from "./components/Editor/AppModals";
+import { Footer } from "./components/common";
 import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
 import { PlusCircle } from "lucide-react";
@@ -366,6 +367,9 @@ function App() {
                activeDragSection={activeDragSection}
             />
          </DndContext>
+
+         {/* Web Application Footer */}
+         <Footer />
 
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}
          <AppModals
