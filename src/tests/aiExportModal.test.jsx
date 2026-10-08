@@ -301,7 +301,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
 
       const promptSelect = screen.getByTestId('ai-prompt-select');
       const options = promptSelect.querySelectorAll('option');
-      expect(options.length).toBe(13);
+      expect(options.length).toBe(10);
 
       const promptIds = Array.from(options).map(o => o.value);
       expect(promptIds).toContain('recruiter_audit');
@@ -309,10 +309,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
       expect(promptIds).toContain('star_enhancer');
       expect(promptIds).toContain('technical_interview');
       expect(promptIds).toContain('translate_english');
-      expect(promptIds).toContain('layout_advisor');
-      expect(promptIds).toContain('system_design_simulator');
       expect(promptIds).toContain('live_coding_coach');
-      expect(promptIds).toContain('behavioral_leadership_prep');
       expect(promptIds).toContain('career_upskilling_roadmap');
       expect(promptIds).toContain('cold_outreach_generator');
       expect(promptIds).toContain('salary_negotiation_advisor');

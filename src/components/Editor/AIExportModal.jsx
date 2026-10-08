@@ -579,50 +579,330 @@ const AIExportModal = ({
         {/* Modal Body */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* Main Prompt Selection Header Bar: Accessible & Synchronized */}
+          {/* ========================================================================= */}
+          {/* UNIDIRECTIONAL STEP-BY-STEP INTEGRATED WORKFLOW (PROMPTS COMUNES)         */}
+          {/* ========================================================================= */}
+          {/* Paso 1: Configura el Objetivo del Prompt y Personaliza */}
           <div style={{
             display: isResponseImportablePrompt ? 'none' : 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-            paddingBottom: '0.25rem'
+            flexDirection: 'column',
+            gap: '0.85rem',
+            borderBottom: isDark ? '1px solid #1e293b' : '1px solid rgba(150, 150, 150, 0.2)',
+            paddingBottom: '1rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label 
-                htmlFor="ai-prompt-select"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}
-              >
-                <Target size={15} color="#3874ff" /> Objetivo del Prompt:
-              </label>
-              <select 
-                id="ai-prompt-select"
-                data-testid="ai-prompt-select"
-                value={selectedPromptId} 
-                onChange={(e) => setSelectedPromptId(e.target.value)}
-                style={{
-                  padding: '0.45rem 0.75rem',
-                  borderRadius: '8px',
-                  border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
-                  background: isDark ? '#1e293b' : '#f8fafc',
-                  color: isDark ? '#f8fafc' : 'inherit',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                  cursor: 'pointer'
-                }}
-              >
-                {filteredPrompts.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <div style={{
+                  display: isResponseImportablePrompt ? 'none' : 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: '#3874ff',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.78rem',
+                      fontWeight: 700
+                    }}>1</span>
+                    <strong style={{ fontSize: '0.95rem' }}>
+                      Paso 1: Selecciona el Objetivo y Personaliza
+                    </strong>
+                  </div>
 
-          </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label 
+                      htmlFor="ai-prompt-select"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}
+                    >
+                      <Target size={15} color="#3874ff" /> Objetivo:
+                    </label>
+                    <select 
+                      id="ai-prompt-select"
+                      data-testid="ai-prompt-select"
+                      value={selectedPromptId} 
+                      onChange={(e) => setSelectedPromptId(e.target.value)}
+                      style={{
+                        padding: '0.45rem 0.75rem',
+                        borderRadius: '8px',
+                        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                        background: isDark ? '#1e293b' : '#f8fafc',
+                        color: isDark ? '#f8fafc' : 'inherit',
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {filteredPrompts.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-          {/* Description of Selected Prompt - Obsidian Info Callout (Universal for all prompts) */}
-          {selectedPrompt.description && (
+                {/* Descripción del Objetivo */}
+                {selectedPrompt.description && (
+                  <div 
+                    className="obsidian-callout"
+                    style={{
+                      background: 'rgba(8, 109, 221, 0.08)',
+                      borderLeft: '4px solid rgb(8, 109, 221)',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '4px 8px 8px 4px',
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    <div className="callout-content" style={{ color: 'inherit', opacity: 0.9 }}>
+                      {selectedPrompt.description}
+                    </div>
+                  </div>
+                )}
+
+                {/* Job Description (si aplica) */}
+                {(selectedPrompt.id === 'job_matcher' || selectedPrompt.required_inputs?.includes('job_description')) && (
+                  <div>
+                    <label 
+                      htmlFor="ai-job-description"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
+                    >
+                      <Briefcase size={15} color="#e11d48" /> Pegar Descripción de la Oferta Laboral (Job Description):
+                    </label>
+                    <textarea
+                      id="ai-job-description"
+                      data-testid="ai-job-description"
+                      rows={1}
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Pega aquí los requisitos y responsabilidades de la oferta de trabajo para calcular compatibilidad..."
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                        background: isDark ? '#1e293b' : '#f8fafc',
+                        color: isDark ? '#f8fafc' : 'inherit',
+                        fontFamily: 'inherit',
+                        fontSize: '0.85rem',
+                        resize: 'vertical',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Instrucciones Adicionales o Comentarios Libres (Opcional) */}
+                <div>
+                  <label 
+                    htmlFor="ai-user-commentary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
+                  >
+                    <MessageSquare size={15} color="#8b5cf6" /> Instrucciones Adicionales o Comentarios Libres (Opcional):
+                  </label>
+                  <textarea
+                    id="ai-user-commentary"
+                    data-testid="ai-user-commentary"
+                    rows={1}
+                    value={userCommentary}
+                    onChange={(e) => setUserCommentary(e.target.value)}
+                    placeholder="Ej: Enfatizar experiencia en particular, orientar el perfil a empresas de fintech, descartar proyectos académicos antiguos..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                      background: isDark ? '#1e293b' : '#f8fafc',
+                      color: isDark ? '#f8fafc' : 'inherit',
+                      fontFamily: 'inherit',
+                      fontSize: '0.85rem',
+                      resize: 'vertical',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Paso 2: Copia el Prompt y Consulta en tu IA Externa */}
+              {!isResponseImportablePrompt && (
+                <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                border: isDark ? '1px solid rgba(56, 116, 255, 0.3)' : '1px solid rgba(56, 116, 255, 0.25)',
+                borderRadius: '10px',
+                padding: '1rem',
+                background: isDark ? 'rgba(56, 116, 255, 0.05)' : 'rgba(56, 116, 255, 0.02)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.78rem',
+                      fontWeight: 700
+                    }}>2</span>
+                    <strong style={{ fontSize: '0.95rem' }}>
+                      Paso 2: Copia el Prompt y Consulta en tu IA Externa
+                    </strong>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(null)}
+                      data-testid="ai-copy-btn"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '7px',
+                        padding: '0.5rem 1.15rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: copied ? '#10b981' : '#3874ff',
+                        color: '#ffffff',
+                        fontSize: '0.88rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: copied ? '0 2px 10px rgba(16, 185, 129, 0.35)' : '0 2px 10px rgba(56, 116, 255, 0.35)',
+                        transition: 'all 0.18s ease'
+                      }}
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={16} />
+                          <span>¡Prompt Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={16} />
+                          <span>Copiar Prompt + CV</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      data-testid="ai-download-btn"
+                      title="Descargar prompt como archivo Markdown (.md)"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '0.5rem 0.9rem',
+                        borderRadius: '8px',
+                        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                        background: isDark ? '#1e293b' : '#f8fafc',
+                        color: isDark ? '#f8fafc' : 'inherit',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Download size={15} />
+                      <span>Descargar .md</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p style={{ margin: 0, fontSize: '0.82rem', color: isDark ? '#94a3b8' : 'var(--text-color-light, #666)', lineHeight: '1.4' }}>
+                  Copia este prompt con los datos de tu CV ya ensamblados o ábrelo directamente en tu modelo de lenguaje favorito (no requieres adjuntar ningún archivo).
+                </p>
+
+                {/* Fila de Lanzadores a IA Externa (Links a IA externas) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  marginTop: '0.15rem'
+                }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: isDark ? '#cbd5e1' : 'var(--text-color, #444)' }}>
+                    Copiar prompt y abrir en:
+                  </span>
+                  {AI_PROVIDERS.map((provider) => (
+                    <button
+                      key={provider.id}
+                      type="button"
+                      onClick={() => handleCopyAndOpenProvider(provider.url, provider.name)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '7px',
+                        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                        background: isDark ? '#1e293b' : 'var(--body-color, #f9f9f9)',
+                        color: provider.color,
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>{provider.name}</span>
+                      <ExternalLink size={12} />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tutorial Paso a Paso Integrado (Stepper Visual) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  fontSize: '0.74rem',
+                  color: isDark ? '#94a3b8' : 'var(--text-color, #334155)',
+                  flexWrap: 'wrap',
+                  padding: '6px 0 2px 0',
+                  borderTop: isDark ? '1px dashed #334155' : '1px dashed rgba(150, 150, 150, 0.25)',
+                  marginTop: '0.2rem'
+                }}>
+                  <span><strong>1. Prompt generado con tus datos</strong></span>
+                  <span>→ <strong>2. Abre tu IA externa</strong></span>
+                  <span>→ <strong>3. Pega con Ctrl+V</strong></span>
+                  <span>→ <strong>4. Recibe feedback y recomendaciones</strong></span>
+                </div>
+
+                {/* Feedback Banner cuando se copia */}
+                {copied && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.8rem',
+                    color: '#059669',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    padding: '0.45rem 0.75rem',
+                    borderRadius: '6px',
+                    fontWeight: 500
+                  }}>
+                    <Check size={15} color="#059669" />
+                    <span>
+                      {copiedProvider
+                        ? `¡Copiado al portapapeles! Pégalo en ${copiedProvider} con Ctrl+V para consultar.`
+                        : '¡Copiado al portapapeles! Pégalo en tu IA preferida con Ctrl+V para consultar.'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+          {/* Description of Selected Prompt - Obsidian Info Callout (Solo para bidireccional) */}
+          {isResponseImportablePrompt && selectedPrompt.description && (
             <div 
               className="obsidian-callout"
               style={{
@@ -633,20 +913,6 @@ const AIExportModal = ({
                 fontSize: '0.85rem'
               }}
             >
-              <div 
-                className="callout-title"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '600',
-                  color: 'rgb(8, 109, 221)',
-                  marginBottom: '0.25rem'
-                }}
-              >
-                {/* <Target size={15} color="rgb(8, 109, 221)" /> */}
-                {/* <span>Descripción del Objetivo:</span> */}
-              </div>
               <div className="callout-content" style={{ color: 'inherit', opacity: 0.9 }}>
                 {selectedPrompt.description}
               </div>
@@ -921,44 +1187,6 @@ const AIExportModal = ({
           )}
 
           {/* ========================================================================= */}
-          {/* UNIDIRECTIONAL CONTROLS (Commentary and Job Description)                 */}
-          {/* ========================================================================= */}
-          {!isResponseImportablePrompt && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {(selectedPrompt.id === 'job_matcher' || selectedPrompt.required_inputs?.includes('job_description')) && (
-                <div>
-                  <label 
-                    htmlFor="ai-job-description"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
-                  >
-                    <Briefcase size={15} color="#e11d48" /> Pegar Descripción de la Oferta Laboral (Job Description):
-                  </label>
-                  <textarea
-                    id="ai-job-description"
-                    data-testid="ai-job-description"
-                    rows={1}
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Pega aquí los requisitos y responsabilidades de la oferta de trabajo para calcular compatibilidad..."
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '8px',
-                      border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
-                      background: isDark ? '#1e293b' : '#f8fafc',
-                      color: isDark ? '#f8fafc' : 'inherit',
-                      fontFamily: 'inherit',
-                      fontSize: '0.85rem',
-                      resize: 'vertical',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================================= */}
           {/* THE INPUT FIELD: PROMPT PAYLOAD PREVIEW (STABLE IN DOM)                   */}
           {/* ========================================================================= */}
           <div style={{
@@ -1019,36 +1247,6 @@ const AIExportModal = ({
               {compiledPayload}
             </pre>
           </div>
-          {!isResponseImportablePrompt && (
-
-              <div>
-                <label 
-                  htmlFor="ai-user-commentary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
-                >
-                  <MessageSquare size={15} color="#8b5cf6" /> Instrucciones Adicionales o Comentarios Libres (Opcional):
-                </label>
-                <textarea
-                  id="ai-user-commentary"
-                  data-testid="ai-user-commentary"
-                  rows={1}
-                  value={userCommentary}
-                  onChange={(e) => setUserCommentary(e.target.value)}
-                  placeholder="Ej: Enfatizar experiencia en particular, orientar el perfil a empresas de fintech, descartar proyectos académicos antiguos..."
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
-                    background: isDark ? '#1e293b' : '#f8fafc',
-                    color: isDark ? '#f8fafc' : 'inherit',
-                    fontFamily: 'inherit',
-                    fontSize: '0.85rem',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>)}
           {/* ========================================================================= */}
           {/* THE OUTPUT FIELD: BIDIRECTIONAL RESPONSE INGESTION CONTAINER              */}
           {/* ========================================================================= */}
@@ -1326,63 +1524,6 @@ const AIExportModal = ({
             </div>
           )}
         </div>
-
-        {/* Modal Footer with Actions — ONLY for Unidirectional Prompts */}
-        {!isResponseImportablePrompt && (
-          <div style={{
-            padding: '1rem 1.5rem',
-            borderTop: isDark ? '1px solid #1e293b' : '1px solid rgba(150, 150, 150, 0.2)',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '0.75rem',
-            alignItems: 'center'
-          }}>
-            {copied && (
-              <span style={{ color: '#2ecc71', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Check size={16} color="#2ecc71" /> ¡Copiado al portapapeles!
-              </span>
-            )}
-            {/* <button
-              onClick={handleDownload}
-              data-testid="ai-download-btn"
-              style={{
-                padding: '0.6rem 1.2rem',
-                borderRadius: '8px',
-                border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
-                background: isDark ? '#1e293b' : 'var(--body-color, #f0f0f0)',
-                color: isDark ? '#f8fafc' : 'inherit',
-                cursor: 'pointer',
-                fontWeight: 500,
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Download size={16} /> Descargar Archivo
-            </button> */}
-            <button
-              onClick={() => handleCopy(null)}
-              data-testid="ai-copy-btn"
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#3874ff',
-                color: '#ffffff',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                boxShadow: '0 4px 12px rgba(56, 116, 255, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Copy size={16} /> Copiar Prompt + CV para IA
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

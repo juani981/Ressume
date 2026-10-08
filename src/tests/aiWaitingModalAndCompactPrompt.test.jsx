@@ -74,7 +74,7 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
 
       const toggleBtn = screen.getByTestId('ai-toggle-prompt-btn');
       expect(toggleBtn).toBeInTheDocument();
-      expect(toggleBtn.textContent).toContain('Desplegar prompt completo');
+      expect(toggleBtn.textContent).toContain('Ver prompt completo');
     });
 
     it('1.2: expands prompt preview when clicking toggle button, then collapses when clicking again', () => {
@@ -97,7 +97,7 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
       fireEvent.click(toggleBtn);
       expect(preview.style.maxHeight).toBe('44px');
       expect(preview.style.fontSize).toBe('0.68rem');
-      expect(toggleBtn.textContent).toContain('Desplegar prompt completo');
+      expect(toggleBtn.textContent).toContain('Ver prompt completo');
     });
   });
 
