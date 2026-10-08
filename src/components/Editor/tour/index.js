@@ -14,6 +14,7 @@ import {
   isAIModalSteps,
 } from './aiModalTourSteps';
 import { ADD_SECTION_MODAL_STEPS } from './addSectionModalTourSteps';
+import { IMPORT_CV_STEP, IMPORT_CV_TOUR_STEPS } from './importCvTourSteps';
 import { openSidebarProgrammatically, createTourStep } from './tourUtils';
 
 /**
@@ -31,6 +32,8 @@ export {
   WELCOME_STEP,
   SIDEBAR_TRANSITION_STEP,
   SIDEBAR_STEPS,
+  IMPORT_CV_STEP,
+  IMPORT_CV_TOUR_STEPS,
   AI_MODAL_STEPS,
   AI_MODAL_STEPS_SIMPLE,
   AI_MODAL_STEPS_TRANSLATION,
@@ -41,3 +44,4 @@ export {
   openSidebarProgrammatically,
   createTourStep,
 };
+

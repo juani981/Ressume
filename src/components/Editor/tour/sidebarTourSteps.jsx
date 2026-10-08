@@ -1,5 +1,6 @@
 import React from 'react';
 import { createTourStep } from './tourUtils';
+import { IMPORT_CV_STEP } from './importCvTourSteps';
 
 /**
  * Natural, user-focused Joyride tour steps for the ActionMenu sidebar controls.
@@ -76,17 +77,6 @@ export const SIDEBAR_STEPS = [
     placement: 'right',
   }),
   createTourStep({
-    target: '#byo-cv-action-item',
-    title: 'Trae tu propio CV (PDF a ATS)',
-    description: (
-      <p style={{ margin: 0 }}>
-        Convierte cualquier CV previo en formato PDF, Markdown o texto en datos limpios y modulares
-        para editarlos directamente sobre las hojas de Ressume.
-      </p>
-    ),
-    placement: 'right',
-  }),
-  createTourStep({
     target: '[data-testid="btn-action-native-print"]',
     title: 'Descargar / Imprimir PDF',
     description: (
@@ -108,4 +98,5 @@ export const SIDEBAR_STEPS = [
     ),
     placement: 'right',
   }),
+  IMPORT_CV_STEP,
 ];

@@ -11,6 +11,7 @@ export const TOUR_IDS = {
   AI_EXPORT: 'ai_export',
   DESIGN: 'design',
   BITACORA_NUDGE: 'bitacora_nudge',
+  IMPORT_CV: 'import_cv',
 };
 
 // Help step-by-step guides for each modal / tool (written in a formal, technical, non-condescending tone)
@@ -75,6 +76,27 @@ export const MODAL_HELP_CONTENT = {
         step: 3,
         title: 'Reingreso de respuesta',
         description: 'En flujos bidireccionales, pegue el bloque de datos estructurados para previsualizar el impacto e integrarlo al editor.',
+      },
+    ],
+  },
+  [TOUR_IDS.IMPORT_CV]: {
+    title: 'Guía de Conversión e Importación de CV',
+    subtitle: 'Transformación de documentos previos (PDF o texto) a formato nativo ATS.',
+    steps: [
+      {
+        step: 1,
+        title: 'Copia de la directiva de extracción',
+        description: 'Copie el prompt diseñado para que un modelo de lenguaje externo (ChatGPT o Claude) reconozca la estructura de su perfil profesional.',
+      },
+      {
+        step: 2,
+        title: 'Adjuntar documento en la IA externa',
+        description: 'Abra su proveedor preferido, adjunte su CV en PDF o pegue el texto completo y solicite la conversión a JSON estructurado.',
+      },
+      {
+        step: 3,
+        title: 'Pegar e importar en el editor',
+        description: 'Pegue el resultado en el conversor de Ressume y confirme la importación para poblar el lienzo automáticamente.',
       },
     ],
   },

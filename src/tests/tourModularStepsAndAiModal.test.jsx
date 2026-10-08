@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, act } from '@testing-library/react';
+import { render, act, fireEvent, screen } from '@testing-library/react';
+import LayoutModeToggle from '../components/Editor/LayoutModeToggle';
 import {
   COMPLETE_ONBOARDING_STEPS,
   MAIN_SCREEN_STEPS,
@@ -15,11 +16,13 @@ import {
   getAIModalTourSteps,
   isAIModalSteps,
   ADD_SECTION_MODAL_STEPS,
+  IMPORT_CV_STEP,
+  IMPORT_CV_TOUR_STEPS,
   openSidebarProgrammatically,
   createTourStep,
 } from '../components/Editor/tour';
 import { AppModals } from '../components/Editor/AppModals';
-import { TourProvider } from '../context/TourContext';
+import { TourProvider, TOUR_IDS, MODAL_HELP_CONTENT } from '../context/TourContext';
 import { CVProvider } from '../context/CVContext';
 
 vi.mock('react-joyride', () => {
@@ -92,7 +95,22 @@ describe('Modular Tour Architecture & Step Sequences', () => {
     expect(redoStep).toBeDefined();
     expect(aiPromptsStep).toBeDefined();
     expect(printStep).toBeDefined();
+
+    // Verify the VERY LAST step before handing control to the user is the import CV step
+    const lastStep = COMPLETE_ONBOARDING_STEPS[COMPLETE_ONBOARDING_STEPS.length - 1];
+    expect(lastStep.target).toBe('#byo-cv-action-item');
+    expect(lastStep).toBe(IMPORT_CV_STEP);
   });
+
+  it('IMPORT_CV_TOUR_STEPS provides a dedicated standalone tour for bringing an existing CV', () => {
+    expect(Array.isArray(IMPORT_CV_TOUR_STEPS)).toBe(true);
+    expect(IMPORT_CV_TOUR_STEPS.length).toBe(1);
+    expect(IMPORT_CV_TOUR_STEPS[0].target).toBe('#byo-cv-action-item');
+    expect(IMPORT_CV_TOUR_STEPS[0].spotlightClicks).toBe(true);
+    expect(TOUR_IDS.IMPORT_CV).toBe('import_cv');
+    expect(MODAL_HELP_CONTENT[TOUR_IDS.IMPORT_CV]).toBeDefined();
+  });
+
 
   it('SIDEBAR_STEPS contains focused advice for every sidebar tool', () => {
     const targets = SIDEBAR_STEPS.map((s) => s.target);
@@ -352,4 +370,63 @@ describe('AppModals Interactive AI Tour Event Handling', () => {
     expect(document.body.classList.contains('has-running-tour')).toBe(false);
     expect(localStorage.getItem('seen_ai_modal_tour')).toBe('true');
   });
+
+  it('launches import_cv tour specifically via start-cv-tour event', () => {
+    const byoBtn = document.createElement('button');
+    byoBtn.id = 'byo-cv-action-item';
+    document.body.appendChild(byoBtn);
+
+    render(
+      <CVProvider>
+        <TourProvider>
+          <AppModals />
+        </TourProvider>
+      </CVProvider>
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('start-cv-tour', {
+          detail: { tour: 'import_cv' },
+        })
+      );
+    });
+
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+  });
+
+  it('renders a prominent tutorial help button in LayoutModeToggle and relaunches complete onboarding tour', () => {
+    localStorage.setItem('skip_onboarding_tour', 'true');
+    localStorage.setItem('seen_main_tour', 'true');
+
+    render(
+      <CVProvider>
+        <TourProvider>
+          <LayoutModeToggle />
+          <AppModals />
+        </TourProvider>
+      </CVProvider>
+    );
+
+    const restartBtn = screen.getByTestId('btn-restart-tour');
+    expect(restartBtn).toBeInTheDocument();
+    expect(restartBtn).toHaveTextContent('Tutorial');
+
+    // Joyride is not running initially because skip_onboarding_tour is true
+    expect(document.body.classList.contains('has-running-tour')).toBe(false);
+
+    // Click the restart button to relaunch the tour
+    act(() => {
+      fireEvent.click(restartBtn);
+    });
+
+    // The tour is relaunched and skip_onboarding_tour is cleared
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+    expect(localStorage.getItem('skip_onboarding_tour')).toBeNull();
+
+    const joyride = screen.getByTestId('joyride-mock');
+    expect(joyride.getAttribute('data-run')).toBe('true');
+    expect(joyride.getAttribute('data-step-index')).toBe('0');
+  });
 });
+

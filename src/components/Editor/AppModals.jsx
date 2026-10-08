@@ -21,8 +21,11 @@ import {
   AI_MODAL_STEPS_BYO_CV,
   getAIModalTourSteps,
   isAIModalSteps,
+  IMPORT_CV_STEP,
+  IMPORT_CV_TOUR_STEPS,
   openSidebarProgrammatically,
 } from './tour';
+
 
 export function AppModals({
   isAddSectionModalOpen,
@@ -38,6 +41,7 @@ export function AppModals({
   const [currentSteps, setCurrentSteps] = useState(COMPLETE_ONBOARDING_STEPS);
   const [tourStepIndex, setTourStepIndex] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [tourRunId, setTourRunId] = useState(0);
 
   // Manage body class for tour active state
   useEffect(() => {
@@ -265,15 +269,24 @@ export function AppModals({
 
       if (tourType === 'ai_modal') {
         setCurrentSteps(getAIModalTourSteps(promptId));
+      } else if (tourType === 'import_cv' || tourType === 'byo_cv') {
+        openSidebarProgrammatically();
+        setCurrentSteps(IMPORT_CV_TOUR_STEPS);
       } else if (tourType === 'sidebar') {
         openSidebarProgrammatically();
         setCurrentSteps(SIDEBAR_STEPS);
       } else if (tourType === 'add_section') {
         setCurrentSteps(ADD_SECTION_MODAL_STEPS);
       } else {
+        try {
+          localStorage.removeItem('skip_onboarding_tour');
+          localStorage.removeItem('seen_main_tour');
+        } catch (_) {}
+        setDontShowAgain(false);
         setCurrentSteps(COMPLETE_ONBOARDING_STEPS);
       }
       setTourStepIndex(0);
+      setTourRunId((prev) => prev + 1);
       setRunTour(true);
     };
     window.addEventListener('start-cv-tour', handleStartTourEvent);
@@ -324,6 +337,8 @@ export function AppModals({
       try {
         if (isAIModalSteps(currentSteps)) {
           localStorage.setItem('seen_ai_modal_tour', 'true');
+        } else if (currentSteps === IMPORT_CV_TOUR_STEPS) {
+          localStorage.setItem('seen_import_cv_tour', 'true');
         } else if (currentSteps === SIDEBAR_STEPS) {
           localStorage.setItem('seen_sidebar_tour', 'true');
         } else if (currentSteps === ADD_SECTION_MODAL_STEPS) {
@@ -331,6 +346,7 @@ export function AppModals({
         } else {
           localStorage.setItem('seen_main_tour', 'true');
           localStorage.setItem('seen_sidebar_tour', 'true');
+          localStorage.setItem('seen_import_cv_tour', 'true');
         }
       } catch (_) {}
 
@@ -340,6 +356,7 @@ export function AppModals({
   };
 
   const getTourKey = () => {
+    if (currentSteps === IMPORT_CV_TOUR_STEPS) return 'import-cv-tour';
     if (currentSteps === AI_MODAL_STEPS_TRANSLATION) return 'ai-modal-tour-translation';
     if (currentSteps === AI_MODAL_STEPS_BYO_CV) return 'ai-modal-tour-byo-cv';
     if (isAIModalSteps(currentSteps)) return 'ai-modal-tour-simple';
@@ -348,10 +365,11 @@ export function AppModals({
     return 'complete-onboarding-tour';
   };
 
+
   return (
     <>
       <Joyride
-        key={getTourKey()}
+        key={`${getTourKey()}-${tourRunId}`}
         run={runTour}
         stepIndex={tourStepIndex}
         steps={currentSteps}

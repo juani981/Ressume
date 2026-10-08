@@ -575,7 +575,10 @@ const AIExportModal = ({
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ModalHelpButton tourId={TOUR_IDS.AI_EXPORT} isDark={isDark} />
+            <ModalHelpButton
+              tourId={selectedPromptId === 'bring_your_own_cv' ? TOUR_IDS.IMPORT_CV : TOUR_IDS.AI_EXPORT}
+              isDark={isDark}
+            />
             <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
             <button 
               onClick={onClose}
