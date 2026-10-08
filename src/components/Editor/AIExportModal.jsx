@@ -1342,7 +1342,7 @@ const AIExportModal = ({
                 <Check size={16} color="#2ecc71" /> ¡Copiado al portapapeles!
               </span>
             )}
-            <button
+            {/* <button
               onClick={handleDownload}
               data-testid="ai-download-btn"
               style={{
@@ -1360,7 +1360,7 @@ const AIExportModal = ({
               }}
             >
               <Download size={16} /> Descargar Archivo
-            </button>
+            </button> */}
             <button
               onClick={() => handleCopy(null)}
               data-testid="ai-copy-btn"
