@@ -105,7 +105,7 @@ export const DesignPanel = ({
           <SlidersHorizontal size={18} color="#6366f1" /> Ajustes de Diseño
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ModalHelpButton tourId={TOUR_IDS.DESIGN} />
+          {/* <ModalHelpButton tourId={TOUR_IDS.DESIGN} /> */}
           <button
             type="button"
             onClick={onClose}

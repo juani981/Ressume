@@ -298,7 +298,7 @@ const LayoutModeToggle = ({ enableTwoColumn }) => {
             }}
           />
         )}
-        <span>Consejos IA</span>
+        <span>Sugerencias</span>
         <span
           style={{
             fontSize: '0.72rem',

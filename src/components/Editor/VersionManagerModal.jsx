@@ -524,7 +524,7 @@ export const VersionManagerModal = ({
                     lineHeight: 1.2,
                   }}
                 >
-                  Gestor de Versiones y Snapshots
+                  Gestor de Versiones
                 </h2>
                 <span
                   style={{
@@ -542,7 +542,7 @@ export const VersionManagerModal = ({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px', flexWrap: 'wrap' }}>
                 <p style={{ margin: 0, fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>
-                  Guarda, restaura, duplica y administra instantáneas persistentes de tu CV
+                  Administra y respalda distintas versiones de su CV
                 </p>
                 {(cvData?.activeVersionName || cvData?.versionName) && (
                   <>

@@ -514,7 +514,7 @@ export const ActionMenuRoot = () => {
             <SlidersHorizontal size={20} color='#b8b79a' />
           </button>
           <span className="action-menu-tooltip">
-            Diseño (Colores, Espaciado, Tipografía)
+            Diseño (Espaciado, Tipografía)
           </span>
         </div>
                 <hr
