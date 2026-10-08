@@ -27,7 +27,7 @@ export const simpleListDescriptor = {
   itemTag: 'li',
   itemClass: 'simple-list-item',
   itemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', position: 'relative', color: 'var(--text-color)' },
-  printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', listStyleType: 'none', marginBottom: 'var(--item-gap, 8px)', lineHeight: 1.45, color: 'var(--text-color)' },
+  printItemStyle: { display: 'flex', alignItems: 'flex-start', listStyle: 'none', listStyleType: 'none', marginBottom: 'var(--item-gap, 8px)', lineHeight: 'var(--line-height, 1.3)', color: 'var(--text-color)' },
   get itemComponent() { return SimpleListItem; },
   renderMarkdown: simpleListMarkdown,
   renderXML: simpleListXML,

@@ -6,28 +6,67 @@
  */
 
 import React from 'react';
+import { DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../constants';
 
 /**
  * Interactive draggable column resizer divider.
  *
  * @param {Object} props
- * @param {number} props.leftColPercent - Current left column percentage
- * @param {boolean} props.isResizing - Active resizing drag status
+ * @param {number} [props.leftColPercent=DEFAULT_LEFT_COLUMN_WIDTH_PERCENT] - Current left column percentage
+ * @param {boolean} [props.isResizing=false] - Active resizing drag status
  * @param {Function} props.onStartResize - Event listener for mousedown/touchstart
  * @returns {React.ReactElement}
  */
 export const ColumnResizer = ({
-  leftColPercent = 33.33,
+  leftColPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
   isResizing = false,
   onStartResize,
+  onResize,
+  minPercent = 20,
+  maxPercent = 55,
 }) => {
+  const handleKeyDown = (e) => {
+    let delta = 0;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      delta = e.shiftKey ? -5 : -1;
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      delta = e.shiftKey ? 5 : 1;
+    } else if (e.key === 'Home') {
+      if (typeof onResize === 'function') {
+        e.preventDefault();
+        onResize(minPercent);
+      }
+      return;
+    } else if (e.key === 'End') {
+      if (typeof onResize === 'function') {
+        e.preventDefault();
+        onResize(maxPercent);
+      }
+      return;
+    }
+
+    if (delta !== 0 && typeof onResize === 'function') {
+      e.preventDefault();
+      const current = Math.round(leftColPercent);
+      const nextVal = Math.min(maxPercent, Math.max(minPercent, current + delta));
+      onResize(nextVal);
+    }
+  };
+
   return (
     <div
       className="column-resizer no-print"
       data-editor-ui="true"
+      role="separator"
+      tabIndex={0}
+      aria-orientation="vertical"
+      aria-valuenow={Math.round(leftColPercent)}
+      aria-valuemin={minPercent}
+      aria-valuemax={maxPercent}
       onMouseDown={onStartResize}
       onTouchStart={onStartResize}
-      title="Arrastra para ajustar el ancho de las columnas"
+      onKeyDown={handleKeyDown}
+      title="Arrastra o usa las teclas de flecha para ajustar el ancho de las columnas"
       aria-label="Divisor de columnas arrastrable"
       data-testid="column-resizer"
       style={{

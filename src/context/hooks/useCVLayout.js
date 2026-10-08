@@ -5,6 +5,12 @@
  */
 import { useState, useCallback } from 'react';
 import { defaultSchema } from '../../utils/schema';
+import {
+  A4_PAGE_HEIGHT_PX,
+  A4_HEIGHT_CSS,
+  A4_GAP_PX,
+} from '../../constants';
+import { isFixedSection } from '../../utils/dndUtils';
 
 /**
  * Hook managing CV layout dimensions, pagination geometry, and floating overlays.
@@ -35,7 +41,7 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     if (typeof document !== 'undefined') {
       try {
         const ruler = document.createElement('div');
-        ruler.style.height = '297mm';
+        ruler.style.height = A4_HEIGHT_CSS;
         ruler.style.position = 'absolute';
         ruler.style.visibility = 'hidden';
         ruler.style.top = '-9999px';
@@ -45,10 +51,10 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
         if (h > 0) return h;
       } catch (_) {}
     }
-    return 1123;
+    return A4_PAGE_HEIGHT_PX;
   });
 
-  const pageGapPx = 20; // 20px gap visual representation in live editor
+  const pageGapPx = A4_GAP_PX; // A4 gap visual representation in live editor
   const [totalPages, setTotalPages] = useState(1);
   const [paginationTrigger, setPaginationTrigger] = useState(0);
 
@@ -106,10 +112,10 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
   const clearActiveTooltip = useCallback(() => setActiveTooltip(null), []);
   const closeTooltip = clearActiveTooltip;
 
-  const toggleTooltipForSection = useCallback((section, rect) => {
+  const toggleTooltipForSection = useCallback((section, rect, anchorRef = null) => {
     setActiveTooltip(current => {
       if (current && current.section && current.section.id === section.id) return null;
-      return { section, rect };
+      return { section, rect, anchorRef };
     });
   }, []);
 
@@ -143,6 +149,11 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
     applyStateWithHistory(prev => {
       const activeSec = prev.sections.find(s => s.id === activeSectionId);
       if (!activeSec) return prev;
+
+      // Fixed header sections (Title, Contact, About) cannot be moved
+      if (isFixedSection(activeSec)) {
+        return prev;
+      }
 
       if (overSectionId === activeSectionId && targetColumn === activeSec.column) {
         return prev;
@@ -182,6 +193,15 @@ export const useCVLayout = ({ cvData, applyStateWithHistory } = {}) => {
       if (insertIndex === -1) {
         const lastColIndex = remainingSections.reduce((lastIdx, s, idx) => s.column === targetColumn ? idx : lastIdx, -1);
         insertIndex = lastColIndex !== -1 ? lastColIndex + 1 : remainingSections.length;
+      }
+
+      // Ensure dynamic sections cannot precede fixed header sections in the target column
+      const lastFixedIndexInCol = remainingSections.reduce((lastIdx, s, idx) => {
+        return s.column === targetColumn && isFixedSection(s) ? idx : lastIdx;
+      }, -1);
+
+      if (lastFixedIndexInCol !== -1 && insertIndex <= lastFixedIndexInCol) {
+        insertIndex = lastFixedIndexInCol + 1;
       }
 
       const newSections = [...remainingSections];

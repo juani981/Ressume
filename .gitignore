@@ -13,3 +13,4 @@ temp_*
 public/__*
 test_headless.pdf
 .agents/
+.atl/

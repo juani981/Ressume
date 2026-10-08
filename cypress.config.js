@@ -2,15 +2,35 @@ import { defineConfig } from "cypress";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import {
+  recordInteraction,
+  recordUxObservation,
+  compileUxAuditReport,
+  resetAuditData,
+} from "./cypress/support/heatmapAndAuditEngine.js";
 
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:5173",
+    viewportWidth: 1440,
+    viewportHeight: 900,
     video: false,
     screenshotOnRunFailure: false,
     supportFile: "cypress/support/e2e.js",
     setupNodeEvents(on, config) {
       on('task', {
+        resetAuditData() {
+          return resetAuditData();
+        },
+        recordInteraction(event) {
+          return recordInteraction(event);
+        },
+        recordUxObservation(obs) {
+          return recordUxObservation(obs);
+        },
+        compileUxAuditReport({ outputPath } = {}) {
+          return compileUxAuditReport(outputPath);
+        },
         log(message) {
           console.log('[CY-TASK-LOG]', message);
           return null;

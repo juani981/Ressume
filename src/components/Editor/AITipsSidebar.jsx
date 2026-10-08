@@ -14,7 +14,8 @@ import {
   OctagonAlert, 
   TriangleAlert, 
   Info, 
-  Pin
+  Pin,
+  ChevronDown
 } from 'lucide-react';
 
 const SECTION_TYPE_TO_TARGET = {
@@ -56,6 +57,12 @@ const MIN_CARD_WIDTH = 120;
 const GAP_FROM_CV = 14;
 const VIEWPORT_MARGIN = 20;
 
+const SECTION_MAX_RULES = {
+  experience: 5,
+  skills: 5,
+  default: 3
+};
+
 /**
  * Filter and prioritize rules for a specific CV section.
  */
@@ -68,7 +75,7 @@ function getRulesForSection(sec, allRules, targetLayout, globalRules = []) {
     if (specific.length > 0) return specific;
   }
   if (sec.type === 'contact' || sec.id === 'contact') {
-    const specific = allRules.filter(r => r.id.includes('profile_002') || r.id.includes('profile_004'));
+    const specific = allRules.filter(r => r.id.includes('profile_002') || r.id.includes('profile_004') || r.id.includes('profile_005'));
     if (specific.length > 0) return specific;
   }
   if (sec.type === 'about' || sec.id === 'about_section') {
@@ -85,7 +92,7 @@ function getRulesForSection(sec, allRules, targetLayout, globalRules = []) {
 
   // Fallback to general strategy rules if no section-specific rule was found
   if (matching.length === 0 && globalRules.length > 0) {
-    matching = globalRules.slice(0, 2);
+    matching = globalRules.slice(0, SECTION_MAX_RULES.default);
   }
 
   // Prioritize critical severity first
@@ -108,9 +115,21 @@ const AITipsSidebar = () => {
   const [cardPositions, setCardPositions] = useState({});
   const [hasMeasuredPositions, setHasMeasuredPositions] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState(null);
+  const [hoveredSectionId, setHoveredSectionId] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({});
 
   const containerRef = useRef(null);
   const cardRefs = useRef({});
+
+  const toggleSectionExpanded = useCallback((key, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setExpandedSections(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  }, []);
 
   const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
   const targetLayout = isAtsMode ? 'ATS_1_col' : 'Human_2_col';
@@ -150,12 +169,13 @@ const AITipsSidebar = () => {
       if (rules.length > 0) {
         // Alternating side: index 0 (Title/Header) -> 'left', index 1 (Contact) -> 'right', index 2 (Profile) -> 'left', etc.
         const side = items.length % 2 === 0 ? 'left' : 'right';
+        const maxRules = SECTION_MAX_RULES[sec.type] || SECTION_MAX_RULES[sec.id] || SECTION_MAX_RULES.default;
         items.push({
           key: sec.id,
           sectionId: sec.id,
           title: sec.title || SECTION_LABEL_MAP[sec.type] || sec.type,
           sectionLabel: SECTION_LABEL_MAP[sec.type] || SECTION_LABEL_MAP[sec.id] || sec.title || 'Sección',
-          rules: rules.slice(0, 2),
+          rules: rules.slice(0, maxRules),
           side
         });
       }
@@ -247,7 +267,7 @@ const AITipsSidebar = () => {
     setHasMeasuredPositions(true);
   }, [cardItems]);
 
-  // When column widths adjust due to viewport constraints, measure updated card heights for vertical flow
+  // When column widths adjust due to viewport constraints or cards expand/collapse, measure updated card heights for vertical flow
   useEffect(() => {
     if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
       return;
@@ -258,7 +278,7 @@ const AITipsSidebar = () => {
       }, 30);
       return () => clearTimeout(timer);
     }
-  }, [columnWidths.left, columnWidths.right, recalculatePositions, hasMeasuredPositions]);
+  }, [columnWidths.left, columnWidths.right, recalculatePositions, hasMeasuredPositions, expandedSections]);
 
   // Track DOM layout, scroll, and resize
   useEffect(() => {
@@ -289,6 +309,86 @@ const AITipsSidebar = () => {
       if (observer) observer.disconnect();
     };
   }, [recalculatePositions]);
+
+  // Bidirectional Section ↔ Callout Interaction:
+  // When hovering or focusing inside a section in the CV document, highlight its corresponding tip card immediately
+  useEffect(() => {
+    if (!showAITips || typeof document === 'undefined') return;
+
+    let currentSectionEl = null;
+
+    const handlePointerOver = (e) => {
+      const sectionEl = e.target.closest?.('[data-section-id], .cv-section');
+      if (sectionEl === currentSectionEl) return;
+
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+      }
+
+      currentSectionEl = sectionEl;
+
+      if (!sectionEl) {
+        setHoveredSectionId(null);
+        return;
+      }
+
+      const secId = sectionEl.getAttribute('data-section-id') || sectionEl.id;
+      const canonicalId = secId ? secId.split('__cont_')[0] : null;
+      setHoveredSectionId(canonicalId);
+      sectionEl.classList.add('ai-tip-highlighted-section');
+    };
+
+    const handlePointerLeave = () => {
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        currentSectionEl = null;
+      }
+      setHoveredSectionId(null);
+    };
+
+    const handleFocusIn = (e) => {
+      const sectionEl = e.target.closest?.('[data-section-id], .cv-section');
+      if (sectionEl && sectionEl !== currentSectionEl) {
+        if (currentSectionEl) {
+          currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        }
+        currentSectionEl = sectionEl;
+        const secId = sectionEl.getAttribute('data-section-id') || sectionEl.id;
+        const canonicalId = secId ? secId.split('__cont_')[0] : null;
+        setHoveredSectionId(canonicalId);
+        sectionEl.classList.add('ai-tip-highlighted-section');
+      }
+    };
+
+    const handleFocusOut = (e) => {
+      const nextEl = e.relatedTarget?.closest?.('[data-section-id], .cv-section');
+      if (!nextEl && currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+        currentSectionEl = null;
+        setHoveredSectionId(null);
+      }
+    };
+
+    const areaCv = document.getElementById('area-cv');
+    if (areaCv) {
+      areaCv.addEventListener('pointerover', handlePointerOver, { passive: true });
+      areaCv.addEventListener('pointerleave', handlePointerLeave, { passive: true });
+      areaCv.addEventListener('focusin', handleFocusIn, { passive: true });
+      areaCv.addEventListener('focusout', handleFocusOut, { passive: true });
+    }
+
+    return () => {
+      if (currentSectionEl) {
+        currentSectionEl.classList.remove('ai-tip-highlighted-section');
+      }
+      if (areaCv) {
+        areaCv.removeEventListener('pointerover', handlePointerOver);
+        areaCv.removeEventListener('pointerleave', handlePointerLeave);
+        areaCv.removeEventListener('focusin', handleFocusIn);
+        areaCv.removeEventListener('focusout', handleFocusOut);
+      }
+    };
+  }, [showAITips]);
 
   // Section highlight handlers
   const handleCardMouseEnter = useCallback((sectionId, key) => {
@@ -343,7 +443,12 @@ const AITipsSidebar = () => {
         {cardItems.map((item) => {
           const side = item.side; // 'left' | 'right'
           const isLeft = side === 'left';
-          const isHovered = hoveredCardKey === item.key;
+          const isHovered = (hoveredCardKey === item.key) ||
+            Boolean(hoveredSectionId && (
+              hoveredSectionId === item.sectionId ||
+              item.sectionId.startsWith(hoveredSectionId) ||
+              hoveredSectionId.startsWith(item.sectionId)
+            ));
           const pos = cardPositions[item.key];
           const topPos = hasMeasuredPositions ? pos?.top : undefined;
           const currentCardWidth = isLeft ? columnWidths.left : columnWidths.right;
@@ -372,6 +477,7 @@ const AITipsSidebar = () => {
               ref={(el) => { cardRefs.current[item.key] = el; }}
               className="ai-tip-card-wrapper"
               data-side={side}
+              data-section-id={item.sectionId}
               onClick={() => handleCardClick(item.sectionId)}
               onMouseEnter={() => handleCardMouseEnter(item.sectionId, item.key)}
               onMouseLeave={() => handleCardMouseLeave(item.sectionId)}
@@ -394,12 +500,14 @@ const AITipsSidebar = () => {
                 WebkitBackdropFilter: 'blur(16px)',
                 borderRadius: '8px',
                 border: isHovered
-                  ? '1px solid #3b82f6'
+                  ? '1.5px solid #3b82f6'
                   : isAtsMode
                   ? '1px solid rgba(255, 255, 255, 0.12)'
                   : '1px solid #e2e8f0',
                 boxShadow: isHovered
-                  ? '0 8px 20px -3px rgba(59, 130, 246, 0.25), 0 2px 5px -1px rgba(0, 0, 0, 0.05)'
+                  ? (isAtsMode
+                      ? '0 0 16px rgba(59, 130, 246, 0.45), 0 8px 24px -4px rgba(0, 0, 0, 0.6)'
+                      : '0 0 14px rgba(59, 130, 246, 0.35), 0 8px 20px -3px rgba(59, 130, 246, 0.25)')
                   : isAtsMode
                   ? '0 6px 18px -3px rgba(0, 0, 0, 0.5)'
                   : '0 6px 18px -3px rgba(0, 0, 0, 0.07), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
@@ -408,7 +516,7 @@ const AITipsSidebar = () => {
                 pointerEvents: 'auto',
                 cursor: 'pointer',
                 transition: 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
-                transform: isHovered ? (isLeft ? 'translateX(3px)' : 'translateX(-3px)') : 'none'
+                transform: isHovered ? (isLeft ? 'translateX(4px)' : 'translateX(-4px)') : 'none'
               }}
             >
               {/* Pointer Arrow pointing towards CV section: Left card points Right; Right card points Left */}
@@ -470,80 +578,156 @@ const AITipsSidebar = () => {
                 </span>
               </div>
 
-              {/* Obsidian Callouts inside card */}
+              {/* Obsidian Callouts inside card with progressive disclosure */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {item.rules.map((rule, rIdx) => {
-                  const isCritical = rule.severity === 'critical';
-                  const isWarning = rule.severity === 'warning';
-
-                  // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
-                  const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
-                  const iconColor = `rgba(${themeColor}, 1)`;
+                {(() => {
+                  const isExpanded = Boolean(expandedSections[item.key]);
+                  const visibleRules = isExpanded ? item.rules : item.rules.slice(0, 1);
+                  const hasMoreRules = item.rules.length > 1;
+                  const remainingCount = item.rules.length - 1;
 
                   return (
-                    <div
-                      key={rule.id || rIdx}
-                      className="obsidian-callout"
-                      data-testid={`callout-${rule.id || rIdx}`}
-                      style={{
-                        backgroundColor: `rgba(${themeColor}, 0.08)`,
-                        borderLeft: `4px solid ${iconColor}`,
-                        borderRadius: '4px',
-                        padding: '5px 8px',
-                        fontSize: '0.72rem',
-                        color: isAtsMode ? '#e2e8f0' : '#1e293b',
-                        lineHeight: '1.3',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        boxSizing: 'border-box',
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word',
-                        height: 'auto'
-                      }}
-                    >
-                      <div
-                        className="callout-title"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '5px',
-                          color: iconColor,
-                          fontWeight: '600',
-                          marginBottom: '2px',
-                          fontSize: '0.74rem',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-word'
-                        }}
-                      >
-                        <span
-                          className="callout-icon"
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
+                    <>
+                      {visibleRules.map((rule, rIdx) => {
+                        const isCritical = rule.severity === 'critical';
+                        const isWarning = rule.severity === 'warning';
+
+                        // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
+                        const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
+                        const iconColor = `rgba(${themeColor}, 1)`;
+
+                        return (
+                          <div
+                            key={rule.id || rIdx}
+                            className="obsidian-callout"
+                            data-testid={`callout-${rule.id || rIdx}`}
+                            style={{
+                              backgroundColor: `rgba(${themeColor}, 0.08)`,
+                              borderLeft: `4px solid ${iconColor}`,
+                              borderRadius: '4px',
+                              padding: '5px 8px',
+                              fontSize: '0.72rem',
+                              color: isAtsMode ? '#e2e8f0' : '#1e293b',
+                              lineHeight: '1.3',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              boxSizing: 'border-box',
+                              overflowWrap: 'break-word',
+                              wordBreak: 'break-word',
+                              height: 'auto'
+                            }}
+                          >
+                            <div
+                              className="callout-title"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '5px',
+                                color: iconColor,
+                                fontWeight: '600',
+                                marginBottom: '2px',
+                                fontSize: '0.74rem',
+                                overflowWrap: 'break-word',
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              <span
+                                className="callout-icon"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
+                              >
+                                {isCritical ? (
+                                  <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
+                                ) : isWarning ? (
+                                  <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
+                                ) : (
+                                  <Info size={13} color={iconColor} strokeWidth={2.2} />
+                                )}
+                              </span>
+                              <span>{rule.suggestion_title}</span>
+                            </div>
+                            <div
+                              className="callout-content"
+                              style={{
+                                fontSize: '0.68rem',
+                                color: isAtsMode ? '#cbd5e1' : '#334155',
+                                lineHeight: '1.3',
+                                overflowWrap: 'break-word',
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              {rule.suggestion_body}
+                              {rule.example_bad && rule.example_good && (
+                                <div
+                                  className="callout-examples"
+                                  style={{
+                                    marginTop: '6px',
+                                    paddingTop: '4px',
+                                    borderTop: `1px dashed ${isAtsMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '2px',
+                                    fontSize: '0.62rem'
+                                  }}
+                                >
+                                  <div style={{ color: isAtsMode ? '#fca5a5' : '#b91c1c' }}>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evite: '}</strong>
+                                    <span>"{rule.example_bad}"</span>
+                                  </div>
+                                  <div style={{ color: isAtsMode ? '#86efac' : '#15803d' }}>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Es mejor: '}</strong>
+                                    <span>"{rule.example_good}"</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {hasMoreRules && (
+                        <button
+                          type="button"
+                          className="btn-toggle-tips"
+                          data-testid={`btn-toggle-tips-${item.key}`}
+                          onClick={(e) => toggleSectionExpanded(item.key, e)}
+                          style={{
+                            marginTop: '2px',
+                            padding: '4px 8px',
+                            fontSize: '0.66rem',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px',
+                            borderRadius: '4px',
+                            border: isAtsMode ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #cbd5e1',
+                            backgroundColor: isAtsMode ? 'rgba(255, 255, 255, 0.06)' : '#f8fafc',
+                            color: isAtsMode ? '#cbd5e1' : '#475569',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            width: '100%',
+                            boxSizing: 'border-box'
+                          }}
                         >
-                          {isCritical ? (
-                            <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
-                          ) : isWarning ? (
-                            <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
-                          ) : (
-                            <Info size={13} color={iconColor} strokeWidth={2.2} />
-                          )}
-                        </span>
-                        <span>{rule.suggestion_title}</span>
-                      </div>
-                      <div
-                        className="callout-content"
-                        style={{
-                          fontSize: '0.68rem',
-                          color: isAtsMode ? '#cbd5e1' : '#334155',
-                          lineHeight: '1.3',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-word'
-                        }}
-                      >
-                        {rule.suggestion_body}
-                      </div>
-                    </div>
+                          <span>
+                            {isExpanded
+                              ? (lang === 'en' ? 'Show fewer tips' : 'Ver menos consejos')
+                              : (lang === 'en'
+                                  ? `View more tips for this section (+${remainingCount})`
+                                  : `Ver más consejos para esta sección (+${remainingCount})`)}
+                          </span>
+                          <ChevronDown
+                            size={12}
+                            style={{
+                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s ease'
+                            }}
+                          />
+                        </button>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             </div>
           );

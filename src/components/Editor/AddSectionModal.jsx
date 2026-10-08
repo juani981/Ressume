@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCV } from '../../context/CVContext';
 import { getAllSectionDescriptors } from '../../registry/sectionRegistry';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { 
   X, 
   Briefcase, 
@@ -47,9 +50,12 @@ const iconMap = {
  * Positions floating to the right of #area-cv container using available viewport space
  * instead of centering over the CV document. Strictly follows AGENTS.md Rule 3.
  */
-const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
+const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right', targetIndex = undefined }) => {
   const { addSection, cvData } = useCV();
   const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { isOpen, onClose });
+
   const [initialBulletStyle, setInitialBulletStyle] = useState({
     size: 'normal',
     variant: 'bold',
@@ -124,17 +130,6 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
     };
   }, [isOpen]);
 
-  // Close on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -147,7 +142,7 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
 
   const handleSelectType = (desc) => {
     const col = targetColumn || desc.defaultColumn || 'right';
-    addSection(col, desc.type, desc.defaultTitle, initialBulletStyle);
+    addSection(col, desc.type, desc.defaultTitle, initialBulletStyle, targetIndex);
     onClose();
   };
 
@@ -171,6 +166,10 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
 
       {/* Floating Panel Docked to the Right of #area-cv */}
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-section-title"
         data-testid="add-section-modal"
         className="add-section-floating-panel no-print"
         style={{
@@ -195,29 +194,32 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
           background: 'rgba(56, 116, 255, 0.04)'
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 id="add-section-title" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={18} color="#3874ff" /> Añadir Sección al CV
             </h3>
             
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-color-light, #888)',
-              padding: '0.35rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalHelpButton tourId={TOUR_IDS.ADD_SECTION} />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar modal de añadir sección"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-color-light, #888)',
+                padding: '0.35rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Bullet & Timeline Initial Style Selector */}
@@ -320,7 +322,16 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right' }) => {
             return (
               <div
                 key={desc.type}
+                role="button"
+                tabIndex={0}
+                aria-label={`Añadir sección ${desc.defaultTitle}`}
                 onClick={() => handleSelectType(desc)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectType(desc);
+                  }
+                }}
                 data-testid={`add-section-card-${desc.type}`}
                 className="add-section-card"
                 style={{

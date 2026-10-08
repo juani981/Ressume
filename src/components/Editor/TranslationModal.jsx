@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import {
   SUPPORTED_LANGUAGES,
@@ -30,7 +30,8 @@ import {
   ExternalLink,
   ArrowRight,
   ClipboardPaste,
-  Trash2
+  Trash2,
+  Info
 } from 'lucide-react';
 
 const TranslationModal = ({ isOpen, onClose }) => {
@@ -44,12 +45,17 @@ const TranslationModal = ({ isOpen, onClose }) => {
   } = useCV();
 
   const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'import' | 'slots'
-  const [targetLangCode, setTargetLangCode] = useState('en');
+  const [targetLangCode, setTargetLangCode] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
   const [customLangCode, setCustomLangCode] = useState('');
   const [customGuidelines, setCustomGuidelines] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [isWaitingAI, setIsWaitingAI] = useState(false);
+
+  // Synchronize targetLangCode when activeLanguage changes
+  useEffect(() => {
+    setTargetLangCode(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+  }, [activeLanguage]);
 
   // Import Tab State
   const [rawAIInput, setRawAIInput] = useState('');
@@ -281,6 +287,46 @@ const TranslationModal = ({ isOpen, onClose }) => {
         {/* Tab Content */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
+          {/* Disclaimer de Privacidad, Procesamiento Externo/Local y Gratuidad */}
+          {activeTab !== 'slots' && (
+            <div 
+              className="obsidian-callout"
+              data-testid="translation-ai-disclaimer-callout"
+              style={{
+                background: 'rgba(8, 109, 221, 0.08)',
+                borderLeft: '4px solid rgb(8, 109, 221)',
+                padding: '0.75rem 1rem',
+                borderRadius: '4px 8px 8px 4px',
+                fontSize: '0.84rem'
+              }}
+            >
+              <div 
+                className="callout-title"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                  color: '#3874ff',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                <Info size={16} color="#3874ff" />
+                <span>Privacidad, Procesamiento Externo y Uso Gratuito</span>
+              </div>
+              <div 
+                className="callout-content"
+                style={{
+                  color: 'var(--text-color, #334155)',
+                  lineHeight: '1.45',
+                  fontSize: '0.82rem'
+                }}
+              >
+                Todo el procesamiento de datos se realiza en la IA externa o local que elijas (como ChatGPT, Claude, Gemini, DeepSeek u Ollama). Ressume no almacena tus datos en ningún servidor ni genera coste alguno por uso o descarga. Recomendamos copiar y pegar este mismo prompt en varias IAs para comparar y contrastar los resultados.
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: PROMPT GENERATOR */}
           {activeTab === 'prompt' && (
             <>
@@ -536,6 +582,9 @@ const TranslationModal = ({ isOpen, onClose }) => {
                     <a href="https://chat.deepseek.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', background: 'rgba(56, 116, 255, 0.1)', color: '#3874ff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
                       DeepSeek <ExternalLink size={11} />
                     </a>
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #666)', marginTop: '0.15rem' }}>
+                    Sin costes ni almacenamiento de datos. Puedes comparar la traducción en varios modelos antes de importar.
                   </div>
                 </div>
               )}

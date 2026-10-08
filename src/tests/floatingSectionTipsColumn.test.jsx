@@ -88,29 +88,29 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
     const esRules = getRules('es');
     const enRules = getRules('en');
 
-    // Verify Spanish rules have Google XYZ formula and imperative commands
+    // Verify Spanish rules have Laszlo Bock formula and imperative commands
     const googleXYZRule = esRules.find(r => r.id.includes('experience_001'));
     expect(googleXYZRule).toBeDefined();
-    expect(googleXYZRule.suggestion_title).toContain('Google XYZ');
+    expect(googleXYZRule.suggestion_title).toContain('Impacto Cuantificado');
     expect(googleXYZRule.suggestion_body).toContain('Laszlo Bock');
 
     const killResponsibleRule = esRules.find(r => r.id.includes('experience_002'));
     expect(killResponsibleRule).toBeDefined();
-    expect(killResponsibleRule.suggestion_title).toContain('Responsable de');
+    expect(killResponsibleRule.suggestion_title).toContain('Verbos de Acción');
 
     const metricsRule = esRules.find(r => r.id.includes('experience_003'));
     expect(metricsRule).toBeDefined();
-    expect(metricsRule.suggestion_title).toContain('Métricas Obligatorias');
+    expect(metricsRule.suggestion_title).toContain('Cuantificación');
 
     // Verify English rules parity
     const enGoogleXYZ = enRules.find(r => r.id.includes('experience_001'));
     expect(enGoogleXYZ).toBeDefined();
-    expect(enGoogleXYZ.suggestion_title).toContain('Google XYZ');
+    expect(enGoogleXYZ.suggestion_title).toContain('Quantified Impact');
     expect(enGoogleXYZ.suggestion_body).toContain('Laszlo Bock');
 
     const enKillResponsible = enRules.find(r => r.id.includes('experience_002'));
     expect(enKillResponsible).toBeDefined();
-    expect(enKillResponsible.suggestion_title).toContain('Responsible for');
+    expect(enKillResponsible.suggestion_title).toContain('Action Verbs');
   });
 
   it('4. Renders all advice cards unconditionally without individual dismiss buttons or counters (all-or-nothing)', () => {
@@ -182,7 +182,7 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
 
     // Check that at least one callout contains the imperative recruiter guidance
     const titles = Array.from(tooltip.querySelectorAll('.callout-title')).map(t => t.textContent);
-    const hasCuratedRule = titles.some(t => t.includes('Google XYZ') || t.includes('Responsable de') || t.includes('Métricas'));
+    const hasCuratedRule = titles.some(t => t.includes('Impacto Cuantificado') || t.includes('Verbos de Acción') || t.includes('Cuantificación'));
     expect(hasCuratedRule).toBe(true);
   });
 
@@ -288,6 +288,116 @@ describe('Floating Section AI Tips Column & Curated Recruiter Rules', () => {
         expect(cStyle).toContain('word-break: break-word');
       });
     });
+  });
+
+  it('10. Bidirectional Section ↔ Callout Interaction: hovering or focusing inside a CV section activates the corresponding tip card and section highlight', () => {
+    const { container } = render(
+      <CVProvider initialCV={mockCVData}>
+        <div id="area-cv">
+          <div data-section-id="skills" className="cv-section" data-testid="cv-section-skills">
+            Skills Content
+          </div>
+          <div data-section-id="experience" className="cv-section" data-testid="cv-section-experience">
+            Experience Content
+          </div>
+        </div>
+        <AITipsSidebar />
+      </CVProvider>
+    );
+
+    const skillsSection = screen.getByTestId('cv-section-skills');
+    const skillsCard = container.querySelector('.ai-tip-card-wrapper[data-section-id="skills"]');
+    expect(skillsCard).toBeInTheDocument();
+
+    // 1. Trigger pointerOver on skills section
+    fireEvent.pointerOver(skillsSection);
+
+    // Section should gain highlight class
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(true);
+
+    // Skills card should receive blue highlight border
+    expect(skillsCard.style.border).toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 2. Trigger pointerLeave on area-cv
+    const areaCv = document.getElementById('area-cv');
+    fireEvent.pointerLeave(areaCv);
+
+    // Section and card should lose highlight
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(false);
+    expect(skillsCard.style.border).not.toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 3. Trigger focusIn inside skills section (e.g. user typing in an inline edit field)
+    fireEvent.focusIn(skillsSection);
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(true);
+    expect(skillsCard.style.border).toContain('1.5px solid rgb(59, 130, 246)');
+
+    // 4. Trigger focusOut outside area-cv
+    fireEvent.focusOut(skillsSection);
+    expect(skillsSection.classList.contains('ai-tip-highlighted-section')).toBe(false);
+    expect(skillsCard.style.border).not.toContain('1.5px solid rgb(59, 130, 246)');
+  });
+
+  it('8. Verifies bilingual parity for profile sensitive data and projects repository rules', () => {
+    const esRules = getRules('es');
+    const enRules = getRules('en');
+
+    // Rule count parity
+    expect(esRules.length).toBe(enRules.length);
+    expect(esRules.length).toBe(31);
+
+    // Profile sensitive data rule
+    const esProfile005 = esRules.find(r => r.id === 'rule_es_profile_005');
+    const enProfile005 = enRules.find(r => r.id === 'rule_en_profile_005');
+    expect(esProfile005).toBeDefined();
+    expect(enProfile005).toBeDefined();
+    expect(esProfile005.severity).toBe('critical');
+    expect(enProfile005.severity).toBe('critical');
+    expect(esProfile005.target_section).toBe('profile');
+    expect(enProfile005.target_section).toBe('profile');
+
+    // Projects repo README/Docker rule
+    const esProjects003 = esRules.find(r => r.id === 'rule_es_projects_003');
+    const enProjects003 = enRules.find(r => r.id === 'rule_en_projects_003');
+    expect(esProjects003).toBeDefined();
+    expect(enProjects003).toBeDefined();
+    expect(esProjects003.severity).toBe('warning');
+    expect(enProjects003.severity).toBe('warning');
+    expect(esProjects003.target_section).toBe('projects');
+    expect(enProjects003.target_section).toBe('projects');
+  });
+
+  it('9. Renders 1 tip by default and expands up to 5 tips for experience/skills on demand via toggle button', () => {
+    render(
+      <CVProvider initialCV={mockCVData}>
+        <AITipsSidebar />
+      </CVProvider>
+    );
+
+    const expCard = document.querySelector('.ai-tip-card-wrapper[data-section-id="experience"]');
+    expect(expCard).toBeInTheDocument();
+    // Default progressive disclosure: 1 tip shown initially to prevent stretching layout
+    const initialExpTips = expCard.querySelectorAll('.obsidian-callout');
+    expect(initialExpTips.length).toBe(1);
+
+    // Expand tips on demand
+    const expToggleBtn = screen.getByTestId('btn-toggle-tips-experience');
+    expect(expToggleBtn).toBeInTheDocument();
+    expect(expToggleBtn.textContent).toMatch(/ver más consejos/i);
+    fireEvent.click(expToggleBtn);
+
+    const expTips = expCard.querySelectorAll('.obsidian-callout');
+    expect(expTips.length).toBeGreaterThan(2);
+    expect(expTips.length).toBeLessThanOrEqual(5);
+
+    const skillsCard = document.querySelector('.ai-tip-card-wrapper[data-section-id="skills"]');
+    expect(skillsCard).toBeInTheDocument();
+    const skillsToggleBtn = screen.getByTestId('btn-toggle-tips-skills');
+    expect(skillsToggleBtn).toBeInTheDocument();
+    fireEvent.click(skillsToggleBtn);
+
+    const skillsTips = skillsCard.querySelectorAll('.obsidian-callout');
+    expect(skillsTips.length).toBeGreaterThan(2);
+    expect(skillsTips.length).toBeLessThanOrEqual(5);
   });
 });
 

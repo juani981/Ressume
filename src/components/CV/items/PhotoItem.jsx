@@ -61,8 +61,9 @@ const PhotoItemPrintView = ({ item }) => {
  * When not hovering, controls are hidden and take 0 space in the layout flow.
  * On hover, controls float in an elegant 2-column popover without increasing component size.
  */
-const PhotoItemEditView = ({ item, sectionId }) => {
-  const { updateSectionItem } = useCV();
+const PhotoItemEditView = ({ item, sectionId, onUpdateItem }) => {
+  const cvContext = useCV();
+  const updateSectionItem = cvContext?.updateSectionItem;
   const fileInputRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -73,6 +74,14 @@ const PhotoItemEditView = ({ item, sectionId }) => {
 
   const borderRadius = shape === 'circle' ? '50%' : (shape === 'rounded' ? '12px' : '2px');
 
+  const updateItemData = (updates) => {
+    if (typeof onUpdateItem === 'function') {
+      onUpdateItem(updates);
+    } else if (typeof updateSectionItem === 'function' && sectionId && item?.id) {
+      updateSectionItem(sectionId, item.id, updates);
+    }
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -82,26 +91,29 @@ const PhotoItemEditView = ({ item, sectionId }) => {
     reader.onload = (event) => {
       const base64Url = event.target?.result;
       if (typeof base64Url === 'string') {
-        updateSectionItem(sectionId, item.id, { url: base64Url });
+        updateItemData({ url: base64Url });
       }
+    };
+    reader.onerror = (err) => {
+      console.error('Error al leer el archivo de imagen:', err);
     };
     reader.readAsDataURL(file);
   };
 
   const handleUrlChange = (e) => {
-    updateSectionItem(sectionId, item.id, { url: e.target.value });
+    updateItemData({ url: e.target.value });
   };
 
   const handleShapeChange = (newShape) => {
-    updateSectionItem(sectionId, item.id, { shape: newShape });
+    updateItemData({ shape: newShape });
   };
 
   const handleSizeChange = (newSize) => {
-    updateSectionItem(sectionId, item.id, { size: Number(newSize) });
+    updateItemData({ size: Number(newSize) });
   };
 
   const handleClearImage = () => {
-    updateSectionItem(sectionId, item.id, { url: '' });
+    updateItemData({ url: '' });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -379,7 +391,7 @@ const PhotoItemEditView = ({ item, sectionId }) => {
   );
 };
 
-const PhotoItem = ({ item, sectionId, isPrint = false }) => {
+const PhotoItem = ({ item, sectionId, isPrint = false, onUpdateItem }) => {
   const cvContext = useCV();
   const isAtsMode = cvContext?.cvData?.layout?.isAtsMode === true || cvContext?.cvData?.layout?.type === '1-column';
   if (isAtsMode) {
@@ -389,7 +401,7 @@ const PhotoItem = ({ item, sectionId, isPrint = false }) => {
   if (isPrint) {
     return <PhotoItemPrintView item={item} />;
   }
-  return <PhotoItemEditView item={item} sectionId={sectionId} />;
+  return <PhotoItemEditView item={item} sectionId={sectionId} onUpdateItem={onUpdateItem} />;
 };
 
 export default PhotoItem;

@@ -120,6 +120,39 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(saved.layout.type).toBe('2-column');
       expect(saved.layout.isAtsMode).toBe(false);
     });
+
+    it('T1.5: when two-column mode is disabled, hides the 2-column toggle and displays the harmonious MODO OPTIMIZADO ATS legend', () => {
+      render(
+        <CVProvider>
+          <LayoutModeToggle enableTwoColumn={false} />
+        </CVProvider>
+      );
+
+      // Interactive toggle switch and 2-column button must NOT exist
+      expect(screen.queryByTestId('ats-mode-toggle')).not.toBeInTheDocument();
+      expect(screen.queryByText(/diseño tradicional/i)).not.toBeInTheDocument();
+
+      // Harmonious legend "MODO OPTIMIZADO ATS" must be prominently displayed
+      const legendPill = screen.getByTestId('ats-mode-legend');
+      expect(legendPill).toBeInTheDocument();
+      expect(screen.getByText('MODO OPTIMIZADO ATS')).toBeInTheDocument();
+
+      // Master AI Tips toggle must remain rendered and functional
+      expect(screen.getByTestId('master-tips-toggle')).toBeInTheDocument();
+    });
+
+    it('T1.6: automatically synchronizes cvData.layout to 1-column ATS mode when two-column mode is disabled', () => {
+      let currentState = null;
+      render(
+        <CVProvider>
+          <LayoutModeToggle enableTwoColumn={false} />
+          <StateInspector onState={(s) => { currentState = s; }} />
+        </CVProvider>
+      );
+
+      expect(currentState.cvData.layout.type).toBe('1-column');
+      expect(currentState.cvData.layout.isAtsMode).toBe(true);
+    });
   });
 
   // =========================================================================
@@ -219,7 +252,7 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(saved.layout.itemGap).toBe(12);
     });
 
-    it('T2.4: contains Color pickers in 2-column mode and informs user in ATS mode', () => {
+    it('T2.4: contains Color pickers in 2-column mode and informs user in ATS mode (if tab-colors is active)', () => {
       let currentState = null;
       render(
         <CVProvider>
@@ -230,23 +263,29 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       );
 
       fireEvent.click(screen.getByTestId('btn-open-design'));
-      fireEvent.click(screen.getByTestId('tab-colors'));
+      const colorsTab = screen.queryByTestId('tab-colors');
+      if (colorsTab) {
+        fireEvent.click(colorsTab);
 
-      // In 2-column mode, lateral and main column color pickers are active
-      const leftBgInput = screen.getByLabelText(/fondo columna lateral/i);
-      const rightBgInput = screen.getByLabelText(/fondo columna principal/i);
-      expect(leftBgInput).toBeInTheDocument();
-      expect(rightBgInput).toBeInTheDocument();
+        // In 2-column mode, lateral and main column color pickers are active
+        const leftBgInput = screen.getByLabelText(/fondo columna lateral/i);
+        const rightBgInput = screen.getByLabelText(/fondo columna principal/i);
+        expect(leftBgInput).toBeInTheDocument();
+        expect(rightBgInput).toBeInTheDocument();
 
-      fireEvent.change(leftBgInput, { target: { value: '#2d3748' } });
-      expect(currentState.cvData.layout.leftBg).toBe('#2d3748');
+        fireEvent.change(leftBgInput, { target: { value: '#2d3748' } });
+        expect(currentState.cvData.layout.leftBg).toBe('#2d3748');
 
-      // Now toggle to ATS mode
-      fireEvent.click(screen.getByTestId('ats-mode-toggle'));
+        // Now toggle to ATS mode
+        fireEvent.click(screen.getByTestId('ats-mode-toggle'));
 
-      // In ATS mode, an Obsidian callout is displayed explaining pure white bg
-      expect(screen.getByText(/modo ats activo/i)).toBeInTheDocument();
-      expect(screen.getByText(/fondo blanco puro/i)).toBeInTheDocument();
+        // In ATS mode, an Obsidian callout is displayed explaining pure white bg
+        expect(screen.getByText(/modo ats activo/i)).toBeInTheDocument();
+        expect(screen.getByText(/fondo blanco puro/i)).toBeInTheDocument();
+      } else {
+        // Streamlined tab bar: tab-colors omitted by user per AGENTS.md Rule 18
+        expect(colorsTab).toBeNull();
+      }
     });
 
     it('T2.5: close button in Diseño submenu closes panel', () => {

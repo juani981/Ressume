@@ -17,17 +17,28 @@ import {
   A4_PAGE_HEIGHT_PX,
   A4_WIDTH_CSS,
   A4_HEIGHT_CSS,
+  A4_HEIGHT_MM,
+  A4_GAP_PX,
   A4_DOCUMENT_SCALE,
+  DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+  DEFAULT_GRID_TEMPLATE_COLUMNS,
+  DEFAULT_LINE_HEIGHT,
+  DEFAULT_ITEM_GAP_PX,
+  SPACING_LIMITS,
+  formatGridTemplateColumns,
 } from '../../constants';
 import { getRulerHeightPx } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
+import { STATIC_PRINT_FONTS_CSS } from './printFonts';
 import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';
 
 export { renderRichHTML, stripHtml };
 
 export const MAX_A4_2PAGE_HEIGHT_PX = A4_PAGE_HEIGHT_PX * 2; // 2246px
 export const MIN_SCALE_FLOOR = 0.75;
+export const ADAPTIVE_FIT_TOLERANCE_1PAGE = 1.12; // 12% spill allowance to fit single-page documents
+export const ADAPTIVE_FIT_TOLERANCE_MULTIPAGE = 1.15; // 15% spill allowance before pushing to next page
 
 /**
  * Escapes HTML characters to prevent XSS and malformed HTML
@@ -50,15 +61,16 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
   const titleScale = layout.titleScale ?? 1.0;
   const bodyScale = layout.bodyScale ?? 1.0;
   const listScale = layout.listScale ?? 1.0;
-  const lineHeight = layout.lineHeight ?? 1.45;
-  const pagePadding = layout.pagePadding ?? 24;
-  const sectionGap = layout.sectionGap ?? 20;
-  const itemGap = layout.itemGap ?? 8;
+  const lineHeight = layout.lineHeight ?? DEFAULT_LINE_HEIGHT;
+  const pagePadding = layout.pagePadding ?? SPACING_LIMITS.pagePadding.default;
+  const pagePaddingBottom = Math.round(pagePadding / 2);
+  const sectionGap = layout.sectionGap ?? SPACING_LIMITS.sectionGap.default;
+  const itemGap = layout.itemGap ?? DEFAULT_ITEM_GAP_PX;
   const fontFamilyStack = getFontFamilyStack(layout.fontFamily);
-  const leftColPercent = layout.leftColumnWidth || 33.33;
+  const leftColPercent = layout.leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
   const gridTemplateColumns = layout.leftColumnWidth
-    ? `${layout.leftColumnWidth}% ${100 - layout.leftColumnWidth}%`
-    : '1fr 2fr';
+    ? formatGridTemplateColumns(layout.leftColumnWidth)
+    : DEFAULT_GRID_TEMPLATE_COLUMNS;
 
   return `
     :root,
@@ -71,6 +83,7 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
       --a4-page-height-px: ${A4_PAGE_HEIGHT_PX}px;
       --a4-page-scale: ${A4_DOCUMENT_SCALE};
       --page-padding: ${pagePadding}px;
+      --page-padding-bottom: ${pagePaddingBottom}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
       --body-font: ${fontFamilyStack};
@@ -86,11 +99,11 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
       --left-bg: ${layout.leftBg || 'var(--container-color-alt)'};
       --right-bg: ${layout.rightBg || '#ffffff'};
       --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-      --h3-font-size: calc(1rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-      --small-font-size: calc(0.875rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+      --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+      --small-font-size: calc(0.688rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));
@@ -117,38 +130,38 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
  */
 export const computeAdaptivePrintLayout = (renderedHeight) => {
   if (!renderedHeight || renderedHeight <= 0 || isNaN(renderedHeight)) {
-    return { scale: 1.0, totalPages: 1, targetHeightMm: 297 };
+    return { scale: 1.0, totalPages: 1, targetHeightMm: A4_HEIGHT_MM };
   }
 
   if (renderedHeight <= A4_PAGE_HEIGHT_PX) {
-    return { scale: 1.0, totalPages: 1, targetHeightMm: 297 };
+    return { scale: 1.0, totalPages: 1, targetHeightMm: A4_HEIGHT_MM };
   }
 
-  if (renderedHeight <= A4_PAGE_HEIGHT_PX * 1.12) {
+  if (renderedHeight <= A4_PAGE_HEIGHT_PX * ADAPTIVE_FIT_TOLERANCE_1PAGE) {
     const scale = +((A4_PAGE_HEIGHT_PX / renderedHeight).toFixed(3));
-    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 1, targetHeightMm: 297 };
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 1, targetHeightMm: A4_HEIGHT_MM };
   }
 
   if (renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX) {
-    return { scale: 1.0, totalPages: 2, targetHeightMm: 594 };
+    return { scale: 1.0, totalPages: 2, targetHeightMm: A4_HEIGHT_MM * 2 };
   }
 
-  if (renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX * 1.15) {
+  if (renderedHeight <= MAX_A4_2PAGE_HEIGHT_PX * ADAPTIVE_FIT_TOLERANCE_MULTIPAGE) {
     const scale = +((MAX_A4_2PAGE_HEIGHT_PX / renderedHeight).toFixed(3));
-    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 2, targetHeightMm: 594 };
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 2, targetHeightMm: A4_HEIGHT_MM * 2 };
   }
 
   if (renderedHeight <= A4_PAGE_HEIGHT_PX * 3) {
-    return { scale: 1.0, totalPages: 3, targetHeightMm: 891 };
+    return { scale: 1.0, totalPages: 3, targetHeightMm: A4_HEIGHT_MM * 3 };
   }
 
-  if (renderedHeight <= (A4_PAGE_HEIGHT_PX * 3) * 1.15) {
+  if (renderedHeight <= (A4_PAGE_HEIGHT_PX * 3) * ADAPTIVE_FIT_TOLERANCE_MULTIPAGE) {
     const scale = +(((A4_PAGE_HEIGHT_PX * 3) / renderedHeight).toFixed(3));
-    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 3, targetHeightMm: 891 };
+    return { scale: Math.max(MIN_SCALE_FLOOR, scale), totalPages: 3, targetHeightMm: A4_HEIGHT_MM * 3 };
   }
 
   const pages = Math.ceil(renderedHeight / A4_PAGE_HEIGHT_PX);
-  return { scale: 1.0, totalPages: pages, targetHeightMm: pages * 297 };
+  return { scale: 1.0, totalPages: pages, targetHeightMm: pages * A4_HEIGHT_MM };
 };
 
 /**
@@ -222,7 +235,7 @@ export const captureEditorSnapshot = () => {
     } catch (_) {}
 
     const editorMargin = parseFloat(node.style.marginTop) || 0;
-    const printMargin = editorMargin > 20 ? (editorMargin - 20) : editorMargin;
+    const printMargin = editorMargin > A4_GAP_PX ? (editorMargin - A4_GAP_PX) : editorMargin;
     const finalMargin = Math.max(24, Math.round(printMargin));
 
     brokenElements.push({
@@ -245,12 +258,58 @@ export const captureEditorSnapshot = () => {
   const totalPages = (parsedAttr && parsedAttr > 0) ? parsedAttr : maxFold;
 
   return {
-    width: width > 0 ? width : 794,
+    width: width > 0 ? width : A4_WIDTH_PX,
     height,
     pageHeightPx,
     brokenElements,
     totalPages,
   };
+};
+
+const UNCONSTRAINED_PARENT_CLASSES = Object.freeze([
+  'experience__content',
+  'experience__data',
+  'experience__bullets-container',
+  'experience__bullets',
+  'simple-list-container',
+  'simple-list-ul',
+  'cv-block',
+  'editable-item-container',
+]);
+
+const resetNodeBreakProperties = (node) => {
+  node.style.setProperty('break-before', 'auto');
+  node.style.setProperty('page-break-before', 'auto');
+  node.style.removeProperty('padding-top');
+  node.style.removeProperty('margin-top');
+  node.classList.remove('force-page-break-before', 'break-page-before');
+  node.removeAttribute('data-page-break');
+  node.removeAttribute('data-page-break-before');
+  node.removeAttribute('data-page-break-forced');
+  node.removeAttribute('data-editor-break-forced');
+  node.removeAttribute('data-editor-break-fold');
+};
+
+const unconstrainParentBreakInside = (node, rootContainer) => {
+  let parent = node.parentElement;
+  while (parent && parent !== rootContainer) {
+    if (UNCONSTRAINED_PARENT_CLASSES.some((cls) => parent.classList.contains(cls))) {
+      parent.style.setProperty('break-inside', 'auto', 'important');
+      parent.style.setProperty('page-break-inside', 'auto', 'important');
+    }
+    parent = parent.parentElement;
+  }
+};
+
+const applyForcedPageBreak = (node, paddingFallback = SPACING_LIMITS.pagePadding.default) => {
+  node.style.setProperty('break-before', 'page');
+  node.style.setProperty('page-break-before', 'always');
+  node.style.setProperty('padding-top', `var(--page-padding, ${paddingFallback}px)`);
+  node.style.setProperty('margin-top', '0px');
+  node.classList.add('force-page-break-before', 'break-page-before');
+  node.setAttribute('data-page-break', 'before');
+  node.setAttribute('data-page-break-before', 'true');
+  node.setAttribute('data-page-break-forced', 'true');
 };
 
 /**
@@ -393,6 +452,12 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     el.style.setProperty('list-style-type', 'none', 'important');
   });
 
+  clone.querySelectorAll('.a4-page-wrapper').forEach((wrapper) => {
+    wrapper.style.setProperty('display', 'contents', 'important');
+    wrapper.style.setProperty('margin', '0', 'important');
+    wrapper.style.setProperty('padding', '0', 'important');
+  });
+
   const pageBoxes = clone.querySelectorAll('.a4-page-box');
   const hasA4Boxes = pageBoxes.length > 0;
 
@@ -421,30 +486,8 @@ export const createSanitizedPrintClone = (areaCvElement) => {
     });
 
     clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
-      node.style.setProperty('break-before', 'auto');
-      node.style.setProperty('page-break-before', 'auto');
-      node.style.removeProperty('padding-top');
-      node.style.removeProperty('margin-top');
-      node.classList.remove('force-page-break-before', 'break-page-before');
-      node.removeAttribute('data-page-break');
-      node.removeAttribute('data-page-break-before');
-      node.removeAttribute('data-page-break-forced');
-      node.removeAttribute('data-editor-break-forced');
-      node.removeAttribute('data-editor-break-fold');
-
-      let parent = node.parentElement;
-      while (parent && parent !== clone) {
-        if (parent.classList.contains('experience__content') ||
-            parent.classList.contains('experience__data') ||
-            parent.classList.contains('experience__bullets-container') ||
-            parent.classList.contains('experience__bullets') ||
-            parent.classList.contains('simple-list-container') ||
-            parent.classList.contains('simple-list-ul')) {
-          parent.style.setProperty('break-inside', 'auto', 'important');
-          parent.style.setProperty('page-break-inside', 'auto', 'important');
-        }
-        parent = parent.parentElement;
-      }
+      resetNodeBreakProperties(node);
+      unconstrainParentBreakInside(node, clone);
     });
   } else {
     // In continuous mode (fallback):
@@ -452,75 +495,17 @@ export const createSanitizedPrintClone = (areaCvElement) => {
       clone.querySelector('.resume__left') && clone.querySelector('.resume__right')
     );
 
-    if (is2ColClone) {
-      clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
-        node.style.setProperty('break-before', 'auto');
-        node.style.setProperty('page-break-before', 'auto');
-        node.style.removeProperty('padding-top');
-        node.style.removeProperty('margin-top');
-        node.classList.remove('force-page-break-before', 'break-page-before');
-        node.removeAttribute('data-page-break');
-        node.removeAttribute('data-page-break-before');
-        node.removeAttribute('data-page-break-forced');
-        node.removeAttribute('data-editor-break-forced');
-        node.removeAttribute('data-editor-break-fold');
-
-        let parent = node.parentElement;
-        while (parent && parent !== clone) {
-          if (parent.classList.contains('experience__content') ||
-              parent.classList.contains('experience__data') ||
-              parent.classList.contains('experience__bullets-container') ||
-              parent.classList.contains('experience__bullets') ||
-              parent.classList.contains('simple-list-container') ||
-              parent.classList.contains('simple-list-ul')) {
-            parent.style.setProperty('break-inside', 'auto', 'important');
-            parent.style.setProperty('page-break-inside', 'auto', 'important');
-          }
-          parent = parent.parentElement;
-        }
-      });
-    } else {
-      const seenLinearFolds = new Set();
-      clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
-        const foldKey = String(node.getAttribute('data-editor-break-fold') || '1');
-        if (seenLinearFolds.has(foldKey)) {
-          node.style.setProperty('break-before', 'auto');
-          node.style.setProperty('page-break-before', 'auto');
-          node.style.removeProperty('padding-top');
-          node.style.removeProperty('margin-top');
-          node.classList.remove('force-page-break-before', 'break-page-before');
-          node.removeAttribute('data-page-break');
-          node.removeAttribute('data-page-break-before');
-          node.removeAttribute('data-page-break-forced');
-          node.removeAttribute('data-editor-break-forced');
-          node.removeAttribute('data-editor-break-fold');
-        } else {
-          seenLinearFolds.add(foldKey);
-          node.style.setProperty('break-before', 'page');
-          node.style.setProperty('page-break-before', 'always');
-          node.style.setProperty('padding-top', 'var(--page-padding, 24px)');
-          node.style.setProperty('margin-top', '0px');
-          node.classList.add('force-page-break-before', 'break-page-before');
-          node.setAttribute('data-page-break', 'before');
-          node.setAttribute('data-page-break-before', 'true');
-          node.setAttribute('data-page-break-forced', 'true');
-        }
-
-        let parent = node.parentElement;
-        while (parent && parent !== clone) {
-          if (parent.classList.contains('experience__content') ||
-              parent.classList.contains('experience__data') ||
-              parent.classList.contains('experience__bullets-container') ||
-              parent.classList.contains('experience__bullets') ||
-              parent.classList.contains('simple-list-container') ||
-              parent.classList.contains('simple-list-ul')) {
-            parent.style.setProperty('break-inside', 'auto', 'important');
-            parent.style.setProperty('page-break-inside', 'auto', 'important');
-          }
-          parent = parent.parentElement;
-        }
-      });
-    }
+    const seenLinearFolds = new Set();
+    clone.querySelectorAll('[data-editor-break-forced="true"]').forEach((node) => {
+      const foldKey = String(node.getAttribute('data-editor-break-fold') || '1');
+      if (is2ColClone || seenLinearFolds.has(foldKey)) {
+        resetNodeBreakProperties(node);
+      } else {
+        seenLinearFolds.add(foldKey);
+        applyForcedPageBreak(node);
+      }
+      unconstrainParentBreakInside(node, clone);
+    });
   }
 
   // Defensive scrub: ensure that the first child of each column/container never inherits break-before or extra padding
@@ -584,26 +569,15 @@ export const createSanitizedPrintClone = (areaCvElement) => {
   clone.querySelectorAll(SPLITTABLE_CONTAINERS).forEach((el) => {
     el.style.setProperty('break-inside', 'auto', 'important');
     el.style.setProperty('page-break-inside', 'auto', 'important');
-    let parent = el.parentElement;
-    while (parent && parent !== clone) {
-      if (parent.classList.contains('experience__content') ||
-          parent.classList.contains('experience__data') ||
-          parent.classList.contains('cv-block') ||
-          parent.classList.contains('editable-item-container') ||
-          parent.classList.contains('simple-list-container')) {
-        parent.style.setProperty('break-inside', 'auto', 'important');
-        parent.style.setProperty('page-break-inside', 'auto', 'important');
-      }
-      parent = parent.parentElement;
-    }
+    unconstrainParentBreakInside(el, clone);
   });
 
   clone.querySelectorAll('ul.experience__bullets > li, .experience__bullets li, ul.simple-list-ul > li, .bullet-item-row').forEach((bulletEl) => {
     bulletEl.style.setProperty('break-inside', 'avoid', 'important');
     bulletEl.style.setProperty('page-break-inside', 'avoid', 'important');
     bulletEl.style.setProperty('margin-top', '0', 'important');
-    bulletEl.style.setProperty('margin-bottom', 'var(--item-gap, 8px)', 'important');
-    bulletEl.style.setProperty('line-height', 'var(--line-height, 1.45)', 'important');
+    bulletEl.style.setProperty('margin-bottom', `var(--item-gap, ${SPACING_LIMITS.itemGap.default}px)`, 'important');
+    bulletEl.style.setProperty('line-height', `var(--line-height, ${DEFAULT_LINE_HEIGHT})`, 'important');
     bulletEl.style.setProperty('font-size', 'var(--list-font-size, var(--normal-font-size))', 'important');
     bulletEl.style.setProperty('padding-left', '0', 'important');
   });
@@ -667,16 +641,16 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     sections = sections.filter(s => s.type !== 'photo' && s.id !== 'photo_section');
   }
   const is2Col = layout.type === '2-column' && !layout.isAtsMode;
-  const pagePadding = Number(layout.pagePadding ?? 24);
-  const sectionGap = Number(layout.sectionGap ?? 20);
-  const itemGap = Number(layout.itemGap ?? 8);
+  const pagePadding = Number(layout.pagePadding ?? SPACING_LIMITS.pagePadding.default);
+  const sectionGap = Number(layout.sectionGap ?? SPACING_LIMITS.sectionGap.default);
+  const itemGap = Number(layout.itemGap ?? SPACING_LIMITS.itemGap.default);
 
   const fontFamily = getFontFamilyStack(layout.fontFamily);
   const fontScale = layout.fontScale || 1.0;
   const titleScale = layout.titleScale || 1.0;
   const bodyScale = layout.bodyScale || 1.0;
   const listScale = layout.listScale || 1.0;
-  const lineHeight = layout.lineHeight || 1.45;
+  const lineHeight = layout.lineHeight || DEFAULT_LINE_HEIGHT;
 
   const leftBg = layout.leftBg || '#f3f4f6';
   const rightBg = layout.rightBg || '#ffffff';
@@ -688,13 +662,14 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   const rightSectionsCol = is2Col ? sections.filter((s) => getSectionCol(s) === 'right') : [];
 
   const leftColWidth = layout.leftColumnWidth;
-  const gridColumns = leftColWidth ? `${leftColWidth}% ${100 - leftColWidth}%` : '1fr 2fr';
-  const leftColPercent = leftColWidth || 33.33;
+  const gridColumns = leftColWidth ? formatGridTemplateColumns(leftColWidth) : DEFAULT_GRID_TEMPLATE_COLUMNS;
+  const leftColPercent = leftColWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
 
   const areaCvClasses = is2Col
     ? (snapshot ? `resume bd-grid ${isAtsMode ? 'resume--ats-mode' : ''}`.trim() : `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim())
     : `resume resume__single-column ${isAtsMode ? 'resume--ats-mode' : ''}`.trim();
 
+  const pagePaddingBottom = Math.round(pagePadding / 2);
   const dynamicSpacingStyle = `
     --body-font: ${fontFamily};
     --font-scale: ${fontScale};
@@ -703,6 +678,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     --list-scale: ${listScale};
     --line-height: ${lineHeight};
     --page-padding: ${pagePadding}px;
+    --page-padding-bottom: ${pagePaddingBottom}px;
     --section-gap: ${sectionGap}px;
     --item-gap: ${itemGap}px;
   `.replace(/\s+/g, ' ').trim();
@@ -711,23 +687,23 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   const useBleedWidth = Boolean(layout.leftBg && layout.rightBg && !snapshot?.width);
   const twoColWidthStyle = useBleedWidth
     ? 'width: 100%; max-width: 100%; margin: 0; padding: 0;'
-    : `width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; margin: 0 auto; padding: 0;`;
+    : `width: ${containerWidth || `${A4_WIDTH_PX}px`}; max-width: ${containerWidth || `${A4_WIDTH_PX}px`}; margin: 0 auto; padding: 0;`;
 
   let bodyContent = '';
   if (is2Col) {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; gap: 0; column-gap: 0; row-gap: 0; ${twoColWidthStyle} min-height: 297mm; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
-        <div class="resume__left" style="background: ${leftBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
+      <div class="${areaCvClasses}" id="area-cv" style="display: grid; grid-template-columns: ${gridColumns}; gap: 0; column-gap: 0; row-gap: 0; ${twoColWidthStyle} min-height: ${A4_HEIGHT_CSS}; box-shadow: none; box-sizing: border-box; color: var(--text-color); background: linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${leftColPercent}%, ${rightBg} ${leftColPercent}%, ${rightBg} 100%); ${dynamicSpacingStyle}">
+        <div class="resume__left" style="background: ${leftBg}; min-height: ${A4_HEIGHT_CSS}; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${leftColors.titleColor}; --text-color: ${leftColors.textColor}; --text-color-light: ${leftColors.textColorLight}; --circle-color: ${leftColors.circleColor}; --container-color-alt: ${leftColors.containerColorAlt};">
           ${leftSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
-        <div class="resume__right" style="background: ${rightBg}; min-height: 297mm; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
+        <div class="resume__right" style="background: ${rightBg}; min-height: ${A4_HEIGHT_CSS}; align-self: stretch; box-sizing: border-box; padding: var(--page-padding, 24px); color: var(--text-color); --title-color: ${rightColors.titleColor}; --text-color: ${rightColors.textColor}; --text-color-light: ${rightColors.textColorLight}; --circle-color: ${rightColors.circleColor}; --container-color-alt: ${rightColors.containerColorAlt};">
           ${rightSectionsCol.map(renderSectionHTML).join('\n\n')}
         </div>
       </div>
     `;
   } else {
     bodyContent = `
-      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || '794px'}; max-width: ${containerWidth || '794px'}; min-height: 297mm !important; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
+      <div class="${areaCvClasses}" id="area-cv" style="width: ${containerWidth || `${A4_WIDTH_PX}px`}; max-width: ${containerWidth || `${A4_WIDTH_PX}px`}; min-height: ${A4_HEIGHT_CSS} !important; margin: 0 auto; box-sizing: border-box; padding: var(--page-padding, 24px); background: #ffffff; ${dynamicSpacingStyle}">
         ${sections.map(renderSectionHTML).join('\n\n')}
       </div>
     `;
@@ -790,9 +766,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style id="cv-base-styles">
+${STATIC_PRINT_FONTS_CSS}
     :root,
     #area-cv {
       --page-padding: ${pagePadding}px;
+      --page-padding-bottom: ${pagePaddingBottom}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
       --title-color: #0f172a;
@@ -815,11 +793,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
       --list-scale: ${listScale};
       --line-height: ${lineHeight};
       --h1-font-size: calc(1.5rem * var(--font-scale, 1));
-      --h2-font-size: calc(1.25rem * var(--font-scale, 1));
-      --h3-font-size: calc(1rem * var(--font-scale, 1));
-      --normal-font-size: calc(0.938rem * var(--font-scale, 1));
-      --small-font-size: calc(0.875rem * var(--font-scale, 1));
-      --smaller-font-size: calc(0.813rem * var(--font-scale, 1));
+      --h2-font-size: calc(1.125rem * var(--font-scale, 1));
+      --h3-font-size: calc(0.938rem * var(--font-scale, 1));
+      --normal-font-size: calc(0.75rem * var(--font-scale, 1));
+      --small-font-size: calc(0.688rem * var(--font-scale, 1));
+      --smaller-font-size: calc(0.625rem * var(--font-scale, 1));
 
       --title-h1-size: calc(var(--h1-font-size) * var(--title-scale, 1));
       --title-h2-size: calc(var(--h2-font-size) * var(--title-scale, 1));

@@ -251,6 +251,29 @@ const SuggestionTooltip = ({ section, isHovered, layoutType, rect, anchorRef }) 
               </div>
               <div className="callout-content" style={{ fontSize: '10.5px', lineHeight: '1.3' }}>
                 {s.suggestion_body}
+                {s.example_bad && s.example_good && (
+                  <div
+                    className="callout-examples"
+                    style={{
+                      marginTop: '5px',
+                      paddingTop: '4px',
+                      borderTop: '1px dashed rgba(255, 255, 255, 0.15)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                      fontSize: '9.5px'
+                    }}
+                  >
+                    <div style={{ color: '#fca5a5' }}>
+                      <strong style={{ fontWeight: 600 }}>{activeLanguage === 'en' ? 'Avoid: ' : 'Evitá: '}</strong>
+                      <span>{s.example_bad}</span>
+                    </div>
+                    <div style={{ color: '#86efac' }}>
+                      <strong style={{ fontWeight: 600 }}>{activeLanguage === 'en' ? 'Use: ' : 'Usá: '}</strong>
+                      <span>{s.example_good}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

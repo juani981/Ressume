@@ -6,6 +6,11 @@ import { saveVersion } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { cleanAndParseRawJSON, normalizeAnyJSONToCVSnapshot } from '../../utils/universalJsonImporter';
 import { formatBackupVersionTitle } from '../../services/ai/bidirectionalPromptContract';
+import { useModalTheme } from '../../hooks/useModalTheme';
+import { ModalThemeToggle } from '../common/ModalThemeToggle';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { 
   BrainCircuit, 
   Target, 
@@ -36,7 +41,8 @@ import {
   FileCheck,
   Layers,
   FileCode,
-  Clock
+  Clock,
+  Info
 } from 'lucide-react';
 
 const LANGUAGE_OPTIONS = [
@@ -69,6 +75,10 @@ const AIExportModal = ({
     switchLanguage, 
     showToast 
   } = useCV();
+  const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { isOpen, onClose });
+
   const [selectedPromptId, setSelectedPromptId] = useState(initialPromptId || 'recruiter_audit');
   const selectedFormat = 'markdown'; // Fixed to Semantic Markdown per R1
   const [userCommentary, setUserCommentary] = useState('');
@@ -87,7 +97,12 @@ const AIExportModal = ({
   const [externalLLMResponse, setExternalLLMResponse] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [applyStatus, setApplyStatus] = useState(null);
-  const [targetTranslationLang, setTargetTranslationLang] = useState('en');
+  const [targetTranslationLang, setTargetTranslationLang] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
+
+  // Synchronize targetTranslationLang when activeLanguage changes
+  useEffect(() => {
+    setTargetTranslationLang(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+  }, [activeLanguage]);
 
   // UX States: Collapsible Prompt Preview & External AI Waiting Hand-off Mode
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
@@ -115,6 +130,11 @@ const AIExportModal = ({
           }
         }
       };
+      reader.onerror = () => {
+        if (typeof showToast === 'function') {
+          showToast('Error al leer el archivo del disco', 'error', 3500);
+        }
+      };
       reader.readAsText(file);
     } else {
       if (typeof showToast === 'function') {
@@ -140,6 +160,11 @@ const AIExportModal = ({
           }
         }
       };
+      reader.onerror = () => {
+        if (typeof showToast === 'function') {
+          showToast('Error al leer el archivo del disco', 'error', 3500);
+        }
+      };
       reader.readAsText(file);
     } else {
       if (typeof showToast === 'function') {
@@ -155,6 +180,11 @@ const AIExportModal = ({
     setIsWaitingForAI(false);
     setIsPromptExpanded(false);
     setCopiedProvider(null);
+    if (isOpen && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ai-modal-prompt-changed', {
+        detail: { promptId: selectedPromptId }
+      }));
+    }
   }, [selectedPromptId, isOpen]);
 
   const localizedPrompts = useMemo(() => {
@@ -212,9 +242,10 @@ const AIExportModal = ({
       format: selectedFormat,
       jobDescription,
       userCommentary,
-      lang: activeLanguage
+      lang: activeLanguage,
+      targetLang: targetTranslationLang
     });
-  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage]);
+  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage, targetTranslationLang]);
 
   const handleApplyResponse = async () => {
     if (!externalLLMResponse || !externalLLMResponse.trim()) {
@@ -267,6 +298,11 @@ const AIExportModal = ({
 
       const newSnapshotToSave = {
         ...validatedCV,
+        layout: {
+          ...(validatedCV.layout || {}),
+          language: effectiveTargetLang
+        },
+        language: effectiveTargetLang,
         versionName: newVersionTitle,
         activeVersionName: newVersionTitle
       };
@@ -409,6 +445,11 @@ const AIExportModal = ({
       if (isResponseImportablePrompt) {
         setIsWaitingForAI(true);
       }
+      if (!targetProviderName && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'copy_clicked', promptId: selectedPromptId }
+        }));
+      }
     } catch (err) {
       console.error('Failed to copy', err);
     }
@@ -416,6 +457,11 @@ const AIExportModal = ({
 
   const handleCopyAndOpenProvider = async (url, providerName) => {
     await handleCopy(providerName);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+        detail: { action: 'provider_clicked', providerName, promptId: selectedPromptId }
+      }));
+    }
     try {
       if (typeof window !== 'undefined' && window.open) {
         window.open(url, '_blank', 'noopener,noreferrer');
@@ -441,6 +487,11 @@ const AIExportModal = ({
           }
         }
       }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'paste_clicked', promptId: selectedPromptId }
+        }));
+      }
     } catch (err) {
       console.warn('Clipboard read failed:', err);
     }
@@ -460,893 +511,1544 @@ const AIExportModal = ({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.65)',
-      backdropFilter: 'blur(5px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '1.5rem'
-    }}>
-      <div 
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="ai-modal-title"
+     <div
         style={{
-        background: 'var(--container-color, #ffffff)',
-        color: 'var(--text-color, #333333)',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '900px',
-        maxHeight: '90vh',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
-        border: '1px solid rgba(150, 150, 150, 0.2)',
-        overflow: 'hidden'
-      }}>
-        {/* Modal Header */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderBottom: '1px solid rgba(150, 150, 150, 0.2)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+           position: "fixed",
+           top: 0,
+           left: 0,
+           right: 0,
+           bottom: 0,
+           backgroundColor: "rgba(0, 0, 0, 0.65)",
+           backdropFilter: "blur(5px)",
+           display: "flex",
+           alignItems: "center",
+           justifyContent: "center",
+           zIndex: 1000,
+           padding: "1.5rem",
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <BrainCircuit size={28} color="#3874ff" />
-            <div>
-              <h3 id="ai-modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-                {selectedPromptId === 'translate_english'
-                  ? 'Traducción y Localización Cultural a Inglés (US Tech)'
-                  : selectedPromptId === 'bring_your_own_cv'
-                  ? 'Trae tu propio CV (Conversor PDF a JSON ATS 1:1)'
-                  : 'Generar Prompts de IA con los datos de tu CV'}
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color-light, #777)' }}>
-                {selectedPromptId === 'translate_english'
-                  ? 'Adapta títulos académicos, cargos y experiencia a otro idioma'
-                  : selectedPromptId === 'bring_your_own_cv'
-                  ? 'Importa cualquier CV externo desde un archivo'
-                  : 'Genera prompts útiles para consultar con modelos de lenguaje (GPT, Claude, Gemini, DeepSeek), no necesitas adjuntar ningún archivo'}
-              </p>
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            data-testid="ai-modal-close-btn"
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              color: 'var(--text-color-light, #888)',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          
-          {/* Main Prompt Selection Header Bar: Accessible & Synchronized */}
-          <div style={{
-            display: isResponseImportablePrompt ? 'none' : 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-            paddingBottom: '0.25rem'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label 
-                htmlFor="ai-prompt-select"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600 }}
-              >
-                <Target size={15} color="#3874ff" /> Objetivo del Prompt:
-              </label>
-              <select 
-                id="ai-prompt-select"
-                data-testid="ai-prompt-select"
-                value={selectedPromptId} 
-                onChange={(e) => setSelectedPromptId(e.target.value)}
-                style={{
-                  padding: '0.45rem 0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(150, 150, 150, 0.3)',
-                  background: 'var(--body-color, #f9f9f9)',
-                  color: 'inherit',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                  cursor: 'pointer'
-                }}
-              >
-                {filteredPrompts.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-          </div>
-
-          {/* Description of Selected Prompt - Obsidian Info Callout (Universal for all prompts) */}
-          {selectedPrompt.description && (
-            <div 
-              className="obsidian-callout"
+        <div
+           ref={modalRef}
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="ai-modal-title"
+           data-theme={modalTheme}
+           data-prompt-id={selectedPromptId}
+           className="ai-modal-dialog"
+           style={{
+              background: isDark ? "#0f172a" : "#ffffff",
+              color: isDark ? "#f8fafc" : "#0f172a",
+              borderRadius: "16px",
+              width: "100%",
+              maxWidth: "900px",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: isDark
+                 ? "0 25px 50px -12px rgba(0, 0, 0, 0.6)"
+                 : "0 20px 40px rgba(0,0,0,0.25)",
+              border: isDark
+                 ? "1px solid #334155"
+                 : "1px solid rgba(150, 150, 150, 0.2)",
+              overflow: "hidden",
+           }}>
+           {/* Modal Header */}
+           <div
               style={{
-                background: 'rgba(8, 109, 221, 0.08)',
-                borderLeft: '4px solid rgb(8, 109, 221)',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px 8px 8px 4px',
-                fontSize: '0.85rem'
-              }}
-            >
-              <div 
-                className="callout-title"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '600',
-                  color: 'rgb(8, 109, 221)',
-                  marginBottom: '0.25rem'
-                }}
-              >
-                <Target size={15} color="rgb(8, 109, 221)" />
-                <span>Descripción del Objetivo:</span>
+                 padding: "1.25rem 1.5rem",
+                 borderBottom: isDark
+                    ? "1px solid #1e293b"
+                    : "1px solid rgba(150, 150, 150, 0.2)",
+                 background: isDark ? "#0f172a" : "#ffffff",
+                 display: "flex",
+                 justifyContent: "space-between",
+                 alignItems: "center",
+              }}>
+              <div
+                 style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                 }}>
+                 <BrainCircuit size={28} color="#3874ff" />
+                 <div>
+                    <h3
+                       id="ai-modal-title"
+                       style={{
+                          margin: 0,
+                          fontSize: "1.25rem",
+                          fontWeight: 600,
+                          color: isDark ? "#f8fafc" : "#0f172a",
+                       }}>
+                       {selectedPromptId === "translate_english"
+                          ? "Traducción y Localización Cultural a Inglés (US Tech)"
+                          : selectedPromptId === "bring_your_own_cv"
+                            ? "Trae tu propio CV (Importar usando IA)"
+                            : "Generar Prompts de IA con los datos de tu CV"}
+                    </h3>
+                    <p
+                       style={{
+                          margin: 0,
+                          fontSize: "0.85rem",
+                          color: isDark
+                             ? "#94a3b8"
+                             : "var(--text-color-light, #777)",
+                       }}>
+                       {selectedPromptId === "translate_english"
+                          ? "Adapta títulos académicos, cargos y experiencia a otro idioma"
+                          : selectedPromptId === "bring_your_own_cv"
+                            ? "Importa cualquier CV externo desde un archivo"
+                            : "Genera prompts útiles para consultar con modelos de lenguaje (GPT, Claude, Gemini, DeepSeek), no necesitas adjuntar ningún archivo"}
+                    </p>
+                 </div>
               </div>
-              <div className="callout-content" style={{ color: 'inherit', opacity: 0.9 }}>
-                {selectedPrompt.description}
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* BIDIRECTIONAL STEP 1 CONTROLS                                             */}
-          {/* ========================================================================= */}
-          {isResponseImportablePrompt && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.65rem',
-              borderBottom: '1px solid rgba(150, 150, 150, 0.2)',
-              paddingBottom: '0.85rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: '#3874ff',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.78rem',
-                    fontWeight: 700
-                  }}>1</span>
-                  <strong style={{ fontSize: '0.95rem' }}>
-                    Paso 1: Copia el Prompt de Entrada
-                  </strong>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  {(selectedPromptId === 'translate_english' || selectedPrompt?.category === 'localization') && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <label 
-                        htmlFor="ai-target-lang-select" 
-                        style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-color, #444)' }}
-                      >
-                        <Globe size={14} color="#10b981" style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                        Idioma destino:
-                      </label>
-                      <select
-                        id="ai-target-lang-select"
-                        data-testid="ai-target-lang-select"
-                        value={targetTranslationLang}
-                        onChange={(e) => setTargetTranslationLang(e.target.value)}
-                        style={{
-                          padding: '0.35rem 0.65rem',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(150, 150, 150, 0.3)',
-                          background: 'var(--body-color, #f9f9f9)',
-                          color: 'inherit',
-                          fontSize: '0.8rem',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="en">Inglés (English - US Tech / Global)</option>
-                        <option value="es">Español (Spanish - LatAm / España)</option>
-                        <option value="de">Alemán (Deutsch - DACH)</option>
-                        <option value="fr">Francés (Français - France / Canada)</option>
-                        <option value="pt">Portugués (Português - Brasil / Portugal)</option>
-                        <option value="it">Italiano (Italian)</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Botón principal y llamativo de copiar prompt */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(null)}
-                    data-testid="ai-copy-btn"
+              <div
+                 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                 <ModalHelpButton
+                    tourId={
+                       selectedPromptId === "bring_your_own_cv"
+                          ? TOUR_IDS.IMPORT_CV
+                          : TOUR_IDS.AI_EXPORT
+                    }
+                    isDark={isDark}
+                 />
+                 <ModalThemeToggle
+                    theme={modalTheme}
+                    onToggle={toggleModalTheme}
+                 />
+                 <button
+                    onClick={onClose}
+                    aria-label="Cerrar modal"
+                    data-testid="ai-modal-close-btn"
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '7px',
-                      padding: '0.5rem 1.15rem',
-                      borderRadius: '8px',
-                      border: 'none',
-                      background: copied ? '#10b981' : '#3874ff',
-                      color: '#ffffff',
-                      fontSize: '0.88rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      boxShadow: copied ? '0 2px 10px rgba(16, 185, 129, 0.35)' : '0 2px 10px rgba(56, 116, 255, 0.35)',
-                      transition: 'all 0.18s ease'
-                    }}
-                  >
-                    {copied ? (
-                      <>
-                        <Check size={16} />
-                        <span>¡Prompt Copiado!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={16} />
-                        <span>Copiar Prompt</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                       background: "none",
+                       border: "none",
+                       fontSize: "1.5rem",
+                       cursor: "pointer",
+                       color: isDark
+                          ? "#94a3b8"
+                          : "var(--text-color-light, #888)",
+                       padding: "0.25rem 0.5rem",
+                       borderRadius: "8px",
+                       display: "flex",
+                       alignItems: "center",
+                    }}>
+                    <X size={20} />
+                 </button>
+              </div>
+           </div>
+
+           {/* Modal Body */}
+           <div
+              style={{
+                 padding: "1.5rem",
+                 overflowY: "auto",
+                 display: "flex",
+                 flexDirection: "column",
+                 gap: "1.25rem",
+              }}>
+              {/* ========================================================================= */}
+              {/* UNIDIRECTIONAL STEP-BY-STEP INTEGRATED WORKFLOW (PROMPTS COMUNES)         */}
+              {/* ========================================================================= */}
+              {/* Paso 1: Configura el Objetivo del Prompt y Personaliza */}
+              <div
+                 style={{
+                    display: isResponseImportablePrompt ? "none" : "flex",
+                    flexDirection: "column",
+                    gap: "0.85rem",
+                    borderBottom: isDark
+                       ? "1px solid #1e293b"
+                       : "1px solid rgba(150, 150, 150, 0.2)",
+                    paddingBottom: "1rem",
+                 }}>
+                 <div
+                    style={{
+                       display: isResponseImportablePrompt ? "none" : "flex",
+                       alignItems: "center",
+                       justifyContent: "space-between",
+                       flexWrap: "wrap",
+                       gap: "10px",
+                    }}>
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                       }}>
+                       <span
+                          style={{
+                             width: "24px",
+                             height: "24px",
+                             borderRadius: "50%",
+                             background: "#3874ff",
+                             color: "#ffffff",
+                             display: "flex",
+                             alignItems: "center",
+                             justifyContent: "center",
+                             fontSize: "0.78rem",
+                             fontWeight: 700,
+                          }}>
+                          1
+                       </span>
+                       <strong style={{ fontSize: "0.95rem" }}>
+                          Paso 1: Selecciona el Objetivo del prompt
+                       </strong>
+                    </div>
+
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                       }}>
+                       <label
+                          htmlFor="ai-prompt-select"
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "6px",
+                             fontSize: "0.85rem",
+                             fontWeight: 600,
+                          }}>
+                          <Target size={15} color="#3874ff" /> Objetivo:
+                       </label>
+                       <select
+                          id="ai-prompt-select"
+                          data-testid="ai-prompt-select"
+                          value={selectedPromptId}
+                          onChange={(e) => setSelectedPromptId(e.target.value)}
+                          style={{
+                             padding: "0.45rem 0.75rem",
+                             borderRadius: "8px",
+                             border: isDark
+                                ? "1px solid #334155"
+                                : "1px solid rgba(150, 150, 150, 0.3)",
+                             background: isDark ? "#1e293b" : "#f8fafc",
+                             color: isDark ? "#f8fafc" : "inherit",
+                             fontSize: "0.85rem",
+                             fontWeight: 500,
+                             cursor: "pointer",
+                          }}>
+                          {filteredPrompts.map((p) => (
+                             <option key={p.id} value={p.id}>
+                                {p.name}
+                             </option>
+                          ))}
+                       </select>
+                    </div>
+                 </div>
+
+                 {/* Descripción del Objetivo */}
+                 {selectedPrompt.description && (
+                    <div
+                       className="obsidian-callout"
+                       style={{
+                          background: "rgba(8, 109, 221, 0.08)",
+                          borderLeft: "4px solid rgb(8, 109, 221)",
+                          padding: "0.75rem 1rem",
+                          borderRadius: "4px 8px 8px 4px",
+                          fontSize: "0.85rem",
+                       }}>
+                       <div
+                          className="callout-content"
+                          style={{ color: "inherit", opacity: 0.9 }}>
+                          {selectedPrompt.description}
+                       </div>
+                    </div>
+                 )}
+
+                 {/* Job Description (si aplica) */}
+                 {(selectedPrompt.id === "job_matcher" ||
+                    selectedPrompt.required_inputs?.includes(
+                       "job_description",
+                    )) && (
+                    <div>
+                       <label
+                          htmlFor="ai-job-description"
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "6px",
+                             fontSize: "0.85rem",
+                             fontWeight: 600,
+                             marginBottom: "0.4rem",
+                          }}>
+                          <Briefcase size={15} color="#e11d48" /> Pegar
+                          Descripción de la Oferta Laboral (Job Description):
+                       </label>
+                       <textarea
+                          id="ai-job-description"
+                          data-testid="ai-job-description"
+                          rows={1}
+                          value={jobDescription}
+                          onChange={(e) => setJobDescription(e.target.value)}
+                          placeholder="Pega aquí los requisitos y responsabilidades de la oferta de trabajo para calcular compatibilidad..."
+                          style={{
+                             width: "100%",
+                             padding: "0.75rem",
+                             borderRadius: "8px",
+                             border: isDark
+                                ? "1px solid #334155"
+                                : "1px solid rgba(150, 150, 150, 0.3)",
+                             background: isDark ? "#1e293b" : "#f8fafc",
+                             color: isDark ? "#f8fafc" : "inherit",
+                             fontFamily: "inherit",
+                             fontSize: "0.85rem",
+                             resize: "vertical",
+                             boxSizing: "border-box",
+                          }}
+                       />
+                    </div>
+                 )}
+
+                 {/* Instrucciones Adicionales o Comentarios Libres (Opcional) */}
+                 <div>
+                    <label
+                       htmlFor="ai-user-commentary"
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                          marginBottom: "0.4rem",
+                       }}>
+                       <MessageSquare size={15} color="#8b5cf6" /> Instrucciones
+                       Adicionales o Comentarios Libres (Opcional):
+                    </label>
+                    <textarea
+                       id="ai-user-commentary"
+                       data-testid="ai-user-commentary"
+                       rows={1}
+                       value={userCommentary}
+                       onChange={(e) => setUserCommentary(e.target.value)}
+                       placeholder="Ej: Enfatizar experiencia en particular, orientar el perfil a empresas de fintech, descartar proyectos académicos antiguos..."
+                       style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          borderRadius: "8px",
+                          border: isDark
+                             ? "1px solid #334155"
+                             : "1px solid rgba(150, 150, 150, 0.3)",
+                          background: isDark ? "#1e293b" : "#f8fafc",
+                          color: isDark ? "#f8fafc" : "inherit",
+                          fontFamily: "inherit",
+                          fontSize: "0.85rem",
+                          resize: "vertical",
+                          boxSizing: "border-box",
+                       }}
+                    />
+                 </div>
               </div>
 
-              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-color-light, #666)', lineHeight: '1.4' }}>
-                {selectedPromptId === 'translate_english'
-                  ? 'Copia este prompt optimizado para traducción técnica ATS y pégalo en tu IA externa de preferencia.'
-                  : selectedPromptId === 'bring_your_own_cv'
-                  ? 'Copia este prompt conversor y pégalo en tu IA externa junto con el archivo PDF o texto de tu currículum original.'
-                  : 'Copia este prompt con las directivas nativas y pégalo en tu IA externa de preferencia.'}
-              </p>
+              {/* Paso 2: Copia el Prompt y Consulta en tu IA Externa */}
+              {!isResponseImportablePrompt && (
+                 <div
+                    style={{
+                       display: "flex",
+                       flexDirection: "column",
+                       gap: "0.75rem",
+                       border: isDark
+                          ? "1px solid rgba(56, 116, 255, 0.3)"
+                          : "1px solid rgba(56, 116, 255, 0.25)",
+                       borderRadius: "10px",
+                       padding: "1rem",
+                       background: isDark
+                          ? "rgba(56, 116, 255, 0.05)"
+                          : "rgba(56, 116, 255, 0.02)",
+                    }}>
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "10px",
+                       }}>
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "8px",
+                          }}>
+                          <span
+                             style={{
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "50%",
+                                background: "#10b981",
+                                color: "#ffffff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.78rem",
+                                fontWeight: 700,
+                             }}>
+                             2
+                          </span>
+                          <strong style={{ fontSize: "0.95rem" }}>
+                             Paso 2: Copia el Prompt y Consulta en tu IA Externa
+                          </strong>
+                       </div>
 
-              {/* Multi-provider Launcher Row when NOT waiting */}
-              {!isWaitingForAI && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
-                  marginTop: '0.15rem'
-                }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-color, #444)' }}>
-                    Copiar prompt y abrir en:
-                  </span>
-                  {AI_PROVIDERS.map((provider) => (
-                    <button
-                      key={provider.id}
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "8px",
+                             flexWrap: "wrap",
+                          }}>
+                          <button
+                             type="button"
+                             onClick={() => handleCopy(null)}
+                             data-testid="ai-copy-btn"
+                             style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "7px",
+                                padding: "0.5rem 1.15rem",
+                                borderRadius: "8px",
+                                border: "none",
+                                background: copied ? "#10b981" : "#3874ff",
+                                color: "#ffffff",
+                                fontSize: "0.88rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                boxShadow: copied
+                                   ? "0 2px 10px rgba(16, 185, 129, 0.35)"
+                                   : "0 2px 10px rgba(56, 116, 255, 0.35)",
+                                transition: "all 0.18s ease",
+                             }}>
+                             {copied ? (
+                                <>
+                                   <Check size={16} />
+                                   <span>¡Prompt Copiado!</span>
+                                </>
+                             ) : (
+                                <>
+                                   <Copy size={16} />
+                                   <span>Copiar Prompt + CV</span>
+                                </>
+                             )}
+                          </button>
+
+                          {/* <button
                       type="button"
-                      onClick={() => handleCopyAndOpenProvider(provider.url, provider.name)}
+                      onClick={handleDownload}
+                      data-testid="ai-download-btn"
+                      title="Descargar prompt como archivo Markdown (.md)"
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '5px',
-                        padding: '0.35rem 0.75rem',
-                        borderRadius: '7px',
-                        border: '1px solid rgba(150, 150, 150, 0.3)',
-                        background: 'var(--body-color, #f9f9f9)',
-                        color: provider.color,
+                        gap: '6px',
+                        padding: '0.5rem 0.9rem',
+                        borderRadius: '8px',
+                        border: isDark ? '1px solid #334155' : '1px solid rgba(150, 150, 150, 0.3)',
+                        background: isDark ? '#1e293b' : '#f8fafc',
+                        color: isDark ? '#f8fafc' : 'inherit',
                         fontSize: '0.82rem',
                         fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <span>{provider.name}</span>
-                      <ExternalLink size={12} />
-                    </button>
-                  ))}
-                </div>
+                      <Download size={15} />
+                      <span>Descargar .md</span>
+                    </button> */}
+                       </div>
+                    </div>
+
+                    <p
+                       style={{
+                          margin: 0,
+                          fontSize: "0.82rem",
+                          color: isDark
+                             ? "#94a3b8"
+                             : "var(--text-color-light, #666)",
+                          lineHeight: "1.4",
+                       }}>
+                       Copia este prompt con los datos de tu CV ya ensamblados o
+                       ábrelo directamente en tu modelo de lenguaje favorito (no
+                       requieres adjuntar ningún archivo).
+                    </p>
+
+                    {/* Fila de Lanzadores a IA Externa (Links a IA externas) */}
+                    <div
+                       data-testid="ai-providers-container"
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "0.5rem",
+                          marginTop: "0.15rem",
+                       }}>
+                       <span
+                          style={{
+                             fontSize: "0.82rem",
+                             fontWeight: 600,
+                             color: isDark
+                                ? "#cbd5e1"
+                                : "var(--text-color, #444)",
+                          }}>
+                          Copiar prompt y abrir en:
+                       </span>
+                       {AI_PROVIDERS.map((provider) => (
+                          <button
+                             key={provider.id}
+                             type="button"
+                             data-testid={`ai-provider-btn-${provider.id}`}
+                             onClick={() =>
+                                handleCopyAndOpenProvider(
+                                   provider.url,
+                                   provider.name,
+                                )
+                             }
+                             style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                padding: "0.35rem 0.75rem",
+                                borderRadius: "7px",
+                                border: isDark
+                                   ? "1px solid #334155"
+                                   : "1px solid rgba(150, 150, 150, 0.3)",
+                                background: isDark
+                                   ? "#1e293b"
+                                   : "var(--body-color, #f9f9f9)",
+                                color: provider.color,
+                                fontSize: "0.82rem",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                             }}>
+                             <span>{provider.name}</span>
+                             <ExternalLink size={12} />
+                          </button>
+                       ))}
+                    </div>
+
+                    {/* Nota sobre modelos múltiples y privacidad */}
+                    <div
+                       style={{
+                          fontSize: "0.75rem",
+                          color: isDark
+                             ? "#94a3b8"
+                             : "var(--text-color-light, #666)",
+                          lineHeight: "1.4",
+                          marginTop: "0.15rem",
+                       }}>
+                       Puedes probar este mismo prompt en múltiples IAs (en la
+                       nube o locales) sin costes ni almacenamiento de datos
+                       para comparar los resultados.
+                    </div>
+
+                    {/* Tutorial Paso a Paso Integrado (Stepper Visual) */}
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          fontSize: "0.74rem",
+                          color: isDark
+                             ? "#94a3b8"
+                             : "var(--text-color, #334155)",
+                          flexWrap: "wrap",
+                          padding: "6px 0 2px 0",
+                          borderTop: isDark
+                             ? "1px dashed #334155"
+                             : "1px dashed rgba(150, 150, 150, 0.25)",
+                          marginTop: "0.2rem",
+                       }}>
+                       <span>
+                          <strong>1. Prompt generado con tus datos</strong>
+                       </span>
+                       <span>
+                          → <strong>2. Abre tu IA externa</strong>
+                       </span>
+                       <span>
+                          → <strong>3. Pega con Ctrl+V</strong>
+                       </span>
+                       <span>
+                          →{" "}
+                          <strong>4. Recibe feedback y recomendaciones</strong>
+                       </span>
+                    </div>
+
+                    {/* Feedback Banner cuando se copia */}
+                    {copied && (
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "6px",
+                             fontSize: "0.8rem",
+                             color: "#059669",
+                             background: "rgba(16, 185, 129, 0.1)",
+                             padding: "0.45rem 0.75rem",
+                             borderRadius: "6px",
+                             fontWeight: 500,
+                          }}>
+                          <Check size={15} color="#059669" />
+                          <span>
+                             {copiedProvider
+                                ? `¡Copiado al portapapeles! Pégalo en ${copiedProvider} con Ctrl+V para consultar.`
+                                : "¡Copiado al portapapeles! Pégalo en tu IA preferida con Ctrl+V para consultar."}
+                          </span>
+                       </div>
+                    )}
+                 </div>
               )}
 
-              {/* Waiting Status Banner & Guided Stepper */}
-              {isWaitingForAI && (
-                <div 
-                  data-testid="ai-waiting-banner"
-                  style={{
-                    marginTop: '0.35rem',
-                    padding: '0.85rem 1rem',
-                    borderRadius: '8px',
-                    background: 'rgba(56, 116, 255, 0.08)',
-                    border: '1px solid rgba(56, 116, 255, 0.3)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.65rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background: '#3874ff',
-                        display: 'inline-block',
-                        boxShadow: '0 0 8px #3874ff'
-                      }} />
-                      <strong style={{ fontSize: '0.9rem', color: '#3874ff' }}>
-                        Esperando respuesta de tu IA externa...
-                      </strong>
+              {/* Description of Selected Prompt - Obsidian Info Callout (Solo para bidireccional) */}
+              {isResponseImportablePrompt && selectedPrompt.description && (
+                 <div
+                    className="obsidian-callout"
+                    style={{
+                       background: "rgba(8, 109, 221, 0.08)",
+                       borderLeft: "4px solid rgb(8, 109, 221)",
+                       padding: "0.75rem 1rem",
+                       borderRadius: "4px 8px 8px 4px",
+                       fontSize: "0.85rem",
+                    }}>
+                    <div
+                       className="callout-content"
+                       style={{ color: "inherit", opacity: 0.9 }}>
+                       {selectedPrompt.description}
                     </div>
+                 </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* BIDIRECTIONAL STEP 1 CONTROLS                                             */}
+              {/* ========================================================================= */}
+              {isResponseImportablePrompt && (
+                 <div
+                    style={{
+                       display: "flex",
+                       flexDirection: "column",
+                       gap: "0.65rem",
+                       borderBottom: "1px solid rgba(150, 150, 150, 0.2)",
+                       paddingBottom: "0.85rem",
+                    }}>
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "10px",
+                       }}>
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "8px",
+                          }}>
+                          <span
+                             style={{
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "50%",
+                                background: "#3874ff",
+                                color: "#ffffff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.78rem",
+                                fontWeight: 700,
+                             }}>
+                             1
+                          </span>
+                          <strong style={{ fontSize: "0.95rem" }}>
+                             Paso 1: Copia el Prompt de Entrada
+                          </strong>
+                       </div>
+
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "8px",
+                             flexWrap: "wrap",
+                          }}>
+                          {(selectedPromptId === "translate_english" ||
+                             selectedPrompt?.category === "localization") && (
+                             <div
+                                style={{
+                                   display: "flex",
+                                   alignItems: "center",
+                                   gap: "6px",
+                                }}>
+                                <label
+                                   htmlFor="ai-target-lang-select"
+                                   style={{
+                                      fontSize: "0.8rem",
+                                      fontWeight: 600,
+                                      color: "var(--text-color, #444)",
+                                   }}>
+                                   <Globe
+                                      size={14}
+                                      color="#10b981"
+                                      style={{
+                                         verticalAlign: "middle",
+                                         marginRight: "4px",
+                                      }}
+                                   />
+                                   Idioma destino:
+                                </label>
+                                <select
+                                   id="ai-target-lang-select"
+                                   data-testid="ai-target-lang-select"
+                                   value={targetTranslationLang}
+                                   onChange={(e) =>
+                                      setTargetTranslationLang(e.target.value)
+                                   }
+                                   style={{
+                                      padding: "0.35rem 0.65rem",
+                                      borderRadius: "6px",
+                                      border: isDark
+                                         ? "1px solid #334155"
+                                         : "1px solid rgba(150, 150, 150, 0.3)",
+                                      background: isDark
+                                         ? "#1e293b"
+                                         : "#f8fafc",
+                                      color: isDark ? "#f8fafc" : "inherit",
+                                      fontSize: "0.8rem",
+                                      cursor: "pointer",
+                                   }}>
+                                   <option value="en">
+                                      Inglés (English - US Tech / Global)
+                                   </option>
+                                   <option value="es">
+                                      Español (Spanish - LatAm / España)
+                                   </option>
+                                   <option value="de">
+                                      Alemán (Deutsch - DACH)
+                                   </option>
+                                   <option value="fr">
+                                      Francés (Français - France / Canada)
+                                   </option>
+                                   <option value="pt">
+                                      Portugués (Português - Brasil / Portugal)
+                                   </option>
+                                   <option value="it">
+                                      Italiano (Italian)
+                                   </option>
+                                </select>
+                             </div>
+                          )}
+
+                          {/* Botón principal y llamativo de copiar prompt */}
+                          <button
+                             type="button"
+                             onClick={() => handleCopy(null)}
+                             data-testid="ai-copy-btn"
+                             style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "7px",
+                                padding: "0.5rem 1.15rem",
+                                borderRadius: "8px",
+                                border: "none",
+                                background: copied ? "#10b981" : "#3874ff",
+                                color: "#ffffff",
+                                fontSize: "0.88rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                boxShadow: copied
+                                   ? "0 2px 10px rgba(16, 185, 129, 0.35)"
+                                   : "0 2px 10px rgba(56, 116, 255, 0.35)",
+                                transition: "all 0.18s ease",
+                             }}>
+                             {copied ? (
+                                <>
+                                   <Check size={16} />
+                                   <span>¡Prompt Copiado!</span>
+                                </>
+                             ) : (
+                                <>
+                                   <Copy size={16} />
+                                   <span>Copiar Prompt</span>
+                                </>
+                             )}
+                          </button>
+                       </div>
+                    </div>
+
+                    <p
+                       style={{
+                          margin: 0,
+                          fontSize: "0.82rem",
+                          color: "var(--text-color-light, #666)",
+                          lineHeight: "1.4",
+                       }}>
+                       {selectedPromptId === "translate_english"
+                          ? "Copia este prompt optimizado para traducción técnica ATS y pégalo en tu IA externa de preferencia."
+                          : selectedPromptId === "bring_your_own_cv"
+                            ? "Copia este prompt conversor y pégalo en tu IA externa junto con el archivo PDF o texto de tu currículum original."
+                            : "Copia este prompt con las directivas nativas y pégalo en tu IA externa de preferencia."}
+                    </p>
+
+                    {/* Multi-provider Launcher Row when NOT waiting */}
+                    {!isWaitingForAI && (
+                       <div
+                          data-testid="ai-providers-container"
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             flexWrap: "wrap",
+                             gap: "0.5rem",
+                             marginTop: "0.15rem",
+                          }}>
+                          <span
+                             style={{
+                                fontSize: "0.82rem",
+                                fontWeight: 600,
+                                color: "var(--text-color, #444)",
+                             }}>
+                             Copiar prompt y abrir en:
+                          </span>
+                          {AI_PROVIDERS.map((provider) => (
+                             <button
+                                key={provider.id}
+                                type="button"
+                                data-testid={`ai-provider-btn-${provider.id}`}
+                                onClick={() =>
+                                   handleCopyAndOpenProvider(
+                                      provider.url,
+                                      provider.name,
+                                   )
+                                }
+                                style={{
+                                   display: "inline-flex",
+                                   alignItems: "center",
+                                   gap: "5px",
+                                   padding: "0.35rem 0.75rem",
+                                   borderRadius: "7px",
+                                   border: "1px solid rgba(150, 150, 150, 0.3)",
+                                   background: "var(--body-color, #f9f9f9)",
+                                   color: provider.color,
+                                   fontSize: "0.82rem",
+                                   fontWeight: 600,
+                                   cursor: "pointer",
+                                   transition: "all 0.15s ease",
+                                }}>
+                                <span>{provider.name}</span>
+                                <ExternalLink size={12} />
+                             </button>
+                          ))}
+                          <div
+                             style={{
+                                width: "100%",
+                                fontSize: "0.75rem",
+                                color: isDark
+                                   ? "#94a3b8"
+                                   : "var(--text-color-light, #666)",
+                                lineHeight: "1.4",
+                                marginTop: "0.15rem",
+                             }}>
+                             Puedes probar este mismo prompt en múltiples IAs
+                             (en la nube o locales) sin costes ni almacenamiento
+                             de datos para comparar los resultados.
+                          </div>
+                       </div>
+                    )}
+
+                    {/* Waiting Status Banner & Guided Stepper */}
+                    {isWaitingForAI && (
+                       <div
+                          data-testid="ai-waiting-banner"
+                          style={{
+                             marginTop: "0.35rem",
+                             padding: "0.85rem 1rem",
+                             borderRadius: "8px",
+                             background: "rgba(56, 116, 255, 0.08)",
+                             border: "1px solid rgba(56, 116, 255, 0.3)",
+                             display: "flex",
+                             flexDirection: "column",
+                             gap: "0.65rem",
+                          }}>
+                          <div
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                flexWrap: "wrap",
+                                gap: "8px",
+                             }}>
+                             <div
+                                style={{
+                                   display: "flex",
+                                   alignItems: "center",
+                                   gap: "8px",
+                                }}>
+                                <span
+                                   style={{
+                                      width: "8px",
+                                      height: "8px",
+                                      borderRadius: "50%",
+                                      background: "#3874ff",
+                                      display: "inline-block",
+                                      boxShadow: "0 0 8px #3874ff",
+                                   }}
+                                />
+                                <strong
+                                   style={{
+                                      fontSize: "0.9rem",
+                                      color: "#3874ff",
+                                   }}>
+                                   Esperando respuesta de tu IA externa...
+                                </strong>
+                             </div>
+                             <button
+                                type="button"
+                                onClick={() => setIsWaitingForAI(false)}
+                                data-testid="ai-back-to-setup-btn"
+                                style={{
+                                   background: "none",
+                                   border: "1px solid rgba(56, 116, 255, 0.3)",
+                                   borderRadius: "6px",
+                                   padding: "0.25rem 0.55rem",
+                                   color: "#3874ff",
+                                   fontSize: "0.75rem",
+                                   fontWeight: 600,
+                                   cursor: "pointer",
+                                   display: "flex",
+                                   alignItems: "center",
+                                   gap: "4px",
+                                }}>
+                                <ArrowLeft size={12} /> Volver a Configurar
+                             </button>
+                          </div>
+
+                          <div
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontSize: "0.8rem",
+                                color: "#059669",
+                                background: "rgba(16, 185, 129, 0.1)",
+                                padding: "0.35rem 0.7rem",
+                                borderRadius: "6px",
+                                fontWeight: 500,
+                             }}>
+                             <Check size={14} color="#059669" />
+                             <span>
+                                {copiedProvider
+                                   ? `Prompt copiado al portapapeles. Pégalo en ${copiedProvider} con Ctrl+V y regresa aquí para pegar la respuesta.`
+                                   : "Prompt copiado al portapapeles. Pégalo en tu IA con Ctrl+V y regresa aquí para pegar la respuesta."}
+                             </span>
+                          </div>
+
+                          <div
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "12px",
+                                fontSize: "0.74rem",
+                                color: "var(--text-color, #334155)",
+                                flexWrap: "wrap",
+                                padding: "2px 0",
+                             }}>
+                             <span>
+                                <strong>1. Prompt copiado</strong>
+                             </span>
+                             <span>
+                                → <strong>2. Ve a tu IA externa</strong>
+                             </span>
+                             <span>
+                                → <strong>3. Copia el JSON</strong>
+                             </span>
+                             <span>
+                                → <strong>4. Pega aquí abajo</strong>
+                             </span>
+                          </div>
+
+                          <div
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                flexWrap: "wrap",
+                             }}>
+                             <span
+                                style={{
+                                   fontSize: "0.75rem",
+                                   color: "var(--text-color-light, #777)",
+                                }}>
+                                Reabrir o cambiar de IA:
+                             </span>
+                             {AI_PROVIDERS.map((provider) => (
+                                <a
+                                   key={provider.id}
+                                   href={provider.url}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   onClick={() =>
+                                      handleCopyAndOpenProvider(
+                                         provider.url,
+                                         provider.name,
+                                      )
+                                   }
+                                   style={{
+                                      fontSize: "0.75rem",
+                                      padding: "0.2rem 0.55rem",
+                                      borderRadius: "5px",
+                                      background: "rgba(56, 116, 255, 0.1)",
+                                      color: "#3874ff",
+                                      textDecoration: "none",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "3px",
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                   }}>
+                                   {provider.name} <ExternalLink size={10} />
+                                </a>
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* THE INPUT FIELD: PROMPT PAYLOAD PREVIEW (STABLE IN DOM)                   */}
+              {/* ========================================================================= */}
+              <div
+                 style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: isPromptExpanded ? "0.5rem" : "0",
+                    marginTop: "0.15rem",
+                 }}>
+                 <div
+                    style={{
+                       display: "flex",
+                       alignItems: "center",
+                       justifyContent: "space-between",
+                       flexWrap: "wrap",
+                       gap: "8px",
+                    }}>
                     <button
-                      type="button"
-                      onClick={() => setIsWaitingForAI(false)}
-                      data-testid="ai-back-to-setup-btn"
-                      style={{
-                        background: 'none',
-                        border: '1px solid rgba(56, 116, 255, 0.3)',
-                        borderRadius: '6px',
-                        padding: '0.25rem 0.55rem',
-                        color: '#3874ff',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      <ArrowLeft size={12} /> Volver a Configurar
-                    </button>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.8rem',
-                    color: '#059669',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    padding: '0.35rem 0.7rem',
-                    borderRadius: '6px',
-                    fontWeight: 500
-                  }}>
-                    <Check size={14} color="#059669" />
-                    <span>
-                      {copiedProvider
-                        ? `Prompt copiado al portapapeles. Pégalo en ${copiedProvider} con Ctrl+V y regresa aquí para pegar la respuesta.`
-                        : 'Prompt copiado al portapapeles. Pégalo en tu IA con Ctrl+V y regresa aquí para pegar la respuesta.'}
-                    </span>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    fontSize: '0.74rem',
-                    color: 'var(--text-color, #334155)',
-                    flexWrap: 'wrap',
-                    padding: '2px 0'
-                  }}>
-                    <span><strong>1. Prompt copiado</strong></span>
-                    <span>→ <strong>2. Ve a tu IA externa</strong></span>
-                    <span>→ <strong>3. Copia el JSON</strong></span>
-                    <span>→ <strong>4. Pega aquí abajo</strong></span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #777)' }}>
-                      Reabrir o cambiar de IA:
-                    </span>
-                    {AI_PROVIDERS.map((provider) => (
-                      <a
-                        key={provider.id}
-                        href={provider.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => handleCopyAndOpenProvider(provider.url, provider.name)}
-                        style={{
-                          fontSize: '0.75rem',
-                          padding: '0.2rem 0.55rem',
-                          borderRadius: '5px',
-                          background: 'rgba(56, 116, 255, 0.1)',
-                          color: '#3874ff',
-                          textDecoration: 'none',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '3px',
+                       type="button"
+                       onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                       data-testid="ai-toggle-prompt-btn"
+                       style={{
+                          background: "none",
+                          border: "none",
+                          padding: "0.2rem 0.4rem",
+                          fontSize: "0.8rem",
                           fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {provider.name} <ExternalLink size={10} />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* UNIDIRECTIONAL CONTROLS (Commentary and Job Description)                 */}
-          {/* ========================================================================= */}
-          {!isResponseImportablePrompt && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {(selectedPrompt.id === 'job_matcher' || selectedPrompt.required_inputs?.includes('job_description')) && (
-                <div>
-                  <label 
-                    htmlFor="ai-job-description"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
-                  >
-                    <Briefcase size={15} color="#e11d48" /> Pegar Descripción de la Oferta Laboral (Job Description):
-                  </label>
-                  <textarea
-                    id="ai-job-description"
-                    data-testid="ai-job-description"
-                    rows={1}
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Pega aquí los requisitos y responsabilidades de la oferta de trabajo para calcular compatibilidad..."
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(150, 150, 150, 0.3)',
-                      background: 'var(--body-color, #f9f9f9)',
-                      color: 'inherit',
-                      fontFamily: 'inherit',
-                      fontSize: '0.85rem',
-                      resize: 'vertical',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* THE INPUT FIELD: PROMPT PAYLOAD PREVIEW (STABLE IN DOM)                   */}
-          {/* ========================================================================= */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: isPromptExpanded ? '0.5rem' : '0',
-            marginTop: '0.15rem'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setIsPromptExpanded(!isPromptExpanded)}
-                data-testid="ai-toggle-prompt-btn"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0.2rem 0.4rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#3874ff',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  borderRadius: '6px'
-                }}
-              >
-                <Eye size={15} color="#3874ff" />
-                <span>{isPromptExpanded ? 'Ocultar prompt' : 'Desplegar prompt completo'}</span>
-                <span style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #888)', fontWeight: 400 }}>
-                  ({compiledPayload.length} caracteres, ~{Math.round(compiledPayload.length / 4)} tokens)
-                </span>
-              </button>
-            </div>
-
-            <pre 
-              data-testid="ai-payload-preview"
-              style={{
-                background: '#18181b',
-                color: '#d4d4d4',
-                padding: isPromptExpanded ? '1rem' : '0',
-                borderRadius: '8px',
-                fontSize: isPromptExpanded ? '0.8rem' : '0.68rem',
-                lineHeight: isPromptExpanded ? '1.45' : '1.25',
-                fontFamily: '"Cascadia Code", Consolas, Monaco, monospace',
-                maxHeight: isPromptExpanded ? '260px' : '44px',
-                height: isPromptExpanded ? 'auto' : '0px',
-                overflowY: isPromptExpanded ? 'auto' : 'hidden',
-                overflow: 'hidden',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                margin: 0,
-                opacity: isPromptExpanded ? 1 : 0,
-                display: isPromptExpanded ? 'block' : 'none',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {compiledPayload}
-            </pre>
-          </div>
-          {!isResponseImportablePrompt && (
-
-              <div>
-                <label 
-                  htmlFor="ai-user-commentary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}
-                >
-                  <MessageSquare size={15} color="#8b5cf6" /> Instrucciones Adicionales o Comentarios Libres (Opcional):
-                </label>
-                <textarea
-                  id="ai-user-commentary"
-                  data-testid="ai-user-commentary"
-                  rows={1}
-                  value={userCommentary}
-                  onChange={(e) => setUserCommentary(e.target.value)}
-                  placeholder="Ej: Enfatizar experiencia en particular, orientar el perfil a empresas de fintech, descartar proyectos académicos antiguos..."
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(150, 150, 150, 0.3)',
-                    background: 'var(--body-color, #f9f9f9)',
-                    color: 'inherit',
-                    fontFamily: 'inherit',
-                    fontSize: '0.85rem',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>)}
-          {/* ========================================================================= */}
-          {/* THE OUTPUT FIELD: BIDIRECTIONAL RESPONSE INGESTION CONTAINER              */}
-          {/* ========================================================================= */}
-          {isResponseImportablePrompt && (
-            <div 
-              data-testid="ai-response-ingestion-container"
-              style={{
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: '10px',
-                padding: '1rem',
-                background: 'rgba(16, 185, 129, 0.02)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: '#10b981',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.78rem',
-                    fontWeight: 700
-                  }}>2</span>
-                  <label 
-                    htmlFor="ai-response-input"
-                    style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}
-                  >
-                    Paso 2: Pega el JSON Devuelto por la IA (Salida)
-                  </label>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={handlePasteFromClipboard}
-                    style={{
-                      background: 'none',
-                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                      borderRadius: '6px',
-                      padding: '0.25rem 0.55rem',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: '#059669',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <ClipboardPaste size={13} /> Pegar del portapapeles
-                  </button>
-                  {externalLLMResponse && (
-                    <button
-                      type="button"
-                      onClick={() => setExternalLLMResponse('')}
-                      style={{
-                        background: 'none',
-                        border: '1px solid rgba(150, 150, 150, 0.3)',
-                        borderRadius: '6px',
-                        padding: '0.25rem 0.55rem',
-                        fontSize: '0.75rem',
-                        color: 'var(--text-color-light, #888)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '3px'
-                      }}
-                    >
-                      <Trash2 size={13} /> Limpiar
+                          color: "#3874ff",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          borderRadius: "6px",
+                       }}>
+                       <Eye size={15} color="#3874ff" />
+                       <span>
+                          {isPromptExpanded
+                             ? "Ocultar prompt"
+                             : "Ver prompt completo"}
+                       </span>
+                       <span
+                          style={{
+                             fontSize: "0.74rem",
+                             color: "var(--text-color-light, #888)",
+                             fontWeight: 400,
+                          }}>
+                          ({compiledPayload.length} caracteres, ~
+                          {Math.round(compiledPayload.length / 4)} tokens)
+                       </span>
                     </button>
-                  )}
-                </div>
+                 </div>
+
+                 <pre
+                    data-testid="ai-payload-preview"
+                    style={{
+                       background: "#18181b",
+                       color: "#d4d4d4",
+                       padding: isPromptExpanded ? "1rem" : "0",
+                       borderRadius: "8px",
+                       fontSize: isPromptExpanded ? "0.8rem" : "0.68rem",
+                       lineHeight: isPromptExpanded ? "1.45" : "1.25",
+                       fontFamily:
+                          '"Cascadia Code", Consolas, Monaco, monospace',
+                       maxHeight: isPromptExpanded ? "260px" : "44px",
+                       height: isPromptExpanded ? "auto" : "0px",
+                       overflowY: isPromptExpanded ? "auto" : "hidden",
+                       overflow: "hidden",
+                       whiteSpace: "pre-wrap",
+                       wordBreak: "break-word",
+                       margin: 0,
+                       opacity: isPromptExpanded ? 1 : 0,
+                       display: isPromptExpanded ? "block" : "none",
+                       transition: "all 0.2s ease",
+                    }}>
+                    {compiledPayload}
+                 </pre>
               </div>
-
-              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-color-light, #666)', lineHeight: '1.4' }}>
-                Pega el bloque de código JSON obtenido. Tu CV actual se respaldará automáticamente en el Gestor de Versiones antes de aplicar los cambios.
-              </p>
-
-              {/* Output Textarea */}
-              <textarea
-                id="ai-response-input"
-                data-testid="ai-response-input"
-                rows={isWaitingForAI ? 10 : 4}
-                value={externalLLMResponse}
-                onChange={(e) => {
-                  setExternalLLMResponse(e.target.value);
-                  if (applyStatus) setApplyStatus(null);
-                }}
-                placeholder="Pega aquí la respuesta devuelta por la IA (ej: ```json { ... } ``` o { ... })..."
-                style={{
-                  width: '100%',
-                  minHeight: isWaitingForAI ? '260px' : '100px',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(150, 150, 150, 0.35)',
-                  background: 'var(--body-color, #f9f9f9)',
-                  color: 'inherit',
-                  fontFamily: '"Cascadia Code", Consolas, Monaco, monospace',
-                  fontSize: '0.84rem',
-                  lineHeight: '1.4',
-                  resize: 'vertical',
-                  boxSizing: 'border-box'
-                }}
-              />
-
-              {/* Live Impact Summary Card */}
-              {impactSummary?.isValid && (
-                <div 
-                  className="obsidian-callout"
-                  data-testid="ai-impact-summary-callout"
-                  style={{
-                    background: 'rgba(16, 185, 129, 0.08)',
-                    borderLeft: '4px solid rgba(16, 185, 129, 1)',
-                    padding: '0.85rem 1.1rem',
-                    borderRadius: '4px 8px 8px 4px',
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  <div 
-                    className="callout-title"
+              {/* ========================================================================= */}
+              {/* THE OUTPUT FIELD: BIDIRECTIONAL RESPONSE INGESTION CONTAINER              */}
+              {/* ========================================================================= */}
+              {isResponseImportablePrompt && (
+                 <div
+                    data-testid="ai-response-ingestion-container"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontWeight: 700,
-                      color: '#059669',
-                      fontSize: '0.92rem',
-                      marginBottom: '0.35rem'
-                    }}
-                  >
-                    <CheckCircle2 size={17} color="#059669" />
-                    <span>Resumen de Impacto del CV Detectado:</span>
-                  </div>
-                  <div className="callout-content" style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
-                      <div style={{ background: 'rgba(255, 255, 255, 0.5)', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Candidato</span>
-                        <strong style={{ fontSize: '0.85rem' }}>{impactSummary.candidateName}</strong>
-                        {impactSummary.candidateSubtitle && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #666)' }}>{impactSummary.candidateSubtitle}</div>
-                        )}
-                      </div>
-                      <div style={{ background: 'rgba(255, 255, 255, 0.5)', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Experiencia</span>
-                        <strong style={{ fontSize: '0.85rem' }}>{impactSummary.expCount} puestos registrados</strong>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #666)' }}>{impactSummary.totalBullets} viñetas de logros</div>
-                      </div>
-                      <div style={{ background: 'rgba(255, 255, 255, 0.5)', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Habilidades</span>
-                        <strong style={{ fontSize: '0.85rem' }}>{impactSummary.skillsCategoriesCount} categorías</strong>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #666)' }}>{impactSummary.totalSkillsCount} tecnologías detectadas</div>
-                      </div>
-                      <div style={{ background: 'rgba(255, 255, 255, 0.5)', padding: '0.4rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Educación</span>
-                        <strong style={{ fontSize: '0.85rem' }}>{impactSummary.eduCount} títulos académicos</strong>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-color-light, #666)' }}>
-                          {impactSummary.certCount > 0 ? `${impactSummary.certCount} certificados` : ''}
-                          {impactSummary.certCount > 0 && impactSummary.langCount > 0 ? ' · ' : ''}
-                          {impactSummary.langCount > 0 ? `${impactSummary.langCount} idiomas` : ''}
-                        </div>
-                      </div>
+                       border: "1px solid rgba(16, 185, 129, 0.3)",
+                       borderRadius: "10px",
+                       padding: "1rem",
+                       background: "rgba(16, 185, 129, 0.02)",
+                       display: "flex",
+                       flexDirection: "column",
+                       gap: "0.75rem",
+                    }}>
+                    <div
+                       style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                       }}>
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "8px",
+                          }}>
+                          <span
+                             style={{
+                                width: "24px",
+                                height: "24px",
+                                borderRadius: "50%",
+                                background: "#10b981",
+                                color: "#ffffff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.78rem",
+                                fontWeight: 700,
+                             }}>
+                             2
+                          </span>
+                          <label
+                             htmlFor="ai-response-input"
+                             style={{
+                                fontSize: "0.95rem",
+                                fontWeight: 700,
+                                margin: 0,
+                             }}>
+                             Paso 2: Pega el JSON Devuelto por la IA (Salida)
+                          </label>
+                       </div>
+
+                       <div
+                          style={{
+                             display: "flex",
+                             alignItems: "center",
+                             gap: "0.5rem",
+                          }}>
+                          <button
+                             type="button"
+                             onClick={handlePasteFromClipboard}
+                             data-testid="ai-paste-response-btn"
+                             style={{
+                                background: "none",
+                                border: "1px solid rgba(16, 185, 129, 0.4)",
+                                borderRadius: "6px",
+                                padding: "0.25rem 0.55rem",
+                                fontSize: "0.75rem",
+                                fontWeight: 600,
+                                color: "#059669",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                             }}>
+                             <ClipboardPaste size={13} /> Pegar del portapapeles
+                          </button>
+                          {externalLLMResponse && (
+                             <button
+                                type="button"
+                                onClick={() => setExternalLLMResponse("")}
+                                style={{
+                                   background: "none",
+                                   border: "1px solid rgba(150, 150, 150, 0.3)",
+                                   borderRadius: "6px",
+                                   padding: "0.25rem 0.55rem",
+                                   fontSize: "0.75rem",
+                                   color: "var(--text-color-light, #888)",
+                                   cursor: "pointer",
+                                   display: "flex",
+                                   alignItems: "center",
+                                   gap: "3px",
+                                }}>
+                                <Trash2 size={13} /> Limpiar
+                             </button>
+                          )}
+                       </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <ShieldCheck size={14} color="#059669" /> Tu versión actual en {getLanguageLegend(activeLanguage)} se respaldará automáticamente en el Gestor de Versiones al aplicar.
+
+                    <p
+                       style={{
+                          margin: 0,
+                          fontSize: "0.82rem",
+                          color: "var(--text-color-light, #666)",
+                          lineHeight: "1.4",
+                       }}>
+                       Pega el bloque de código JSON obtenido. Tu CV actual se
+                       respaldará automáticamente en el Gestor de Versiones
+                       antes de aplicar los cambios.
+                    </p>
+
+                    {/* Output Textarea */}
+                    <textarea
+                       id="ai-response-input"
+                       data-testid="ai-response-input"
+                       rows={isWaitingForAI ? 10 : 4}
+                       value={externalLLMResponse}
+                       onPaste={() => {
+                          if (typeof window !== "undefined") {
+                             window.dispatchEvent(
+                                new CustomEvent("ai-modal-tour-action", {
+                                   detail: {
+                                      action: "paste_clicked",
+                                      promptId: selectedPromptId,
+                                   },
+                                }),
+                             );
+                          }
+                       }}
+                       onChange={(e) => {
+                          setExternalLLMResponse(e.target.value);
+                          if (applyStatus) setApplyStatus(null);
+                       }}
+                       placeholder="Pega aquí la respuesta devuelta por la IA (ej: ```json { ... } ``` o { ... })..."
+                       style={{
+                          width: "100%",
+                          minHeight: isWaitingForAI ? "260px" : "100px",
+                          padding: "0.75rem",
+                          borderRadius: "8px",
+                          border: isDark
+                             ? "1px solid #334155"
+                             : "1px solid rgba(150, 150, 150, 0.35)",
+                          background: isDark ? "#1e293b" : "#f8fafc",
+                          color: isDark ? "#f8fafc" : "inherit",
+                          fontFamily:
+                             '"Cascadia Code", Consolas, Monaco, monospace',
+                          fontSize: "0.84rem",
+                          lineHeight: "1.4",
+                          resize: "vertical",
+                          boxSizing: "border-box",
+                       }}
+                    />
+
+                    {/* Live Impact Summary Card */}
+                    {impactSummary?.isValid && (
+                       <div
+                          className="obsidian-callout"
+                          data-testid="ai-impact-summary-callout"
+                          style={{
+                             background: "rgba(16, 185, 129, 0.08)",
+                             borderLeft: "4px solid rgba(16, 185, 129, 1)",
+                             padding: "0.85rem 1.1rem",
+                             borderRadius: "4px 8px 8px 4px",
+                             fontSize: "0.85rem",
+                          }}>
+                          <div
+                             className="callout-title"
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontWeight: 700,
+                                color: "#059669",
+                                fontSize: "0.92rem",
+                                marginBottom: "0.35rem",
+                             }}>
+                             <CheckCircle2 size={17} color="#059669" />
+                             <span>Resumen de Impacto del CV Detectado:</span>
+                          </div>
+                          <div
+                             className="callout-content"
+                             style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.45rem",
+                             }}>
+                             <div
+                                style={{
+                                   display: "grid",
+                                   gridTemplateColumns:
+                                      "repeat(auto-fit, minmax(180px, 1fr))",
+                                   gap: "0.5rem",
+                                }}>
+                                <div
+                                   style={{
+                                      background: "rgba(255, 255, 255, 0.5)",
+                                      padding: "0.4rem 0.6rem",
+                                      borderRadius: "6px",
+                                      border:
+                                         "1px solid rgba(16, 185, 129, 0.2)",
+                                   }}>
+                                   <span
+                                      style={{
+                                         fontSize: "0.72rem",
+                                         color: "#059669",
+                                         fontWeight: 700,
+                                         textTransform: "uppercase",
+                                         display: "block",
+                                      }}>
+                                      Candidato
+                                   </span>
+                                   <strong style={{ fontSize: "0.85rem" }}>
+                                      {impactSummary.candidateName}
+                                   </strong>
+                                   {impactSummary.candidateSubtitle && (
+                                      <div
+                                         style={{
+                                            fontSize: "0.75rem",
+                                            color: "var(--text-color-light, #666)",
+                                         }}>
+                                         {impactSummary.candidateSubtitle}
+                                      </div>
+                                   )}
+                                </div>
+                                <div
+                                   style={{
+                                      background: "rgba(255, 255, 255, 0.5)",
+                                      padding: "0.4rem 0.6rem",
+                                      borderRadius: "6px",
+                                      border:
+                                         "1px solid rgba(16, 185, 129, 0.2)",
+                                   }}>
+                                   <span
+                                      style={{
+                                         fontSize: "0.72rem",
+                                         color: "#059669",
+                                         fontWeight: 700,
+                                         textTransform: "uppercase",
+                                         display: "block",
+                                      }}>
+                                      Experiencia
+                                   </span>
+                                   <strong style={{ fontSize: "0.85rem" }}>
+                                      {impactSummary.expCount} puestos
+                                      registrados
+                                   </strong>
+                                   <div
+                                      style={{
+                                         fontSize: "0.75rem",
+                                         color: "var(--text-color-light, #666)",
+                                      }}>
+                                      {impactSummary.totalBullets} viñetas de
+                                      logros
+                                   </div>
+                                </div>
+                                <div
+                                   style={{
+                                      background: "rgba(255, 255, 255, 0.5)",
+                                      padding: "0.4rem 0.6rem",
+                                      borderRadius: "6px",
+                                      border:
+                                         "1px solid rgba(16, 185, 129, 0.2)",
+                                   }}>
+                                   <span
+                                      style={{
+                                         fontSize: "0.72rem",
+                                         color: "#059669",
+                                         fontWeight: 700,
+                                         textTransform: "uppercase",
+                                         display: "block",
+                                      }}>
+                                      Habilidades
+                                   </span>
+                                   <strong style={{ fontSize: "0.85rem" }}>
+                                      {impactSummary.skillsCategoriesCount}{" "}
+                                      categorías
+                                   </strong>
+                                   <div
+                                      style={{
+                                         fontSize: "0.75rem",
+                                         color: "var(--text-color-light, #666)",
+                                      }}>
+                                      {impactSummary.totalSkillsCount}{" "}
+                                      tecnologías detectadas
+                                   </div>
+                                </div>
+                                <div
+                                   style={{
+                                      background: "rgba(255, 255, 255, 0.5)",
+                                      padding: "0.4rem 0.6rem",
+                                      borderRadius: "6px",
+                                      border:
+                                         "1px solid rgba(16, 185, 129, 0.2)",
+                                   }}>
+                                   <span
+                                      style={{
+                                         fontSize: "0.72rem",
+                                         color: "#059669",
+                                         fontWeight: 700,
+                                         textTransform: "uppercase",
+                                         display: "block",
+                                      }}>
+                                      Educación
+                                   </span>
+                                   <strong style={{ fontSize: "0.85rem" }}>
+                                      {impactSummary.eduCount} títulos
+                                      académicos
+                                   </strong>
+                                   <div
+                                      style={{
+                                         fontSize: "0.75rem",
+                                         color: "var(--text-color-light, #666)",
+                                      }}>
+                                      {impactSummary.certCount > 0
+                                         ? `${impactSummary.certCount} certificados`
+                                         : ""}
+                                      {impactSummary.certCount > 0 &&
+                                      impactSummary.langCount > 0
+                                         ? " · "
+                                         : ""}
+                                      {impactSummary.langCount > 0
+                                         ? `${impactSummary.langCount} idiomas`
+                                         : ""}
+                                   </div>
+                                </div>
+                             </div>
+                             <div
+                                style={{
+                                   fontSize: "0.75rem",
+                                   color: "#059669",
+                                   fontWeight: 600,
+                                   display: "flex",
+                                   alignItems: "center",
+                                   gap: "5px",
+                                }}>
+                                <ShieldCheck size={14} color="#059669" /> Tu
+                                versión actual en{" "}
+                                {getLanguageLegend(activeLanguage)} se
+                                respaldará automáticamente en el Gestor de
+                                Versiones al aplicar.
+                             </div>
+                          </div>
+                       </div>
+                    )}
+
+                    {/* Error Callout */}
+                    {applyStatus?.type === "error" && (
+                       <div
+                          className="obsidian-callout"
+                          data-testid="ai-apply-error-callout"
+                          style={{
+                             background: "rgba(233, 49, 71, 0.1)",
+                             borderLeft: "4px solid rgba(233, 49, 71, 1)",
+                             padding: "0.75rem 1rem",
+                             borderRadius: "4px 8px 8px 4px",
+                             fontSize: "0.85rem",
+                          }}>
+                          <div
+                             className="callout-title"
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontWeight: 600,
+                                color: "rgba(233, 49, 71, 1)",
+                                marginBottom: "0.25rem",
+                             }}>
+                             <AlertCircle
+                                size={16}
+                                color="rgba(233, 49, 71, 1)"
+                             />
+                             <span>
+                                Error al procesar la respuesta de la IA
+                             </span>
+                          </div>
+                          <div className="callout-content">
+                             {applyStatus.message}
+                          </div>
+                       </div>
+                    )}
+
+                    {/* Success Callout */}
+                    {applyStatus?.type === "success" && (
+                       <div
+                          className="obsidian-callout"
+                          data-testid="ai-apply-success-callout"
+                          style={{
+                             background: "rgba(46, 204, 113, 0.12)",
+                             borderLeft: "4px solid rgba(46, 204, 113, 1)",
+                             padding: "0.75rem 1rem",
+                             borderRadius: "4px 8px 8px 4px",
+                             fontSize: "0.85rem",
+                          }}>
+                          <div
+                             className="callout-title"
+                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontWeight: 600,
+                                color: "#27ae60",
+                                marginBottom: "0.25rem",
+                             }}>
+                             <CheckCircle2 size={16} color="#27ae60" />
+                             <span>¡Operación Exitosa!</span>
+                          </div>
+                          <div className="callout-content">
+                             {applyStatus.message}
+                          </div>
+                       </div>
+                    )}
+
+                    {/* Apply Button */}
+                    <div>
+                       <button
+                          type="button"
+                          onClick={handleApplyResponse}
+                          disabled={isApplying || !externalLLMResponse.trim()}
+                          data-testid="ai-apply-response-btn"
+                          style={{
+                             padding: "0.65rem 1.4rem",
+                             borderRadius: "8px",
+                             border: "none",
+                             background: "#10b981",
+                             color: "#ffffff",
+                             fontWeight: 600,
+                             fontSize: "0.88rem",
+                             cursor:
+                                !isApplying && externalLLMResponse.trim()
+                                   ? "pointer"
+                                   : "not-allowed",
+                             boxShadow: "0 2px 10px rgba(16, 185, 129, 0.25)",
+                             display: "inline-flex",
+                             alignItems: "center",
+                             gap: "0.5rem",
+                             opacity:
+                                !isApplying && externalLLMResponse.trim()
+                                   ? 1
+                                   : 0.6,
+                          }}>
+                          {isApplying ? (
+                             <>Procesando y guardando respaldo...</>
+                          ) : (
+                             <>
+                                <ArrowDownToLine size={16} /> Guardar Respaldo (
+                                {getLanguageLegend(activeLanguage)}) y Aplicar
+                                Nuevo CV
+                             </>
+                          )}
+                       </button>
                     </div>
-                  </div>
-                </div>
+                 </div>
               )}
-
-              {/* Error Callout */}
-              {applyStatus?.type === 'error' && (
-                <div 
-                  className="obsidian-callout"
-                  data-testid="ai-apply-error-callout"
-                  style={{
-                    background: 'rgba(233, 49, 71, 0.1)',
-                    borderLeft: '4px solid rgba(233, 49, 71, 1)',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '4px 8px 8px 4px',
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  <div 
-                    className="callout-title"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontWeight: 600,
-                      color: 'rgba(233, 49, 71, 1)',
-                      marginBottom: '0.25rem'
-                    }}
-                  >
-                    <AlertCircle size={16} color="rgba(233, 49, 71, 1)" />
-                    <span>Error al procesar la respuesta de la IA</span>
-                  </div>
-                  <div className="callout-content">
-                    {applyStatus.message}
-                  </div>
-                </div>
-              )}
-
-              {/* Success Callout */}
-              {applyStatus?.type === 'success' && (
-                <div 
-                  className="obsidian-callout"
-                  data-testid="ai-apply-success-callout"
-                  style={{
-                    background: 'rgba(46, 204, 113, 0.12)',
-                    borderLeft: '4px solid rgba(46, 204, 113, 1)',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '4px 8px 8px 4px',
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  <div 
-                    className="callout-title"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontWeight: 600,
-                      color: '#27ae60',
-                      marginBottom: '0.25rem'
-                    }}
-                  >
-                    <CheckCircle2 size={16} color="#27ae60" />
-                    <span>¡Operación Exitosa!</span>
-                  </div>
-                  <div className="callout-content">
-                    {applyStatus.message}
-                  </div>
-                </div>
-              )}
-
-              {/* Apply Button */}
-              <div>
-                <button
-                  type="button"
-                  onClick={handleApplyResponse}
-                  disabled={isApplying || !externalLLMResponse.trim()}
-                  data-testid="ai-apply-response-btn"
-                  style={{
-                    padding: '0.65rem 1.4rem',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#10b981',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    fontSize: '0.88rem',
-                    cursor: (!isApplying && externalLLMResponse.trim()) ? 'pointer' : 'not-allowed',
-                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.25)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    opacity: (!isApplying && externalLLMResponse.trim()) ? 1 : 0.6
-                  }}
-                >
-                  {isApplying ? (
-                    <>Procesando y guardando respaldo...</>
-                  ) : (
-                    <>
-                      <ArrowDownToLine size={16} /> Guardar Respaldo ({getLanguageLegend(activeLanguage)}) y Aplicar Nuevo CV
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+           </div>
         </div>
-
-        {/* Modal Footer with Actions — ONLY for Unidirectional Prompts */}
-        {!isResponseImportablePrompt && (
-          <div style={{
-            padding: '1rem 1.5rem',
-            borderTop: '1px solid rgba(150, 150, 150, 0.2)',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '0.75rem',
-            alignItems: 'center'
-          }}>
-            {copied && (
-              <span style={{ color: '#2ecc71', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Check size={16} color="#2ecc71" /> ¡Copiado al portapapeles!
-              </span>
-            )}
-            <button
-              onClick={handleDownload}
-              data-testid="ai-download-btn"
-              style={{
-                padding: '0.6rem 1.2rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(150, 150, 150, 0.3)',
-                background: 'var(--body-color, #f0f0f0)',
-                color: 'inherit',
-                cursor: 'pointer',
-                fontWeight: 500,
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Download size={16} /> Descargar Archivo
-            </button>
-            <button
-              onClick={() => handleCopy(null)}
-              data-testid="ai-copy-btn"
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#3874ff',
-                color: '#ffffff',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                boxShadow: '0 4px 12px rgba(56, 116, 255, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Copy size={16} /> Copiar Prompt + CV para IA
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+     </div>
   );
 };
 

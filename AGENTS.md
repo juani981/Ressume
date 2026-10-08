@@ -65,5 +65,28 @@
 - **Libertad de Stack para Máxima Simplicidad**: Se autoriza e instruye explícitamente a sustituir o reimplementar cualquier función, subsistema heurístico o pipeline heredado usando cualquier API, enfoque o librería moderna que garantice el resultado visual esperado con la menor cantidad de código posible.
 - **Eliminación de Complejidad Accidental**: Es preferible un modelo de 150 líneas de código limpio y determinista basado en componentes antes que mantener suites de 1500 líneas de heurísticas de medición y parches en el DOM.
 
+## 18. Soberanía Absoluta del Usuario sobre ActionMenuRoot (`src/components/Editor/ActionMenu/`)
+- **Prohibición Terminante de Reversión o Restauración Automática**: Queda estrictamente prohibido para cualquier agente revertir (`git checkout`, `git restore`), sobrescribir, descartar o alterar modificaciones manuales realizadas por el usuario en `src/components/Editor/ActionMenu/ActionMenuRoot.jsx` o en cualquier archivo dentro del módulo `src/components/Editor/ActionMenu/`.
+- **Los Tests se Adaptan al Código del Usuario, Jamás al Revés**: Si un cambio manual del usuario en `ActionMenuRoot.jsx` provoca que fallen pruebas preexistentes (por ejemplo, tests que busquen botones, selectores, `data-testid`, clases o flujos que el usuario decidió rediseñar, mover o eliminar), el agente **TIENE TERMINANTEMENTE PROHIBIDO** restaurar el código o los elementos viejos para "poner la suite en verde". El agente debe adaptar, actualizar o sincronizar las pruebas unitarias o de integración para reflejar fielmente la nueva interfaz diseñada por el usuario.
+## 19. Soberanía Absoluta del Usuario sobre Geometría, Tipografía y Constantes de Diseño
+- **Prohibición Terminante de Reversión de Constantes de Layout**: Queda estrictamente prohibido para cualquier agente alterar, retroceder o revertir los valores de geometría, márgenes, espaciado, escalas o tamaños tipográficos fijados por el usuario en `src/constants/spacing.js`, `src/constants/geometry.js`, `src/constants/typography.js` y `src/utils/schema.js`.
+- **Los Tests se Sincronizan con las Constantes del Usuario**: Si un cambio en los valores iniciales de layout (p.ej. `pagePadding`, `sectionGap`, `itemGap`, `BASE_FONT_SIZES_PX`, `lineHeight`, etc.) rompe pruebas que tenían valores anteriores hardcodeados (como `sectionGap=20` o `itemGap=8`), el agente **TIENE PROHIBIDO** restablecer las constantes viejas. El agente debe actualizar las expectativas en los tests para reflejar fielmente los nuevos valores deseados por el usuario.
+- **Valores Iniciales Canónicos de Diseño**:
+  - Títulos: `18px`
+  - Cuerpo: `12px`
+  - Listas / Viñetas: `12px`
+  - Escala General: visualización estricta como multiplicador (`1.00x`), nunca en `px`.
+  - Altura de Línea: `1.30x`
+  - Margen de Página (`pagePadding`): `24px`
+  - Espacio entre Secciones (`sectionGap`): `12px`
+  - Espacio entre Ítems (`itemGap`): `6px`
+
+## 20. Tono Editorial y Sistema de Ayuda Guiada en Modales
+- **Tono y Registro de Redacción**: Los textos de ayuda, tutoriales, tooltips y guías deben mantener un tono formal, profesional y sobrio, sin caer en voseo ni fórmulas corporativas trilladas o clichés de IA (prohibido el uso de muletillas vacías como "clave", "robusta", "crucial", "ejecutivo", "No es X, es Y"). Debe explicar el funcionamiento y los pasos con claridad técnica y serenidad, sin caer en condescendencia ni estridencias.
+- **Botón de Ayuda "?" en Encabezados de Modales**: Cada modal interactivo debe incorporar un botón de ayuda contextual (`?`, `data-testid="btn-modal-help"`) que despliega una guía paso a paso del flujo específico, accesible en cualquier momento sin forzar bloqueos invasivos.
+- **Arquitectura de Tours Centralizada (`useTourManager`)**: Los pasos de onboarding y recorridos guiados se gestionan mediante un hook global centralizado que preserva la compatibilidad cromática con modo oscuro/claro y registra la finalización o descarte de cada flujo de forma persistente.
+
+
+
 
 

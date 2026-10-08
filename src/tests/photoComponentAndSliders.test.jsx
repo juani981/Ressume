@@ -174,8 +174,8 @@ describe('Typography Sliders: Min 0.50 and Pixel Display', () => {
 
     // Checks that pixel indicators (px) are rendered as absolute font sizes
     expect(panelText).toContain('px');
-    expect(panelText).toMatch(/20\s*px/);
-    expect(panelText).toMatch(/15\s*px/);
+    expect(panelText).toMatch(/18\s*px/);
+    expect(panelText).toMatch(/12\s*px/);
   });
 });
 

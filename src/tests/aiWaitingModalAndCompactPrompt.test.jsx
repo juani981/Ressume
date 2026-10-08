@@ -74,7 +74,7 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
 
       const toggleBtn = screen.getByTestId('ai-toggle-prompt-btn');
       expect(toggleBtn).toBeInTheDocument();
-      expect(toggleBtn.textContent).toContain('Desplegar prompt completo');
+      expect(toggleBtn.textContent).toContain('Ver prompt completo');
     });
 
     it('1.2: expands prompt preview when clicking toggle button, then collapses when clicking again', () => {
@@ -97,7 +97,7 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
       fireEvent.click(toggleBtn);
       expect(preview.style.maxHeight).toBe('44px');
       expect(preview.style.fontSize).toBe('0.68rem');
-      expect(toggleBtn.textContent).toContain('Desplegar prompt completo');
+      expect(toggleBtn.textContent).toContain('Ver prompt completo');
     });
   });
 
@@ -245,6 +245,24 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
       // Auto-switched to import tab with waiting indicator
       expect(screen.getByText('Esperando respuesta de tu IA externa...')).toBeInTheDocument();
       expect(screen.getByText(/Pegar Respuesta Completa de la IA/)).toBeInTheDocument();
+    });
+
+    it('3.2: renders Obsidian Callout disclaimer in TranslationModal with external AI, privacy, and zero cost guarantees', () => {
+      render(
+        <CVProvider initialCV={baseMockCV}>
+          <TranslationModal isOpen={true} onClose={vi.fn()} />
+        </CVProvider>
+      );
+
+      const disclaimer = screen.getByTestId('translation-ai-disclaimer-callout');
+      expect(disclaimer).toBeInTheDocument();
+      expect(disclaimer.className).toContain('obsidian-callout');
+
+      const content = disclaimer.querySelector('.callout-content');
+      expect(content.textContent).toMatch(/IA externa o local/i);
+      expect(content.textContent).toMatch(/no almacena tus datos/i);
+      expect(content.textContent).toMatch(/genera coste alguno por uso o descarga/i);
+      expect(content.textContent).toMatch(/comparar y contrastar los resultados/i);
     });
   });
 

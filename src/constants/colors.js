@@ -36,5 +36,9 @@ export const COLOR_TOKENS = Object.freeze({
   dangerRed: '#e93147',
   warningOrange: '#db8b00',
   infoBlue: '#086ddd',
+  badgeBg: 'rgba(15, 23, 42, 0.75)',
+  badgeText: '#ffffff',
+  deleteBtnBg: 'rgba(239, 68, 68, 0.85)',
+  deleteBtnText: '#ffffff',
   yiqThreshold: 128,
 });

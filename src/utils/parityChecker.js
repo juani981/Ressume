@@ -13,6 +13,7 @@
 
 import { extractTextLayer } from './textLayerExtractor.js';
 import { stripHtml } from './richTextEngine.js';
+import { isAtsLayout } from './pageDistributor.js';
 
 /**
  * Normalizes text for fuzzy parity comparison (lowercase, trimmed, collapsed whitespace).
@@ -58,7 +59,7 @@ export const verifyModelPdfParity = (cvData, renderedOutput, options = {}) => {
   let totalModelItems = 0;
   let matchedItemsCount = 0;
 
-  const isAtsMode = Boolean(cvData.layout?.isAtsMode || cvData.layout?.type === '1-column');
+  const isAtsMode = isAtsLayout(cvData.layout);
   const sections = Array.isArray(cvData.sections) ? cvData.sections : [];
 
   sections.forEach((sec) => {

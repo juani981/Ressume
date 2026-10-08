@@ -1058,9 +1058,10 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       clickSpy.mockRestore();
     });
 
-    it('T5.3: version cards display dedicated JSON download button', async () => {
+    it('T5.3: version cards display dedicated PDF download button and trigger PDF export', async () => {
       if (!VersionManagerModal || !versionStorage) return;
 
+      const cleanPrintSpy = vi.spyOn(cleanPrintEngine, 'executeCleanPrint').mockResolvedValue();
       await versionStorage.saveVersion('Snapshot Download Test', defaultSchema, 'thumb_test');
 
       render(
@@ -1070,9 +1071,20 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       );
 
       await waitFor(() => {
-        const downloadBtns = screen.getAllByTestId('btn-download-version-json');
+        const downloadBtns = screen.getAllByTestId('btn-download-version-pdf');
         expect(downloadBtns.length).toBeGreaterThan(0);
       });
+
+      const downloadBtn = screen.getAllByTestId('btn-download-version-pdf')[0];
+      fireEvent.click(downloadBtn);
+
+      await waitFor(() => {
+        expect(cleanPrintSpy).toHaveBeenCalled();
+        const calledData = cleanPrintSpy.mock.calls[0][0];
+        expect(calledData.versionName).toBe('Snapshot Download Test');
+      });
+
+      cleanPrintSpy.mockRestore();
     });
 
     it('T5.4: importing valid JSON file parses, saves version and notifies user', async () => {
@@ -1283,7 +1295,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       expect(screen.getByTestId('btn-load-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-preview-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-duplicate-version')).toBeInTheDocument();
-      expect(screen.getByTestId('btn-download-version-json')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-download-version-pdf')).toBeInTheDocument();
       expect(screen.getByTestId('btn-delete-version')).toBeInTheDocument();
     });
 
@@ -1328,6 +1340,87 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       // Clicking close button closes the preview overlay
       const closeBtn = screen.getByTestId('btn-close-large-preview');
       fireEvent.click(closeBtn);
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+    });
+
+    it('T8.3: clicking on an item (thumbnail or body) triggers onConfirmLoad as default action instead of preview', async () => {
+      const onConfirmLoad = vi.fn();
+      const mockVersion = {
+        id: 'v_click_default',
+        name: 'Staff Engineer Snapshot',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '1-column', isAtsMode: true } },
+      };
+
+      const { container } = render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={onConfirmLoad}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      // Clicking thumbnail triggers onConfirmLoad
+      const thumb = container.querySelector('.version-thumbnail-container');
+      fireEvent.click(thumb);
+      expect(onConfirmLoad).toHaveBeenCalledWith(mockVersion);
+      // And does NOT open preview
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+
+      // Clicking card title area also triggers onConfirmLoad
+      onConfirmLoad.mockClear();
+      const cardTitle = screen.getByText('Staff Engineer Snapshot');
+      fireEvent.click(cardTitle);
+      expect(onConfirmLoad).toHaveBeenCalledWith(mockVersion);
+      expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
+    });
+
+    it('T8.4: selecting the eye opens fullscreen scrollable preview with iframe and Escape key closes it', async () => {
+      const mockVersion = {
+        id: 'v_fullscreen_eye',
+        name: 'Fullscreen Snapshot',
+        createdAt: new Date().toISOString(),
+        thumbnail: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        cvData: { ...defaultSchema, layout: { type: '1-column', isAtsMode: true } },
+      };
+
+      render(
+        <VersionCard
+          version={mockVersion}
+          isEditing={false}
+          onStartRename={() => {}}
+          onCancelRename={() => {}}
+          onCommitRename={() => {}}
+          onChangeRenameText={() => {}}
+          onConfirmLoad={() => {}}
+          onDuplicate={() => {}}
+          onDownloadJSON={() => {}}
+          onConfirmDelete={() => {}}
+        />
+      );
+
+      const eyeBtn = screen.getByTestId('btn-preview-version');
+      fireEvent.click(eyeBtn);
+
+      const previewOverlay = screen.getByTestId('version-large-preview');
+      expect(previewOverlay).toBeInTheDocument();
+      expect(previewOverlay.style.width).toBe('100vw');
+      expect(previewOverlay.style.height).toBe('100vh');
+
+      // The preview iframe is rendered
+      const iframe = screen.getByTestId('version-preview-iframe');
+      expect(iframe).toBeInTheDocument();
+
+      // Pressing Escape closes the fullscreen preview
+      fireEvent.keyDown(window, { key: 'Escape' });
       expect(document.querySelector('.version-large-preview-overlay')).toBeNull();
     });
   });

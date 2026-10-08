@@ -7,10 +7,10 @@ import DesignPanel from './DesignPanel';
 import {
   FileDown,
   Loader2,
-  Palette,
+  SlidersHorizontal,
   Undo2,
   Redo2,
-  History,
+  DatabaseSearch,
   BotMessageSquare,
   FileX,
   Globe,
@@ -19,7 +19,11 @@ import {
   ChevronLeft,
   Pin,
   PinOff,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react';
+import { BitacoraModal } from '../../Bitacora';
+import { useTourManager } from '../../../context/TourContext';
 
 const HOVER_INTENT_MS = 280;
 const EXIT_GRACE_MS = 350;
@@ -37,11 +41,23 @@ export const ActionMenuRoot = () => {
     deletePage,
   } = useCV();
 
+  const tourManager = useTourManager ? (function() {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useTourManager();
+    } catch (_) {
+      return {};
+    }
+  })() : {};
+  const notifyPrintSuccess = tourManager?.notifyPrintSuccess;
+
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiModalPromptId, setAiModalPromptId] = useState('recruiter_audit');
   const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
+  const isBitacoraEnabled = import.meta.env?.VITE_ENABLE_BITACORA === 'true';
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
@@ -75,7 +91,8 @@ export const ActionMenuRoot = () => {
     isHoverExpanded ||
     isDesignMenuOpen ||
     isAIModalOpen ||
-    isVersionModalOpen;
+    isVersionModalOpen ||
+    isBitacoraOpen;
 
   const handleTogglePin = useCallback(() => {
     setIsPinned((prev) => {
@@ -145,6 +162,20 @@ export const ActionMenuRoot = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleUnpinEvent = () => {
+      handleCollapse();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unpin-action-menu', handleUnpinEvent);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('unpin-action-menu', handleUnpinEvent);
+      }
+    };
+  }, [handleCollapse]);
+
   const handleGeneratePDF = async () => {
     if (loading) return;
     setLoading(true);
@@ -167,6 +198,9 @@ export const ActionMenuRoot = () => {
       }
       setLoading(false);
       showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
+      if (typeof notifyPrintSuccess === 'function') {
+        notifyPrintSuccess();
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -218,7 +252,7 @@ export const ActionMenuRoot = () => {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.6rem',
-          background: isAtsMode ? 'rgba(15, 23, 42, 0.96)' : 'var(--container-color, #ffffff)',
+          background: isAtsMode ? 'rgba(35, 45, 65, 0.60)' : 'var(--container-color, #ffffff)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           padding: '0.65rem 0.65rem 0.85rem 0.65rem',
@@ -252,6 +286,15 @@ export const ActionMenuRoot = () => {
         <div
           className="action-menu-edge-handle"
           data-testid="action-menu-peek-tab"
+          role="button"
+          tabIndex={!isExpanded ? 0 : -1}
+          onClick={!isExpanded ? handlePeekClick : undefined}
+          onKeyDown={(e) => {
+            if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              handlePeekClick();
+            }
+          }}
           style={{
             position: 'absolute',
             right: 0,
@@ -429,138 +472,16 @@ export const ActionMenuRoot = () => {
         </div>
 
         <hr
-          style={{
-            width: '100%',
-            border: 'none',
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            margin: '0.1rem 0',
-          }}
-        />
-
-        {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
-        <svg width="0" height="0" style={{ position: 'absolute' }}>
-          <linearGradient id="rainbow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="red" />
-            <stop offset="17%" stopColor="orange" />
-            <stop offset="33%" stopColor="yellow" />
-            <stop offset="50%" stopColor="green" />
-            <stop offset="67%" stopColor="blue" />
-            <stop offset="83%" stopColor="indigo" />
-            <stop offset="100%" stopColor="violet" />
-          </linearGradient>
-        </svg>
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn"
-            onClick={() => setIsDesignMenuOpen((prev) => !prev)}
             style={{
-              color: isDesignMenuOpen ? '#3874ff' : '#6366f1',
-              background: isDesignMenuOpen ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-              borderRadius: '8px',
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
             }}
-            aria-label="Ajustes de Diseño y Tipografía"
-            title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
-            data-testid="btn-open-design"
-          >
-            <Palette size={20} stroke="url(#rainbow-gradient)" />
-          </button>
-          <span className="action-menu-tooltip">
-            Diseño (Colores, Espaciado, Tipografía)
-          </span>
-        </div>
-
-        {/* Generar Prompts de IA (Unidireccional: Auditoría ATS, Entrevistas, STAR) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn"
-            id="ia-prompts-item"
-            onClick={() => {
-              setAiModalPromptId('recruiter_audit');
-              setIsUnidirectionalOnly(true);
-              setIsAIModalOpen(true);
-            }}
-            style={{ color: '#BE00F7' }}
-            aria-label="Generar Prompts de IA"
-            title="Generar Prompts de IA"
-          >
-            <BotMessageSquare />
-          </button>
-          <span className="action-menu-tooltip">Generar Prompts para análisis</span>
-        </div>
-
-        {/* Traducir CV a Inglés US Tech (Modo Bidireccional Independiente 1) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="translation-hub-btn action-menu-hub-btn"
-            id="translation-action-item"
-            data-testid="btn-open-translation"
-            onClick={() => {
-              setAiModalPromptId('translate_english');
-              setIsUnidirectionalOnly(false);
-              setIsAIModalOpen(true);
-            }}
-            aria-label={`Traducir CV (Idioma actual: ${String(activeLanguage || 'es').toUpperCase()})`}
-            title={`Idioma actual: ${String(activeLanguage || 'es').toUpperCase()}. Clic para traducir CV`}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1px',
-              padding: '0.2rem 0.35rem',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                lineHeight: 1,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                color: '#10b981',
-                userSelect: 'none',
-              }}
-            >
-              {String(activeLanguage || 'es').toUpperCase()}
-            </span>
-            <Globe size={18} color="#10b981" />
-          </button>
-          <span className="action-menu-tooltip">Idioma: {String(activeLanguage || 'es').toUpperCase()} (Traducir CV)</span>
-        </div>
-
-        {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="byo-cv-hub-btn action-menu-hub-btn"
-            id="byo-cv-action-item"
-            data-testid="btn-open-byo-cv"
-            onClick={() => {
-              setAiModalPromptId('bring_your_own_cv');
-              setIsUnidirectionalOnly(false);
-              setIsAIModalOpen(true);
-            }}
-            aria-label="Trae tu propio CV (PDF a ATS 1:1)"
-            title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
-          >
-            <FileUp size={20} color="#f59e0b" />
-          </button>
-          <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
-        </div>
-
-        <hr
-          style={{
-            width: '100%',
-            border: 'none',
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            margin: '0.1rem 0',
-          }}
-        />
-
-        {/* Gestor de Versiones */}
+          />
+{/* Gestor de Versiones */}
         <div className="action-menu-btn-wrap">
           <button
             type="button"
@@ -571,10 +492,203 @@ export const ActionMenuRoot = () => {
             title="Gestor de Versiones"
             onClick={() => setIsVersionModalOpen(true)}
           >
-            <History size={20} color="#3b82f6" />
+            <DatabaseSearch size={20} color="#3b82f6" />
           </button>
           <span className="action-menu-tooltip">Gestor de Versiones</span>
         </div>
+
+        {/* Bitácora & Playbook de Carrera (Feature flag: VITE_ENABLE_BITACORA) */}
+        {isBitacoraEnabled && (
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="version-hub-btn action-menu-hub-btn"
+              id="bitacora-item"
+              data-testid="btn-open-bitacora"
+              aria-label="Bitácora y Recursos de Carrera"
+              title="Bitácora y Playbook de Carrera"
+              onClick={() => setIsBitacoraOpen(true)}
+            >
+              <BookOpen size={20} color="#6366f1" />
+            </button>
+            <span className="action-menu-tooltip">Bitácora & Recursos</span>
+          </div>
+        )}
+          {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
+        <div className="action-menu-btn-wrap">
+          <button
+            type="button"
+            className="version-hub-btn action-menu-hub-btn"
+            id="design-item"
+            data-testid="btn-open-design"
+            aria-label="Ajustes de Diseño y Tipografía"
+            title="Ajustes de Diseño (Tipografía, Espaciado y Colores)"
+            onClick={() => setIsDesignMenuOpen((prev) => !prev)}
+          >
+            <SlidersHorizontal size={20} color='#b8b79a' />
+          </button>
+          <span className="action-menu-tooltip">
+            Diseño (Espaciado, Tipografía)
+          </span>
+        </div>
+                <hr
+            style={{
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
+            }}
+          />
+        {/* Grupo de Herramientas IA (Prompting & Asistencia) */}
+        <div
+          className="action-menu-ai-group"
+          data-testid="action-menu-ai-group"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.45rem',
+            width: '100%',
+            padding: '0.45rem 0.25rem 0.45rem 0.25rem',
+            borderRadius: '12px',
+            background: isAtsMode
+              ? 'linear-gradient(180deg, rgba(168, 85, 247, 0.16) 0%, rgba(99, 102, 241, 0.10) 100%)'
+              : 'linear-gradient(180deg, rgba(168, 85, 247, 0.10) 0%, rgba(99, 102, 241, 0.05) 100%)',
+            border: isAtsMode
+              ? '1px solid rgba(168, 85, 247, 0.35)'
+              : '1px solid rgba(168, 85, 247, 0.25)',
+            boxShadow: isAtsMode
+              ? '0 0 14px rgba(168, 85, 247, 0.16), inset 0 0 10px rgba(168, 85, 247, 0.06)'
+              : '0 2px 10px rgba(147, 51, 234, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
+            position: 'relative',
+            transition: 'all 0.25s ease',
+          }}
+          >
+            
+          {/* Banderita / Leyenda de IA con Icono de Estrellas */}
+          <div
+            className="action-menu-ai-badge"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '3px',
+              padding: '2px 6px',
+              borderRadius: '999px',
+              background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+              color: '#ffffff',
+              fontSize: '0.58rem',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              lineHeight: 1,
+              boxShadow: '0 2px 6px rgba(168, 85, 247, 0.45)',
+              marginBottom: '2px',
+              userSelect: 'none',
+            }}
+            title="Herramientas y Prompts Asistidos por IA"
+          >
+            <Sparkles size={10} color="#ffffff" fill="#ffffff" />
+            <span>IA</span>
+          </div>
+
+          {/* Generar Prompts de IA (Unidireccional: Auditoría ATS, Entrevistas, STAR) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="action-menu-btn"
+              id="ia-prompts-item"
+              onClick={() => {
+                setAiModalPromptId('recruiter_audit');
+                setIsUnidirectionalOnly(true);
+                setIsAIModalOpen(true);
+              }}
+              style={{
+                color: isAtsMode ? '#c084fc' : '#9333ea',
+                borderRadius: '8px',
+              }}
+              aria-label="Generar Prompts de IA"
+              title="Generar Prompts de IA"
+            >
+              <BotMessageSquare />
+            </button>
+            <span className="action-menu-tooltip">Generar Prompts para análisis</span>
+          </div>
+
+          {/* Traducir CV a Inglés US Tech (Modo Bidireccional Independiente 1) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="translation-hub-btn action-menu-hub-btn"
+              id="translation-action-item"
+              data-testid="btn-open-translation"
+              onClick={() => {
+                setAiModalPromptId('translate_english');
+                setIsUnidirectionalOnly(false);
+                setIsAIModalOpen(true);
+              }}
+              aria-label={`Traducir CV (Idioma actual: ${String(activeLanguage || 'es').toUpperCase()})`}
+              title={`Idioma actual: ${String(activeLanguage || 'es').toUpperCase()}. Clic para traducir CV`}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1px',
+                padding: '0.2rem 0.35rem',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: '#10b981',
+                  userSelect: 'none',
+                }}
+              >
+                {String(activeLanguage || 'es').toUpperCase()}
+              </span>
+              <Globe size={18} color="#10b981" />
+            </button>
+            <span className="action-menu-tooltip">Idioma: {String(activeLanguage || 'es').toUpperCase()} (Traducir CV)</span>
+          </div>
+
+          {/* Trae tu propio CV (Modo Bidireccional Independiente 2: Conversor PDF a ATS) */}
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="byo-cv-hub-btn action-menu-hub-btn"
+              id="byo-cv-action-item"
+              data-testid="btn-open-byo-cv"
+              onClick={() => {
+                setAiModalPromptId('bring_your_own_cv');
+                setIsUnidirectionalOnly(false);
+                setIsAIModalOpen(true);
+              }}
+              aria-label="Trae tu propio CV (PDF a ATS 1:1)"
+              title="Trae tu propio CV (Importar usando IA)"
+            >
+              <FileUp size={20} color="#f59e0b" />
+            </button>
+            <span className="action-menu-tooltip">Importar CV (Conversor)</span>
+          </div>
+        </div>
+
+        <hr
+            style={{
+              width: '100%',
+              border: 'none',
+              borderTop: isAtsMode
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              margin: '0.1rem 0',
+            }}
+          />
 
         {/* Acciones de Exportación: Native Print / Clean PDF Export */}
         <div className="action-menu-btn-wrap">
@@ -596,26 +710,6 @@ export const ActionMenuRoot = () => {
           <span className="action-menu-tooltip">Descargar/Imprimir PDF</span>
         </div>
 
-        {/* Eliminar Página */}
-        <div className="action-menu-btn-wrap">
-          <button
-            type="button"
-            className="action-menu-btn delete-page-btn"
-            onClick={() => deletePage && deletePage()}
-            aria-label="Eliminar página"
-            title={totalPages > 1 ? `Eliminar página (Página ${totalPages})` : 'Eliminar página'}
-            data-testid="btn-delete-page"
-            style={{
-              color: totalPages > 1 ? '#ef4444' : '#94a3b8',
-              cursor: 'pointer',
-            }}
-          >
-            <FileX size={20} />
-          </button>
-          <span className="action-menu-tooltip">
-            {totalPages > 1 ? `Eliminar página ${totalPages}` : 'Eliminar página'}
-          </span>
-        </div>
         </div>
       </div>
 
@@ -645,6 +739,9 @@ export const ActionMenuRoot = () => {
         unidirectionalOnly={isUnidirectionalOnly}
       />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
+      {isBitacoraEnabled && (
+        <BitacoraModal isOpen={isBitacoraOpen} onClose={() => setIsBitacoraOpen(false)} />
+      )}
     </>
   );
 };

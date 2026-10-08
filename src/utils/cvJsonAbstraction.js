@@ -21,12 +21,13 @@
  *    for immediate consumption by existing modules and test suites.
  */
 
-import { distributeSectionsToPages } from './pageDistributor.js';
+import { distributeSectionsToPages, isAtsLayout } from './pageDistributor.js';
 import { getDynamicTextColors } from './colorUtils.js';
+import { DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../constants/geometry.js';
 import { normalizeItemContacts, getContactConfig } from './contactTypes.js';
 import { sanitizeAndValidateCVSnapshot } from './cvSchemaValidator.js';
 import { stripHtml } from './richTextEngine.js';
-import ALL_RULES from '../ai-knowledge/index.js';
+import { getRules } from '../locales/index.js';
 import { A4_PRINT_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../constants';
 
 /**
@@ -212,7 +213,7 @@ const extractActionVerbsFromText = (text) => {
 /**
  * Parses and audits ATS compliance and extracts AI Knowledge suggestions.
  */
-export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
+export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode, options = {}) => {
   const sections = Array.isArray(cvData?.sections) ? cvData.sections : [];
   const profileInfo = extractNormalizedProfile(cvData);
 
@@ -324,9 +325,11 @@ export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
 
   score = Math.min(100, Math.max(0, score));
 
-  // 5. Query Relevant AI Knowledge Base Rules from src/ai-knowledge/
+  // 5. Query Relevant AI Knowledge Base Rules from locales SSOT
+  const activeLang = options?.lang || options?.language || 'es';
+  const rules = getRules(activeLang);
   const targetLayoutKey = isAtsMode ? 'ATS_1_col' : 'Human_2_col';
-  const relevantRules = ALL_RULES.filter(rule => {
+  const relevantRules = rules.filter(rule => {
     const matchLayout = rule.target_layout === targetLayoutKey || rule.target_layout === 'both';
     const matchSection = rule.target_section === 'global' || sections.some(s => s.type === rule.target_section || s.id === rule.target_section);
     return matchLayout && matchSection;
@@ -335,7 +338,11 @@ export const analyzeCVWithATSKnowledge = (cvData, layout, isAtsMode) => {
     target_section: r.target_section,
     severity: r.severity,
     suggestion_title: r.suggestion_title,
-    suggestion_body: r.suggestion_body
+    suggestion_body: r.suggestion_body,
+    example_bad: r.example_bad,
+    example_good: r.example_good,
+    validation_type: r.validation_type,
+    auto_fixable: r.auto_fixable
   }));
 
   return {
@@ -504,7 +511,7 @@ export const extractNormalizedSections = (cvData, pageModels = []) => {
  */
 export const generatePhysicalPageLayout = (cvData, options = {}) => {
   const layout = cvData?.layout || {};
-  const isAts = Boolean(options.mode === '1-column' || options.mode === 'ats' || layout.isAtsMode === true || layout.type === '1-column');
+  const isAts = isAtsLayout(options.mode ? options : { ...layout, ...options });
   const pageModels = distributeSectionsToPages(cvData, {
     ...options,
     isAtsMode: isAts,
@@ -512,7 +519,7 @@ export const generatePhysicalPageLayout = (cvData, options = {}) => {
   });
 
   const dynamicColors = getDynamicTextColors(layout.rightBg || layout.leftBg || '#ffffff');
-  const leftColPercent = layout.leftColumnWidth || (isAts ? 100 : 33.33);
+  const leftColPercent = layout.leftColumnWidth || (isAts ? 100 : DEFAULT_LEFT_COLUMN_WIDTH_PERCENT);
 
   const pageDistribution = pageModels.map(page => {
     const singleSecs = (page.singleSections || []).map(s => s.title || s.id);
@@ -553,7 +560,7 @@ export const generatePhysicalPageLayout = (cvData, options = {}) => {
         title_scale: layout.titleScale ?? 1.0,
         body_scale: layout.bodyScale ?? 1.0,
         list_scale: layout.listScale ?? 1.0,
-        line_height: layout.lineHeight ?? 1.45
+        line_height: layout.lineHeight ?? 1.3
       },
       spacing_and_geometry: {
         page_padding_px: layout.pagePadding ?? 24,
@@ -617,7 +624,7 @@ export const generateSchemaContractForLLM = () => {
 export const generateCVLivePdfAbstraction = (cvData, options = {}) => {
   const validated = sanitizeAndValidateCVSnapshot(cvData);
   const layout = validated.layout || {};
-  const isAts = Boolean(options.mode === '1-column' || options.mode === 'ats' || layout.isAtsMode === true || layout.type === '1-column');
+  const isAts = isAtsLayout(options.mode ? options : { ...layout, ...options });
 
   // 1. Generate Physical Layout and Page Distribution
   const { pageModels, physicalLayoutData } = generatePhysicalPageLayout(validated, {
@@ -630,7 +637,7 @@ export const generateCVLivePdfAbstraction = (cvData, options = {}) => {
   const candidateProfile = extractNormalizedProfile(validated);
 
   // 3. Analyze ATS Compliance & AI Knowledge Rules
-  const atsAndKnowledge = analyzeCVWithATSKnowledge(validated, layout, isAts);
+  const atsAndKnowledge = analyzeCVWithATSKnowledge(validated, layout, isAts, options);
 
   // 4. Extract Normalized Sections
   const normalizedSections = extractNormalizedSections(validated, pageModels);

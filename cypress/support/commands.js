@@ -7,7 +7,9 @@
  */
 Cypress.Commands.add('waitForFonts', () => {
   cy.document().then((doc) => {
-    return doc.fonts.ready.then(() => {
+    if (!doc.fonts || !doc.fonts.ready) return;
+    const timeout = new Promise((resolve) => setTimeout(resolve, 2000));
+    return Promise.race([doc.fonts.ready, timeout]).then(() => {
       const win = doc.defaultView;
       if (win) {
         win.dispatchEvent(new win.CustomEvent('cv-spacer-live-resize'));
@@ -253,4 +255,69 @@ Cypress.Commands.add('restoreScreenMedia', () => {
     })
   );
 });
+
+/**
+ * Tracks element click coordinates, records physical telemetry to heatmap, and performs click.
+ */
+Cypress.Commands.add('trackClick', (selector, label = '', clickOptions = {}) => {
+  return cy.get(selector).first().then(($el) => {
+    const rect = $el[0].getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const viewportWidth = Cypress.config('viewportWidth') || 1440;
+    const viewportHeight = Cypress.config('viewportHeight') || 900;
+
+    cy.task('recordInteraction', {
+      selector: typeof selector === 'string' ? selector : ($el.attr('data-testid') || $el.prop('tagName')),
+      label: label || $el.text()?.substring(0, 30)?.trim() || 'Click Target',
+      x,
+      y,
+      viewportWidth,
+      viewportHeight,
+      action: 'click',
+    });
+
+    return cy.wrap($el).click(clickOptions);
+  });
+});
+
+/**
+ * Tracks typing / input interactions with coordinates.
+ */
+Cypress.Commands.add('trackInput', (selector, text, label = '') => {
+  return cy.get(selector).first().then(($el) => {
+    const rect = $el[0].getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const viewportWidth = Cypress.config('viewportWidth') || 1440;
+    const viewportHeight = Cypress.config('viewportHeight') || 900;
+
+    cy.task('recordInteraction', {
+      selector: typeof selector === 'string' ? selector : ($el.attr('data-testid') || $el.prop('tagName')),
+      label: label || `Type into ${selector}`,
+      x,
+      y,
+      viewportWidth,
+      viewportHeight,
+      action: 'input',
+    });
+
+    return cy.wrap($el).clear().type(text);
+  });
+});
+
+/**
+ * Records a structured UX observation for the naive user journey audit.
+ */
+Cypress.Commands.add('trackObservation', (obs) => {
+  return cy.task('recordUxObservation', obs);
+});
+
+/**
+ * Generates the full UX Audit & Friction Report and heatmap artifact.
+ */
+Cypress.Commands.add('generateUxReport', (outputPath = 'UX_AUDIT_AND_FRICTION_REPORT.md') => {
+  return cy.task('compileUxAuditReport', { outputPath });
+});
+
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import {
   Check,
@@ -12,6 +12,7 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import { generateCleanPrintHTML } from '../../../services/print/cleanHtmlGenerator';
 
 /**
  * Format relative timestamp in Spanish: "Hace X min", "Ayer", etc.
@@ -74,9 +75,64 @@ export const VersionCard = ({
   onConfirmLoad,
   onDuplicate,
   onDownloadJSON,
+  onDownloadPDF,
   onConfirmDelete,
+  theme = 'dark',
 }) => {
+  const isDark = theme === 'dark';
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Generate complete, authentic standalone HTML for the version snapshot (Invariants 15 & 16)
+  const previewHtml = useMemo(() => {
+    if (!version?.cvData) return null;
+    try {
+      const rawHtml = generateCleanPrintHTML(version.cvData, 'es');
+      const viewerStyle = `
+        <style id="preview-fullscreen-enhancement">
+          html {
+            background-color: #0f172a !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-y: auto !important;
+          }
+          body {
+            background-color: #0f172a !important;
+            margin: 0 !important;
+            padding: 40px 16px 60px 16px !important;
+            min-height: 100vh !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          #area-cv {
+            margin: 0 auto 32px auto !important;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6) !important;
+            border-radius: 4px !important;
+            background-color: #ffffff !important;
+          }
+        </style>
+      `;
+      return rawHtml.includes('</head>')
+        ? rawHtml.replace('</head>', `${viewerStyle}</head>`)
+        : `${viewerStyle}${rawHtml}`;
+    } catch (err) {
+      console.warn('Error generating preview HTML:', err);
+      return null;
+    }
+  }, [version?.cvData]);
+
+  // Close fullscreen preview on Escape key press
+  useEffect(() => {
+    if (!isPreviewOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsPreviewOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPreviewOpen]);
 
   const isAts = Boolean(
     version.cvData?.layout?.isAtsMode || version.cvData?.layout?.type === '1-column'
@@ -100,10 +156,15 @@ export const VersionCard = ({
   return (
     <div
       key={version.id}
+      data-testid={`version-card-${version.id}`}
+      data-theme={theme}
       className={`version-card ${isActive ? 'version-card--active' : ''}`}
+      onClick={() => {
+        if (!isEditing && onConfirmLoad) onConfirmLoad(version);
+      }}
       style={{
-        backgroundColor: '#ffffff',
-        border: isActive ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: isActive ? '1.5px solid #10b981' : (isDark ? '1px solid #334155' : '1px solid #e2e8f0'),
         borderRadius: '12px',
         overflow: 'hidden',
         display: 'flex',
@@ -113,13 +174,15 @@ export const VersionCard = ({
         maxHeight: '310px',
         boxShadow: isActive
           ? '0 4px 14px rgba(16, 185, 129, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)'
-          : '0 2px 4px rgba(0, 0, 0, 0.04)',
+          : (isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.04)'),
         transition: 'all 0.15s ease',
         flexShrink: 0,
         position: 'relative',
+        cursor: isEditing ? 'default' : 'pointer',
       }}
+      title={!isEditing ? 'Clic para usar como versión actual' : undefined}
     >
-      {/* Visual Thumbnail Preview (100% of container, zero black bars, lowest z-index: 1) */}
+      {/* Visual Thumbnail Preview (Default click: Use as current version) */}
       <div
         className="version-thumbnail-container"
         style={{
@@ -127,20 +190,22 @@ export const VersionCard = ({
           minHeight: '190px',
           maxHeight: '190px',
           flexShrink: 0,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
           position: 'relative',
-          borderBottom: '1px solid #e2e8f0',
-          cursor: version.thumbnail ? 'pointer' : 'default',
+          borderBottom: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+          cursor: isEditing ? 'default' : 'pointer',
           width: '100%',
           zIndex: 1,
         }}
-        onClick={() => {
-          if (version.thumbnail) setIsPreviewOpen(true);
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isEditing && onConfirmLoad) onConfirmLoad(version);
         }}
+        title={!isEditing ? 'Clic para usar como versión actual' : undefined}
       >
         {version.thumbnail ? (
           <img
@@ -168,12 +233,12 @@ export const VersionCard = ({
               textAlign: 'center',
               height: '100%',
               width: '100%',
-              backgroundColor: '#f8fafc',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
               zIndex: 1,
             }}
           >
-            <FileText size={24} color="#94a3b8" />
-            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
+            <FileText size={24} color={isDark ? '#475569' : '#94a3b8'} />
+            <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
               Sin vista previa
             </span>
           </div>
@@ -258,138 +323,125 @@ export const VersionCard = ({
         </div>
       </div>
 
-      {/* High-Resolution Preview Lightbox Modal (Triggered explicitly by preview button or thumbnail click) */}
-      {isPreviewOpen && version.thumbnail && typeof document !== 'undefined' && ReactDOM.createPortal(
+      {/* High-Resolution Fullscreen Scrollable Preview (Zero controls, full screen scrollable document) */}
+      {isPreviewOpen && typeof document !== 'undefined' && ReactDOM.createPortal(
         <div
           className="version-large-preview-overlay"
           data-testid="version-large-preview"
-          onClick={() => setIsPreviewOpen(false)}
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-            zIndex: 2000,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: '#0f172a',
+            zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1.5rem',
-            cursor: 'zoom-out',
+            overflow: 'hidden',
           }}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
+          {/* Floating Minimal Close Button in Top-Right Corner */}
+          <button
+            type="button"
+            data-testid="btn-close-large-preview"
+            aria-label="Cerrar vista previa"
+            onClick={() => setIsPreviewOpen(false)}
             style={{
+              position: 'fixed',
+              top: '16px',
+              right: '24px',
+              zIndex: 10001,
+              background: 'rgba(15, 23, 42, 0.85)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '50%',
+              width: '42px',
+              height: '42px',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              maxWidth: '92vw',
-              maxHeight: '94vh',
-              cursor: 'default',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5)',
+              transition: 'all 0.15s ease',
             }}
+            title="Cerrar vista previa (Esc)"
           >
-            {/* Header info badge with Close Button */}
-            <div
-              style={{
-                marginBottom: '10px',
-                padding: '6px 16px',
-                backgroundColor: '#ffffff',
-                borderRadius: '30px',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
-                {version.name}
-              </span>
-              <span
-                style={{
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  backgroundColor: isAts ? '#0284c7' : '#6d28d9',
-                  color: '#ffffff',
-                  border: `1px solid ${isAts ? '#0369a1' : '#5b21b6'}`,
-                }}
-              >
-                {isAts ? 'ATS 1-Col' : '2-Col'}
-              </span>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                {exactDate}
-              </span>
-              <button
-                type="button"
-                data-testid="btn-close-large-preview"
-                aria-label="Cerrar vista previa"
-                onClick={() => setIsPreviewOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  padding: '2px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '50%',
-                  marginLeft: '4px',
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
+            <X size={20} />
+          </button>
 
-            {/* High-Resolution Content Preview Image */}
+          {/* Fullscreen Scrollable Document View */}
+          {previewHtml ? (
+            <iframe
+              data-testid="version-preview-iframe"
+              title={`Vista previa de ${version.name}`}
+              srcDoc={previewHtml}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                display: 'block',
+                backgroundColor: '#0f172a',
+              }}
+            />
+          ) : (
             <div
               style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.2)',
+                width: '100%',
+                height: '100%',
+                overflowY: 'auto',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                maxHeight: '82vh',
-                maxWidth: '88vw',
+                padding: '40px 16px',
+                boxSizing: 'border-box',
+                cursor: 'zoom-out',
               }}
+              onClick={() => setIsPreviewOpen(false)}
             >
-              <img
-                src={version.thumbnail}
-                alt={`Vista previa ampliada de ${version.name}`}
-                style={{
-                  maxHeight: '82vh',
-                  maxWidth: '88vw',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
+              {version.thumbnail && (
+                <img
+                  src={version.thumbnail}
+                  alt={`Vista previa de ${version.name}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    maxWidth: '794px',
+                    width: '100%',
+                    height: 'auto',
+                    boxShadow: '0 20px 45px rgba(0, 0, 0, 0.5)',
+                    backgroundColor: '#ffffff',
+                    display: 'block',
+                    borderRadius: '4px',
+                  }}
+                />
+              )}
             </div>
-          </div>
+          )}
         </div>,
         document.body
       )}
 
-      {/* Card Body: Title and Metadata */}
+      {/* Card Body: Title and Metadata (Default click: Use as current version) */}
       <div
+        onClick={() => {
+          if (!isEditing && onConfirmLoad) onConfirmLoad(version);
+        }}
         style={{
           padding: '0.65rem 0.85rem 0.25rem 0.85rem',
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
           position: 'relative',
           zIndex: 2,
           overflow: 'hidden',
+          cursor: isEditing ? 'default' : 'pointer',
         }}
+        title={!isEditing ? 'Clic para usar como versión actual' : undefined}
       >
         {/* Version Title or Inline Rename Input */}
         <div style={{ marginBottom: '0.25rem', minHeight: '26px', display: 'flex', alignItems: 'center' }}>
@@ -399,6 +451,7 @@ export const VersionCard = ({
               data-testid="input-rename-version"
               type="text"
               value={renameText}
+              onClick={(e) => e.stopPropagation()}
               onChange={(e) => onChangeRenameText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
@@ -418,7 +471,8 @@ export const VersionCard = ({
                 border: '1px solid #3b82f6',
                 borderRadius: '4px',
                 outline: 'none',
-                backgroundColor: '#eff6ff',
+                backgroundColor: isDark ? '#0f172a' : '#eff6ff',
+                color: isDark ? '#f8fafc' : '#0f172a',
               }}
             />
           ) : (
@@ -432,13 +486,16 @@ export const VersionCard = ({
               }}
             >
               <h4
-                onDoubleClick={() => onStartRename(version)}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  onStartRename(version);
+                }}
                 title="Doble clic para renombrar"
                 style={{
                   margin: 0,
                   fontSize: '0.9rem',
                   fontWeight: 600,
-                  color: '#0f172a',
+                  color: isDark ? '#f8fafc' : '#0f172a',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -452,12 +509,15 @@ export const VersionCard = ({
                 data-testid="btn-rename-version"
                 aria-label="Renombrar versión"
                 title="Renombrar"
-                onClick={() => onStartRename(version)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartRename(version);
+                }}
                 style={{
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#94a3b8',
+                  color: isDark ? '#64748b' : '#94a3b8',
                   padding: '2px',
                   display: 'flex',
                   alignItems: 'center',
@@ -478,7 +538,7 @@ export const VersionCard = ({
             alignItems: 'center',
             gap: '6px',
             fontSize: '0.72rem',
-            color: '#64748b',
+            color: isDark ? '#94a3b8' : '#64748b',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -496,7 +556,7 @@ export const VersionCard = ({
             <Calendar size={12} />
             <span>{relativeTime}</span>
           </span>
-          <span style={{ color: '#cbd5e1' }}>•</span>
+          <span style={{ color: isDark ? '#475569' : '#cbd5e1' }}>•</span>
           <span>{isAts ? 'ATS 1-Columna' : '2 Columnas'}</span>
         </div>
       </div>
@@ -504,20 +564,21 @@ export const VersionCard = ({
       {/* Action Toolbar: ALWAYS FIXED AT THE BOTTOM, ALWAYS VISIBLE, NEVER HIDDEN (zIndex: 10) */}
       <div
         className="version-card-actions"
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           height: '46px',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #e2e8f0',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           padding: '0 0.75rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.45rem',
           zIndex: 10,
-          boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.03)',
+          boxShadow: isDark ? '0 -2px 6px rgba(0, 0, 0, 0.25)' : '0 -2px 6px rgba(0, 0, 0, 0.03)',
         }}
       >
         {/* Primary Button: Load / Active */}
@@ -533,9 +594,17 @@ export const VersionCard = ({
             justifyContent: 'center',
             gap: '5px',
             padding: '0 0.65rem',
-            backgroundColor: isActive ? '#ecfdf5' : '#eff6ff',
-            color: isActive ? '#059669' : '#2563eb',
-            border: `1px solid ${isActive ? '#a7f3d0' : '#bfdbfe'}`,
+            backgroundColor: isActive 
+              ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#ecfdf5') 
+              : (isDark ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff'),
+            color: isActive 
+              ? (isDark ? '#34d399' : '#059669') 
+              : (isDark ? '#60a5fa' : '#2563eb'),
+            border: `1px solid ${
+              isActive 
+                ? (isDark ? '#059669' : '#a7f3d0') 
+                : (isDark ? '#2563eb' : '#bfdbfe')
+            }`,
             borderRadius: '6px',
             fontSize: '0.78rem',
             fontWeight: 600,
@@ -555,9 +624,12 @@ export const VersionCard = ({
             type="button"
             data-testid="btn-preview-version"
             aria-label="Previsualizar versión"
-            title="Previsualizar versión"
-            disabled={!version.thumbnail}
-            onClick={() => setIsPreviewOpen(true)}
+            title="Previsualizar versión a pantalla completa"
+            disabled={!version.thumbnail && !version.cvData}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPreviewOpen(true);
+            }}
             style={{
               width: '30px',
               height: '30px',
@@ -567,10 +639,12 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: version.thumbnail ? '#334155' : '#94a3b8',
-              border: '1px solid #cbd5e1',
-              cursor: version.thumbnail ? 'pointer' : 'not-allowed',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: (version.thumbnail || version.cvData) 
+                ? (isDark ? '#cbd5e1' : '#334155') 
+                : (isDark ? '#475569' : '#94a3b8'),
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
+              cursor: (version.thumbnail || version.cvData) ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s ease',
             }}
           >
@@ -593,9 +667,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -603,13 +677,19 @@ export const VersionCard = ({
             <Copy size={14} />
           </button>
 
-          {/* 3. btn-download-version-json */}
+          {/* 3. btn-download-version-pdf */}
           <button
             type="button"
-            data-testid="btn-download-version-json"
-            aria-label="Descargar esta versión como JSON"
-            title="Descargar como JSON"
-            onClick={() => onDownloadJSON(version)}
+            data-testid="btn-download-version-pdf"
+            aria-label="Descargar esta versión como PDF"
+            title="Descargar como PDF"
+            onClick={() => {
+              if (onDownloadPDF) {
+                onDownloadPDF(version);
+              } else if (onDownloadJSON) {
+                onDownloadJSON(version);
+              }
+            }}
             style={{
               width: '30px',
               height: '30px',
@@ -619,9 +699,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -645,8 +725,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#fff1f2',
-              color: '#e11d48',
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fff1f2',
+              color: isDark ? '#f87171' : '#e11d48',
+              border: isDark ? '1px solid #b91c1c' : '1px solid transparent',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}

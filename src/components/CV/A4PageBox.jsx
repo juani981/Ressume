@@ -13,7 +13,17 @@
  */
 
 import React from 'react';
-import { A4_WIDTH_CSS, A4_HEIGHT_CSS, EDITOR_PAGE_HEIGHT_CSS } from '../../constants';
+import {
+  A4_WIDTH_CSS,
+  A4_HEIGHT_CSS,
+  EDITOR_PAGE_HEIGHT_CSS,
+  DEFAULT_PAGE_PADDING_PX,
+  DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+  DEFAULT_GRID_TEMPLATE_COLUMNS,
+  EDITOR_PAGE_GAP_PX,
+  BASE_COLUMN_STYLE,
+  COLOR_TOKENS,
+} from '../../constants';
 
 const flattenChildren = (children) => {
   const result = [];
@@ -84,9 +94,9 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     totalPages = 1,
     is2Col = false,
     isAtsMode = false,
-    leftBg = '#f3f4f6',
-    rightBg = '#ffffff',
-    leftColPercent = 32,
+    leftBg = COLOR_TOKENS.containerLight,
+    rightBg = COLOR_TOKENS.containerWhite,
+    leftColPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
     gridTemplateColumns,
     pagePadding,
     pageHeight = A4_HEIGHT_CSS,
@@ -94,7 +104,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     rightContent,
     singleColumnContent,
     children,
-    badgePosition = 'bottom-right',
+    badgePosition = 'gap',
     showBadge = true,
     badgeText,
     onDeletePage,
@@ -117,12 +127,25 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   const gradientBackground = `linear-gradient(to right, ${leftBg} 0%, ${leftBg} ${normLeftColPercent}, ${rightBg} ${normLeftColPercent}, ${rightBg} 100%)`;
 
   // Grid columns template
-  const effectiveGridColumns = gridTemplateColumns || 'var(--grid-template-columns, 1fr 2fr)';
+  const effectiveGridColumns = gridTemplateColumns || `var(--grid-template-columns, ${DEFAULT_GRID_TEMPLATE_COLUMNS})`;
 
-  // Immutable physical A4 container dimensions
-  const effectivePadding = pagePadding != null
-    ? (typeof pagePadding === 'number' ? `${pagePadding}px` : pagePadding)
-    : 'var(--page-padding, 24px)';
+  // Immutable physical A4 container dimensions:
+  // TOP, RIGHT, LEFT take user slider padding; BOTTOM takes 1/2 of slider padding
+  let effectivePadding;
+  if (pagePadding != null) {
+    if (typeof pagePadding === 'number') {
+      const bPad = Math.round(pagePadding / 2);
+      effectivePadding = `${pagePadding}px ${pagePadding}px ${bPad}px ${pagePadding}px`;
+    } else if (typeof pagePadding === 'string' && pagePadding.includes('px')) {
+      const num = parseInt(pagePadding, 10);
+      const bPad = Math.round(num / 2);
+      effectivePadding = `${num}px ${num}px ${bPad}px ${num}px`;
+    } else {
+      effectivePadding = pagePadding;
+    }
+  } else {
+    effectivePadding = `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding-bottom, calc(${DEFAULT_PAGE_PADDING_PX}px / 2)) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`;
+  }
 
   // Effective height: defaults to standard A4 height (297mm), overridable by prop
   const effectiveHeight = pageHeight || A4_HEIGHT_CSS;
@@ -139,7 +162,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     boxSizing: 'border-box',
     position: 'relative',
     zIndex: 1,
-    margin: '0 auto 32px auto',
+    margin: `0 auto ${EDITOR_PAGE_GAP_PX}px auto`,
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
     gridColumn: '1 / -1',
     ...(effective2Col
@@ -156,7 +179,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
         }
       : {
           display: 'block',
-          background: '#ffffff',
+          background: COLOR_TOKENS.containerWhite,
           padding: effectivePadding,
         }),
     ...style,
@@ -165,188 +188,79 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   // Badge text: "Página N de M"
   const currentBadgeText = badgeText || `Página ${pageNumber} de ${totalPages}`;
 
-  // Badge style for editor display
+  // Badge style for editor display - positioned in the inter-page gap by default
   const badgeStyle = {
     position: 'absolute',
-    bottom: '12px',
     right: '16px',
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    color: '#ffffff',
+    backgroundColor: COLOR_TOKENS.badgeBg,
+    color: COLOR_TOKENS.badgeText,
     padding: '4px 10px',
     borderRadius: '12px',
     fontSize: '11px',
     fontWeight: 600,
     letterSpacing: '0.05em',
-    zIndex: 10,
+    zIndex: 50,
     pointerEvents: 'none',
     userSelect: 'none',
-    ...(badgePosition === 'top-right' ? { top: '12px', bottom: 'auto' } : {}),
-    ...(!badgePosition.includes('top') && !badgePosition.includes('bottom') ? {} : {}),
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+    ...(badgePosition === 'top-right'
+      ? { top: '12px', bottom: 'auto' }
+      : badgePosition === 'bottom-right'
+      ? { bottom: '12px', top: 'auto' }
+      : { bottom: '5px', top: 'auto' }),
   };
 
   // Render 2-column content
   const render2ColContent = () => {
-    if (leftContent !== undefined || rightContent !== undefined) {
-      return (
-        <>
-          <div
-            className="resume__left"
-            style={{
-              height: '100%',
-              minHeight: '100%',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: 0,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              padding: effectivePadding,
-              ...leftStyle,
-            }}
-          >
-            {leftContent}
-          </div>
-          <div
-            className="resume__right"
-            style={{
-              height: '100%',
-              minHeight: '100%',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: 0,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              padding: effectivePadding,
-              ...rightStyle,
-            }}
-          >
-            {rightContent}
-          </div>
-        </>
-      );
+    if (children && hasCustomColumns(children)) {
+      return children;
     }
 
-    if (children) {
-      if (hasCustomColumns(children)) {
-        return children;
-      }
+    let left = leftContent;
+    let right = rightContent;
+    let applyPadding = true;
 
-      if (Array.isArray(children) && children.length === 2) {
-        return (
-          <>
-            <div
-              className="resume__left"
-              style={{
-                height: '100%',
-                minHeight: '100%',
-                boxSizing: 'border-box',
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-                maxWidth: '100%',
-                overflowWrap: 'break-word',
-                wordBreak: 'break-word',
-                padding: effectivePadding,
-                ...leftStyle,
-              }}
-            >
-              {children[0]}
-            </div>
-            <div
-              className="resume__right"
-              style={{
-                height: '100%',
-                minHeight: '100%',
-                boxSizing: 'border-box',
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-                maxWidth: '100%',
-                overflowWrap: 'break-word',
-                wordBreak: 'break-word',
-                padding: effectivePadding,
-                ...rightStyle,
-              }}
-            >
-              {children[1]}
-            </div>
-          </>
-        );
+    if (left === undefined && right === undefined) {
+      if (children) {
+        if (Array.isArray(children) && children.length === 2) {
+          left = children[0];
+          right = children[1];
+        } else {
+          left = children;
+          right = null;
+          applyPadding = false;
+        }
+      } else {
+        left = null;
+        right = null;
+        applyPadding = false;
       }
-
-      return (
-        <>
-          <div
-            className="resume__left"
-            style={{
-              height: '100%',
-              minHeight: '100%',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: 0,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              ...leftStyle,
-            }}
-          >
-            {children}
-          </div>
-          <div
-            className="resume__right"
-            style={{
-              height: '100%',
-              minHeight: '100%',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: 0,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              ...rightStyle,
-            }}
-          />
-        </>
-      );
     }
+
+    const columnPadding = applyPadding ? effectivePadding : undefined;
 
     return (
       <>
         <div
           className="resume__left"
           style={{
-            height: '100%',
-            minHeight: '100%',
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            maxWidth: '100%',
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
+            ...BASE_COLUMN_STYLE,
+            ...(columnPadding ? { padding: columnPadding } : {}),
             ...leftStyle,
           }}
-        />
+        >
+          {left}
+        </div>
         <div
           className="resume__right"
           style={{
-            height: '100%',
-            minHeight: '100%',
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            maxWidth: '100%',
-            overflowWrap: 'break-word',
-            wordBreak: 'break-word',
+            ...BASE_COLUMN_STYLE,
+            ...(columnPadding ? { padding: columnPadding } : {}),
             ...rightStyle,
           }}
-        />
+        >
+          {right}
+        </div>
       </>
     );
   };
@@ -386,15 +300,25 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
 
   return (
     <div
-      ref={ref}
-      className={classNames}
-      data-page-number={pageNumber}
-      data-total-pages={totalPages}
-      data-testid={`a4-page-box-${pageNumber}`}
-      style={containerStyle}
-      {...restProps}
+      className="a4-page-wrapper"
+      data-page-wrapper={pageNumber}
+      style={{
+        position: 'relative',
+        width: A4_WIDTH_CSS,
+        margin: '0 auto',
+      }}
     >
-      {effective2Col ? render2ColContent() : render1ColContent()}
+      <div
+        ref={ref}
+        className={classNames}
+        data-page-number={pageNumber}
+        data-total-pages={totalPages}
+        data-testid={`a4-page-box-${pageNumber}`}
+        style={containerStyle}
+        {...restProps}
+      >
+        {effective2Col ? render2ColContent() : render1ColContent()}
+      </div>
 
       {showBadge && (
         <div
@@ -415,8 +339,8 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
               className="page-delete-btn"
               data-editor-ui="true"
               style={{
-                background: 'rgba(239, 68, 68, 0.85)',
-                color: '#ffffff',
+                background: COLOR_TOKENS.deleteBtnBg,
+                color: COLOR_TOKENS.deleteBtnText,
                 border: 'none',
                 borderRadius: '4px',
                 padding: '2px 6px',

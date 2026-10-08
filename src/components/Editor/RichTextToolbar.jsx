@@ -184,6 +184,16 @@ const RichTextToolbar = (props) => {
           e.preventDefault();
           handleCommand('bold');
         }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('bold');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('bold');
+          }
+        }}
       >
         <Bold size={15} strokeWidth={2.5} />
       </button>
@@ -199,6 +209,16 @@ const RichTextToolbar = (props) => {
         onMouseDown={(e) => {
           e.preventDefault();
           handleCommand('italic');
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('italic');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('italic');
+          }
         }}
       >
         <Italic size={15} strokeWidth={2.5} />
@@ -218,6 +238,16 @@ const RichTextToolbar = (props) => {
           e.preventDefault();
           handleCommand('justifyLeft');
         }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('justifyLeft');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('justifyLeft');
+          }
+        }}
       >
         <AlignLeft size={15} />
       </button>
@@ -233,6 +263,16 @@ const RichTextToolbar = (props) => {
         onMouseDown={(e) => {
           e.preventDefault();
           handleCommand('justifyCenter');
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('justifyCenter');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('justifyCenter');
+          }
         }}
       >
         <AlignCenter size={15} />
@@ -250,6 +290,16 @@ const RichTextToolbar = (props) => {
           e.preventDefault();
           handleCommand('justifyRight');
         }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('justifyRight');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('justifyRight');
+          }
+        }}
       >
         <AlignRight size={15} />
       </button>
@@ -265,6 +315,16 @@ const RichTextToolbar = (props) => {
         onMouseDown={(e) => {
           e.preventDefault();
           handleCommand('justifyFull');
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('justifyFull');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('justifyFull');
+          }
         }}
       >
         <AlignJustify size={15} />
@@ -283,6 +343,16 @@ const RichTextToolbar = (props) => {
           e.preventDefault();
           handleCommand('undo');
         }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('undo');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('undo');
+          }
+        }}
       >
         <Undo2 size={15} />
       </button>
@@ -297,6 +367,16 @@ const RichTextToolbar = (props) => {
         onMouseDown={(e) => {
           e.preventDefault();
           handleCommand('redo');
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCommand('redo');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCommand('redo');
+          }
         }}
       >
         <Redo2 size={15} />

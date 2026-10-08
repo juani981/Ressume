@@ -34,7 +34,7 @@ const ContextHarness = ({ onStateChange }) => {
       <span data-testid="title-scale">{cv.cvData?.layout?.titleScale ?? 1.0}</span>
       <span data-testid="body-scale">{cv.cvData?.layout?.bodyScale ?? 1.0}</span>
       <span data-testid="list-scale">{cv.cvData?.layout?.listScale ?? 1.0}</span>
-      <span data-testid="line-height">{cv.cvData?.layout?.lineHeight ?? 1.45}</span>
+      <span data-testid="line-height">{cv.cvData?.layout?.lineHeight ?? 1.3}</span>
       <span data-testid="page-padding">{cv.cvData?.layout?.pagePadding ?? 24}</span>
       <span data-testid="section-gap">{cv.cvData?.layout?.sectionGap ?? 20}</span>
       <span data-testid="item-gap">{cv.cvData?.layout?.itemGap ?? 8}</span>
@@ -53,7 +53,7 @@ const ContextHarness = ({ onStateChange }) => {
       <button data-testid="btn-set-title-scale" onClick={() => cv.updateLayout('titleScale', 1.25)}>Title 1.25</button>
       <button data-testid="btn-set-body-scale" onClick={() => cv.updateLayout('bodyScale', 0.95)}>Body 0.95</button>
       <button data-testid="btn-set-list-scale" onClick={() => cv.updateLayout('listScale', 1.10)}>List 1.10</button>
-      <button data-testid="btn-reset-typography" onClick={() => cv.updateLayout({ fontScale: 1.0, titleScale: 1.0, bodyScale: 1.0, listScale: 1.0, lineHeight: 1.45 })}>Reset Typo</button>
+      <button data-testid="btn-reset-typography" onClick={() => cv.updateLayout({ fontScale: 1.0, titleScale: 1.0, bodyScale: 1.0, listScale: 1.0, lineHeight: 1.3 })}>Reset Typo</button>
       <button data-testid="btn-set-line-height" onClick={() => cv.updateLayout('lineHeight', 1.65)}>Line Height 1.65</button>
       <button data-testid="btn-set-page-padding" onClick={() => cv.updateLayout('pagePadding', 36)}>Padding 36</button>
       <button data-testid="btn-set-section-gap" onClick={() => cv.updateLayout('sectionGap', 28)}>Section Gap 28</button>
@@ -115,7 +115,7 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       it('F2.1: defaultLayout defines standard font-scale and line-height tokens', () => {
         expect(defaultLayout).toBeDefined();
         expect(defaultLayout.fontScale ?? 1.0).toBeGreaterThanOrEqual(0.85);
-        expect(defaultLayout.lineHeight ?? 1.45).toBeGreaterThanOrEqual(1.25);
+        expect(defaultLayout.lineHeight ?? 1.3).toBeGreaterThanOrEqual(1.25);
       });
 
       it('F2.2: updateLayout updates fontScale dynamically in context state', () => {
@@ -212,10 +212,10 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
 
     // Feature 3: Independent Spacing Controls (5 tests)
     describe('F3: Independent Spacing Controls', () => {
-      it('F3.1: defaultLayout defines standard spacing defaults (pagePadding=24, sectionGap=20, itemGap=8)', () => {
+      it('F3.1: defaultLayout defines standard spacing defaults (pagePadding=24, sectionGap=12, itemGap=6)', () => {
         expect(defaultLayout.pagePadding).toBe(24);
-        expect(defaultLayout.sectionGap).toBe(20);
-        expect(defaultLayout.itemGap).toBe(8);
+        expect(defaultLayout.sectionGap).toBe(12);
+        expect(defaultLayout.itemGap).toBe(6);
       });
 
       it('F3.2: updateLayout modifies pagePadding independently', () => {
@@ -506,14 +506,30 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       });
 
       it('F7.3: BaseSection renders drag handle for sortable section interactions', () => {
-        const section = defaultSchema.sections[0];
+        const sortableSection = defaultSchema.sections.find(s => s.type === 'list' || s.type === 'skills') || {
+          id: 'custom_sec',
+          type: 'list',
+          title: 'Custom Section',
+          items: []
+        };
         render(
           <CVProvider>
-            <BaseSection section={section} />
+            <BaseSection section={sortableSection} />
           </CVProvider>
         );
         const sectionHandle = document.querySelector('.section-drag-handle');
         expect(sectionHandle).toBeInTheDocument();
+      });
+
+      it('F7.3b: BaseSection does not render drag handle for fixed header sections', () => {
+        const fixedSection = defaultSchema.sections.find(s => s.type === 'contact' || s.type === 'about' || s.type === 'profile_header');
+        render(
+          <CVProvider>
+            <BaseSection section={fixedSection} />
+          </CVProvider>
+        );
+        const sectionHandle = document.querySelector('.section-drag-handle');
+        expect(sectionHandle).not.toBeInTheDocument();
       });
 
       it('F7.4: BaseItem renders item drag handle for draggable items', () => {
@@ -838,8 +854,10 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
 
       it('F13.5: Clicking spacing button opens Espaciado y Márgenes popover with range sliders', () => {
         render(<CVProvider><ActionMenu /></CVProvider>);
-        const spacingBtn = screen.getByRole('button', { name: /ajustes de márgenes y espaciado/i });
-        fireEvent.click(spacingBtn);
+        const designBtn = screen.getByTestId('btn-open-design');
+        fireEvent.click(designBtn);
+        const spacingTab = screen.getByTestId('tab-spacing');
+        fireEvent.click(spacingTab);
 
         expect(screen.getByText('Espaciado y Márgenes')).toBeInTheDocument();
         expect(screen.getByLabelText(/control de margen de página/i)).toBeInTheDocument();

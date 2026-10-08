@@ -13,6 +13,8 @@ export const profileHeaderDescriptor = {
   allowDeleteItem: false,
   hasTitle: false,
   hasItemDrag: false,
+  allowSectionDrag: false,
+  isMoveDisabled: true,
   supportsBulletCustomization: false,
   isHeader: true,
   hideControls: true,

@@ -63,7 +63,7 @@ export const SortableBulletItem = ({
     paddingRight: 0,
     paddingLeft: 0,
     color: 'inherit',
-    lineHeight: 'var(--line-height, 1.45)',
+    lineHeight: 'var(--line-height, 1.3)',
     fontSize: 'var(--list-font-size, var(--normal-font-size))',
     minWidth: 0,
     maxWidth: '100%',

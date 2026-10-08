@@ -11,12 +11,18 @@ import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { sanitizeAndValidateCVSnapshot, normalizeAnyJSONToCVSnapshot } from '../../utils/versionValidator';
 import { cleanAndParseRawJSON } from '../../utils/universalJsonImporter';
 import { blankSchema } from '../../utils/schema';
+import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
 import { History, X, Layers } from 'lucide-react';
 import {
   VersionActionBar,
   VersionConfirmationDialogs,
   VersionCard
 } from './versionManager';
+import { useModalTheme } from '../../hooks/useModalTheme';
+import { ModalThemeToggle } from '../common/ModalThemeToggle';
+import ModalHelpButton from '../common/ModalHelpButton';
+import { TOUR_IDS } from '../../context/TourContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 /**
  * Full-screen Version Manager Hub modal dialog.
@@ -36,12 +42,14 @@ export const VersionManagerModal = ({
   initialConfirmBlank = false
 }) => {
   const context = useCV() || {};
-  const { cvData, loadVersionSnapshot, showToast } = context;
+  const { cvData, loadVersionSnapshot, showToast, exportCleanPDF, activeLanguage } = context;
+  const { modalTheme, isDark, toggleModalTheme } = useModalTheme();
 
   const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newVersionName, setNewVersionName] = useState('');
+  const modalRef = useRef(null);
 
   // Inline rename state: versionId | null
   const [editingVersionId, setEditingVersionId] = useState(null);
@@ -53,6 +61,27 @@ export const VersionManagerModal = ({
   const [confirmLoadVersion, setConfirmLoadVersion] = useState(null);
   const [confirmDeleteVersion, setConfirmDeleteVersion] = useState(initialDeleteVersion);
   const [confirmBlankCV, setConfirmBlankCV] = useState(initialConfirmBlank);
+
+  const handleModalClose = useCallback((e) => {
+    if (editingVersionId) return;
+    if (confirmLoadVersion) {
+      setConfirmLoadVersion(null);
+      return;
+    }
+    if (confirmDeleteVersion) {
+      setConfirmDeleteVersion(null);
+      return;
+    }
+    if (confirmBlankCV) {
+      setConfirmBlankCV(false);
+      return;
+    }
+    if (typeof onClose === 'function') {
+      onClose(e);
+    }
+  }, [editingVersionId, confirmLoadVersion, confirmDeleteVersion, confirmBlankCV, onClose]);
+
+  useFocusTrap(modalRef, { isOpen, onClose: handleModalClose });
 
   // Generate suggested version name based on candidate & date
   const generateSuggestedName = useCallback(() => {
@@ -117,33 +146,6 @@ export const VersionManagerModal = ({
     };
   }, [isOpen, initialDeleteVersion, initialConfirmBlank, generateSuggestedName]);
 
-  // Window Escape key handler (closes modal unless focused in inline edit)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        // If inline rename is active, don't close modal (handled in input onKeyDown)
-        if (editingVersionId) return;
-        if (confirmLoadVersion) {
-          setConfirmLoadVersion(null);
-          return;
-        }
-        if (confirmDeleteVersion) {
-          setConfirmDeleteVersion(null);
-          return;
-        }
-        if (confirmBlankCV) {
-          setConfirmBlankCV(false);
-          return;
-        }
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, editingVersionId, confirmLoadVersion, confirmDeleteVersion, confirmBlankCV, onClose]);
 
   // Focus rename input when editing starts
   useEffect(() => {
@@ -331,6 +333,36 @@ export const VersionManagerModal = ({
     }
   };
 
+  // Download a specific saved version snapshot as PDF
+  const handleDownloadVersionPDF = async (version) => {
+    try {
+      if (!version) return;
+      const rawData = version.cvData || cvData;
+      const targetData = {
+        ...rawData,
+        versionName: version.name || (rawData?.versionName || 'CV'),
+        activeVersionName: version.name,
+      };
+
+      if (exportCleanPDF) {
+        await exportCleanPDF(targetData, activeLanguage || 'es', { forceStaticHtml: true });
+      } else {
+        if (showToast) {
+          showToast(`Generando PDF para "${version.name}"...`, 'loading', 2000);
+        }
+        await executeCleanPrint(targetData, activeLanguage || 'es', { forceStaticHtml: true });
+        if (showToast) {
+          showToast(`PDF de "${version.name}" preparado para descarga`, 'success');
+        }
+      }
+    } catch (err) {
+      console.error('Error exporting version PDF:', err);
+      if (showToast) {
+        showToast('Error al exportar la versión como PDF', 'error');
+      }
+    }
+  };
+
   // Download a specific saved version snapshot as JSON
   const handleDownloadVersionJSON = (version) => {
     try {
@@ -409,9 +441,6 @@ export const VersionManagerModal = ({
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="version-modal-title"
       className="version-manager-modal version-modal-backdrop version-manager-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -435,18 +464,23 @@ export const VersionManagerModal = ({
       }}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="version-modal-title"
         className="version-modal-dialog"
+        data-theme={modalTheme}
         style={{
           maxWidth: 'min(1180px, 94vw)',
           width: '100%',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           borderRadius: '16px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
           overflow: 'hidden',
-          border: '1px solid rgba(226, 232, 240, 0.8)',
+          border: isDark ? '1px solid #334155' : '1px solid rgba(226, 232, 240, 0.8)',
         }}
       >
         {/* =====================================================================
@@ -455,11 +489,11 @@ export const VersionManagerModal = ({
         <div
           style={{
             padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#ffffff',
+            background: isDark ? '#0f172a' : '#ffffff',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
@@ -468,11 +502,11 @@ export const VersionManagerModal = ({
                 width: '42px',
                 height: '42px',
                 borderRadius: '10px',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#2563eb',
+                color: isDark ? '#60a5fa' : '#2563eb',
                 flexShrink: 0,
               }}
             >
@@ -486,11 +520,11 @@ export const VersionManagerModal = ({
                     margin: 0,
                     fontSize: '1.25rem',
                     fontWeight: 700,
-                    color: '#0f172a',
+                    color: isDark ? '#f8fafc' : '#0f172a',
                     lineHeight: 1.2,
                   }}
                 >
-                  Gestor de Versiones y Snapshots
+                  Gestor de Versiones
                 </h2>
                 <span
                   style={{
@@ -498,33 +532,33 @@ export const VersionManagerModal = ({
                     borderRadius: '9999px',
                     fontSize: '0.72rem',
                     fontWeight: 600,
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#94a3b8' : '#475569',
+                    border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
                   }}
                 >
                   {versions.length} {versions.length === 1 ? 'versión' : 'versiones'}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px', flexWrap: 'wrap' }}>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
-                  Guarda, restaura, duplica y administra instantáneas persistentes de tu CV
+                <p style={{ margin: 0, fontSize: '0.82rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+                  Administra y respalda distintas versiones de su CV
                 </p>
                 {(cvData?.activeVersionName || cvData?.versionName) && (
                   <>
-                    <span style={{ color: '#cbd5e1' }}>•</span>
+                    <span style={{ color: isDark ? '#475569' : '#cbd5e1' }}>•</span>
                     <span
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '5px',
                         fontSize: '0.75rem',
-                        color: '#065f46',
+                        color: isDark ? '#34d399' : '#065f46',
                         fontWeight: 600,
-                        backgroundColor: '#ecfdf5',
+                        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#ecfdf5',
                         padding: '1px 8px',
                         borderRadius: '9999px',
-                        border: '1px solid #a7f3d0',
+                        border: isDark ? '1px solid #059669' : '1px solid #a7f3d0',
                       }}
                     >
                       <span
@@ -544,34 +578,39 @@ export const VersionManagerModal = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            data-testid="btn-close-version-modal"
-            className="modal-close-btn"
-            aria-label="Cerrar modal de versiones"
-            title="Cerrar modal"
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#64748b',
-              padding: '0.4rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.15s ease, color 0.15s ease',
-            }}
-          >
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ModalHelpButton tourId={TOUR_IDS.VERSION_MANAGER} isDark={isDark} />
+            <ModalThemeToggle theme={modalTheme} onToggle={toggleModalTheme} />
+            <button
+              type="button"
+              data-testid="btn-close-version-modal"
+              className="modal-close-btn"
+              aria-label="Cerrar modal de versiones"
+              title="Cerrar modal"
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: isDark ? '#94a3b8' : '#64748b',
+                padding: '0.4rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background-color 0.15s ease, color 0.15s ease',
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* =====================================================================
             2. Action Bar: Save Version & JSON Transfer
             ===================================================================== */}
         <VersionActionBar
+          theme={modalTheme}
           newVersionName={newVersionName}
           setNewVersionName={setNewVersionName}
           isSaving={isSaving}
@@ -587,6 +626,7 @@ export const VersionManagerModal = ({
             3. Obsidian Callout Confirmation Dialogs (Warning / Danger)
             ===================================================================== */}
         <VersionConfirmationDialogs
+          theme={modalTheme}
           confirmBlankCV={confirmBlankCV}
           onCancelBlank={() => setConfirmBlankCV(false)}
           onConfirmBlank={handleConfirmBlankCV}
@@ -613,6 +653,7 @@ export const VersionManagerModal = ({
             gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
             gap: '1.25rem',
             alignContent: 'start',
+            backgroundColor: isDark ? '#090d16' : 'transparent',
           }}
         >
           {loading ? (
@@ -621,7 +662,7 @@ export const VersionManagerModal = ({
                 gridColumn: '1 / -1',
                 padding: '3rem',
                 textAlign: 'center',
-                color: '#64748b',
+                color: isDark ? '#94a3b8' : '#64748b',
                 fontSize: '0.9rem',
               }}
             >
@@ -633,10 +674,10 @@ export const VersionManagerModal = ({
                 gridColumn: '1 / -1',
                 padding: '3.5rem 1.5rem',
                 textAlign: 'center',
-                color: '#64748b',
-                background: '#f8fafc',
+                color: isDark ? '#94a3b8' : '#64748b',
+                background: isDark ? '#1e293b' : '#f8fafc',
                 borderRadius: '12px',
-                border: '2px dashed #e2e8f0',
+                border: isDark ? '2px dashed #334155' : '2px dashed #e2e8f0',
               }}
             >
               <div
@@ -644,8 +685,8 @@ export const VersionManagerModal = ({
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  backgroundColor: '#e2e8f0',
-                  color: '#64748b',
+                  backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#94a3b8' : '#64748b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -654,7 +695,7 @@ export const VersionManagerModal = ({
               >
                 <Layers size={24} />
               </div>
-              <h3 style={{ margin: '0 0 0.5rem', color: '#1e293b', fontSize: '1rem', fontWeight: 600 }}>
+              <h3 style={{ margin: '0 0 0.5rem', color: isDark ? '#f1f5f9' : '#1e293b', fontSize: '1rem', fontWeight: 600 }}>
                 No hay versiones guardadas
               </h3>
               <p style={{ margin: 0, fontSize: '0.85rem' }}>
@@ -666,6 +707,7 @@ export const VersionManagerModal = ({
               <VersionCard
                 key={version.id}
                 version={version}
+                theme={modalTheme}
                 isActive={Boolean(
                   (cvData?.activeVersionId && cvData.activeVersionId === version.id) ||
                   (cvData?.activeVersionName && cvData.activeVersionName === version.name) ||
@@ -680,7 +722,8 @@ export const VersionManagerModal = ({
                 onChangeRenameText={setRenameText}
                 onConfirmLoad={setConfirmLoadVersion}
                 onDuplicate={handleDuplicate}
-                onDownloadJSON={handleDownloadVersionJSON}
+                onDownloadPDF={handleDownloadVersionPDF}
+                onDownloadJSON={handleDownloadVersionPDF}
                 onConfirmDelete={setConfirmDeleteVersion}
               />
             ))

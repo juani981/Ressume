@@ -12,8 +12,16 @@
  */
 
 import { useMemo } from 'react';
-import { distributeSectionsToPages } from '../utils/pageDistributor';
-import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants';
+import { distributeSectionsToPages, isAtsLayout } from '../utils/pageDistributor';
+import {
+  A4_PAGE_HEIGHT_PX,
+  DEFAULT_PAGE_PADDING,
+  DEFAULT_LINE_HEIGHT,
+  DEFAULT_SECTION_GAP_PX,
+  DEFAULT_ITEM_GAP_PX,
+} from '../constants';
+
+const DEFAULT_OPTIONS = Object.freeze({});
 
 /**
  * Custom hook returning an array of PageModel instances for live rendering and print.
@@ -26,7 +34,7 @@ import { A4_PAGE_HEIGHT_PX, DEFAULT_PAGE_PADDING } from '../constants';
  *   totalPages: number
  * }}
  */
-export function useDocumentPages({ cvData, options = {} }) {
+export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
   const layout = cvData?.layout || {};
   const sections = cvData?.sections || [];
 
@@ -44,13 +52,13 @@ export function useDocumentPages({ cvData, options = {} }) {
       titleScale: options.titleScale ?? layout.titleScale ?? 1.0,
       bodyScale: options.bodyScale ?? layout.bodyScale ?? 1.0,
       listScale: options.listScale ?? layout.listScale ?? 1.0,
-      lineHeight: options.lineHeight ?? layout.lineHeight ?? 1.45,
-      sectionGapPx: options.sectionGapPx ?? layout.sectionGap ?? 20,
-      itemGapPx: options.itemGapPx ?? layout.itemGap ?? 8,
+      lineHeight: options.lineHeight ?? layout.lineHeight ?? DEFAULT_LINE_HEIGHT,
+      sectionGapPx: options.sectionGapPx ?? layout.sectionGap ?? DEFAULT_SECTION_GAP_PX,
+      itemGapPx: options.itemGapPx ?? layout.itemGap ?? DEFAULT_ITEM_GAP_PX,
 
       // Mode resolution
-      isAtsMode: options.isAtsMode ?? Boolean(layout.isAtsMode === true || layout.type === '1-column'),
-      mode: options.mode ?? (layout.isAtsMode === true || layout.type === '1-column' ? 'ats' : '2-column'),
+      isAtsMode: options.isAtsMode ?? isAtsLayout(layout),
+      mode: options.mode ?? (isAtsLayout(layout) ? 'ats' : '2-column'),
       leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 
@@ -73,7 +81,7 @@ export function useDocumentPages({ cvData, options = {} }) {
     layout.sectionGap,
     layout.itemGap,
     layout.leftColumnWidth,
-    options,
+    options === DEFAULT_OPTIONS ? null : options,
   ]);
 
   const totalPages = pages.length;

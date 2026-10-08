@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ActionMenu from "./components/Editor/ActionMenu";
 import LayoutModeToggle from "./components/Editor/LayoutModeToggle";
 import AppModals from "./components/Editor/AppModals";
+import { Footer } from "./components/common/Footer";
 import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
 import { PlusCircle } from "lucide-react";
@@ -12,21 +13,53 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
 import { useColumnResizer } from "./hooks/useColumnResizer";
 import { useDocumentPages } from "./hooks/useDocumentPages";
+import { useLiveDomHeights } from "./hooks/useLiveDomHeights";
 
 import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
 import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
-import CVDragOverlay from "./components/Editor/CVDragOverlay";
 import DroppableColumn from "./components/Editor/DroppableColumn";
+import CVDragOverlay from "./components/Editor/CVDragOverlay";
+
 import {
    A4_WIDTH_PX,
    A4_HEIGHT_CSS,
+   DEFAULT_PAGE_PADDING_PX,
+   DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
+   DEFAULT_GRID_TEMPLATE_COLUMNS,
+   formatGridTemplateColumns,
+   BASE_COLUMN_STYLE,
+   COLOR_TOKENS,
 } from "./constants";
+import { isAtsLayout } from "./utils/pageDistributor";
+
+const AREA_CV_CONTAINER_STYLE = Object.freeze({
+   display: "flex",
+   flexDirection: "column",
+   alignItems: "center",
+   width: "100%",
+   minWidth: `${A4_WIDTH_PX}px`,
+   maxWidth: `${A4_WIDTH_PX}px`,
+   margin: "0 auto",
+   padding: 0,
+   background: "transparent",
+   boxShadow: "none",
+   borderRadius: 0,
+   border: "none",
+   minHeight: "auto",
+   position: "relative",
+   zIndex: 1,
+   gap: 0,
+   rowGap: 0,
+   columnGap: 0,
+});
 
 function App() {
    const {
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
@@ -51,14 +84,24 @@ function App() {
       handleDragCancel,
       activeDragItem,
       activeDragSection,
+      dropTarget,
+      justDroppedId,
    } = useCVDndCoordinator({
       cvData,
+      setCvData,
+      recordHistoryTransition,
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
    });
 
-   // 2. Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
-   const { pages, totalPages } = useDocumentPages({ cvData });
+   // 2. Live DOM Measurement for exact WYSIWYG A4 page distribution
+   const measuredHeights = useLiveDomHeights(areaCvRef, [cvData.layout, cvData.sections]);
+
+   // Reactive Discrete A4 Document Pages Hook (Invariants 15 & 16)
+   const { pages, totalPages } = useDocumentPages({
+      cvData,
+      options: { measuredHeights },
+   });
 
    // Keep context synchronized with document page count
    useEffect(() => {
@@ -77,17 +120,17 @@ function App() {
    // 4. Modal State
    const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
    const [addSectionTargetColumn, setAddSectionTargetColumn] = useState("right");
+   const [addSectionTargetIndex, setAddSectionTargetIndex] = useState(undefined);
 
-   const handleOpenAddSection = (column = "right") => {
+   const handleOpenAddSection = (column = "right", targetIndex = undefined) => {
       setAddSectionTargetColumn(column);
+      setAddSectionTargetIndex(targetIndex);
       setIsAddSectionModalOpen(true);
    };
 
    // Layout Modes & Class Toggles
-   const isAtsMode =
-      cvData.layout?.isAtsMode === true || cvData.layout?.type === "1-column";
-   const is2Col =
-      cvData.layout?.type === "2-column" && !cvData.layout?.isAtsMode;
+   const isAtsMode = isAtsLayout(cvData.layout);
+   const is2Col = !isAtsMode;
 
    useEffect(() => {
       if (isAtsMode) {
@@ -104,11 +147,11 @@ function App() {
    const dynamicSpacing = computeTypographyTokens(cvData.layout);
 
    const leftColumnWidth = cvData.layout?.leftColumnWidth;
-   const leftColPercent = leftColumnWidth || 33.33;
+   const leftColPercent = leftColumnWidth || DEFAULT_LEFT_COLUMN_WIDTH_PERCENT;
    const gridTemplateColumns = is2Col
       ? leftColumnWidth
-         ? `${leftColumnWidth}% ${100 - leftColumnWidth}%`
-         : "1fr 2fr"
+         ? formatGridTemplateColumns(leftColumnWidth)
+         : DEFAULT_GRID_TEMPLATE_COLUMNS
       : undefined;
 
    return (
@@ -122,6 +165,7 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
+            
             <main
                className="l-main bd-container"
                style={{
@@ -143,24 +187,7 @@ function App() {
                   data-total-pages={totalPages}
                   ref={areaCvRef}
                   style={{
-                     display: "flex",
-                     flexDirection: "column",
-                     alignItems: "center",
-                     width: "100%",
-                     minWidth: `${A4_WIDTH_PX}px`,
-                     maxWidth: `${A4_WIDTH_PX}px`,
-                     margin: "0 auto",
-                     padding: 0,
-                     background: "transparent",
-                     boxShadow: "none",
-                     borderRadius: 0,
-                     border: "none",
-                     minHeight: "auto",
-                     position: "relative",
-                     zIndex: 1,
-                     gap: 0,
-                     rowGap: 0,
-                     columnGap: 0,
+                     ...AREA_CV_CONTAINER_STYLE,
                      ...(is2Col
                         ? {
                              "--grid-template-columns": gridTemplateColumns,
@@ -168,20 +195,21 @@ function App() {
                              "--left-bg":
                                 cvData.layout?.leftBg ||
                                 "var(--container-color-alt)",
-                             "--right-bg": cvData.layout?.rightBg || "#ffffff",
+                             "--right-bg": cvData.layout?.rightBg || COLOR_TOKENS.containerWhite,
                           }
                         : {}),
                      ...dynamicSpacing,
                   }}>
                   {pages.map((pageModel) => (
-                     <A4PageBox
-                        key={`page-${pageModel.pageNumber}`}
+                     <React.Fragment key={`page-wrapper-${pageModel.pageNumber}`}>
+                        <A4PageBox
+                           key={`page-${pageModel.pageNumber}`}
                         pageNumber={pageModel.pageNumber}
                         totalPages={pages.length}
                         is2Col={is2Col}
                         isAtsMode={isAtsMode}
-                        leftBg={cvData.layout?.leftBg || "#f3f4f6"}
-                        rightBg={cvData.layout?.rightBg || "#ffffff"}
+                        leftBg={cvData.layout?.leftBg || COLOR_TOKENS.containerLight}
+                        rightBg={cvData.layout?.rightBg || COLOR_TOKENS.containerWhite}
                         leftColPercent={leftColPercent}
                         gridTemplateColumns={gridTemplateColumns}
                         pageHeight={A4_HEIGHT_CSS}
@@ -195,20 +223,11 @@ function App() {
                                  column="left"
                                  className="resume__left"
                                  style={{
+                                    ...BASE_COLUMN_STYLE,
                                     background:
                                        cvData.layout?.leftBg ||
                                        "var(--container-color-alt)",
-                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
-                                    minHeight: "100%",
-                                    height: "100%",
-                                    alignSelf: "stretch",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    boxSizing: "border-box",
-                                    minWidth: 0,
-                                    maxWidth: "100%",
-                                    overflowWrap: "break-word",
-                                    wordBreak: "break-word",
+                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`,
                                     color: "var(--text-color)",
                                     ...getDynamicTextVariables(cvData.layout?.leftBg),
                                  }}>
@@ -259,20 +278,11 @@ function App() {
                                  column="right"
                                  className="resume__right"
                                  style={{
+                                    ...BASE_COLUMN_STYLE,
                                     background:
                                        cvData.layout?.rightBg ||
                                        "var(--container-color)",
-                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : "var(--page-padding, 24px)",
-                                    minHeight: "100%",
-                                    height: "100%",
-                                    alignSelf: "stretch",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    boxSizing: "border-box",
-                                    minWidth: 0,
-                                    maxWidth: "100%",
-                                    overflowWrap: "break-word",
-                                    wordBreak: "break-word",
+                                    padding: cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`,
                                     color: "var(--text-color)",
                                     ...getDynamicTextVariables(cvData.layout?.rightBg),
                                  }}>
@@ -350,22 +360,25 @@ function App() {
                            </DroppableColumn>
                         )}
                      </A4PageBox>
-                  ))}
+                  </React.Fragment>
+               ))}
                </div>
             </main>
-
-            {/* Drag Overlay for ghost preview */}
             <CVDragOverlay
                activeDragItem={activeDragItem}
                activeDragSection={activeDragSection}
             />
          </DndContext>
 
+         {/* Web Application Footer */}
+         <Footer />
+
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}
          <AppModals
             isAddSectionModalOpen={isAddSectionModalOpen}
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
+            addSectionTargetIndex={addSectionTargetIndex}
             activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />

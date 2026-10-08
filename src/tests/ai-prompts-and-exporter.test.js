@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import esPrompts from '../locales/es/prompts.json' with { type: 'json' };
 import enPrompts from '../locales/en/prompts.json' with { type: 'json' };
-import aiKnowledgePrompts from '../ai-knowledge/prompts.json' with { type: 'json' };
+import { ALL_PROMPTS as aiKnowledgePrompts } from '../ai-knowledge/index.js';
 import { 
   exportToAIMarkdown, 
   exportToAIJson, 
@@ -15,6 +15,7 @@ import {
   validateCVSnapshot 
 } from '../utils/versionValidator.js';
 import { importUniversalCV } from '../utils/universalJsonImporter.js';
+import { defaultSchema } from '../utils/schema.js';
 
 describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
 
@@ -23,14 +24,14 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
   // =========================================================================
   describe('Suite 1: Prompt Catalogs Schema Conformity & Bilingual Parity', () => {
 
-    it('T1.1: all three prompt catalog files contain exactly 13 prompts', () => {
+    it('T1.1: all three prompt catalog files contain exactly 10 production prompts', () => {
       expect(esPrompts).toBeInstanceOf(Array);
       expect(enPrompts).toBeInstanceOf(Array);
       expect(aiKnowledgePrompts).toBeInstanceOf(Array);
 
-      expect(esPrompts.length).toBe(13);
-      expect(enPrompts.length).toBe(13);
-      expect(aiKnowledgePrompts.length).toBe(13);
+      expect(esPrompts.length).toBe(10);
+      expect(enPrompts.length).toBe(10);
+      expect(aiKnowledgePrompts.length).toBe(10);
     });
 
     it('T1.2: exact 1:1 ID parity exists across ES, EN, and AI-Knowledge catalogs', () => {
@@ -42,17 +43,14 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(esIds).toEqual(aiIds);
 
       const expectedIds = [
-        'behavioral_leadership_prep',
         'bring_your_own_cv',
         'career_upskilling_roadmap',
         'cold_outreach_generator',
         'job_matcher',
-        'layout_advisor',
         'live_coding_coach',
         'recruiter_audit',
         'salary_negotiation_advisor',
         'star_enhancer',
-        'system_design_simulator',
         'technical_interview',
         'translate_english'
       ].sort();
@@ -60,11 +58,9 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(esIds).toEqual(expectedIds);
     });
 
-    it('T1.3: all 6 new specialized IT tech prompts are present with valid categories', () => {
+    it('T1.3: specialized IT tech prompts are present with valid categories', () => {
       const newTechPromptIds = [
-        'system_design_simulator',
         'live_coding_coach',
-        'behavioral_leadership_prep',
         'career_upskilling_roadmap',
         'cold_outreach_generator',
         'salary_negotiation_advisor'
@@ -76,7 +72,6 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
         'content_enhancement',
         'interview_prep',
         'localization',
-        'layout_advisor',
         'career_growth',
         'networking'
       ];
@@ -166,8 +161,6 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
         'job_matcher',
         'star_enhancer',
         'technical_interview',
-        'layout_advisor',
-        'system_design_simulator',
         'live_coding_coach'
       ];
 
@@ -789,4 +782,101 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(validated.sections.find(s => s.id === 'education').items[0].title).toBe('Associate Degree in Software Development');
     });
   });
+
+  // =========================================================================
+  // Suite 5: Decoupled Contact Section & ATS Single-Source Export
+  // =========================================================================
+  describe('Suite 5: Decoupled Contact Section & ATS Single-Source Export', () => {
+    it('T5.1: defaultSchema preserves candidate contacts in Markdown header and emits zero duplicate body contact sections', () => {
+      // 2-column mode (visual recruiter)
+      const md2Col = exportToAIMarkdown(defaultSchema);
+      expect(md2Col).toContain('tuemail@ejemplo.com');
+      expect(md2Col).toContain('+00 123 456 789');
+      expect(md2Col).toContain('linkedin.com/in/tu-perfil');
+      expect(md2Col).toContain('github.com/tu-usuario');
+      expect(md2Col).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+
+      // Verify frontmatter section lists do not include contact
+      expect(md2Col).not.toContain('- "contact"');
+      expect(md2Col).not.toContain("- 'contact'");
+
+      // 1-column ATS mode
+      const atsSchema = {
+        ...defaultSchema,
+        layout: {
+          ...defaultSchema.layout,
+          type: '1-column',
+          isAtsMode: true
+        }
+      };
+      const md1Col = exportToAIMarkdown(atsSchema);
+      expect(md1Col).toContain('tuemail@ejemplo.com');
+      expect(md1Col).toContain('+00 123 456 789');
+      expect(md1Col).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+      expect(md1Col).not.toContain('- "contact"');
+    });
+
+    it('T5.2: exportToAIXML resolves contacts into <candidate><contact> and omits contact section from <sections>', () => {
+      const xml = exportToAIXML(defaultSchema);
+      expect(xml).toContain('<candidate>');
+      expect(xml).toContain('<email>tuemail@ejemplo.com</email>');
+      expect(xml).toContain('<phone>+00 123 456 789</phone>');
+      expect(xml).toContain('<linkedin>linkedin.com/in/tu-perfil</linkedin>');
+      expect(xml).toContain('<github>github.com/tu-usuario</github>');
+      expect(xml).not.toContain('<section id="contact"');
+      expect(xml).not.toContain('type="contact"');
+    });
+
+    it('T5.3: exportToATSPlainText places candidate contacts in top header line and omits contact section from body', () => {
+      const plain = exportToATSPlainText(defaultSchema);
+      expect(plain).toContain('TU NOMBRE Y APELLIDO');
+      expect(plain).toContain('tuemail@ejemplo.com');
+      expect(plain).toContain('+00 123 456 789');
+      expect(plain).not.toMatch(/\nINFORMACIÓN DE CONTACTO\n/i);
+      expect(plain).not.toMatch(/\nCONTACTO\n-{3,}/i);
+    });
+
+    it('T5.4: composite profile_header with embedded contacts exports cleanly without duplicate body section', () => {
+      const compositeCv = {
+        layout: { type: '1-column', isAtsMode: true },
+        profile: { name: 'Ada Lovelace' },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            items: [{
+              name: 'Ada Lovelace',
+              subtitle: 'Computing Pioneer',
+              email: 'ada@analytical-engine.org',
+              phone: '+44 20 7946 0912',
+              linkedin: 'linkedin.com/in/adalovelace'
+            }]
+          },
+          {
+            id: 'experience',
+            type: 'list',
+            title: 'WORK EXPERIENCE',
+            items: [{
+              title: 'Mathematician & Collaborator',
+              subtitle: 'Babbage Analytical Engine',
+              date: '1843'
+            }]
+          }
+        ]
+      };
+
+      const md = exportToAIMarkdown(compositeCv);
+      expect(md).toContain('ada@analytical-engine.org');
+      expect(md).not.toMatch(/##\s+(?:Información de Contacto|INFORMACIÓN DE CONTACTO|Contacto|CONTACTO)/i);
+
+      const xml = exportToAIXML(compositeCv);
+      expect(xml).toContain('<email>ada@analytical-engine.org</email>');
+      expect(xml).not.toContain('id="contact"');
+
+      const plain = exportToATSPlainText(compositeCv);
+      expect(plain).toContain('ada@analytical-engine.org');
+      expect(plain).not.toMatch(/\n(?:INFORMACIÓN DE CONTACTO|CONTACTO)\n/i);
+    });
+  });
 });
+

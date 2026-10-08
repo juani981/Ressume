@@ -120,7 +120,7 @@ function resolveDOMCoordinates(areaCvNode, layout) {
   const itemGap = Number(layout.itemGap ?? 8);
   const fontScale = Number(layout.fontScale ?? 1.0);
   const titleScale = Number(layout.titleScale ?? 1.0);
-  const lineHeight = Number(layout.lineHeight ?? 1.45);
+  const lineHeight = Number(layout.lineHeight ?? 1.3);
   const leftColPercent = Number(layout.leftColumnWidth || 33.33);
 
   const containerWidth = 794;

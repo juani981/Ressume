@@ -50,6 +50,27 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                   'Diseño de APIs RESTful seguras con autenticación OAuth2 y JWT.',
                 ],
               },
+              {
+                id: 'exp4',
+                title: 'Junior Developer',
+                subtitle: 'Tech Agency | Solutions',
+                date: '2014 - 2016',
+                description: 'Desarrollo de portales web y servicios backend en Node.js y MySQL.',
+                bullets: [
+                  'Implementación de módulos frontend interactivos con JavaScript y CSS3 responsivo.',
+                  'Mantenimiento y soporte de bases de datos relacionales en entornos de prueba y producción.',
+                ],
+              },
+              {
+                id: 'exp5',
+                title: 'Software Intern',
+                subtitle: 'Startup Lab | R&D',
+                date: '2013 - 2014',
+                description: 'Colaboración en tareas de soporte y testing de aplicaciones.',
+                bullets: [
+                  'Automatización de pruebas unitarias y documentación de endpoints REST.',
+                ],
+              },
             ],
           };
         }
@@ -85,6 +106,9 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
               { id: 'sk3', title: 'Cloud & DevOps', description: 'AWS, Docker, Kubernetes, Terraform, CI/CD pipelines, Linux administration' },
               { id: 'sk4', title: 'Bases de Datos', description: 'PostgreSQL, MySQL, Redis, MongoDB, Elasticsearch, Modelado relacional' },
               { id: 'sk5', title: 'Metodologías', description: 'Scrum, Kanban, Agile, TDD, Code Review, Jira, Git' },
+              { id: 'sk6', title: 'Seguridad', description: 'OAuth2, JWT, OWASP Top 10, Cifrado, Pen-testing, Gestión de secretos' },
+              { id: 'sk7', title: 'Monitoreo', description: 'Prometheus, Grafana, Datadog, ELK Stack, Distributed Tracing' },
+              { id: 'sk8', title: 'Frontend Avanzado', description: 'Micro-frontends, Web Workers, Service Workers, WebAssembly, Canvas API' },
             ],
           };
         }
@@ -95,6 +119,9 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
               ...sec.items,
               { id: 'ed2', title: 'Especialización en Seguridad Informática', subtitle: 'Universidad Tecnológica Nacional', date: '2021 - 2022' },
               { id: 'ed3', title: 'Diplomatura en Cloud Architecture', subtitle: 'ITBA', date: '2020' },
+              { id: 'ed4', title: 'Licenciatura en Ciencias de la Computación', subtitle: 'UBA', date: '2015 - 2019' },
+              { id: 'ed5', title: 'Tecnicatura Superior en Programación', subtitle: 'UTN', date: '2013 - 2015' },
+              { id: 'ed6', title: 'Certificación Profesional AWS Solutions Architect', subtitle: 'Amazon Web Services', date: '2022' },
             ],
           };
         }
@@ -221,28 +248,28 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
             items: [
               {
                 id: 'exp1',
-                title: 'Senior Frontend Developer',
-                subtitle: 'Tech Company | Remote',
+                title: 'Senior Frontend Developer & Staff Architect',
+                subtitle: 'Tech Global Enterprise | Cloud Systems Remote',
                 date: '2022 - Present',
-                description: 'Liderazgo técnico del equipo frontend en el desarrollo de aplicaciones web complejas y escalables con arquitectura de microfrontends y altos estándares de calidad.',
+                description: 'Liderazgo técnico del equipo frontend en el desarrollo de plataformas web complejas y escalables con arquitectura de microfrontends, streaming SSR y altos estándares de rendimiento en entornos distribuidos de alta concurrencia con millones de visitas mensuales.',
                 bullets: [
-                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript con foco en arquitectura modular y escalable para aplicaciones de gran porte.',
-                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40% mediante carga diferida de módulos y code splitting exhaustivo.',
-                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura de código con Vitest y Testing Library en pipelines CI/CD.',
-                  'Colaboración estrecha con equipos de diseño de producto y backend en sprints ágiles para definición técnica de interfaces de usuario.',
+                  'Desarrollo de nuevas funcionalidades clave en la plataforma web utilizando React y TypeScript con foco en arquitectura modular y escalable para aplicaciones de gran porte internacional, asegurando modularidad desacoplada y contratos estrictos entre servicios.',
+                  'Optimización de rendimiento mejorando las métricas de Core Web Vitals en un 40% mediante carga diferida de módulos, code splitting exhaustivo, virtualización de listas extensas y técnicas avanzadas de tree-shaking.',
+                  'Implementación de pruebas unitarias y de integración alcanzando 90% de cobertura de código con Vitest y Testing Library en pipelines CI/CD automatizados, garantizando cero regresiones en producción.',
+                  'Colaboración estrecha con equipos de diseño de producto y backend en sprints ágiles para definición técnica de interfaces de usuario, sistemas de diseño atómico y estándares de accesibilidad universal WCAG 2.1 AA.',
                 ],
               },
               {
                 id: 'exp2',
-                title: 'Full Stack Developer',
-                subtitle: 'Digital Agency | Buenos Aires',
+                title: 'Full Stack Developer & Technical Lead',
+                subtitle: 'Digital Agency Solutions | Buenos Aires Platform',
                 date: '2020 - 2022',
-                description: 'Desarrollo integral de soluciones de software de comercio electrónico de alta concurrencia, garantizando alta disponibilidad y escalabilidad continua en infraestructura cloud.',
+                description: 'Desarrollo integral de soluciones de software de comercio electrónico de alta concurrencia, garantizando alta disponibilidad y escalabilidad continua en infraestructura cloud híbrida con transacciones en tiempo real.',
                 bullets: [
-                  'Diseño e implementación de APIs RESTful robustas y seguras utilizando Node.js, Express y bases de datos relacionales PostgreSQL con alta disponibilidad.',
-                  'Desarrollo de interfaces de usuario responsivas y completamente accesibles con React, TypeScript y Tailwind CSS para múltiples dispositivos.',
-                  'Mantenimiento y despliegue continuo con contenedores Docker en infraestructura en la nube AWS con monitoreo en tiempo real.',
-                  'Resolución de incidencias críticas en producción con tiempos de respuesta menores a 2 horas garantizando continuidad operativa.',
+                  'Diseño e implementación de APIs RESTful robustas y seguras utilizando Node.js, Express y bases de datos relacionales PostgreSQL con réplicas de lectura y particionado para soportar picos de tráfico masivo.',
+                  'Desarrollo de interfaces de usuario responsivas y completamente accesibles con React, TypeScript y Tailwind CSS para múltiples dispositivos, integrando pasarelas de pago internacionales.',
+                  'Mantenimiento y despliegue continuo con contenedores Docker en infraestructura en la nube AWS con orquestación Kubernetes, dashboards de métricas en Prometheus y alertas automatizadas.',
+                  'Resolución de incidencias críticas en producción con tiempos de respuesta menores a 2 horas garantizando continuidad operativa y acuerdos de nivel de servicio SLA del 99.9%.',
                 ],
               },
             ],
@@ -302,6 +329,17 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
                   'Participación activa en reuniones de planificación de requerimientos técnicos y retrospectivas ágiles.',
                 ],
               },
+              {
+                id: 'exp4',
+                title: 'Frontend Intern',
+                subtitle: 'Tech Hub | Rosario',
+                date: '2017 - 2018',
+                description: 'Asistencia en desarrollo frontend inicial.',
+                bullets: [
+                  'Maquetación de landing pages responsivas.',
+                  'Soporte a equipos de diseño y QA.',
+                ],
+              },
             ],
           };
         }
@@ -313,5 +351,41 @@ describe('Two-Column Independent Column Pagination & Full Background Extension',
     expect(pages.length).toBe(2);
     expect(pages[0].rightSections.some((s) => s.id === 'experience')).toBe(true);
     expect(pages[1].rightSections.length).toBeGreaterThan(0);
+  });
+
+  it('TC8: renders timeline connector line on Page 1 when a timeline section splits across pages between whole items', async () => {
+    const { SectionItemsRenderer } = await import('../components/CV/BaseSection.jsx');
+    const { getSectionDescriptor } = await import('../registry/sectionRegistry.js');
+    const descriptor = getSectionDescriptor('projects');
+
+    const item1 = {
+      id: 'proj1',
+      title: 'Orquestador Moodle',
+      subtitle: 'Python, Docker',
+      date: '2026 - Actualidad',
+      description: 'Wizard por terminal de Linux...',
+      bullets: ['Bullet 1', 'Bullet 2'],
+    };
+
+    // Render SectionItemsRenderer on Page 1 where item1 is the ONLY item on Page 1, but section continues on Page 2
+    const { container } = render(
+      <SectionItemsRenderer
+        items={[item1]}
+        sectionId="projects"
+        sectionType="projects"
+        descriptor={descriptor}
+        isPrint={true}
+        hasContinuation={true}
+      />
+    );
+
+    // Connector line MUST be rendered because the section continues on Page 2
+    const line = container.querySelector('.experience__line');
+    expect(line).not.toBeNull();
+
+    // The container block must have .has-next-item and data-has-next-item="true"
+    const block = container.querySelector('.cv-block');
+    expect(block.classList.contains('has-next-item')).toBe(true);
+    expect(block.getAttribute('data-has-next-item')).toBe('true');
   });
 });

@@ -554,9 +554,15 @@ const InlineEditEditor = ({
     <span
       onClick={handleStartEditing}
       onFocus={handleStartEditing}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleStartEditing();
+        }
+      }}
       tabIndex={0}
       role="button"
-      aria-label={finalPlaceholder}
+      aria-label={!hasValue ? finalPlaceholder : undefined}
       className={`inline-edit-display ${className}`}
       data-testid="inline-edit-display"
       data-is-empty={!hasValue ? "true" : undefined}

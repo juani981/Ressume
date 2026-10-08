@@ -18,7 +18,9 @@ export const VersionConfirmationDialogs = ({
   confirmDeleteVersion,
   onCancelDelete,
   onConfirmDelete,
+  theme = 'dark',
 }) => {
+  const isDark = theme === 'dark';
   return (
     <>
       {confirmBlankCV && (
@@ -51,7 +53,7 @@ export const VersionConfirmationDialogs = ({
           <div
             className="callout-content"
             style={{
-              color: '#334155',
+              color: isDark ? '#e2e8f0' : '#334155',
               fontSize: '0.85rem',
               lineHeight: 1.5,
             }}
@@ -65,10 +67,10 @@ export const VersionConfirmationDialogs = ({
               onClick={onCancelBlank}
               style={{
                 padding: '0.45rem 0.9rem',
-                border: '1px solid #cbd5e1',
+                border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
                 borderRadius: '6px',
-                background: '#ffffff',
-                color: '#475569',
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#475569',
                 fontWeight: 500,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
@@ -126,13 +128,13 @@ export const VersionConfirmationDialogs = ({
           <div
             className="callout-content"
             style={{
-              color: '#334155',
+              color: isDark ? '#e2e8f0' : '#334155',
               fontSize: '0.85rem',
               lineHeight: 1.5,
             }}
           >
             Cargar esta versión reemplazará el CV actual en el editor. ¿Deseas continuar?
-            <div style={{ marginTop: '0.4rem', fontWeight: 600, color: '#0f172a' }}>
+            <div style={{ marginTop: '0.4rem', fontWeight: 600, color: isDark ? '#f8fafc' : '#0f172a' }}>
               Versión seleccionada: {confirmLoadVersion.name}
             </div>
           </div>
@@ -143,10 +145,10 @@ export const VersionConfirmationDialogs = ({
               onClick={onCancelLoad}
               style={{
                 padding: '0.45rem 0.9rem',
-                border: '1px solid #cbd5e1',
+                border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
                 borderRadius: '6px',
-                background: '#ffffff',
-                color: '#475569',
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#475569',
                 fontWeight: 500,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
@@ -204,13 +206,13 @@ export const VersionConfirmationDialogs = ({
           <div
             className="callout-content"
             style={{
-              color: '#334155',
+              color: isDark ? '#e2e8f0' : '#334155',
               fontSize: '0.85rem',
               lineHeight: 1.5,
             }}
           >
             ¿Estás seguro de que deseas eliminar permanentemente esta versión?
-            <div style={{ marginTop: '0.4rem', fontWeight: 600, color: '#0f172a' }}>
+            <div style={{ marginTop: '0.4rem', fontWeight: 600, color: isDark ? '#f8fafc' : '#0f172a' }}>
               Versión: {confirmDeleteVersion.name}
             </div>
           </div>
@@ -221,10 +223,10 @@ export const VersionConfirmationDialogs = ({
               onClick={onCancelDelete}
               style={{
                 padding: '0.45rem 0.9rem',
-                border: '1px solid #cbd5e1',
+                border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
                 borderRadius: '6px',
-                background: '#ffffff',
-                color: '#475569',
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#475569',
                 fontWeight: 500,
                 fontSize: '0.82rem',
                 cursor: 'pointer',

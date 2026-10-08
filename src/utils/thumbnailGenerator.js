@@ -7,6 +7,8 @@
  * Zero external dependencies. DO NOT use html2canvas.
  */
 
+import { isAtsLayout } from './pageDistributor.js';
+
 /**
  * Escapes characters for strict XML/SVG compliance.
  *
@@ -32,7 +34,7 @@ function escapeXml(unsafe) {
 export async function generateThumbnail(cvData) {
   try {
     const layout = cvData?.layout || {};
-    const isAts = Boolean(layout.isAtsMode || layout.type === '1-column');
+    const isAts = isAtsLayout(layout);
     const leftBg = layout.leftBg || '#f4f5f7';
     const rightBg = layout.rightBg || '#ffffff';
 

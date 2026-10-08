@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
+  rectIntersection, 
   PointerSensor, 
   KeyboardSensor, 
   useSensor, 
@@ -34,7 +35,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={item.originalItemId || item.id} className="item-base-block">
             <h3 className="experience__title">
               <InlineEdit 
                 value={item.title || ''} 
@@ -70,7 +71,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {bullets.length > 0 && (
@@ -88,7 +89,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                       listStyle: 'none',
                       listStyleType: 'none',
                       marginBottom: 'var(--item-gap, 8px)',
-                      lineHeight: 'var(--line-height, 1.45)',
+                      lineHeight: 'var(--line-height, 1.3)',
                       fontSize: 'var(--list-font-size, var(--normal-font-size))',
                       color: 'inherit',
                       padding: 0
@@ -143,12 +144,27 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
     onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
+  const handleBulletDragOver = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = bulletItems.findIndex((b) => b.id === active.id);
+    const newIndex = bulletItems.findIndex((b) => b.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      const realOld = startOffset + oldIndex;
+      const realNew = startOffset + newIndex;
+      const newBullets = arrayMove(canonicalBullets, realOld, realNew);
+      onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
+    }
+  };
+
   const handleBulletDragEnd = (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = bulletItems.findIndex(b => b.id === active.id);
-    const newIndex = bulletItems.findIndex(b => b.id === over.id);
+    const oldIndex = bulletItems.findIndex((b) => b.id === active.id);
+    const newIndex = bulletItems.findIndex((b) => b.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
       const realOld = startOffset + oldIndex;
@@ -167,7 +183,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
 
       <div className="experience__data bd-grid" style={{ width: '100%' }}>
         {!item.isContinuationItem && (
-          <>
+          <div data-item-base-id={targetItemId || item.id} className="item-base-block">
             <h3 className="experience__title">
               <InlineEdit 
                 value={item.title || ''} 
@@ -204,7 +220,7 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
                 />
               </p>
             )}
-          </>
+          </div>
         )}
 
         {/* Draggable Bullets List with Add/Delete capabilities */}
@@ -212,7 +228,8 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           {bullets.length > 0 && (
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCorners}
+              collisionDetection={rectIntersection}
+              onDragOver={handleBulletDragOver}
               onDragEnd={handleBulletDragEnd}
             >
               <SortableContext

@@ -91,6 +91,12 @@
     box-shadow: none !important;
   }
 
+  .a4-page-wrapper {
+    display: contents !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .a4-page-box.bd-grid {
     display: grid !important;
     grid-template-rows: 1fr !important;
@@ -102,7 +108,7 @@
     height: 100% !important;
     min-height: 100% !important;
     align-self: stretch !important;
-    padding: var(--page-padding, 24px) !important;
+    padding: var(--page-padding, 12px) var(--page-padding, 12px) var(--page-padding-bottom, calc(var(--page-padding, 12px) / 2)) var(--page-padding, 12px) !important;
     box-sizing: border-box !important;
   }
 
@@ -114,15 +120,76 @@
   .a4-page-box .cv-section:first-child,
   .a4-page-box .cv-section:first-of-type,
   .a4-page-box .section:first-child,
-  .a4-page-box .section:first-of-type {
+  .a4-page-box .section:first-of-type,
+  .a4-page-box .editable-section-container:first-child,
+  .a4-page-box .editable-section-container:first-of-type,
+  .a4-page-box .resume__left > .cv-section:first-child,
+  .a4-page-box .resume__left > .cv-section:first-of-type,
+  .a4-page-box .resume__right > .cv-section:first-child,
+  .a4-page-box .resume__right > .cv-section:first-of-type,
+  .a4-page-box .resume__single-column > .cv-section:first-child,
+  .a4-page-box .resume__single-column > .cv-section:first-of-type,
+  .a4-page-box .cv-section:first-child > :first-child,
+  .a4-page-box .cv-section:first-of-type > :first-child,
+  .a4-page-box .cv-section:first-child .editable-item-container:first-child,
+  .a4-page-box .cv-section:first-of-type .editable-item-container:first-of-type,
+  .a4-page-box .cv-section:first-child .cv-block:first-child,
+  .a4-page-box .cv-section:first-of-type .cv-block:first-of-type,
+  .a4-page-box .editable-item-container:first-child,
+  .a4-page-box .editable-item-container:first-of-type,
+  .a4-page-box .cv-block:first-child,
+  .a4-page-box .cv-block:first-of-type,
+  .a4-page-box .bullet-item-row:first-child,
+  .a4-page-box .bullet-item-row:first-of-type,
+  .a4-page-box ul.experience__bullets li:first-child,
+  .a4-page-box ul.experience__bullets li:first-of-type,
+  .a4-page-box ul.simple-list-ul li:first-child,
+  .a4-page-box ul.simple-list-ul li:first-of-type,
+  .a4-page-box .simple-list-item:first-child,
+  .a4-page-box .simple-list-item:first-of-type,
+  .a4-page-box .skills__name:first-child,
+  .a4-page-box .skills__name:first-of-type,
+  .a4-page-box .languages__name:first-child,
+  .a4-page-box .languages__name:first-of-type {
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
 
-  .a4-page-box .cv-section:last-child,
-  .a4-page-box .cv-section:last-of-type,
-  .a4-page-box .section:last-child,
-  .a4-page-box .section:last-of-type {
+  /* Exclude partial/continuation items and sections from terminal margin removal */
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .editable-section-container:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .editable-section-container:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__left > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__left > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__right > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__right > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__single-column > .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .resume__single-column > .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) > :last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) > :last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) .editable-item-container:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) .editable-item-container:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation) .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .editable-item-container:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .editable-item-container:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .bullet-item-row:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .bullet-item-row:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.experience__bullets li:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.simple-list-ul li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box ul.simple-list-ul li:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .simple-list-item:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .simple-list-item:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .skills__name:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .skills__name:last-of-type:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .languages__name:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .a4-page-box .languages__name:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -155,7 +222,7 @@
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
-    padding: var(--page-padding, 24px) !important;
+    padding: var(--page-padding, 12px) var(--page-padding, 12px) var(--page-padding-bottom, calc(var(--page-padding, 12px) / 2)) var(--page-padding, 12px) !important;
     background: #ffffff !important;
     -webkit-box-decoration-break: clone !important;
     box-decoration-break: clone !important;
@@ -272,7 +339,7 @@
   .force-page-break-before {
     break-before: page !important;
     page-break-before: always !important;
-    padding-top: var(--page-padding, 24px) !important;
+    padding-top: var(--page-padding, 12px) !important;
     margin-top: 0 !important;
   }
 
@@ -286,7 +353,7 @@
   .resume__single-column [data-page-break-before="true"]:not(:first-child) {
     break-before: page !important;
     page-break-before: always !important;
-    padding-top: var(--page-padding, 24px) !important;
+    padding-top: var(--page-padding, 12px) !important;
     margin-top: 0 !important;
   }
 
@@ -333,10 +400,11 @@
   }
 
   /* 6. Supresión de márgenes terminales para evitar desbordes y hojas en blanco */
-  .cv-section:last-child,
-  .cv-section:last-of-type,
-  .cv-block:last-child,
-  .cv-block:last-of-type {
+  /* Exclude partial/continuation items and sections from terminal margin removal */
+  .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .cv-block:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .cv-block:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -373,15 +441,15 @@
 
   .resume--ats-mode .cv-section,
   .resume__single-column .cv-section {
-    margin-bottom: var(--section-gap, 5px) !important;
+    margin-bottom: var(--section-gap, 12px) !important;
   }
 
-  .resume--ats-mode .cv-section:last-child,
-  .resume--ats-mode .cv-section:last-of-type,
-  .resume__single-column .cv-section:last-child,
-  .resume__single-column .cv-section:last-of-type,
-  .resume--ats-mode section:last-of-type,
-  .resume__single-column section:last-of-type {
+  .resume--ats-mode .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .resume--ats-mode .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column .cv-section:last-child:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column .cv-section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume--ats-mode section:last-of-type:not(.section-has-continuation):not(.section-is-continuation),
+  .resume__single-column section:last-of-type:not(.section-has-continuation):not(.section-is-continuation) {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -586,10 +654,28 @@
   .bullet-item-row {
     margin-top: 0 !important;
     margin-bottom: var(--item-gap, 8px) !important;
-    line-height: var(--line-height, 1.45) !important;
+    line-height: var(--line-height, 1.3) !important;
     font-size: var(--list-font-size, var(--normal-font-size)) !important;
     color: inherit !important;
     text-align: left !important;
+  }
+
+  ul.experience__bullets li:first-child,
+  .experience__bullets li:first-child,
+  ul.simple-list-ul li:first-child,
+  .bullet-item-row:first-child,
+  .bullet-item-row:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  ul.experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .experience__bullets li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  ul.simple-list-ul li:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .bullet-item-row:last-child:not(.item-is-partial):not(.item-is-continuation),
+  .bullet-item-row:last-of-type:not(.item-is-partial):not(.item-is-continuation) {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   ul.experience__bullets li p,
