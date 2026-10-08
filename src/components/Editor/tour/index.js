@@ -5,7 +5,14 @@ import {
   SIDEBAR_TRANSITION_STEP,
 } from './mainTourSteps';
 import { SIDEBAR_STEPS } from './sidebarTourSteps';
-import { AI_MODAL_STEPS } from './aiModalTourSteps';
+import {
+  AI_MODAL_STEPS,
+  AI_MODAL_STEPS_SIMPLE,
+  AI_MODAL_STEPS_TRANSLATION,
+  AI_MODAL_STEPS_BYO_CV,
+  getAIModalTourSteps,
+  isAIModalSteps,
+} from './aiModalTourSteps';
 import { ADD_SECTION_MODAL_STEPS } from './addSectionModalTourSteps';
 import { openSidebarProgrammatically, createTourStep } from './tourUtils';
 
@@ -25,6 +32,11 @@ export {
   SIDEBAR_TRANSITION_STEP,
   SIDEBAR_STEPS,
   AI_MODAL_STEPS,
+  AI_MODAL_STEPS_SIMPLE,
+  AI_MODAL_STEPS_TRANSLATION,
+  AI_MODAL_STEPS_BYO_CV,
+  getAIModalTourSteps,
+  isAIModalSteps,
   ADD_SECTION_MODAL_STEPS,
   openSidebarProgrammatically,
   createTourStep,

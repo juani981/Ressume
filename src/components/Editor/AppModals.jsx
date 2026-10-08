@@ -16,6 +16,11 @@ import {
   SIDEBAR_STEPS,
   ADD_SECTION_MODAL_STEPS,
   AI_MODAL_STEPS,
+  AI_MODAL_STEPS_SIMPLE,
+  AI_MODAL_STEPS_TRANSLATION,
+  AI_MODAL_STEPS_BYO_CV,
+  getAIModalTourSteps,
+  isAIModalSteps,
   openSidebarProgrammatically,
 } from './tour';
 
@@ -31,6 +36,7 @@ export function AppModals({
   const { isDark } = useModalTheme();
   const [runTour, setRunTour] = useState(false);
   const [currentSteps, setCurrentSteps] = useState(COMPLETE_ONBOARDING_STEPS);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   // Manage body class for tour active state
@@ -60,6 +66,7 @@ export function AppModals({
     try {
       const hasSeenTour = localStorage.getItem('skip_onboarding_tour');
       if (!hasSeenTour) {
+        setTourStepIndex(0);
         setRunTour(true);
       }
     } catch (_) {}
@@ -86,6 +93,7 @@ export function AppModals({
         if (!hasSkipped && !hasSeenSidebar && !runTour) {
           setTimeout(() => {
             setCurrentSteps(SIDEBAR_STEPS);
+            setTourStepIndex(0);
             setRunTour(true);
           }, 350);
         }
@@ -134,6 +142,7 @@ export function AppModals({
     if (!hasSkipped && !hasSeenAddSectionTour && !runTour) {
       const timer = setTimeout(() => {
         setCurrentSteps(ADD_SECTION_MODAL_STEPS);
+        setTourStepIndex(0);
         setRunTour(true);
       }, 250);
       return () => clearTimeout(timer);
@@ -159,16 +168,20 @@ export function AppModals({
         const hasSeenAITour = localStorage.getItem('seen_ai_modal_tour') === 'true';
 
         if (!hasSkipped && !hasSeenAITour) {
+          const promptId = aiModal.getAttribute('data-prompt-id') || 'recruiter_audit';
+          const tourSteps = getAIModalTourSteps(promptId);
           if (aiModalTimer) clearTimeout(aiModalTimer);
           aiModalTimer = setTimeout(() => {
-            setCurrentSteps(AI_MODAL_STEPS);
+            setCurrentSteps(tourSteps);
+            setTourStepIndex(0);
             setRunTour(true);
           }, 350);
         }
       } else {
         // If AI modal closed while running its tour, stop tour
-        if (currentSteps === AI_MODAL_STEPS && runTour) {
+        if (isAIModalSteps(currentSteps) && runTour) {
           setRunTour(false);
+          setTourStepIndex(0);
         }
       }
     };
@@ -182,13 +195,76 @@ export function AppModals({
     };
   }, [runTour, currentSteps]);
 
+  // Handle dynamic events within AIExportModal (prompt selection change, action clicks)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePromptChanged = (e) => {
+      const promptId = e.detail?.promptId;
+      if (!promptId) return;
+
+      const aiModal = document.querySelector('.ai-modal-dialog');
+      if (aiModal && isAIModalSteps(currentSteps) && runTour) {
+        const newSteps = getAIModalTourSteps(promptId);
+        setCurrentSteps(newSteps);
+        setTourStepIndex(0);
+      }
+    };
+
+    const handleTourAction = (e) => {
+      const { action } = e.detail || {};
+      if (!runTour || !isAIModalSteps(currentSteps)) return;
+
+      if (action === 'copy_clicked') {
+        // Step index 2 focuses on external AI providers container
+        setTourStepIndex(2);
+      } else if (action === 'provider_clicked') {
+        const isBidirectional =
+          currentSteps === AI_MODAL_STEPS_TRANSLATION ||
+          currentSteps === AI_MODAL_STEPS_BYO_CV;
+
+        if (isBidirectional) {
+          // Focus the paste response button (Step index 3)
+          setTourStepIndex(3);
+        } else {
+          // Complete simple prompt tour immediately
+          setRunTour(false);
+          setTourStepIndex(0);
+          try {
+            localStorage.setItem('seen_ai_modal_tour', 'true');
+          } catch (_) {}
+        }
+      } else if (action === 'paste_clicked') {
+        // Output response received or pasted -> terminate tour completely
+        setRunTour(false);
+        setTourStepIndex(0);
+        try {
+          localStorage.setItem('seen_ai_modal_tour', 'true');
+        } catch (_) {}
+      }
+    };
+
+    window.addEventListener('ai-modal-prompt-changed', handlePromptChanged);
+    window.addEventListener('ai-modal-tour-action', handleTourAction);
+
+    return () => {
+      window.removeEventListener('ai-modal-prompt-changed', handlePromptChanged);
+      window.removeEventListener('ai-modal-tour-action', handleTourAction);
+    };
+  }, [runTour, currentSteps]);
+
   // Listen for manual tour launch events (e.g. from help buttons, sidebar or devtools)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleStartTourEvent = (e) => {
       const tourType = e.detail?.tour || 'main';
+      const promptId =
+        e.detail?.promptId ||
+        document.querySelector('.ai-modal-dialog')?.getAttribute('data-prompt-id') ||
+        'recruiter_audit';
+
       if (tourType === 'ai_modal') {
-        setCurrentSteps(AI_MODAL_STEPS);
+        setCurrentSteps(getAIModalTourSteps(promptId));
       } else if (tourType === 'sidebar') {
         openSidebarProgrammatically();
         setCurrentSteps(SIDEBAR_STEPS);
@@ -197,6 +273,7 @@ export function AppModals({
       } else {
         setCurrentSteps(COMPLETE_ONBOARDING_STEPS);
       }
+      setTourStepIndex(0);
       setRunTour(true);
     };
     window.addEventListener('start-cv-tour', handleStartTourEvent);
@@ -204,7 +281,7 @@ export function AppModals({
   }, []);
 
   const handleJoyrideCallback = (data) => {
-    const { status, type, step } = data || {};
+    const { status, type, step, action, index } = data || {};
 
     // Programmatically open sidebar whenever reaching or previewing sidebar steps
     if (type === 'step:before' || type === 'step:after') {
@@ -224,6 +301,14 @@ export function AppModals({
       }
     }
 
+    if (type === 'step:after') {
+      if (action === 'next') {
+        setTourStepIndex(index + 1);
+      } else if (action === 'prev') {
+        setTourStepIndex(index - 1);
+      }
+    }
+
     if (
       status === 'finished' ||
       status === 'skipped' ||
@@ -237,7 +322,7 @@ export function AppModals({
       }
 
       try {
-        if (currentSteps === AI_MODAL_STEPS) {
+        if (isAIModalSteps(currentSteps)) {
           localStorage.setItem('seen_ai_modal_tour', 'true');
         } else if (currentSteps === SIDEBAR_STEPS) {
           localStorage.setItem('seen_sidebar_tour', 'true');
@@ -250,11 +335,14 @@ export function AppModals({
       } catch (_) {}
 
       setRunTour(false);
+      setTourStepIndex(0);
     }
   };
 
   const getTourKey = () => {
-    if (currentSteps === AI_MODAL_STEPS) return 'ai-modal-tour';
+    if (currentSteps === AI_MODAL_STEPS_TRANSLATION) return 'ai-modal-tour-translation';
+    if (currentSteps === AI_MODAL_STEPS_BYO_CV) return 'ai-modal-tour-byo-cv';
+    if (isAIModalSteps(currentSteps)) return 'ai-modal-tour-simple';
     if (currentSteps === SIDEBAR_STEPS) return 'sidebar-tour';
     if (currentSteps === ADD_SECTION_MODAL_STEPS) return 'add-section-tour';
     return 'complete-onboarding-tour';
@@ -265,6 +353,7 @@ export function AppModals({
       <Joyride
         key={getTourKey()}
         run={runTour}
+        stepIndex={tourStepIndex}
         steps={currentSteps}
         continuous={true}
         disableOverlayClose={false}

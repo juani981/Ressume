@@ -180,6 +180,11 @@ const AIExportModal = ({
     setIsWaitingForAI(false);
     setIsPromptExpanded(false);
     setCopiedProvider(null);
+    if (isOpen && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ai-modal-prompt-changed', {
+        detail: { promptId: selectedPromptId }
+      }));
+    }
   }, [selectedPromptId, isOpen]);
 
   const localizedPrompts = useMemo(() => {
@@ -440,6 +445,11 @@ const AIExportModal = ({
       if (isResponseImportablePrompt) {
         setIsWaitingForAI(true);
       }
+      if (!targetProviderName && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'copy_clicked', promptId: selectedPromptId }
+        }));
+      }
     } catch (err) {
       console.error('Failed to copy', err);
     }
@@ -447,6 +457,11 @@ const AIExportModal = ({
 
   const handleCopyAndOpenProvider = async (url, providerName) => {
     await handleCopy(providerName);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+        detail: { action: 'provider_clicked', providerName, promptId: selectedPromptId }
+      }));
+    }
     try {
       if (typeof window !== 'undefined' && window.open) {
         window.open(url, '_blank', 'noopener,noreferrer');
@@ -471,6 +486,11 @@ const AIExportModal = ({
             showToast('Se pegó información del portapapeles y se validó automáticamente.', 'success', 3500);
           }
         }
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'paste_clicked', promptId: selectedPromptId }
+        }));
       }
     } catch (err) {
       console.warn('Clipboard read failed:', err);
@@ -511,6 +531,7 @@ const AIExportModal = ({
         aria-modal="true"
         aria-labelledby="ai-modal-title"
         data-theme={modalTheme}
+        data-prompt-id={selectedPromptId}
         className="ai-modal-dialog"
         style={{
         background: isDark ? '#0f172a' : '#ffffff',
@@ -831,7 +852,7 @@ const AIExportModal = ({
                       )}
                     </button>
 
-                    {/* <button
+                    <button
                       type="button"
                       onClick={handleDownload}
                       data-testid="ai-download-btn"
@@ -853,7 +874,7 @@ const AIExportModal = ({
                     >
                       <Download size={15} />
                       <span>Descargar .md</span>
-                    </button> */}
+                    </button>
                   </div>
                 </div>
 
@@ -862,13 +883,16 @@ const AIExportModal = ({
                 </p>
 
                 {/* Fila de Lanzadores a IA Externa (Links a IA externas) */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
-                  marginTop: '0.15rem'
-                }}>
+                <div 
+                  data-testid="ai-providers-container"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                    marginTop: '0.15rem'
+                  }}
+                >
                   <span style={{ fontSize: '0.82rem', fontWeight: 600, color: isDark ? '#cbd5e1' : 'var(--text-color, #444)' }}>
                     Copiar prompt y abrir en:
                   </span>
@@ -876,6 +900,7 @@ const AIExportModal = ({
                     <button
                       key={provider.id}
                       type="button"
+                      data-testid={`ai-provider-btn-${provider.id}`}
                       onClick={() => handleCopyAndOpenProvider(provider.url, provider.name)}
                       style={{
                         display: 'inline-flex',
@@ -1079,13 +1104,16 @@ const AIExportModal = ({
 
               {/* Multi-provider Launcher Row when NOT waiting */}
               {!isWaitingForAI && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
-                  marginTop: '0.15rem'
-                }}>
+                <div 
+                  data-testid="ai-providers-container"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                    marginTop: '0.15rem'
+                  }}
+                >
                   <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-color, #444)' }}>
                     Copiar prompt y abrir en:
                   </span>
@@ -1093,6 +1121,7 @@ const AIExportModal = ({
                     <button
                       key={provider.id}
                       type="button"
+                      data-testid={`ai-provider-btn-${provider.id}`}
                       onClick={() => handleCopyAndOpenProvider(provider.url, provider.name)}
                       style={{
                         display: 'inline-flex',
@@ -1347,6 +1376,7 @@ const AIExportModal = ({
                   <button
                     type="button"
                     onClick={handlePasteFromClipboard}
+                    data-testid="ai-paste-response-btn"
                     style={{
                       background: 'none',
                       border: '1px solid rgba(16, 185, 129, 0.4)',
@@ -1396,6 +1426,13 @@ const AIExportModal = ({
                 data-testid="ai-response-input"
                 rows={isWaitingForAI ? 10 : 4}
                 value={externalLLMResponse}
+                onPaste={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
+                      detail: { action: 'paste_clicked', promptId: selectedPromptId }
+                    }));
+                  }
+                }}
                 onChange={(e) => {
                   setExternalLLMResponse(e.target.value);
                   if (applyStatus) setApplyStatus(null);

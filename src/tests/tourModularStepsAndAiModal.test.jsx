@@ -1,5 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, act } from '@testing-library/react';
 import {
   COMPLETE_ONBOARDING_STEPS,
   MAIN_SCREEN_STEPS,
@@ -8,10 +9,37 @@ import {
   SIDEBAR_TRANSITION_STEP,
   SIDEBAR_STEPS,
   AI_MODAL_STEPS,
+  AI_MODAL_STEPS_SIMPLE,
+  AI_MODAL_STEPS_TRANSLATION,
+  AI_MODAL_STEPS_BYO_CV,
+  getAIModalTourSteps,
+  isAIModalSteps,
   ADD_SECTION_MODAL_STEPS,
   openSidebarProgrammatically,
   createTourStep,
 } from '../components/Editor/tour';
+import { AppModals } from '../components/Editor/AppModals';
+import { TourProvider } from '../context/TourContext';
+import { CVProvider } from '../context/CVContext';
+
+vi.mock('react-joyride', () => {
+  return {
+    Joyride: (props) => (
+      <div
+        data-testid="joyride-mock"
+        data-run={String(props.run)}
+        data-step-index={props.stepIndex}
+      />
+    ),
+    default: (props) => (
+      <div
+        data-testid="joyride-mock"
+        data-run={String(props.run)}
+        data-step-index={props.stepIndex}
+      />
+    ),
+  };
+});
 
 describe('Modular Tour Architecture & Step Sequences', () => {
   it('exports all modular step definitions correctly', () => {
@@ -19,6 +47,9 @@ describe('Modular Tour Architecture & Step Sequences', () => {
     expect(Array.isArray(CANVAS_STEPS)).toBe(true);
     expect(Array.isArray(SIDEBAR_STEPS)).toBe(true);
     expect(Array.isArray(AI_MODAL_STEPS)).toBe(true);
+    expect(Array.isArray(AI_MODAL_STEPS_SIMPLE)).toBe(true);
+    expect(Array.isArray(AI_MODAL_STEPS_TRANSLATION)).toBe(true);
+    expect(Array.isArray(AI_MODAL_STEPS_BYO_CV)).toBe(true);
     expect(Array.isArray(ADD_SECTION_MODAL_STEPS)).toBe(true);
     expect(Array.isArray(COMPLETE_ONBOARDING_STEPS)).toBe(true);
   });
@@ -80,15 +111,43 @@ describe('Modular Tour Architecture & Step Sequences', () => {
     expect(targets).toContain('[data-testid="btn-pin-action-menu"]');
   });
 
-  it('AI_MODAL_STEPS guides step-by-step through AIExportModal features', () => {
-    expect(AI_MODAL_STEPS.length).toBeGreaterThanOrEqual(5);
+  it('AI_MODAL_STEPS_SIMPLE has 3 steps: privacy callout -> copy btn -> external providers', () => {
+    expect(AI_MODAL_STEPS_SIMPLE.length).toBe(3);
+    const targets = AI_MODAL_STEPS_SIMPLE.map((s) => s.target);
+    expect(targets[0]).toBe('[data-testid="ai-privacy-disclaimer-callout"]');
+    expect(targets[1]).toBe('[data-testid="ai-copy-btn"]');
+    expect(targets[2]).toBe('[data-testid="ai-providers-container"]');
+  });
 
-    const targets = AI_MODAL_STEPS.map((s) => s.target);
-    expect(targets).toContain('[data-testid="ai-privacy-disclaimer-callout"]');
-    expect(targets).toContain('[data-testid="ai-prompt-select"]');
-    expect(targets).toContain('[data-testid="ai-copy-btn"]');
-    expect(targets).toContain('[data-testid="ai-toggle-prompt-btn"]');
-    expect(targets).toContain('.ai-modal-dialog');
+  it('AI_MODAL_STEPS_TRANSLATION has 4 steps ending with paste response button', () => {
+    expect(AI_MODAL_STEPS_TRANSLATION.length).toBe(4);
+    const targets = AI_MODAL_STEPS_TRANSLATION.map((s) => s.target);
+    expect(targets[0]).toBe('[data-testid="ai-privacy-disclaimer-callout"]');
+    expect(targets[1]).toBe('[data-testid="ai-copy-btn"]');
+    expect(targets[2]).toBe('[data-testid="ai-providers-container"]');
+    expect(targets[3]).toBe('[data-testid="ai-paste-response-btn"]');
+  });
+
+  it('AI_MODAL_STEPS_BYO_CV has 4 steps ending with paste response button', () => {
+    expect(AI_MODAL_STEPS_BYO_CV.length).toBe(4);
+    const targets = AI_MODAL_STEPS_BYO_CV.map((s) => s.target);
+    expect(targets[0]).toBe('[data-testid="ai-privacy-disclaimer-callout"]');
+    expect(targets[1]).toBe('[data-testid="ai-copy-btn"]');
+    expect(targets[2]).toBe('[data-testid="ai-providers-container"]');
+    expect(targets[3]).toBe('[data-testid="ai-paste-response-btn"]');
+  });
+
+  it('getAIModalTourSteps and isAIModalSteps resolve and identify steps accurately', () => {
+    expect(getAIModalTourSteps('recruiter_audit')).toBe(AI_MODAL_STEPS_SIMPLE);
+    expect(getAIModalTourSteps('interview_prep')).toBe(AI_MODAL_STEPS_SIMPLE);
+    expect(getAIModalTourSteps('translate_english')).toBe(AI_MODAL_STEPS_TRANSLATION);
+    expect(getAIModalTourSteps('bring_your_own_cv')).toBe(AI_MODAL_STEPS_BYO_CV);
+
+    expect(isAIModalSteps(AI_MODAL_STEPS_SIMPLE)).toBe(true);
+    expect(isAIModalSteps(AI_MODAL_STEPS_TRANSLATION)).toBe(true);
+    expect(isAIModalSteps(AI_MODAL_STEPS_BYO_CV)).toBe(true);
+    expect(isAIModalSteps(AI_MODAL_STEPS)).toBe(true);
+    expect(isAIModalSteps(SIDEBAR_STEPS)).toBe(false);
   });
 
   it('createTourStep helper generates clean, standardized step objects', () => {
@@ -171,5 +230,126 @@ describe('openSidebarProgrammatically Utility', () => {
 
     expect(resizeSpy).toHaveBeenCalledTimes(1);
     window.removeEventListener('resize', resizeSpy);
+  });
+});
+
+describe('AppModals Interactive AI Tour Event Handling', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.body.innerHTML = '';
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    document.body.innerHTML = '';
+  });
+
+  it('launches translation tour and responds to copy, provider, and paste actions', () => {
+    const callout = document.createElement('div');
+    callout.setAttribute('data-testid', 'ai-privacy-disclaimer-callout');
+    const copyBtn = document.createElement('button');
+    copyBtn.setAttribute('data-testid', 'ai-copy-btn');
+    const providers = document.createElement('div');
+    providers.setAttribute('data-testid', 'ai-providers-container');
+    const pasteBtn = document.createElement('button');
+    pasteBtn.setAttribute('data-testid', 'ai-paste-response-btn');
+
+    document.body.appendChild(callout);
+    document.body.appendChild(copyBtn);
+    document.body.appendChild(providers);
+    document.body.appendChild(pasteBtn);
+
+    render(
+      <CVProvider>
+        <TourProvider>
+          <AppModals />
+        </TourProvider>
+      </CVProvider>
+    );
+
+    // Launch translation tour manually
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('start-cv-tour', {
+          detail: { tour: 'ai_modal', promptId: 'translate_english' },
+        })
+      );
+    });
+
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+
+    // User clicks copy prompt -> should advance to provider container
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'copy_clicked' },
+        })
+      );
+    });
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+
+    // User clicks external provider launcher -> should advance to paste button
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'provider_clicked' },
+        })
+      );
+    });
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+
+    // User clicks paste response button -> should terminate tour completely
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'paste_clicked' },
+        })
+      );
+    });
+    expect(document.body.classList.contains('has-running-tour')).toBe(false);
+    expect(localStorage.getItem('seen_ai_modal_tour')).toBe('true');
+  });
+
+  it('completes simple prompt tour immediately upon clicking an AI provider', () => {
+    const callout = document.createElement('div');
+    callout.setAttribute('data-testid', 'ai-privacy-disclaimer-callout');
+    const copyBtn = document.createElement('button');
+    copyBtn.setAttribute('data-testid', 'ai-copy-btn');
+    const providers = document.createElement('div');
+    providers.setAttribute('data-testid', 'ai-providers-container');
+
+    document.body.appendChild(callout);
+    document.body.appendChild(copyBtn);
+    document.body.appendChild(providers);
+
+    render(
+      <CVProvider>
+        <TourProvider>
+          <AppModals />
+        </TourProvider>
+      </CVProvider>
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('start-cv-tour', {
+          detail: { tour: 'ai_modal', promptId: 'recruiter_audit' },
+        })
+      );
+    });
+
+    expect(document.body.classList.contains('has-running-tour')).toBe(true);
+
+    // In simple prompt, clicking an external AI provider terminates the tutorial
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('ai-modal-tour-action', {
+          detail: { action: 'provider_clicked' },
+        })
+      );
+    });
+
+    expect(document.body.classList.contains('has-running-tour')).toBe(false);
+    expect(localStorage.getItem('seen_ai_modal_tour')).toBe('true');
   });
 });
