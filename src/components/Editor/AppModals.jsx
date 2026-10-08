@@ -10,7 +10,14 @@ import ModalErrorBoundary from '../common/ModalErrorBoundary';
 import { useTourManager, TOUR_IDS } from '../../context/TourContext';
 import { useModalTheme } from '../../hooks/useModalTheme';
 
-import { MAIN_SCREEN_STEPS, SIDEBAR_STEPS, ADD_SECTION_MODAL_STEPS } from './tour/tourSteps';
+import {
+  COMPLETE_ONBOARDING_STEPS,
+  MAIN_SCREEN_STEPS,
+  SIDEBAR_STEPS,
+  ADD_SECTION_MODAL_STEPS,
+  AI_MODAL_STEPS,
+  openSidebarProgrammatically,
+} from './tour';
 
 export function AppModals({
   isAddSectionModalOpen,
@@ -23,7 +30,7 @@ export function AppModals({
   const { activeTour } = useTourManager();
   const { isDark } = useModalTheme();
   const [runTour, setRunTour] = useState(false);
-  const [currentSteps, setCurrentSteps] = useState(MAIN_SCREEN_STEPS);
+  const [currentSteps, setCurrentSteps] = useState(COMPLETE_ONBOARDING_STEPS);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   // Manage body class for tour active state
@@ -58,7 +65,7 @@ export function AppModals({
     } catch (_) {}
   }, []);
 
-  // Progressive discovery: Trigger Sidebar tour only after the user opens/expands the sidebar
+  // Progressive discovery: Trigger Sidebar tour if the user opens/expands the sidebar independently
   useEffect(() => {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
     if (
@@ -133,17 +140,62 @@ export function AppModals({
     }
   }, [isAddSectionModalOpen, runTour]);
 
-  // Listen for manual tour launch events (e.g. from help button or sidebar)
+  // Dedicated Joyride tour when AI Advice & Prompts Modal (AIExportModal) opens
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+    if (
+      typeof process !== 'undefined' &&
+      (process.env?.NODE_ENV === 'test' || process.env?.VITEST)
+    ) {
+      return;
+    }
+
+    let aiModalTimer = null;
+
+    const checkAIModalMounted = () => {
+      const aiModal = document.querySelector('.ai-modal-dialog');
+      if (aiModal) {
+        const hasSkipped = localStorage.getItem('skip_onboarding_tour') === 'true';
+        const hasSeenAITour = localStorage.getItem('seen_ai_modal_tour') === 'true';
+
+        if (!hasSkipped && !hasSeenAITour) {
+          if (aiModalTimer) clearTimeout(aiModalTimer);
+          aiModalTimer = setTimeout(() => {
+            setCurrentSteps(AI_MODAL_STEPS);
+            setRunTour(true);
+          }, 350);
+        }
+      } else {
+        // If AI modal closed while running its tour, stop tour
+        if (currentSteps === AI_MODAL_STEPS && runTour) {
+          setRunTour(false);
+        }
+      }
+    };
+
+    const modalObserver = new MutationObserver(checkAIModalMounted);
+    modalObserver.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      modalObserver.disconnect();
+      if (aiModalTimer) clearTimeout(aiModalTimer);
+    };
+  }, [runTour, currentSteps]);
+
+  // Listen for manual tour launch events (e.g. from help buttons, sidebar or devtools)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleStartTourEvent = (e) => {
       const tourType = e.detail?.tour || 'main';
-      if (tourType === 'sidebar') {
+      if (tourType === 'ai_modal') {
+        setCurrentSteps(AI_MODAL_STEPS);
+      } else if (tourType === 'sidebar') {
+        openSidebarProgrammatically();
         setCurrentSteps(SIDEBAR_STEPS);
       } else if (tourType === 'add_section') {
         setCurrentSteps(ADD_SECTION_MODAL_STEPS);
       } else {
-        setCurrentSteps(MAIN_SCREEN_STEPS);
+        setCurrentSteps(COMPLETE_ONBOARDING_STEPS);
       }
       setRunTour(true);
     };
@@ -152,7 +204,26 @@ export function AppModals({
   }, []);
 
   const handleJoyrideCallback = (data) => {
-    const { status, type } = data || {};
+    const { status, type, step } = data || {};
+
+    // Programmatically open sidebar whenever reaching or previewing sidebar steps
+    if (type === 'step:before' || type === 'step:after') {
+      const targetSelector = typeof step?.target === 'string' ? step.target : '';
+      const isSidebarTarget =
+        targetSelector.includes('action-menu') ||
+        targetSelector.includes('versiones-item') ||
+        targetSelector.includes('design-item') ||
+        targetSelector.includes('ia-prompts-item') ||
+        targetSelector.includes('translation-action-item') ||
+        targetSelector.includes('byo-cv-action-item') ||
+        targetSelector.includes('btn-action-native-print') ||
+        targetSelector.includes('btn-pin-action-menu');
+
+      if (isSidebarTarget) {
+        openSidebarProgrammatically();
+      }
+    }
+
     if (
       status === 'finished' ||
       status === 'skipped' ||
@@ -166,12 +237,15 @@ export function AppModals({
       }
 
       try {
-        if (currentSteps === SIDEBAR_STEPS) {
+        if (currentSteps === AI_MODAL_STEPS) {
+          localStorage.setItem('seen_ai_modal_tour', 'true');
+        } else if (currentSteps === SIDEBAR_STEPS) {
           localStorage.setItem('seen_sidebar_tour', 'true');
         } else if (currentSteps === ADD_SECTION_MODAL_STEPS) {
           localStorage.setItem('seen_add_section_tour', 'true');
-        } else if (currentSteps === MAIN_SCREEN_STEPS) {
+        } else {
           localStorage.setItem('seen_main_tour', 'true');
+          localStorage.setItem('seen_sidebar_tour', 'true');
         }
       } catch (_) {}
 
@@ -179,16 +253,17 @@ export function AppModals({
     }
   };
 
+  const getTourKey = () => {
+    if (currentSteps === AI_MODAL_STEPS) return 'ai-modal-tour';
+    if (currentSteps === SIDEBAR_STEPS) return 'sidebar-tour';
+    if (currentSteps === ADD_SECTION_MODAL_STEPS) return 'add-section-tour';
+    return 'complete-onboarding-tour';
+  };
+
   return (
     <>
       <Joyride
-        key={
-          currentSteps === SIDEBAR_STEPS
-            ? 'sidebar-tour'
-            : currentSteps === ADD_SECTION_MODAL_STEPS
-            ? 'add-section-tour'
-            : 'main-tour'
-        }
+        key={getTourKey()}
         run={runTour}
         steps={currentSteps}
         continuous={true}
