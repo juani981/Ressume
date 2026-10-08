@@ -25,6 +25,8 @@ export function createTourStep({
     target,
     placement,
     disableBeacon,
+    disableOverlayClose: true,
+    overlayClickAction: false,
     content: React.createElement(
       'div',
       { style: { textAlign: 'left' } },
@@ -91,4 +93,34 @@ export function openSidebarProgrammatically() {
       window.dispatchEvent(new Event('resize'));
     }
   }, 320);
+}
+
+/**
+ * Safely unpins and collapses the ActionMenu navbar sidebar programmatically.
+ * Ensures the sidebar does not remain pinned by default when onboarding or tours end.
+ */
+export function closeSidebarProgrammatically() {
+  if (typeof document === 'undefined') return;
+
+  try {
+    localStorage.setItem('action_menu_pinned', 'false');
+  } catch {}
+
+  const collapseBtn =
+    document.querySelector('[data-testid="btn-collapse-action-menu"]') ||
+    document.querySelector('.action-menu-collapse-btn');
+
+  if (collapseBtn && typeof collapseBtn.click === 'function') {
+    collapseBtn.click();
+  } else {
+    const pinBtn = document.querySelector('[data-testid="btn-pin-action-menu"]');
+    if (pinBtn && pinBtn.classList.contains('is-pinned') && typeof pinBtn.click === 'function') {
+      pinBtn.click();
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('unpin-action-menu'));
+    window.dispatchEvent(new Event('resize'));
+  }
 }

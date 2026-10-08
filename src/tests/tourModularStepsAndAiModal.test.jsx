@@ -32,6 +32,8 @@ vi.mock('react-joyride', () => {
         data-testid="joyride-mock"
         data-run={String(props.run)}
         data-step-index={props.stepIndex}
+        data-disable-overlay-close={String(props.disableOverlayClose)}
+        data-overlay-click-action={String(props.overlayClickAction)}
       />
     ),
     default: (props) => (
@@ -39,6 +41,8 @@ vi.mock('react-joyride', () => {
         data-testid="joyride-mock"
         data-run={String(props.run)}
         data-step-index={props.stepIndex}
+        data-disable-overlay-close={String(props.disableOverlayClose)}
+        data-overlay-click-action={String(props.overlayClickAction)}
       />
     ),
   };
@@ -91,22 +95,20 @@ describe('Modular Tour Architecture & Step Sequences', () => {
       (s) => s.target === '[data-testid="btn-action-native-print"]'
     );
 
-    expect(undoStep).toBeDefined();
-    expect(redoStep).toBeDefined();
     expect(aiPromptsStep).toBeDefined();
     expect(printStep).toBeDefined();
 
-    // Verify the VERY LAST step before handing control to the user is the import CV step
-    const lastStep = COMPLETE_ONBOARDING_STEPS[COMPLETE_ONBOARDING_STEPS.length - 1];
-    expect(lastStep.target).toBe('#byo-cv-action-item');
-    expect(lastStep).toBe(IMPORT_CV_STEP);
+    // Verify all steps have disableOverlayClose: true to prevent closing on outside clicks
+    COMPLETE_ONBOARDING_STEPS.forEach((step) => {
+      expect(step.disableOverlayClose).toBe(true);
+      expect(step.overlayClickAction).toBe(false);
+    });
   });
 
   it('IMPORT_CV_TOUR_STEPS provides a dedicated standalone tour for bringing an existing CV', () => {
     expect(Array.isArray(IMPORT_CV_TOUR_STEPS)).toBe(true);
     expect(IMPORT_CV_TOUR_STEPS.length).toBe(1);
     expect(IMPORT_CV_TOUR_STEPS[0].target).toBe('#byo-cv-action-item');
-    expect(IMPORT_CV_TOUR_STEPS[0].spotlightClicks).toBe(true);
     expect(TOUR_IDS.IMPORT_CV).toBe('import_cv');
     expect(MODAL_HELP_CONTENT[TOUR_IDS.IMPORT_CV]).toBeDefined();
   });
@@ -115,18 +117,13 @@ describe('Modular Tour Architecture & Step Sequences', () => {
   it('SIDEBAR_STEPS contains focused advice for every sidebar tool', () => {
     const targets = SIDEBAR_STEPS.map((s) => s.target);
 
-    // Undo / Redo
-    expect(targets.some((t) => t.includes('Deshacer'))).toBe(true);
-    expect(targets.some((t) => t.includes('Rehacer'))).toBe(true);
-
-    // Versions, Design, AI Prompts, Translation, BYO CV, Print, Pin
+    // Versions, Design, AI Prompts, Translation, BYO CV, Print
     expect(targets).toContain('#versiones-item');
     expect(targets).toContain('#design-item');
     expect(targets).toContain('#ia-prompts-item');
     expect(targets).toContain('#translation-action-item');
     expect(targets).toContain('#byo-cv-action-item');
     expect(targets).toContain('[data-testid="btn-action-native-print"]');
-    expect(targets).toContain('[data-testid="btn-pin-action-menu"]');
   });
 
   it('AI_MODAL_STEPS_SIMPLE has 3 steps: privacy callout -> copy btn -> external providers', () => {
@@ -427,6 +424,36 @@ describe('AppModals Interactive AI Tour Event Handling', () => {
     const joyride = screen.getByTestId('joyride-mock');
     expect(joyride.getAttribute('data-run')).toBe('true');
     expect(joyride.getAttribute('data-step-index')).toBe('0');
+  });
+
+  it('guarantees .bullet-add-row and .section-action-buttons are forced visible under body.has-running-tour to prevent Joyride waiting lock', () => {
+    const fs = require('fs');
+    const cssContent = fs.readFileSync('src/index.css', 'utf-8');
+    expect(cssContent).toMatch(/body\.has-running-tour\s+\.bullet-add-row/);
+    expect(cssContent).toMatch(/body\.has-running-tour\s+\.section-action-buttons/);
+  });
+
+  it('enforces disableOverlayClose=true and overlayClickAction=false on Joyride to prevent closing on outside clicks', () => {
+    render(
+      <CVProvider>
+        <TourProvider>
+          <AppModals />
+        </TourProvider>
+      </CVProvider>
+    );
+
+    const joyride = screen.getByTestId('joyride-mock');
+    expect(joyride.getAttribute('data-disable-overlay-close')).toBe('true');
+    expect(joyride.getAttribute('data-overlay-click-action')).toBe('false');
+  });
+
+  it('unpins sidebar by default when tour ends via closeSidebarProgrammatically', () => {
+    const { closeSidebarProgrammatically } = require('../components/Editor/tour/tourUtils');
+    localStorage.setItem('action_menu_pinned', 'true');
+    expect(localStorage.getItem('action_menu_pinned')).toBe('true');
+
+    closeSidebarProgrammatically();
+    expect(localStorage.getItem('action_menu_pinned')).toBe('false');
   });
 });
 

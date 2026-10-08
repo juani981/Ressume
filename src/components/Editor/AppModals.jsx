@@ -24,6 +24,7 @@ import {
   IMPORT_CV_STEP,
   IMPORT_CV_TOUR_STEPS,
   openSidebarProgrammatically,
+  closeSidebarProgrammatically,
 } from './tour';
 
 
@@ -294,7 +295,12 @@ export function AppModals({
   }, []);
 
   const handleJoyrideCallback = (data) => {
-    const { status, type, step, action, index } = data || {};
+    const { status, type, step, action, index, origin } = data || {};
+
+    // Strictly ignore any close/skip event originating from outside overlay clicks
+    if (origin === 'overlay') {
+      return;
+    }
 
     // Programmatically open sidebar whenever reaching or previewing sidebar steps
     if (type === 'step:before' || type === 'step:after') {
@@ -350,6 +356,9 @@ export function AppModals({
         }
       } catch (_) {}
 
+      // Default: ensure sidebar is not left pinned when the tour ends
+      closeSidebarProgrammatically();
+
       setRunTour(false);
       setTourStepIndex(0);
     }
@@ -374,8 +383,13 @@ export function AppModals({
         stepIndex={tourStepIndex}
         steps={currentSteps}
         continuous={true}
-        disableOverlayClose={false}
+        disableOverlayClose={true}
+        disableCloseOnEsc={true}
         spotlightClicks={true}
+        overlayClickAction={false}
+        options={{
+          overlayClickAction: false,
+        }}
         onEvent={handleJoyrideCallback}
         callback={handleJoyrideCallback}
         styles={{

@@ -162,6 +162,20 @@ export const ActionMenuRoot = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleUnpinEvent = () => {
+      handleCollapse();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unpin-action-menu', handleUnpinEvent);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('unpin-action-menu', handleUnpinEvent);
+      }
+    };
+  }, [handleCollapse]);
+
   const handleGeneratePDF = async () => {
     if (loading) return;
     setLoading(true);

@@ -1465,7 +1465,8 @@ body.has-running-tour .section-action-buttons {
 }
 
 .editable-item-container:hover .bullet-add-row,
-.bullet-add-row:hover {
+.bullet-add-row:hover,
+body.has-running-tour .bullet-add-row {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;

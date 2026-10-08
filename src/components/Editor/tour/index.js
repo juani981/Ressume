@@ -15,7 +15,7 @@ import {
 } from './aiModalTourSteps';
 import { ADD_SECTION_MODAL_STEPS } from './addSectionModalTourSteps';
 import { IMPORT_CV_STEP, IMPORT_CV_TOUR_STEPS } from './importCvTourSteps';
-import { openSidebarProgrammatically, createTourStep } from './tourUtils';
+import { openSidebarProgrammatically, closeSidebarProgrammatically, createTourStep } from './tourUtils';
 
 /**
  * Complete, sequential onboarding tour that flows smoothly from the main canvas
@@ -42,6 +42,7 @@ export {
   isAIModalSteps,
   ADD_SECTION_MODAL_STEPS,
   openSidebarProgrammatically,
+  closeSidebarProgrammatically,
   createTourStep,
 };
 
