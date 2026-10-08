@@ -83,8 +83,8 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
     });
   });
 
-  describe('Static drag over with dropTarget indicator (Zero live mutation)', () => {
-    it('sets dropTarget downward without mutating cvData during section drag over', () => {
+  describe('Real-time live reordering during drag over with dropTarget indicator', () => {
+    it('live reorders sections downward and updates dropTarget during section drag over', () => {
       let cvData = { sections: [...initialSections] };
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -128,15 +128,15 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
         });
       });
 
-      // Verify setCvData was NOT invoked during dragover (document stays static!)
-      expect(setCvData).not.toHaveBeenCalled();
+      // Verify setCvData was invoked during dragover for live immediate swap!
+      expect(setCvData).toHaveBeenCalled();
       expect(cvData.sections.map((s) => s.id)).toEqual([
         'profile_header',
-        'experience',
         'education',
+        'experience',
       ]);
 
-      // Verify dropTarget holds the snap-in-place placeholder target
+      // Verify dropTarget holds the drop target indicator
       expect(result.current.dropTarget).toEqual({
         type: 'section',
         activeSectionId: 'experience',
@@ -146,7 +146,7 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
       });
     });
 
-    it('sets dropTarget upward without mutating cvData during section drag over', () => {
+    it('live reorders sections upward and updates dropTarget during section drag over', () => {
       let cvData = {
         sections: [
           initialSections[0],
@@ -192,12 +192,12 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
         });
       });
 
-      // Document remains static
-      expect(setCvData).not.toHaveBeenCalled();
+      // Immediate swap live reordering occurs
+      expect(setCvData).toHaveBeenCalled();
       expect(cvData.sections.map((s) => s.id)).toEqual([
         'profile_header',
-        'education',
         'experience',
+        'education',
       ]);
 
       // dropTarget indicates placement above education
@@ -210,7 +210,7 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
       });
     });
 
-    it('sets dropTarget for items without mutating cvData during item drag over', () => {
+    it('live reorders items immediately and updates dropTarget during item drag over', () => {
       let cvData = JSON.parse(JSON.stringify({ sections: initialSections }));
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -264,8 +264,10 @@ describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
         });
       });
 
-      // No mutation during drag over
-      expect(setCvData).not.toHaveBeenCalled();
+      // Immediate live swap occurs on drag over
+      expect(setCvData).toHaveBeenCalled();
+      const expSec = cvData.sections.find((s) => s.id === 'experience');
+      expect(expSec.items.map((i) => i.id)).toEqual(['exp_2', 'exp_1', 'exp_3']);
 
       // dropTarget reflects item placeholder position
       expect(result.current.dropTarget).toEqual({

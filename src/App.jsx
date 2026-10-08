@@ -8,6 +8,8 @@ import { PlusCircle } from "lucide-react";
 import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CVDragOverlay } from "./components/Editor/CVDragOverlay";
+import { DndStatusContext } from "./context/DndStatusContext";
 
 import { useCVDndCoordinator } from "./hooks/useCVDndCoordinator";
 import { useColumnResizer } from "./hooks/useColumnResizer";
@@ -83,6 +85,7 @@ function App() {
       activeDragItem,
       activeDragSection,
       dropTarget,
+      justDroppedId,
    } = useCVDndCoordinator({
       cvData,
       setCvData,
@@ -162,6 +165,7 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
+            <DndStatusContext.Provider value={{ activeDragItem, activeDragSection, justDroppedId }}>
             <main
                className="l-main bd-container"
                style={{
@@ -360,6 +364,12 @@ function App() {
                ))}
                </div>
             </main>
+
+            <CVDragOverlay
+               activeDragItem={activeDragItem}
+               activeDragSection={activeDragSection}
+            />
+            </DndStatusContext.Provider>
          </DndContext>
 
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}
