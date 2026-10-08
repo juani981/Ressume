@@ -169,7 +169,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
       }
     });
     (cvData.sections || []).forEach(sec => {
-      if (!seenSecIds.has(sec.id)) {
+      if (!seenSecIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         lines.push(`  - id: "${escapeYaml(sec.id)}"`);
         lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
         lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
@@ -182,8 +182,8 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
     });
   } else {
     // 2-column mode
-    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
-    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
 
     lines.push('left_column_sections:');
     leftSections.forEach(sec => {
@@ -339,7 +339,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   // Helper to render individual section
   // ==========================================
   const renderSection = (sec) => {
-    if (!sec || sec.type === 'profile_header' || sec.type === 'title_subtitle') return;
+    if (!sec || sec.type === 'profile_header' || sec.type === 'title_subtitle' || sec.type === 'contact' || sec.id === 'contact') return;
 
     if (sec.type === 'spacer') {
       lines.push('<!-- spacer -->');
@@ -353,20 +353,6 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
       lines.push(`## ${headerTitle}${colTag}`);
       const aboutDesc = aboutMarkdown(sec.items?.[0]) || aboutMarkdown(aboutItem) || '';
       if (aboutDesc) lines.push(aboutDesc);
-      lines.push('');
-      lines.push('---');
-      lines.push('');
-      return;
-    }
-
-    if (sec.type === 'contact') {
-      const headerTitle = sec.title || 'Información de Contacto';
-      const colTag = is1Col ? '' : (sec.column === 'right' ? ' [Visual Layout: Main Column]' : ' [Visual Layout: Sidebar / Left Column]');
-      lines.push(`## ${headerTitle}${colTag}`);
-      const dynamicContacts = normalizeItemContacts(sec.items?.[0] || {});
-      dynamicContacts.forEach(c => {
-        if (c?.value) lines.push(`- **${c.type}**: ${c.value}`);
-      });
       lines.push('');
       lines.push('---');
       lines.push('');
@@ -402,16 +388,16 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
         renderedIds.add(sec.id);
       }
     });
-    // Append any custom sections added by the user
+    // Append any custom sections added by the user (contact is in Header block)
     (cvData.sections || []).forEach(sec => {
-      if (!renderedIds.has(sec.id) && sec.type !== 'profile_header') {
+      if (!renderedIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         renderSection(sec);
       }
     });
   } else {
     // In 2-column mode: group Left Column sections (Sidebar) and Right Column sections (Main Content) legibly
-    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
-    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
 
     if (leftSections.length > 0) {
       lines.push('# COLUMNA LATERAL (BARRA LATERAL / SIDEBAR)');
@@ -447,6 +433,8 @@ export const exportToAIXML = (cvData) => {
 
   const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
+  const contactSection = cvData.sections?.find(s => s.type === 'contact' || s.id === 'contact');
+  const contactItem = contactSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
 
@@ -470,15 +458,35 @@ export const exportToAIXML = (cvData) => {
     xml.push(`  <layout type="2-column" mode="visual_portfolio" left_bg="${escapeXML(layout.leftBg || '')}" right_bg="${escapeXML(layout.rightBg || '')}" />`);
   }
 
+  const xmlContacts = [
+    ...normalizeItemContacts(profileItem),
+    ...normalizeItemContacts(contactItem)
+  ];
+  let xmlEmail = profileItem.email || contactItem.email || '';
+  let xmlPhone = profileItem.phone || contactItem.phone || '';
+  let xmlLocation = profileItem.location || contactItem.location || '';
+  let xmlLinkedin = profileItem.linkedin || contactItem.linkedin || '';
+  let xmlGithub = profileItem.github || contactItem.github || '';
+
+  xmlContacts.forEach(c => {
+    if (!c || !c.value) return;
+    const type = (c.type || '').toLowerCase();
+    if (type === 'email' && !xmlEmail) xmlEmail = c.value;
+    else if (type === 'phone' && !xmlPhone) xmlPhone = c.value;
+    else if (type === 'location' && !xmlLocation) xmlLocation = c.value;
+    else if (type === 'linkedin' && !xmlLinkedin) xmlLinkedin = c.value;
+    else if (type === 'github' && !xmlGithub) xmlGithub = c.value;
+  });
+
   xml.push('  <candidate>');
   xml.push(`    <name>${escapeXML(profileItem.name || cvData.profile?.name)}</name>`);
   xml.push(`    <headline>${escapeXML(profileItem.subtitle)}</headline>`);
-  xml.push(`    <location>${escapeXML(profileItem.location)}</location>`);
+  xml.push(`    <location>${escapeXML(xmlLocation)}</location>`);
   xml.push('    <contact>');
-  xml.push(`      <email>${escapeXML(profileItem.email)}</email>`);
-  xml.push(`      <phone>${escapeXML(profileItem.phone)}</phone>`);
-  xml.push(`      <linkedin>${escapeXML(profileItem.linkedin)}</linkedin>`);
-  xml.push(`      <github>${escapeXML(profileItem.github)}</github>`);
+  xml.push(`      <email>${escapeXML(xmlEmail)}</email>`);
+  xml.push(`      <phone>${escapeXML(xmlPhone)}</phone>`);
+  xml.push(`      <linkedin>${escapeXML(xmlLinkedin)}</linkedin>`);
+  xml.push(`      <github>${escapeXML(xmlGithub)}</github>`);
   xml.push('    </contact>');
   if (aboutItem.description) {
     xml.push(`    <professional_summary>${escapeXML(aboutItem.description)}</professional_summary>`);
@@ -497,7 +505,7 @@ export const exportToAIXML = (cvData) => {
       }
     });
     (cvData.sections || []).forEach(sec => {
-      if (!seen.has(sec.id) && sec.type !== 'profile_header') {
+      if (!seen.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         ordered.push(sec);
       }
     });
@@ -508,7 +516,7 @@ export const exportToAIXML = (cvData) => {
 
 
   sectionsToRender.forEach((sec, idx) => {
-    if (sec.type === 'profile_header' || sec.type === 'about') return;
+    if (sec.type === 'profile_header' || sec.type === 'about' || sec.type === 'contact' || sec.id === 'contact') return;
 
     const colAttr = is1Col ? `order="${idx + 1}"` : `column="${escapeXML(sec.column || 'left')}"`;
     xml.push(`    <section id="${escapeXML(sec.id)}" type="${escapeXML(sec.type)}" title="${escapeXML(sec.title)}" ${colAttr}>`);
@@ -541,6 +549,8 @@ export const exportToATSPlainText = (cvData) => {
   if (!cvData) return '';
   const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
+  const contactSection = cvData.sections?.find(s => s.type === 'contact' || s.id === 'contact');
+  const contactItem = contactSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
 
@@ -548,17 +558,29 @@ export const exportToATSPlainText = (cvData) => {
   lines.push((profileItem.name || cvData.profile?.name || 'CURRICULUM VITAE').toUpperCase());
   if (profileItem.subtitle) lines.push(profileItem.subtitle);
 
+  const dynamicContacts = [
+    ...normalizeItemContacts(profileItem),
+    ...normalizeItemContacts(contactItem)
+  ];
+
   const contacts = [];
-  if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
-    profileItem.contacts.forEach(c => {
-      if (c && c.value) contacts.push(c.value);
+  if (dynamicContacts.length > 0) {
+    dynamicContacts.forEach(c => {
+      if (c && c.value && c.type !== 'location') contacts.push(c.value);
     });
+    const loc = profileItem.location || contactItem.location;
+    if (loc && !contacts.includes(loc)) contacts.unshift(loc);
   } else {
-    if (profileItem.location) contacts.push(profileItem.location);
-    if (profileItem.email) contacts.push(profileItem.email);
-    if (profileItem.phone) contacts.push(profileItem.phone);
-    if (profileItem.linkedin) contacts.push(profileItem.linkedin);
-    if (profileItem.github) contacts.push(profileItem.github);
+    const loc = profileItem.location || contactItem.location;
+    const email = profileItem.email || contactItem.email;
+    const phone = profileItem.phone || contactItem.phone;
+    const linkedin = profileItem.linkedin || contactItem.linkedin;
+    const github = profileItem.github || contactItem.github;
+    if (loc) contacts.push(loc);
+    if (email) contacts.push(email);
+    if (phone) contacts.push(phone);
+    if (linkedin) contacts.push(linkedin);
+    if (github) contacts.push(github);
   }
   if (contacts.length > 0) lines.push(contacts.join(' | '));
   lines.push('\n' + '='.repeat(60) + '\n');
@@ -581,13 +603,13 @@ export const exportToATSPlainText = (cvData) => {
     }
   });
   (cvData.sections || []).forEach(sec => {
-    if (!seenIds.has(sec.id) && sec.type !== 'profile_header') {
+    if (!seenIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
       orderedSections.push(sec);
     }
   });
 
   orderedSections.forEach(sec => {
-    if (sec.type === 'profile_header' || sec.type === 'about') return;
+    if (sec.type === 'profile_header' || sec.type === 'about' || sec.type === 'contact' || sec.id === 'contact') return;
     lines.push((sec.title || sec.id).toUpperCase());
     lines.push('-'.repeat(30));
 
