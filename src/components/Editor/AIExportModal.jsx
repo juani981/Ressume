@@ -831,7 +831,7 @@ const AIExportModal = ({
                       )}
                     </button>
 
-                    <button
+                    {/* <button
                       type="button"
                       onClick={handleDownload}
                       data-testid="ai-download-btn"
@@ -853,7 +853,7 @@ const AIExportModal = ({
                     >
                       <Download size={15} />
                       <span>Descargar .md</span>
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
