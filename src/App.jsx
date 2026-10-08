@@ -19,6 +19,7 @@ import { getDynamicTextVariables } from "./utils/colorUtils";
 import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
 import DroppableColumn from "./components/Editor/DroppableColumn";
+import CVDragOverlay from "./components/Editor/CVDragOverlay";
 
 import {
    A4_WIDTH_PX,
@@ -360,6 +361,10 @@ function App() {
                ))}
                </div>
             </main>
+            <CVDragOverlay
+               activeDragItem={activeDragItem}
+               activeDragSection={activeDragSection}
+            />
          </DndContext>
 
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}

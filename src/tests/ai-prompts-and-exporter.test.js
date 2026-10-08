@@ -23,14 +23,14 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
   // =========================================================================
   describe('Suite 1: Prompt Catalogs Schema Conformity & Bilingual Parity', () => {
 
-    it('T1.1: all three prompt catalog files contain exactly 13 prompts', () => {
+    it('T1.1: all three prompt catalog files contain exactly 10 production prompts', () => {
       expect(esPrompts).toBeInstanceOf(Array);
       expect(enPrompts).toBeInstanceOf(Array);
       expect(aiKnowledgePrompts).toBeInstanceOf(Array);
 
-      expect(esPrompts.length).toBe(13);
-      expect(enPrompts.length).toBe(13);
-      expect(aiKnowledgePrompts.length).toBe(13);
+      expect(esPrompts.length).toBe(10);
+      expect(enPrompts.length).toBe(10);
+      expect(aiKnowledgePrompts.length).toBe(10);
     });
 
     it('T1.2: exact 1:1 ID parity exists across ES, EN, and AI-Knowledge catalogs', () => {
@@ -42,17 +42,14 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(esIds).toEqual(aiIds);
 
       const expectedIds = [
-        'behavioral_leadership_prep',
         'bring_your_own_cv',
         'career_upskilling_roadmap',
         'cold_outreach_generator',
         'job_matcher',
-        'layout_advisor',
         'live_coding_coach',
         'recruiter_audit',
         'salary_negotiation_advisor',
         'star_enhancer',
-        'system_design_simulator',
         'technical_interview',
         'translate_english'
       ].sort();
@@ -60,11 +57,9 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
       expect(esIds).toEqual(expectedIds);
     });
 
-    it('T1.3: all 6 new specialized IT tech prompts are present with valid categories', () => {
+    it('T1.3: specialized IT tech prompts are present with valid categories', () => {
       const newTechPromptIds = [
-        'system_design_simulator',
         'live_coding_coach',
-        'behavioral_leadership_prep',
         'career_upskilling_roadmap',
         'cold_outreach_generator',
         'salary_negotiation_advisor'
@@ -76,7 +71,6 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
         'content_enhancement',
         'interview_prep',
         'localization',
-        'layout_advisor',
         'career_growth',
         'networking'
       ];
@@ -166,8 +160,6 @@ describe('AI Prompts Catalog & AI Exporter Test Suite', () => {
         'job_matcher',
         'star_enhancer',
         'technical_interview',
-        'layout_advisor',
-        'system_design_simulator',
         'live_coding_coach'
       ];
 

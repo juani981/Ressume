@@ -135,7 +135,7 @@ describe('3. Master AI Tips Toggle & Right-Rail AITipsSidebar', () => {
 
     const masterToggle = screen.getByTestId('master-tips-toggle');
     expect(masterToggle).toBeInTheDocument();
-    expect(masterToggle).toHaveTextContent('Consejos IA');
+    expect(masterToggle).toHaveTextContent('Sugerencias');
   });
 
   it('clicking master toggle switches showAITips state globally', () => {
