@@ -45,8 +45,8 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
       expect(SPACING_TOKENS.terminalSafetyToleranceRatio).toBe(0.30);
     });
 
-    it('verifies that distributor dynamically scales tolerance with custom pagePadding', () => {
-      // With custom pagePadding = 32px: (32 + 14) * 0.30 = 46 * 0.30 = 13.8 -> 14px
+    it('verifies that distributor enforces clean capacity uniformly without artificial expansion', () => {
+      // With custom pagePadding = 32px
       const cv = {
         layout: { isAtsMode: true, pagePadding: 32 },
         sections: [
@@ -59,11 +59,6 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
         ],
       };
 
-      // Custom capacity: 1000px. Item net height = 994px.
-      // If we add an item with net height 15px (1000 - 1000 + 15 = 15px over):
-      // With default 11px tolerance, it would overflow.
-      // With 14px tolerance (32px padding), 14px is allowed, 15px is not.
-      // Let's test with 13px over capacity (fits under 14px):
       const cvWithItem = {
         ...cv,
         sections: [
@@ -87,9 +82,10 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
         isEditor: true,
       });
 
-      // 10px over capacity fits comfortably within 14px tolerance (32 + 14)*0.3 = 13.8 -> 14px
-      expect(pages).toHaveLength(1);
-      expect(pages[0].singleSections[0].items).toHaveLength(2);
+      // 10px over capacity -> cleanly pushes to Page 2 without breaching the bottom margin
+      expect(pages).toHaveLength(2);
+      expect(pages[0].singleSections[0].items).toHaveLength(1);
+      expect(pages[1].singleSections[0].items).toHaveLength(1);
     });
   });
 
@@ -118,11 +114,11 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
       expect(result).toBeNull();
     });
 
-    it('distributeSectionsToPages retains single-bullet item on Page 1 when net height enters tolerance (<= 11px)', () => {
+    it('distributeSectionsToPages pushes single-bullet item intact to Page 2 when exceeding capacity', () => {
       // Available capacity: 1000px
       // Item 1 uses 950px
       // Item 2 has base height + 1 bullet with gross height 66px, itemGap 10px -> net height = 56px
-      // Total net height = 950 + 56 = 1006px (exceeds 1000px by 6px, which is <= 11px tolerance)
+      // Total net height = 950 + 56 = 1006px (exceeds 1000px by 6px)
       const candidate = {
         id: 'exp2',
         title: 'Backend Engineer',
@@ -154,11 +150,13 @@ describe('QA Audit: 30% Safety Margin Tolerance Verification', () => {
         isEditor: true,
       });
 
-      expect(pages).toHaveLength(1);
-      const items = pages[0].singleSections[0].items;
-      expect(items).toHaveLength(2);
-      expect(items[1].id).toBe('exp2');
-      expect(items[1].isPartialItem).toBeFalsy();
+      expect(pages).toHaveLength(2);
+      const p1Items = pages[0].singleSections[0].items;
+      expect(p1Items).toHaveLength(1);
+      const p2Items = pages[1].singleSections[0].items;
+      expect(p2Items).toHaveLength(1);
+      expect(p2Items[0].id).toBe('exp2');
+      expect(p2Items[0].isPartialItem).toBeFalsy();
     });
 
     it('distributeSectionsToPages pushes single-bullet item intact to Page 2 when exceeding tolerance (> 11px)', () => {

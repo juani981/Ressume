@@ -97,12 +97,25 @@ const AIExportModal = ({
   const [externalLLMResponse, setExternalLLMResponse] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [applyStatus, setApplyStatus] = useState(null);
+  const [sourceTranslationLang, setSourceTranslationLang] = useState(() => (activeLanguage === 'en' ? 'en' : 'es'));
   const [targetTranslationLang, setTargetTranslationLang] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
 
-  // Synchronize targetTranslationLang when activeLanguage changes
+  // Synchronize translation languages when activeLanguage changes
   useEffect(() => {
-    setTargetTranslationLang(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+    const src = activeLanguage === 'en' ? 'en' : 'es';
+    setSourceTranslationLang(src);
+    setTargetTranslationLang(src === 'en' ? 'es' : 'en');
   }, [activeLanguage]);
+
+  const handleSourceTranslationLangChange = (newSource) => {
+    setSourceTranslationLang(newSource);
+    setTargetTranslationLang(newSource === 'en' ? 'es' : 'en');
+  };
+
+  const handleTargetTranslationLangChange = (newTarget) => {
+    setTargetTranslationLang(newTarget);
+    setSourceTranslationLang(newTarget === 'en' ? 'es' : 'en');
+  };
 
   // UX States: Collapsible Prompt Preview & External AI Waiting Hand-off Mode
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
@@ -242,10 +255,10 @@ const AIExportModal = ({
       format: selectedFormat,
       jobDescription,
       userCommentary,
-      lang: activeLanguage,
+      lang: sourceTranslationLang || activeLanguage,
       targetLang: targetTranslationLang
     });
-  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage, targetTranslationLang]);
+  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage, sourceTranslationLang, targetTranslationLang]);
 
   const handleApplyResponse = async () => {
     if (!externalLLMResponse || !externalLLMResponse.trim()) {
@@ -1176,64 +1189,102 @@ const AIExportModal = ({
                                 style={{
                                    display: "flex",
                                    alignItems: "center",
-                                   gap: "6px",
+                                   gap: "10px",
+                                   flexWrap: "wrap",
                                 }}>
-                                <label
-                                   htmlFor="ai-target-lang-select"
-                                   style={{
-                                      fontSize: "0.8rem",
-                                      fontWeight: 600,
-                                      color: "var(--text-color, #444)",
-                                   }}>
-                                   <Globe
-                                      size={14}
-                                      color="#10b981"
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                   <label
+                                      htmlFor="ai-source-lang-select"
                                       style={{
-                                         verticalAlign: "middle",
-                                         marginRight: "4px",
-                                      }}
-                                   />
-                                   Idioma destino:
-                                </label>
-                                <select
-                                   id="ai-target-lang-select"
-                                   data-testid="ai-target-lang-select"
-                                   value={targetTranslationLang}
-                                   onChange={(e) =>
-                                      setTargetTranslationLang(e.target.value)
-                                   }
-                                   style={{
-                                      padding: "0.35rem 0.65rem",
-                                      borderRadius: "6px",
-                                      border: isDark
-                                         ? "1px solid #334155"
-                                         : "1px solid rgba(150, 150, 150, 0.3)",
-                                      background: isDark
-                                         ? "#1e293b"
-                                         : "#f8fafc",
-                                      color: isDark ? "#f8fafc" : "inherit",
-                                      fontSize: "0.8rem",
-                                      cursor: "pointer",
-                                   }}>
-                                   <option value="en">
-                                      Inglés (English - US Tech / Global)
-                                   </option>
-                                   <option value="es">
-                                      Español (Spanish - LatAm / España)
-                                   </option>
-                                   <option value="de">
-                                      Alemán (Deutsch - DACH)
-                                   </option>
-                                   <option value="fr">
-                                      Francés (Français - France / Canada)
-                                   </option>
-                                   <option value="pt">
-                                      Portugués (Português - Brasil / Portugal)
-                                   </option>
-                                   <option value="it">
-                                      Italiano (Italian)
-                                   </option>
-                                </select>
+                                         fontSize: "0.8rem",
+                                         fontWeight: 600,
+                                         color: "var(--text-color, #444)",
+                                      }}>
+                                      <Globe
+                                         size={14}
+                                         color="#10b981"
+                                         style={{
+                                            verticalAlign: "middle",
+                                            marginRight: "4px",
+                                         }}
+                                      />
+                                      Idioma origen:
+                                   </label>
+                                   <select
+                                      id="ai-source-lang-select"
+                                      data-testid="ai-source-lang-select"
+                                      value={sourceTranslationLang}
+                                      onChange={(e) =>
+                                         handleSourceTranslationLangChange(e.target.value)
+                                      }
+                                      style={{
+                                         padding: "0.35rem 0.65rem",
+                                         borderRadius: "6px",
+                                         border: isDark
+                                            ? "1px solid #334155"
+                                            : "1px solid rgba(150, 150, 150, 0.3)",
+                                         background: isDark
+                                            ? "#1e293b"
+                                            : "#f8fafc",
+                                         color: isDark ? "#f8fafc" : "inherit",
+                                         fontSize: "0.8rem",
+                                         cursor: "pointer",
+                                      }}>
+                                      <option value="es">
+                                         Español (es)
+                                      </option>
+                                      <option value="en">
+                                         Inglés (en)
+                                      </option>
+                                   </select>
+                                </div>
+
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                   <label
+                                      htmlFor="ai-target-lang-select"
+                                      style={{
+                                         fontSize: "0.8rem",
+                                         fontWeight: 600,
+                                         color: "var(--text-color, #444)",
+                                      }}>
+                                      <Globe
+                                         size={14}
+                                         color="#3874ff"
+                                         style={{
+                                            verticalAlign: "middle",
+                                            marginRight: "4px",
+                                         }}
+                                      />
+                                      Idioma destino:
+                                   </label>
+                                   <select
+                                      id="ai-target-lang-select"
+                                      data-testid="ai-target-lang-select"
+                                      value={targetTranslationLang}
+                                      onChange={(e) =>
+                                         handleTargetTranslationLangChange(e.target.value)
+                                      }
+                                      style={{
+                                         padding: "0.35rem 0.65rem",
+                                         borderRadius: "6px",
+                                         border: isDark
+                                            ? "1px solid #334155"
+                                            : "1px solid rgba(150, 150, 150, 0.3)",
+                                         background: isDark
+                                            ? "#1e293b"
+                                            : "#f8fafc",
+                                         color: isDark ? "#f8fafc" : "inherit",
+                                         fontSize: "0.8rem",
+                                         cursor: "pointer",
+                                      }}>
+                                      <option value="en">
+                                         Inglés (en)
+                                      </option>
+                                      <option value="es">
+                                         Español (es)
+                                      </option>
+                                   </select>
+                                </div>
                              </div>
                           )}
 

@@ -11,7 +11,7 @@
  * - Single source of truth: returns immutable PageModel[] matching Invariant Rules 15 & 16.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { distributeSectionsToPages, isAtsLayout } from '../utils/pageDistributor';
 import {
   A4_PAGE_HEIGHT_PX,
@@ -19,6 +19,7 @@ import {
   DEFAULT_LINE_HEIGHT,
   DEFAULT_SECTION_GAP_PX,
   DEFAULT_ITEM_GAP_PX,
+  PAGE_BOTTOM_CLEARANCE_PX,
 } from '../constants';
 
 const DEFAULT_OPTIONS = Object.freeze({});
@@ -37,17 +38,20 @@ const DEFAULT_OPTIONS = Object.freeze({});
 export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
   const layout = cvData?.layout || {};
   const sections = cvData?.sections || [];
+  const previousItemPagesRef = useRef(new Map());
 
   const pages = useMemo(() => {
     const distributionOptions = {
-      // User decision: Items continue directly without repeating continuation header
-      omitContinuationHeader: true,
-      omitContinuationTitle: true,
+      // Contextual continuation: show clean continuation header (e.g. "CERTIFICACIONES (Cont.)")
+      omitContinuationHeader: options.omitContinuationHeader ?? false,
+      omitContinuationTitle: options.omitContinuationTitle ?? false,
+      reduceContinuationHeader: options.reduceContinuationHeader ?? true,
       uniqueContinuationIds: true,
 
       // Dynamic geometry and slider tokens
       pageHeightPx: options.pageHeightPx ?? A4_PAGE_HEIGHT_PX,
       pagePaddingPx: options.pagePaddingPx ?? layout.pagePadding ?? DEFAULT_PAGE_PADDING,
+      pageBottomClearancePx: options.pageBottomClearancePx ?? layout.pageBottomClearance ?? PAGE_BOTTOM_CLEARANCE_PX,
       fontScale: options.fontScale ?? layout.fontScale ?? 1.0,
       titleScale: options.titleScale ?? layout.titleScale ?? 1.0,
       bodyScale: options.bodyScale ?? layout.bodyScale ?? 1.0,
@@ -62,11 +66,37 @@ export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
       leftColumnWidth: options.leftColumnWidth ?? layout.leftColumnWidth,
       isEditor: true,
 
+      // Hysteresis memory: previous page allocation map
+      previousItemPages: previousItemPagesRef.current,
+
       // User overrides
       ...options,
     };
 
-    return distributeSectionsToPages(cvData, distributionOptions);
+    const nextPages = distributeSectionsToPages(cvData, distributionOptions);
+
+    // Update hysteresis map for subsequent renders
+    const nextItemPages = new Map();
+    nextPages.forEach((page) => {
+      const pageNum = page.pageNumber;
+      const allSections = [
+        ...(page.singleSections || []),
+        ...(page.leftSections || []),
+        ...(page.rightSections || []),
+      ];
+      allSections.forEach((sec) => {
+        if (sec.id) nextItemPages.set(sec.id, pageNum);
+        if (sec.originalSectionId) nextItemPages.set(sec.originalSectionId, pageNum);
+        (sec.items || []).forEach((it) => {
+          const rawId = it.originalItemId || it.id;
+          if (rawId) nextItemPages.set(rawId, pageNum);
+          if (it.id) nextItemPages.set(it.id, pageNum);
+        });
+      });
+    });
+    previousItemPagesRef.current = nextItemPages;
+
+    return nextPages;
   }, [
     cvData,
     sections,

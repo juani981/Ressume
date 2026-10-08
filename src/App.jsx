@@ -214,6 +214,7 @@ function App() {
                         gridTemplateColumns={gridTemplateColumns}
                         pageHeight={A4_HEIGHT_CSS}
                         pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
+                        pageBottomClearance={cvData.layout?.pageBottomClearance}
                         onDeletePage={deletePage}
                      >
                         {is2Col ? (

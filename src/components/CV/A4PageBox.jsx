@@ -23,6 +23,7 @@ import {
   EDITOR_PAGE_GAP_PX,
   BASE_COLUMN_STYLE,
   COLOR_TOKENS,
+  PAGE_BOTTOM_CLEARANCE_PX,
 } from '../../constants';
 
 const flattenChildren = (children) => {
@@ -99,6 +100,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftColPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
     gridTemplateColumns,
     pagePadding,
+    pageBottomClearance,
     pageHeight = A4_HEIGHT_CSS,
     leftContent,
     rightContent,
@@ -146,6 +148,12 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
   } else {
     effectivePadding = `var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px) var(--page-padding-bottom, calc(${DEFAULT_PAGE_PADDING_PX}px / 2)) var(--page-padding, ${DEFAULT_PAGE_PADDING_PX}px)`;
   }
+
+  // Safety margin calculation for live boundary visualization
+  const paddingNum = pagePadding != null ? parseInt(pagePadding, 10) : DEFAULT_PAGE_PADDING_PX;
+  const bottomPaddingNum = isAtsMode ? Math.round(paddingNum / 2) : paddingNum;
+  const clearanceNum = typeof pageBottomClearance === 'number' ? pageBottomClearance : PAGE_BOTTOM_CLEARANCE_PX;
+  const safetyMarginPx = bottomPaddingNum + clearanceNum;
 
   // Effective height: defaults to standard A4 height (297mm), overridable by prop
   const effectiveHeight = pageHeight || A4_HEIGHT_CSS;
@@ -318,6 +326,47 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
         {...restProps}
       >
         {effective2Col ? render2ColContent() : render1ColContent()}
+
+        {/* Línea roja de debug momentáneo para calibrar el margen de seguridad */}
+        <div
+          className="debug-safety-margin-line no-print"
+          data-editor-ui="true"
+          aria-hidden="true"
+          data-testid={`debug-safety-margin-${pageNumber}`}
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: `${safetyMarginPx}px`,
+            height: 0,
+            borderTop: '2px dashed #ef4444',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-end',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '10px',
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              color: '#dc2626',
+              backgroundColor: 'rgba(254, 226, 226, 0.95)',
+              border: '1px solid #ef4444',
+              borderRadius: '3px',
+              padding: '1px 6px',
+              marginBottom: '2px',
+              marginRight: '12px',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            }}
+          >
+            Margen de seguridad: {safetyMarginPx}px (clearance: {clearanceNum}px + base: {bottomPaddingNum}px)
+          </span>
+        </div>
       </div>
 
       {showBadge && (

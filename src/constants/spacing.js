@@ -10,6 +10,13 @@ export const DEFAULT_PAGE_PADDING_PX = 24;
 export const DEFAULT_SECTION_GAP_PX = 12;
 export const DEFAULT_ITEM_GAP_PX = 6;
 export const DEFAULT_LINE_HEIGHT = 1.30;
+
+/**
+ * Margen de seguridad fijo (en px) en la parte inferior de la página A4.
+ * Cualquier contenido que alcance o supere (bottomPadding + PAGE_BOTTOM_CLEARANCE_PX)
+ * dispara el salto preventivo a la página siguiente.
+ * Modificá este valor para calibrar el margen de seguridad a mano.
+ */
 export const PAGE_BOTTOM_CLEARANCE_PX = 0;
 export const DEFAULT_HEADER_MARGIN_BOTTOM_RATIO = 1.5;
 export const DEFAULT_DATA_GAP_PX = 6;

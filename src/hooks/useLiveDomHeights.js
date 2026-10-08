@@ -51,6 +51,9 @@ export function useLiveDomHeights(containerRef, deps = []) {
     const nextHeights = {};
     let hasChanged = false;
 
+    // Minimum pixel delta to consider a DOM element height changed (filters subpixel rounding jitter)
+    const STABILITY_THRESHOLD_PX = 3;
+
     // 1. Measure section headers: [data-section-title]
     const headerNodes = container.querySelectorAll('[data-section-title]');
     headerNodes.forEach((node) => {
@@ -60,7 +63,8 @@ export function useLiveDomHeights(containerRef, deps = []) {
         if (h > 0) {
           const key = `header_${secId}`;
           nextHeights[key] = h;
-          if (Math.abs((heightsRef.current[key] || 0) - h) >= 1) {
+          const prev = heightsRef.current[key];
+          if (prev === undefined || Math.abs(prev - h) >= STABILITY_THRESHOLD_PX) {
             hasChanged = true;
           }
         }
@@ -75,7 +79,8 @@ export function useLiveDomHeights(containerRef, deps = []) {
         const h = getOuterHeight(node);
         if (h > 0) {
           nextHeights[itemId] = h;
-          if (Math.abs((heightsRef.current[itemId] || 0) - h) >= 1) {
+          const prev = heightsRef.current[itemId];
+          if (prev === undefined || Math.abs(prev - h) >= STABILITY_THRESHOLD_PX) {
             hasChanged = true;
           }
         }
@@ -91,7 +96,8 @@ export function useLiveDomHeights(containerRef, deps = []) {
         if (h > 0) {
           const key = `base_${baseId}`;
           nextHeights[key] = h;
-          if (Math.abs((heightsRef.current[key] || 0) - h) >= 1) {
+          const prev = heightsRef.current[key];
+          if (prev === undefined || Math.abs(prev - h) >= STABILITY_THRESHOLD_PX) {
             hasChanged = true;
           }
         }

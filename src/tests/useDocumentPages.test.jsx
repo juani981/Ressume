@@ -15,7 +15,7 @@ describe('useDocumentPages Hook', () => {
     expect(page1.rightSections.length).toBeGreaterThan(0);
   });
 
-  it('2. omits repeated continuation headers on split sections per user decision', () => {
+  it('2. provides contextual continuation title (Cont.) on split sections to prevent orphaned items', () => {
     // Create large schema with many experience items to force page break
     const manyExperienceItems = Array.from({ length: 10 }).map((_, i) => ({
       id: `exp-${i}`,
@@ -46,8 +46,8 @@ describe('useDocumentPages Hook', () => {
     const page2 = result.current.pages[1];
     const continuedExp = page2.rightSections.find((s) => s.isContinuation || s.originalSectionId === 'experience');
     expect(continuedExp).toBeTruthy();
-    // Header title must be empty string per user requirement
-    expect(continuedExp.title).toBe('');
+    // Header title shows contextual continuation badge (Cont.)
+    expect(continuedExp.title).toContain('(Cont.)');
   });
 
   it('3. reacts dynamically when fontScale or lineHeight increases, generating Page 2', () => {
