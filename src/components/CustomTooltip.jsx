@@ -84,9 +84,10 @@ export function CustomTooltip({
       style={{
         backgroundColor: '#fff',
         padding: 20,
-        borderRadius: 8,
-        maxWidth: 400,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        borderRadius: 12,
+        maxWidth: step?.maxWidth || 400,
+        boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+        border: '1px solid rgba(0,0,0,0.06)',
         ...tooltipProps?.style
       }}
     >
@@ -167,7 +168,7 @@ export function CustomTooltip({
               fontWeight: 500
             }}
           >
-            {isLastStep ? 'Finalizar' : 'Siguiente'}
+            {isLastStep ? 'Finalizar' : (index === 0 && step?.isWelcome ? 'Comenzar recorrido' : 'Siguiente')}
           </button>
         </div>
       </div>
