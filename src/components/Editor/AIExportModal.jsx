@@ -644,8 +644,8 @@ const AIExportModal = ({
                   marginBottom: '0.25rem'
                 }}
               >
-                <Target size={15} color="rgb(8, 109, 221)" />
-                <span>Descripción del Objetivo:</span>
+                {/* <Target size={15} color="rgb(8, 109, 221)" /> */}
+                {/* <span>Descripción del Objetivo:</span> */}
               </div>
               <div className="callout-content" style={{ color: 'inherit', opacity: 0.9 }}>
                 {selectedPrompt.description}
@@ -987,7 +987,7 @@ const AIExportModal = ({
                 }}
               >
                 <Eye size={15} color="#3874ff" />
-                <span>{isPromptExpanded ? 'Ocultar prompt' : 'Desplegar prompt completo'}</span>
+                <span>{isPromptExpanded ? 'Ocultar prompt' : 'Ver prompt completo'}</span>
                 <span style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #888)', fontWeight: 400 }}>
                   ({compiledPayload.length} caracteres, ~{Math.round(compiledPayload.length / 4)} tokens)
                 </span>
