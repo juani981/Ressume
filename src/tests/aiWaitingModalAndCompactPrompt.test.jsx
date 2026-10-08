@@ -246,6 +246,24 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
       expect(screen.getByText('Esperando respuesta de tu IA externa...')).toBeInTheDocument();
       expect(screen.getByText(/Pegar Respuesta Completa de la IA/)).toBeInTheDocument();
     });
+
+    it('3.2: renders Obsidian Callout disclaimer in TranslationModal with external AI, privacy, and zero cost guarantees', () => {
+      render(
+        <CVProvider initialCV={baseMockCV}>
+          <TranslationModal isOpen={true} onClose={vi.fn()} />
+        </CVProvider>
+      );
+
+      const disclaimer = screen.getByTestId('translation-ai-disclaimer-callout');
+      expect(disclaimer).toBeInTheDocument();
+      expect(disclaimer.className).toContain('obsidian-callout');
+
+      const content = disclaimer.querySelector('.callout-content');
+      expect(content.textContent).toMatch(/IA externa o local/i);
+      expect(content.textContent).toMatch(/no almacena tus datos/i);
+      expect(content.textContent).toMatch(/genera coste alguno por uso o descarga/i);
+      expect(content.textContent).toMatch(/comparar y contrastar los resultados/i);
+    });
   });
 
   describe('4. Invariants & Zero Emoji Ban Compliance', () => {

@@ -41,7 +41,8 @@ import {
   FileCheck,
   Layers,
   FileCode,
-  Clock
+  Clock,
+  Info
 } from 'lucide-react';
 
 const LANGUAGE_OPTIONS = [
@@ -540,7 +541,7 @@ const AIExportModal = ({
                 {selectedPromptId === 'translate_english'
                   ? 'Traducción y Localización Cultural a Inglés (US Tech)'
                   : selectedPromptId === 'bring_your_own_cv'
-                  ? 'Trae tu propio CV (Conversor PDF a JSON ATS 1:1)'
+                  ? 'Trae tu propio CV (Importar usando IA)'
                   : 'Generar Prompts de IA con los datos de tu CV'}
               </h3>
               <p style={{ margin: 0, fontSize: '0.85rem', color: isDark ? '#94a3b8' : 'var(--text-color-light, #777)' }}>
@@ -579,6 +580,44 @@ const AIExportModal = ({
         {/* Modal Body */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
+          {/* Disclaimer de Privacidad, Procesamiento Externo/Local y Gratuidad */}
+          <div 
+            className="obsidian-callout"
+            data-testid="ai-privacy-disclaimer-callout"
+            style={{
+              background: isDark ? 'rgba(8, 109, 221, 0.12)' : 'rgba(8, 109, 221, 0.08)',
+              borderLeft: '4px solid rgb(8, 109, 221)',
+              padding: '0.75rem 1rem',
+              borderRadius: '4px 8px 8px 4px',
+              fontSize: '0.84rem'
+            }}
+          >
+            <div 
+              className="callout-title"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 600,
+                color: '#3874ff',
+                marginBottom: '0.25rem'
+              }}
+            >
+              <Info size={16} color="#3874ff" />
+              <span>Privacidad, Procesamiento Externo y Uso Gratuito</span>
+            </div>
+            <div 
+              className="callout-content"
+              style={{
+                color: isDark ? '#cbd5e1' : 'var(--text-color, #334155)',
+                lineHeight: '1.45',
+                fontSize: '0.82rem'
+              }}
+            >
+              Todo el procesamiento de datos se realiza en la IA externa o local que elijas (como ChatGPT, Claude, Gemini, DeepSeek u Ollama). Ressume no almacena tus datos en ningún servidor ni genera coste alguno por uso o descarga. Recomendamos copiar y pegar este mismo prompt en varias IAs para comparar y contrastar los resultados.
+            </div>
+          </div>
+
           {/* ========================================================================= */}
           {/* UNIDIRECTIONAL STEP-BY-STEP INTEGRATED WORKFLOW (PROMPTS COMUNES)         */}
           {/* ========================================================================= */}
@@ -859,6 +898,16 @@ const AIExportModal = ({
                   ))}
                 </div>
 
+                {/* Nota sobre modelos múltiples y privacidad */}
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: isDark ? '#94a3b8' : 'var(--text-color-light, #666)',
+                  lineHeight: '1.4',
+                  marginTop: '0.15rem'
+                }}>
+                  Puedes probar este mismo prompt en múltiples IAs (en la nube o locales) sin costes ni almacenamiento de datos para comparar los resultados.
+                </div>
+
                 {/* Tutorial Paso a Paso Integrado (Stepper Visual) */}
                 <div style={{
                   display: 'flex',
@@ -1064,6 +1113,15 @@ const AIExportModal = ({
                       <ExternalLink size={12} />
                     </button>
                   ))}
+                  <div style={{
+                    width: '100%',
+                    fontSize: '0.75rem',
+                    color: isDark ? '#94a3b8' : 'var(--text-color-light, #666)',
+                    lineHeight: '1.4',
+                    marginTop: '0.15rem'
+                  }}>
+                    Puedes probar este mismo prompt en múltiples IAs (en la nube o locales) sin costes ni almacenamiento de datos para comparar los resultados.
+                  </div>
                 </div>
               )}
 

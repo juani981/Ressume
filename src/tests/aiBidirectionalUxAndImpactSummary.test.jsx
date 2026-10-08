@@ -219,8 +219,8 @@ describe('Bidirectional AI Modes, Auto-Paste & Live Impact Summary Suite', () =>
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      // Title must reflect ATS conversion mode
-      expect(screen.getByRole('heading', { level: 3, name: /Trae tu propio CV \(Conversor PDF a JSON ATS 1:1\)/i })).toBeInTheDocument();
+      // Title must reflect conversion mode
+      expect(screen.getByRole('heading', { level: 3, name: /Trae tu propio CV/i })).toBeInTheDocument();
       expect(screen.getByTestId('ai-response-ingestion-container')).toBeInTheDocument();
     });
 

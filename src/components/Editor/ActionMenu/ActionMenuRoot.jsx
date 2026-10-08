@@ -657,11 +657,11 @@ export const ActionMenuRoot = () => {
                 setIsAIModalOpen(true);
               }}
               aria-label="Trae tu propio CV (PDF a ATS 1:1)"
-              title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
+              title="Trae tu propio CV (Importar usando IA)"
             >
               <FileUp size={20} color="#f59e0b" />
             </button>
-            <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
+            <span className="action-menu-tooltip">Importar CV (Conversor)</span>
           </div>
         </div>
 

@@ -217,7 +217,7 @@ export const DesignPanel = ({
               color: 'var(--text-color)',
             }}
           >
-            Tipo de Letra (Fuente Universal)
+            Tipo de fuente
           </label>
           <select
             value={currentFontFamily}
@@ -234,11 +234,11 @@ export const DesignPanel = ({
               cursor: 'pointer',
             }}
           >
-            <option value="Poppins">Poppins (Moderna y Geométrica)</option>
-            <option value="Inter">Inter (Estándar ATS y Legibilidad)</option>
-            <option value="Roboto">Roboto (Clásica y Equilibrada)</option>
-            <option value="Merriweather">Merriweather (Ejecutiva Serif)</option>
-            <option value="JetBrains Mono">JetBrains Mono (Técnica y Código)</option>
+            <option value="Poppins">Poppins</option>
+            <option value="Inter">Inter (Estándar ATS)</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Merriweather">Merriweather</option>
+            <option value="JetBrains Mono">JetBrains Mono</option>
           </select>
         </div>
 
