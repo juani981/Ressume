@@ -27,11 +27,14 @@ const PRINT_FONTS = [
  */
 function buildGoogleFontsUrl() {
   const families = PRINT_FONTS.map(font => {
-    const weightStr = font.weights.join(';');
-    let str = `${font.family.replace(/\s+/g, '+')}:wght@${weightStr}`;
+    const familyName = font.family.replace(/\s+/g, '+');
+    let str = `${familyName}:wght@${font.weights.join(';')}`;
     if (font.italic && font.italic.length > 0) {
-      const italicStr = font.italic.join(';');
-      str += `;ital,wght@${italicStr}`;
+      const variations = [
+        ...font.weights.map(weight => `0,${weight}`),
+        ...font.italic.map(weight => `1,${weight}`)
+      ];
+      str = `${familyName}:ital,wght@${variations.join(';')}`;
     }
     return str;
   }).join('&family=');

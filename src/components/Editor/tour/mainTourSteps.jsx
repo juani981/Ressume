@@ -161,9 +161,8 @@ export const CANVAS_STEPS = [
       title: "Acciones de bloque",
       description: (
          <p style={{ margin: 0 }}>
-            En la esquina superior de cada sección puedes: mostrar/ocultar
-            consejos de redacción específicos para cada componente, elegir el
-            formato visual de la lista (si aplica), y eliminar elemento.
+            En la esquina superior de cada sección puedes: elegir el formato
+            visual de la lista (si aplica), y eliminar elemento.
          </p>
       ),
       placement: "left",
