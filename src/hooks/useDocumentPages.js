@@ -42,10 +42,10 @@ export function useDocumentPages({ cvData, options = DEFAULT_OPTIONS }) {
 
   const pages = useMemo(() => {
     const distributionOptions = {
-      // Contextual continuation: show clean continuation header (e.g. "CERTIFICACIONES (Cont.)")
-      omitContinuationHeader: options.omitContinuationHeader ?? false,
-      omitContinuationTitle: options.omitContinuationTitle ?? false,
-      reduceContinuationHeader: options.reduceContinuationHeader ?? true,
+      // Do not put another title for resuming when a break in other page happens
+      omitContinuationHeader: options.omitContinuationHeader ?? true,
+      omitContinuationTitle: options.omitContinuationTitle ?? true,
+      reduceContinuationHeader: options.reduceContinuationHeader ?? false,
       uniqueContinuationIds: true,
 
       // Dynamic geometry and slider tokens

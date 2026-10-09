@@ -134,7 +134,7 @@ export const PrintBaseSection = ({ section }) => {
         data-is-continuation={isContinuation ? 'true' : undefined}
         style={{ marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`, color: 'var(--text-color)' }}
       >
-        {descriptor.hasTitle !== false && section.title && (
+        {descriptor.hasTitle !== false && !isContinuation && Boolean(section.title) && (
           <h2 
             className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
             data-section-title={section.id}
@@ -315,17 +315,12 @@ const EditableBaseSection = ({ section }) => {
         </div>
       )}
 
-      {descriptor.hasTitle !== false && Boolean(section.title) && (
+      {descriptor.hasTitle !== false && !section.isContinuation && Boolean(section.title) && (
         <h2 
-          className={`section-title${section.isContinuation ? ' section-title--continuation' : ''}`} 
+          className="section-title" 
           data-section-title={section.id}
-          style={section.isContinuation ? { opacity: 0.85, fontSize: '0.92em' } : undefined}
         >
-          {section.isContinuation ? (
-            <span className="section-continuation-title">{section.title}</span>
-          ) : (
-            <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.originalSectionId || section.id, val)} />
-          )}
+          <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.originalSectionId || section.id, val)} />
         </h2>
       )}
       

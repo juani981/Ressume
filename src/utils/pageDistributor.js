@@ -1009,8 +1009,8 @@ export function distributeSectionsToPages(cvData, options = {}) {
   const terminalTolerance = options.terminalTolerance ?? options.terminalTolerancePx ?? Math.round((padding + clearance) * toleranceRatio);
 
   const mergedOptions = {
-    omitContinuationHeader: options.omitContinuationHeader ?? false,
-    omitContinuationTitle: options.omitContinuationTitle ?? false,
+    omitContinuationHeader: options.omitContinuationHeader ?? !options.reduceContinuationHeader,
+    omitContinuationTitle: options.omitContinuationTitle ?? !options.reduceContinuationHeader,
     uniqueContinuationIds: options.uniqueContinuationIds ?? false,
     reduceContinuationHeader: options.reduceContinuationHeader ?? false,
     fontFamily: layout.fontFamily,

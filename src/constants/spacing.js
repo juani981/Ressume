@@ -17,10 +17,10 @@ export const DEFAULT_LINE_HEIGHT = 1.30;
  * dispara el salto preventivo a la página siguiente.
  * Modificá este valor para calibrar el margen de seguridad a mano.
  */
-export const PAGE_BOTTOM_CLEARANCE_PX = 0;
+export const PAGE_BOTTOM_CLEARANCE_PX = 12;
 export const DEFAULT_HEADER_MARGIN_BOTTOM_RATIO = 1.5;
 export const DEFAULT_DATA_GAP_PX = 6;
-export const DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO = 0.30;
+export const DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO = 0.1;
 export const DEFAULT_TERMINAL_TOLERANCE_PX = Math.round((DEFAULT_PAGE_PADDING_PX + PAGE_BOTTOM_CLEARANCE_PX) * DEFAULT_TERMINAL_SAFETY_TOLERANCE_RATIO);
 
 
