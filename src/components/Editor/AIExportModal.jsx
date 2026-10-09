@@ -186,13 +186,16 @@ const AIExportModal = ({
     }
   };
 
-  // Reset ingestion and waiting state on prompt change or modal open
+  // Reset ingestion, waiting state and optional free text on prompt change or modal open/close
+  // Backlog: free-text notes must not persist across prompts or modal sessions
   useEffect(() => {
     setExternalLLMResponse('');
     setApplyStatus(null);
     setIsWaitingForAI(false);
     setIsPromptExpanded(false);
     setCopiedProvider(null);
+    setUserCommentary('');
+    setJobDescription('');
     if (isOpen && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('ai-modal-prompt-changed', {
         detail: { promptId: selectedPromptId }
