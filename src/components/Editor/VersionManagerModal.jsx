@@ -10,7 +10,7 @@ import {
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { sanitizeAndValidateCVSnapshot, normalizeAnyJSONToCVSnapshot } from '../../utils/versionValidator';
 import { cleanAndParseRawJSON } from '../../utils/universalJsonImporter';
-import { blankSchema } from '../../utils/schema';
+import { getRandomSeedCV } from '../../utils/seedCVTemplates';
 import { executeCleanPrint } from '../../utils/staticHtmlPdfEngine';
 import { History, X, Layers } from 'lucide-react';
 import {
@@ -272,19 +272,19 @@ export const VersionManagerModal = ({
     }
   };
 
-  // Confirm starting a blank CV with placeholder data
+  // Start a fresh editable CV from one of the sample profiles.
   const handleConfirmBlankCV = () => {
     try {
       if (loadVersionSnapshot) {
         loadVersionSnapshot({
-          ...blankSchema,
+          ...getRandomSeedCV(),
           versionName: null,
           activeVersionName: null,
           activeVersionId: null
         });
       }
       if (showToast) {
-        showToast('Plantilla en blanco cargada con datos placeholders', 'info');
+        showToast('Nueva plantilla de muestra cargada. Puedes sustituir todos sus datos.', 'info');
       }
       setConfirmBlankCV(false);
       onClose();

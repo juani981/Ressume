@@ -297,7 +297,7 @@ describe('System Dark Mode & Full-Screen Modal Opt-In Light Mode Suite', () => {
       // Obsidian confirmation callout should appear with dark theme styling
       const callout = screen.getByTestId('callout-confirm-blank');
       expect(callout).toBeDefined();
-      expect(within(callout).getByText(/Empezar CV en Blanco/i)).toBeDefined();
+      expect(within(callout).getByText(/Iniciar plantilla de muestra/i)).toBeDefined();
 
       const cancelBtn = screen.getByTestId('btn-cancel-blank');
       fireEvent.click(cancelBtn);
