@@ -56,11 +56,24 @@ const AddSectionModal = ({ isOpen, onClose, targetColumn = 'right', targetIndex 
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { isOpen, onClose });
 
+  // Reset to defaults on each modal open to avoid persisting user style choices
+  // The section selector should always start with sensible defaults, not stale state
   const [initialBulletStyle, setInitialBulletStyle] = useState({
     size: 'normal',
     variant: 'bold',
     showLine: true
   });
+
+  // Reset style state when modal opens (clears any persisted preferences)
+  useEffect(() => {
+    if (isOpen) {
+      setInitialBulletStyle({
+        size: 'normal',
+        variant: 'bold',
+        showLine: true
+      });
+    }
+  }, [isOpen]);
   const [panelStyle, setPanelStyle] = useState({
     position: 'fixed',
     right: '20px',
