@@ -12,3 +12,11 @@ En el selector de secciones, persistio el modo claro, lo cual no tiene sentido. 
 El componente de Idiomas no funciona bien, esta forzando un salto de linea despues del titulo en negrita. Las skills y otro scomponentes que son de lista simple, hacen lo mismo, tienen un texto en negrita, y un salto de linea, aunque el texto entre realmente en la misma linea, todos los compoenntes de lista simple estan con ese comportamiento.
 
 CArgando vista previa demora muhcisimo en cargar, el primer renderizado ya deberia descargar de forma asincronica todas las fuentes posibles y cualquier asset involucrado en el proceso de descarga. EL usuario debe hacer click en descargar, y el navegador ya deberia tener listo todo para la descarga final.
+
+AL editar texto, los botones de negrita y cursiva se resetean automaticamente, solo funciona con los atajos del teclado
+
+Los tres primeros elementos que no pueden moverse, no deberian tener la manito de arrastre activada, o almenos tener visualmente un decorador distinto al hacer hover para senializar.
+
+EN el gestor de versiones, Se esta poniendo como ACTIVO una version guardada, pero no tiene sentido porque en el editor, si vas editando, ya no es el mismo documento ni al misma version, las ediciones en vivo estan BASADAS en la ultima version cargada, pero confunde al usuario.
+
+#Nota: Contempla la UX, y lo que un usario comun sin conocimiento profundo del sistema entenderia, haz tests de Cypress con buen coverage. Un commit por cada feature.
