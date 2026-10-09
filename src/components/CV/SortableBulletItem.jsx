@@ -86,6 +86,7 @@ export const SortableBulletItem = ({
       <SimpleListItem 
         item={{ id: bulletIndex, text: bulletText }} 
         sectionId={sectionId} 
+        multiline={true}
         onUpdateItem={(secId, bIdx, field, val) => {
           const newBullets = [...bullets];
           newBullets[bIdx] = val;

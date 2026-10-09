@@ -2,6 +2,8 @@ import React from 'react';
 import { useCV } from '../../../context/CVContext';
 import ColorPickerSwatch from '../ColorPickerSwatch';
 import { SlidersHorizontal, X, RotateCcw, Info } from 'lucide-react';
+import ModalHelpButton from '../../common/ModalHelpButton';
+import { TOUR_IDS } from '../../../context/TourContext';
 import { DEFAULT_LINE_HEIGHT, SPACING_LIMITS } from '../../../constants/spacing';
 import { COLUMN_RESIZER_LIMITS, DEFAULT_LEFT_COLUMN_WIDTH_PERCENT } from '../../../constants/geometry';
 import {
@@ -9,6 +11,7 @@ import {
   BASE_FONT_SIZES_PX,
   DEFAULT_FONT_FAMILY_NAME,
 } from '../../../constants/typography';
+import { COLOR_TOKENS } from '../../../constants/colors';
 
 const formatPx = (val) => {
   const rounded = Math.round(val * 2) / 2;
@@ -52,6 +55,9 @@ export const DesignPanel = ({
   return (
     <div
       className="design-popover no-print"
+      role="region"
+      aria-label="Panel de Ajustes de Diseño"
+      aria-hidden={!isOpen}
       style={{
         position: 'fixed',
         left: '4.75rem',
@@ -66,11 +72,12 @@ export const DesignPanel = ({
         width: '320px',
         maxHeight: '90vh',
         overflowY: 'auto',
-        display: 'flex',
+        display: isOpen ? 'flex' : 'none',
         flexDirection: 'column',
         gap: '1rem',
         opacity: isOpen ? 1 : 0,
         pointerEvents: isOpen ? 'auto' : 'none',
+        visibility: isOpen ? 'visible' : 'hidden',
         transition: 'opacity 0.2s ease, transform 0.2s ease',
       }}
       data-testid="design-submenu"
@@ -97,21 +104,24 @@ export const DesignPanel = ({
         >
           <SlidersHorizontal size={18} color="#6366f1" /> Ajustes de Diseño
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar panel de diseño"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#888',
-            padding: '4px',
-            display: 'flex',
-          }}
-        >
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* <ModalHelpButton tourId={TOUR_IDS.DESIGN} /> */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar panel de diseño"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#888',
+              padding: '4px',
+              display: 'flex',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Submenu Navigation Tabs */}
@@ -207,7 +217,7 @@ export const DesignPanel = ({
               color: 'var(--text-color)',
             }}
           >
-            Tipo de Letra (Fuente Universal)
+            Tipo de fuente
           </label>
           <select
             value={currentFontFamily}
@@ -224,11 +234,11 @@ export const DesignPanel = ({
               cursor: 'pointer',
             }}
           >
-            <option value="Poppins">Poppins (Moderna y Geométrica)</option>
-            <option value="Inter">Inter (Estándar ATS y Legibilidad)</option>
-            <option value="Roboto">Roboto (Clásica y Equilibrada)</option>
-            <option value="Merriweather">Merriweather (Ejecutiva Serif)</option>
-            <option value="JetBrains Mono">JetBrains Mono (Técnica y Código)</option>
+            <option value="Poppins">Poppins</option>
+            <option value="Inter">Inter (Estándar ATS)</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Merriweather">Merriweather</option>
+            <option value="JetBrains Mono">JetBrains Mono</option>
           </select>
         </div>
 
@@ -272,8 +282,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.4}
+              min={TYPOGRAPHY_SCALE_LIMITS.titleScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.titleScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.h2 * (fontScale || 1.0))}
               value={titleScale}
               onChange={(e) => updateLayout('titleScale', Number(e.target.value))}
@@ -300,8 +310,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
+              min={TYPOGRAPHY_SCALE_LIMITS.bodyScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.bodyScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={bodyScale}
               onChange={(e) => updateLayout('bodyScale', Number(e.target.value))}
@@ -328,8 +338,8 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
+              min={TYPOGRAPHY_SCALE_LIMITS.listScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.listScale.max}
               step={0.5 / (BASE_FONT_SIZES_PX.normal * (fontScale || 1.0))}
               value={listScale}
               onChange={(e) => updateLayout('listScale', Number(e.target.value))}
@@ -360,9 +370,9 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={0.5}
-              max={1.3}
-              step={0.05}
+              min={TYPOGRAPHY_SCALE_LIMITS.fontScale.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.fontScale.max}
+              step={TYPOGRAPHY_SCALE_LIMITS.fontScale.step}
               value={fontScale}
               onChange={(e) => updateLayout('fontScale', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -385,9 +395,9 @@ export const DesignPanel = ({
             </div>
             <input
               type="range"
-              min={1.15}
-              max={1.85}
-              step={0.05}
+              min={TYPOGRAPHY_SCALE_LIMITS.lineHeight.min}
+              max={TYPOGRAPHY_SCALE_LIMITS.lineHeight.max}
+              step={TYPOGRAPHY_SCALE_LIMITS.lineHeight.step}
               value={lineHeight}
               onChange={(e) => updateLayout('lineHeight', Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
@@ -528,7 +538,7 @@ export const DesignPanel = ({
               }}
             >
               <span>Ancho Columna Lateral</span>
-              <b style={{ color: '#3874ff' }}>
+              <b style={{ color: COLOR_TOKENS.primaryAccent }}>
                 {Math.round(leftColumnWidth)}% / {100 - Math.round(leftColumnWidth)}%
               </b>
             </div>

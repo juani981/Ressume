@@ -1,9 +1,9 @@
 {
   "interactionHistory": [
     {
-      "id": "ev_1791177688658_5kh9m",
-      "timestamp": "2026-10-05T05:21:28.658Z",
-      "x": 714,
+      "id": "ev_1791335389914_jqdtj",
+      "timestamp": "2026-10-07T01:09:49.914Z",
+      "x": 713,
       "y": 126,
       "viewportWidth": 1440,
       "viewportHeight": 900,
@@ -15,10 +15,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177689036_8dr0g",
-      "timestamp": "2026-10-05T05:21:29.036Z",
-      "x": 714,
-      "y": 40,
+      "id": "ev_1791335390243_i97ho",
+      "timestamp": "2026-10-07T01:09:50.243Z",
+      "x": 713,
+      "y": 39,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": ".home__subtitle, .profile__profession, h2",
@@ -29,8 +29,8 @@
       "step": ""
     },
     {
-      "id": "ev_1791177689343_544w8",
-      "timestamp": "2026-10-05T05:21:29.343Z",
+      "id": "ev_1791335390550_2c2dl",
+      "timestamp": "2026-10-07T01:09:50.550Z",
       "x": 7,
       "y": 450,
       "viewportWidth": 1440,
@@ -43,10 +43,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177689537_bewz2",
-      "timestamp": "2026-10-05T05:21:29.537Z",
-      "x": 30,
-      "y": 230,
+      "id": "ev_1791335390691_abs24",
+      "timestamp": "2026-10-07T01:09:50.691Z",
+      "x": 22,
+      "y": 209,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"btn-pin-action-menu\"]",
@@ -57,10 +57,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177689802_gwhsr",
-      "timestamp": "2026-10-05T05:21:29.802Z",
+      "id": "ev_1791335390880_olusq",
+      "timestamp": "2026-10-07T01:09:50.880Z",
       "x": 34,
-      "y": 423,
+      "y": 445,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"btn-open-design\"]",
@@ -71,10 +71,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177690312_86zf0",
-      "timestamp": "2026-10-05T05:21:30.312Z",
-      "x": 236,
-      "y": 205,
+      "id": "ev_1791335391246_5mfr8",
+      "timestamp": "2026-10-07T01:09:51.246Z",
+      "x": 305,
+      "y": 221,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"tab-spacing\"]",
@@ -85,10 +85,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177690717_6l3bv",
-      "timestamp": "2026-10-05T05:21:30.717Z",
+      "id": "ev_1791335391607_fk18g",
+      "timestamp": "2026-10-07T01:09:51.608Z",
       "x": 34,
-      "y": 381,
+      "y": 360,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"btn-open-version-manager\"]",
@@ -99,10 +99,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177691202_smqc7",
-      "timestamp": "2026-10-05T05:21:31.202Z",
+      "id": "ev_1791335392030_ucfkh",
+      "timestamp": "2026-10-07T01:09:52.030Z",
       "x": 34,
-      "y": 513,
+      "y": 534,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "#ia-prompts-item",
@@ -113,10 +113,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177691397_64byr",
-      "timestamp": "2026-10-05T05:21:31.397Z",
-      "x": 1121,
-      "y": 249,
+      "id": "ev_1791335392259_62aq4",
+      "timestamp": "2026-10-07T01:09:52.259Z",
+      "x": 1120,
+      "y": 247,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"ai-modal-close-btn\"]",
@@ -127,10 +127,10 @@
       "step": ""
     },
     {
-      "id": "ev_1791177691702_j886a",
-      "timestamp": "2026-10-05T05:21:31.702Z",
+      "id": "ev_1791335392449_nkkvv",
+      "timestamp": "2026-10-07T01:09:52.449Z",
       "x": 34,
-      "y": 662,
+      "y": 683,
       "viewportWidth": 1440,
       "viewportHeight": 900,
       "selector": "[data-testid=\"btn-action-native-print\"]",
@@ -143,8 +143,8 @@
   ],
   "uxObservations": [
     {
-      "id": "obs_1791177688002_0iw6e",
-      "timestamp": "2026-10-05T05:21:28.002Z",
+      "id": "obs_1791335389444_qxv1f",
+      "timestamp": "2026-10-07T01:09:49.444Z",
       "stepNumber": 1,
       "feature": "First Landing Experience",
       "userGoal": "Understand what the website does upon arrival",
@@ -160,8 +160,8 @@
       "recommendation": "Visual presentation of the document is immediately recognizable as a CV."
     },
     {
-      "id": "obs_1791177688157_yvpfj",
-      "timestamp": "2026-10-05T05:21:28.157Z",
+      "id": "obs_1791335389497_yk9r0",
+      "timestamp": "2026-10-07T01:09:49.497Z",
       "stepNumber": 2,
       "feature": "Onboarding Tour Prompt",
       "userGoal": "Read onboarding advice explaining Human vs ATS formats",
@@ -177,8 +177,8 @@
       "recommendation": "Keep tour concise or allow clicking directly on canvas to dismiss."
     },
     {
-      "id": "obs_1791177688968_zg0be",
-      "timestamp": "2026-10-05T05:21:28.969Z",
+      "id": "obs_1791335390192_62b8z",
+      "timestamp": "2026-10-07T01:09:50.192Z",
       "stepNumber": 2,
       "feature": "Headline In-Place Editing",
       "userGoal": "Replace the sample candidate name with my own name",
@@ -194,8 +194,8 @@
       "recommendation": "In-place WYSIWYG text editing feels completely intuitive."
     },
     {
-      "id": "obs_1791177689274_htk4j",
-      "timestamp": "2026-10-05T05:21:29.274Z",
+      "id": "obs_1791335390487_0g7am",
+      "timestamp": "2026-10-07T01:09:50.487Z",
       "stepNumber": 3,
       "feature": "Subtitle Editing",
       "userGoal": "Set job title",
@@ -211,8 +211,8 @@
       "recommendation": ""
     },
     {
-      "id": "obs_1791177689734_q3ith",
-      "timestamp": "2026-10-05T05:21:29.734Z",
+      "id": "obs_1791335390838_phy7s",
+      "timestamp": "2026-10-07T01:09:50.838Z",
       "stepNumber": 4,
       "feature": "Toolbar Discovery",
       "userGoal": "Find export, print, and design tools",
@@ -228,8 +228,8 @@
       "recommendation": "Show an animated subtle tooltip on the peek handle during the first 10 seconds of a new session: \"Haz clic aquí para abrir herramientas\"."
     },
     {
-      "id": "obs_1791177690179_buafm",
-      "timestamp": "2026-10-05T05:21:30.180Z",
+      "id": "obs_1791335391205_4x4ij",
+      "timestamp": "2026-10-07T01:09:51.205Z",
       "stepNumber": 5,
       "feature": "Design Panel Typography",
       "userGoal": "Change the font family to Inter and inspect scale slider",
@@ -245,8 +245,8 @@
       "recommendation": "Multiplier format (1.00x) is much clearer to users than raw px values."
     },
     {
-      "id": "obs_1791177690526_imca8",
-      "timestamp": "2026-10-05T05:21:30.526Z",
+      "id": "obs_1791335391431_fo5zq",
+      "timestamp": "2026-10-07T01:09:51.431Z",
       "stepNumber": 6,
       "feature": "Design Panel Spacing",
       "userGoal": "Adjust margins and gaps",
@@ -262,8 +262,8 @@
       "recommendation": ""
     },
     {
-      "id": "obs_1791177691027_5tud1",
-      "timestamp": "2026-10-05T05:21:31.027Z",
+      "id": "obs_1791335391875_xycex",
+      "timestamp": "2026-10-07T01:09:51.875Z",
       "stepNumber": 7,
       "feature": "Version Manager Snapshot Creation",
       "userGoal": "Save a named version before making extensive changes",
@@ -279,8 +279,8 @@
       "recommendation": "Saving snapshots with human-readable names gives great peace of mind."
     },
     {
-      "id": "obs_1791177691358_luxx6",
-      "timestamp": "2026-10-05T05:21:31.358Z",
+      "id": "obs_1791335392192_u2r3a",
+      "timestamp": "2026-10-07T01:09:52.192Z",
       "stepNumber": 8,
       "feature": "AI Prompts Modal",
       "userGoal": "Audit my CV with an LLM for ATS compatibility",
@@ -296,8 +296,8 @@
       "recommendation": ""
     },
     {
-      "id": "obs_1791177692117_a965e",
-      "timestamp": "2026-10-05T05:21:32.117Z",
+      "id": "obs_1791335392872_gn7fo",
+      "timestamp": "2026-10-07T01:09:52.872Z",
       "stepNumber": 9,
       "feature": "PDF Export and Print Confirmation",
       "userGoal": "Export finished CV as a clean PDF",

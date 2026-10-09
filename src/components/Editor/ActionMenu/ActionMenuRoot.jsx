@@ -20,7 +20,10 @@ import {
   Pin,
   PinOff,
   Sparkles,
+  BookOpen,
 } from 'lucide-react';
+import { BitacoraModal } from '../../Bitacora';
+import { useTourManager } from '../../../context/TourContext';
 
 const HOVER_INTENT_MS = 280;
 const EXIT_GRACE_MS = 350;
@@ -38,11 +41,23 @@ export const ActionMenuRoot = () => {
     deletePage,
   } = useCV();
 
+  const tourManager = useTourManager ? (function() {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return useTourManager();
+    } catch (_) {
+      return {};
+    }
+  })() : {};
+  const notifyPrintSuccess = tourManager?.notifyPrintSuccess;
+
   const [loading, setLoading] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [aiModalPromptId, setAiModalPromptId] = useState('recruiter_audit');
   const [isUnidirectionalOnly, setIsUnidirectionalOnly] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
+  const isBitacoraEnabled = import.meta.env?.VITE_ENABLE_BITACORA === 'true';
   const [isDesignMenuOpen, setIsDesignMenuOpen] = useState(false);
   const [activeDesignTab, setActiveDesignTab] = useState('typography');
 
@@ -76,7 +91,8 @@ export const ActionMenuRoot = () => {
     isHoverExpanded ||
     isDesignMenuOpen ||
     isAIModalOpen ||
-    isVersionModalOpen;
+    isVersionModalOpen ||
+    isBitacoraOpen;
 
   const handleTogglePin = useCallback(() => {
     setIsPinned((prev) => {
@@ -146,6 +162,20 @@ export const ActionMenuRoot = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleUnpinEvent = () => {
+      handleCollapse();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unpin-action-menu', handleUnpinEvent);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('unpin-action-menu', handleUnpinEvent);
+      }
+    };
+  }, [handleCollapse]);
+
   const handleGeneratePDF = async () => {
     if (loading) return;
     setLoading(true);
@@ -168,6 +198,9 @@ export const ActionMenuRoot = () => {
       }
       setLoading(false);
       showToast('¡Documento PDF procesado correctamente!', 'success', 3500);
+      if (typeof notifyPrintSuccess === 'function') {
+        notifyPrintSuccess();
+      }
     };
 
     if (typeof window !== 'undefined') {
@@ -253,6 +286,15 @@ export const ActionMenuRoot = () => {
         <div
           className="action-menu-edge-handle"
           data-testid="action-menu-peek-tab"
+          role="button"
+          tabIndex={!isExpanded ? 0 : -1}
+          onClick={!isExpanded ? handlePeekClick : undefined}
+          onKeyDown={(e) => {
+            if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              handlePeekClick();
+            }
+          }}
           style={{
             position: 'absolute',
             right: 0,
@@ -453,7 +495,25 @@ export const ActionMenuRoot = () => {
             <DatabaseSearch size={20} color="#3b82f6" />
           </button>
           <span className="action-menu-tooltip">Gestor de Versiones</span>
+        </div>
+
+        {/* Bitácora & Playbook de Carrera (Feature flag: VITE_ENABLE_BITACORA) */}
+        {isBitacoraEnabled && (
+          <div className="action-menu-btn-wrap">
+            <button
+              type="button"
+              className="version-hub-btn action-menu-hub-btn"
+              id="bitacora-item"
+              data-testid="btn-open-bitacora"
+              aria-label="Bitácora y Recursos de Carrera"
+              title="Bitácora y Playbook de Carrera"
+              onClick={() => setIsBitacoraOpen(true)}
+            >
+              <BookOpen size={20} color="#6366f1" />
+            </button>
+            <span className="action-menu-tooltip">Bitácora & Recursos</span>
           </div>
+        )}
           {/* Ajustes de Diseño (Tipografía, Espaciado, Colores) */}
         <div className="action-menu-btn-wrap">
           <button
@@ -468,7 +528,7 @@ export const ActionMenuRoot = () => {
             <SlidersHorizontal size={20} color='#b8b79a' />
           </button>
           <span className="action-menu-tooltip">
-            Diseño (Colores, Espaciado, Tipografía)
+            Diseño (Espaciado, Tipografía)
           </span>
         </div>
                 <hr
@@ -611,11 +671,11 @@ export const ActionMenuRoot = () => {
                 setIsAIModalOpen(true);
               }}
               aria-label="Trae tu propio CV (PDF a ATS 1:1)"
-              title="Trae tu propio CV (Conversor PDF a JSON ATS 1:1)"
+              title="Trae tu propio CV (Importar usando IA)"
             >
               <FileUp size={20} color="#f59e0b" />
             </button>
-            <span className="action-menu-tooltip">Importar CV (Conversor ATS)</span>
+            <span className="action-menu-tooltip">Importar CV (Conversor)</span>
           </div>
         </div>
 
@@ -679,6 +739,9 @@ export const ActionMenuRoot = () => {
         unidirectionalOnly={isUnidirectionalOnly}
       />
       <VersionManagerModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} />
+      {isBitacoraEnabled && (
+        <BitacoraModal isOpen={isBitacoraOpen} onClose={() => setIsBitacoraOpen(false)} />
+      )}
     </>
   );
 };

@@ -8,6 +8,7 @@
 import { A4_WIDTH_PX, A4_PAGE_HEIGHT_PX } from '../../constants';
 import { getFontFamilyStack, computeTypographyTokens } from '../../utils/typographyUtils';
 import { baseStyles, printStyles } from '../../styles/bundle';
+import { STATIC_PRINT_FONTS_CSS } from './printFonts';
 import { getDynamicPdfTitle } from './pdfTitleService';
 import {
   escapeHTML,
@@ -114,7 +115,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     const docLang = lang || cvData?.layout?.language || 'es';
 
     let bodyMarkup = '';
-    if (liveAreaCv) {
+    if (liveAreaCv && !snapshot?.forceStaticHtml) {
       const sanitizedClone = createSanitizedPrintClone(liveAreaCv);
       if (sanitizedClone) {
         bodyMarkup = sanitizedClone.outerHTML;
@@ -155,6 +156,7 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style id="cv-base-styles">
+${STATIC_PRINT_FONTS_CSS}
 ${layoutVariablesCSS}
 ${activeBaseStyles}
   </style>
@@ -258,9 +260,13 @@ ${activePrintStyles}
           const pageBoxes = doc.querySelectorAll ? doc.querySelectorAll('.a4-page-box') : [];
           const hasA4PageBoxes = pageBoxes.length > 0 || areaCv?.classList?.contains('has-a4-page-boxes');
           const isAtsOrSingle = isAtsMode || !is2Col || areaCv?.classList?.contains('resume__single-column');
-          const pagePaddingVal = cvData?.layout?.pagePadding != null
+          const padTop = cvData?.layout?.pagePadding != null
             ? `${cvData.layout.pagePadding}px`
             : 'var(--page-padding, 24px)';
+          const padBottom = cvData?.layout?.pagePadding != null
+            ? `${Math.round(cvData.layout.pagePadding / 2)}px`
+            : 'var(--page-padding-bottom, calc(var(--page-padding, 24px) / 2))';
+          const pagePaddingVal = `${padTop} ${padTop} ${padBottom} ${padTop}`;
 
           if (areaCv && areaCv.style) {
             areaCv.style.setProperty('margin', '0', 'important');

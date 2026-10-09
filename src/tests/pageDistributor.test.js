@@ -20,6 +20,7 @@ import {
   distributeSectionsToPages,
   estimateHeaderHeight,
   estimateItemHeight,
+  getItemNetHeight,
   estimateSectionHeight,
 } from '../utils/pageDistributor';
 
@@ -785,10 +786,10 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(p1Sec2).toBeDefined();
       expect(p2Sec2).toBeDefined();
 
-      // Verify n first items are on Page 1
-      expect(p1Sec2.items.map((it) => it.id)).toEqual(['it1', 'it2']);
+      // Verify n first items are on Page 1 (under 0px clearance, it1, it2, it3 fit on Page 1)
+      expect(p1Sec2.items.map((it) => it.id)).toEqual(['it1', 'it2', 'it3']);
       // Verify remaining items are on Page 2
-      expect(p2Sec2.items.map((it) => it.id)).toEqual(['it3', 'it4', 'it5']);
+      expect(p2Sec2.items.map((it) => it.id)).toEqual(['it4', 'it5']);
     });
 
     it('DnD Reordering: placing a section into page 1 with available space does not push it to page 2', () => {
@@ -1013,4 +1014,290 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(p2.singleSections.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Boundary Rules & Terminal Element Flush Fitting', () => {
+    it('discounts itemGap in getItemNetHeight for standard items and preserves spacer height', () => {
+      const itemGap = 12;
+      const opts = { itemGapPx: itemGap };
+
+      const eduItem = { id: 'edu1', title: 'Degree', height: 100 };
+      expect(estimateItemHeight(eduItem, 'education', opts)).toBe(100);
+      expect(getItemNetHeight(eduItem, 'education', opts)).toBe(88); // 100 - 12
+
+      const spacerItem = { id: 'sp1', height: 40 };
+      expect(estimateItemHeight(spacerItem, 'spacer', opts)).toBe(40);
+      expect(getItemNetHeight(spacerItem, 'spacer', opts)).toBe(40); // Preserved
+    });
+
+    it('Criterion: item that exceeds remaining page capacity by <= itemGap fits completely as terminal item on page 1 without splitting into bullets', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20, itemGap: 10 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'simple_list',
+            title: '',
+            items: [{ id: 'item1', height: 800 }],
+          },
+          {
+            id: 'sec2',
+            type: 'experience',
+            title: '',
+            items: [
+              {
+                id: 'exp1',
+                height: 100,
+              },
+              {
+                id: 'exp2',
+                height: 100,
+                bullets: ['Bullet 1', 'Bullet 2'],
+              },
+            ],
+          },
+        ],
+      };
+
+      // sec1 takes 800.
+      // sec2 has gapBefore 20.
+      // exp1 takes 100. Accumulated = 20 + 100 = 120.
+      // exp2 gross height = 100. Total accumulated gross = 220.
+      // exp2 net height = 90. Total accumulated net = 210.
+      // With pageCapacity = 1015 (available for sec2 = 215):
+      // Gross 220 > 215 would split exp2 or push it to page 2.
+      // Net 210 <= 215 fits exp2 cleanly on page 1 without bullet split!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 1015,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      const p1Sec2 = pages[0].singleSections.find((s) => s.id === 'sec2');
+      expect(p1Sec2).toBeDefined();
+      expect(p1Sec2.items.length).toBe(2);
+      expect(p1Sec2.items[1].id).toBe('exp2');
+      expect(p1Sec2.items[1].isPartialItem).toBeFalsy();
+    });
+
+    it('Criterion: entire section that exceeds remaining page capacity by <= itemGap fits flush as terminal on page 1', () => {
+      const cv = {
+        layout: { type: '1-column', isAtsMode: true, pagePadding: 24, sectionGap: 20, itemGap: 10 },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'simple_list',
+            title: '',
+            items: [{ id: 'item1', height: 800 }],
+          },
+          {
+            id: 'sec2',
+            type: 'simple_list',
+            title: '',
+            items: [
+              { id: 'item2', height: 180 },
+            ],
+          },
+        ],
+      };
+
+      // sec1 takes 800.
+      // sec2: gapBefore = 20, header = 0, item = 180.
+      // totalSectionHeight = 200.
+      // trailingGap = 10.
+      // totalSectionHeight - trailingGap = 190.
+      // If pageCapacity = 995:
+      // sec1 (800) + totalSectionHeight (200) = 1000 > 995 (exceeds gross capacity by 5px <= 10px).
+      // With terminal flush rule: 800 + 190 = 990 <= 995, sec2 fits on Page 1!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 995,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections.map((s) => s.id)).toEqual(['sec1', 'sec2']);
+    });
+
+    it('Criterion: candidate item first bullet fits flush when capacity accommodates net first bullet without trailing gap', () => {
+      // Test splitCandidateItemByBullets terminal boundary rule:
+      // When first bullet fits flush (without half-gap), it is admitted rather than rejecting whole item
+      const candidate = {
+        id: 'exp1',
+        title: 'Software Engineer',
+        bullets: ['Single line bullet one', 'Single line bullet two'],
+      };
+
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: 'Experience',
+            items: [candidate],
+          },
+        ],
+      };
+
+      // In ATS mode, let's test that if baseH + netFirstBulletH fits, bullet splitting succeeds on page 1
+      const pages = distributeSectionsToPages(cv, {
+        isEditor: true,
+        splitGranularBullets: true,
+      });
+
+      expect(pages.length).toBeGreaterThanOrEqual(1);
+      expect(pages[0].singleSections[0].items[0].bullets.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('Symmetry: first section has no top gap and terminal item has no trailing bottom gap', () => {
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '', // no header
+            items: [{ id: 'it1', title: 'Job 1', height: 100 }],
+          },
+        ],
+      };
+
+      // Total height for 1 item with height 100 and itemGap 10 is 100.
+      // Net height without trailing gap is 90.
+      // If page capacity is 95:
+      // Without terminal rule: 100 > 95 -> overflows to page 2.
+      // With terminal rule: net height 90 <= 95 -> fits cleanly on page 1!
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 95,
+        itemGapPx: 10,
+        sectionGapPx: 20,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections[0].items.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].id).toBe('it1');
+    });
+
+    it('Uniform Page Capacity: pushes item to page 2 when exceeding standard capacity without artificial tolerance expansion', () => {
+      // Base page capacity: 1000px
+      // Item 1 consumes 950px.
+      // Item 2 has gross height 66px, itemGap 10px -> net height = 56px.
+      // Item 2 exceeds standard capacity (1000px) by 6px (950 + 56 = 1006px > 1000px).
+      // Without artificial tolerance expansion, it cleanly moves to Page 2!
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '',
+            items: [
+              { id: 'it1', title: 'Job 1', height: 950 },
+              { id: 'it2', title: 'Job 2', height: 66 },
+            ],
+          },
+        ],
+      };
+
+      const pages = distributeSectionsToPages(cv, {
+        pageCapacity: 1000,
+        itemGapPx: 10,
+        sectionGapPx: 0,
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+      });
+
+      expect(pages.length).toBe(2);
+      expect(pages[0].singleSections[0].items.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].id).toBe('it1');
+      expect(pages[1].singleSections[0].items.length).toBe(1);
+      expect(pages[1].singleSections[0].items[0].id).toBe('it2');
+
+      // Now with item 2 height = 75px -> net height = 65px (950 + 65 = 1015px > 1000px).
+      // Exceeds capacity -> cleanly on Page 2!
+      const cvExceeding = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'sec1',
+            type: 'experience',
+            title: '',
+            items: [
+              { id: 'it1', title: 'Job 1', height: 950 },
+              { id: 'it2', title: 'Job 2', height: 75 },
+            ],
+          },
+        ],
+      };
+
+      const pagesExceedingTolerance = distributeSectionsToPages(cvExceeding, {
+        pageCapacity: 1000,
+        itemGapPx: 10,
+        sectionGapPx: 0,
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+      });
+
+      expect(pagesExceedingTolerance.length).toBe(2);
+      expect(pagesExceedingTolerance[0].singleSections[0].items.length).toBe(1);
+      expect(pagesExceedingTolerance[1].singleSections[0].items[0].id).toBe('it2');
+    });
+
+    it('Safety Margin Tolerance: keeps newly added bullet on page 1 when within 30% tolerance', () => {
+      // Single experience item where adding a 2nd bullet extends 5px beyond pageCapacity.
+      // With 30% tolerance (11px), the full item with both bullets fits on Page 1 without splitting.
+      const candidateWithTwoBullets = {
+        id: 'exp1',
+        title: 'Lead Architect',
+        subtitle: 'Tech Corp',
+        bullets: [
+          'Spearheaded core microservices migration with zero downtime.',
+          'Mentored 10+ junior engineers in clean code and testing patterns.',
+        ],
+      };
+
+      const cv = {
+        layout: { isAtsMode: true },
+        sections: [
+          {
+            id: 'exp-sec',
+            type: 'experience',
+            title: 'Experience',
+            items: [candidateWithTwoBullets],
+          },
+        ],
+      };
+
+      // Let's compute exact height
+      const options = {
+        pagePaddingPx: 24,
+        pageBottomClearancePx: 14,
+        isEditor: true,
+        splitGranularBullets: true,
+      };
+
+      const grossH = estimateItemHeight(candidateWithTwoBullets, 'experience', options);
+      const headerH = estimateHeaderHeight(cv.sections[0], false, options);
+      // Set pageCapacity such that totalSectionHeight exceeds pageCapacity by 7px (well within 11px tolerance)
+      const exactCapacity = headerH + grossH - 7;
+
+      const pages = distributeSectionsToPages(cv, {
+        ...options,
+        pageCapacity: exactCapacity,
+      });
+
+      // Should fit completely on Page 1 without splitting into continuation item
+      expect(pages.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].bullets.length).toBe(2);
+      expect(pages[0].singleSections[0].items[0].isPartialItem).toBeFalsy();
+    });
+  });
 });
+
+

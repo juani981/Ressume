@@ -19,14 +19,53 @@ export const ALLOWED_COLUMNS = Object.freeze(['left', 'right']);
 export const ALLOWED_FONT_FAMILIES = SUPPORTED_FONT_NAMES;
 
 export const NUMERIC_BOUNDS = Object.freeze({
-  pagePadding: { min: 0, max: 100, default: SPACING_LIMITS.pagePadding.default },
-  sectionGap: { min: 0, max: 100, default: SPACING_LIMITS.sectionGap.default },
-  itemGap: { min: 0, max: 50, default: SPACING_LIMITS.itemGap.default },
-  fontScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.fontScale.default },
-  titleScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.titleScale.default },
-  bodyScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default },
-  listScale: { min: 0.5, max: 2.0, default: TYPOGRAPHY_SCALE_LIMITS.listScale.default },
-  lineHeight: { min: 1.0, max: 2.5, default: DEFAULT_LINE_HEIGHT }
+  pagePadding: { min: SPACING_LIMITS.pagePadding.min, max: SPACING_LIMITS.pagePadding.max, default: SPACING_LIMITS.pagePadding.default },
+  sectionGap: { min: SPACING_LIMITS.sectionGap.min, max: SPACING_LIMITS.sectionGap.max, default: SPACING_LIMITS.sectionGap.default },
+  itemGap: { min: SPACING_LIMITS.itemGap.min, max: SPACING_LIMITS.itemGap.max, default: SPACING_LIMITS.itemGap.default },
+  fontScale: { min: TYPOGRAPHY_SCALE_LIMITS.fontScale.min, max: TYPOGRAPHY_SCALE_LIMITS.fontScale.max, default: TYPOGRAPHY_SCALE_LIMITS.fontScale.default },
+  titleScale: { min: TYPOGRAPHY_SCALE_LIMITS.titleScale.min, max: TYPOGRAPHY_SCALE_LIMITS.titleScale.max, default: TYPOGRAPHY_SCALE_LIMITS.titleScale.default },
+  bodyScale: { min: TYPOGRAPHY_SCALE_LIMITS.bodyScale.min, max: TYPOGRAPHY_SCALE_LIMITS.bodyScale.max, default: TYPOGRAPHY_SCALE_LIMITS.bodyScale.default },
+  listScale: { min: TYPOGRAPHY_SCALE_LIMITS.listScale.min, max: TYPOGRAPHY_SCALE_LIMITS.listScale.max, default: TYPOGRAPHY_SCALE_LIMITS.listScale.default },
+  lineHeight: { min: TYPOGRAPHY_SCALE_LIMITS.lineHeight.min, max: TYPOGRAPHY_SCALE_LIMITS.lineHeight.max, default: DEFAULT_LINE_HEIGHT }
+});
+
+export const CANONICAL_SECTION_TITLES = Object.freeze({
+  es: {
+    profile_header: 'Cabecera de Perfil',
+    title_subtitle: 'Nombre y Perfil',
+    about: 'Perfil Profesional',
+    contact: 'Información de Contacto',
+    skills: 'Habilidades Técnicas',
+    experience: 'Experiencia Laboral',
+    projects: 'Proyectos Destacados',
+    education: 'Educación',
+    certificates: 'Certificaciones',
+    languages: 'Idiomas',
+    awards: 'Premios y Logros',
+    publications: 'Publicaciones',
+    references: 'Referencias',
+    mentoring: 'Mentoría',
+    volunteering: 'Voluntariado',
+    simple_list: 'Información Adicional'
+  },
+  en: {
+    profile_header: 'Profile Header',
+    title_subtitle: 'Name & Profile',
+    about: 'Professional Summary',
+    contact: 'Contact Information',
+    skills: 'Technical Skills',
+    experience: 'Work Experience',
+    projects: 'Featured Projects',
+    education: 'Education',
+    certificates: 'Certifications',
+    languages: 'Languages',
+    awards: 'Awards & Honors',
+    publications: 'Publications',
+    references: 'References',
+    mentoring: 'Mentoring',
+    volunteering: 'Volunteering',
+    simple_list: 'Additional Information'
+  }
 });
 
 /**
@@ -263,29 +302,37 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
         const column = sec.column === 'right' ? 'right' : 'left';
         const type = typeof sec.type === 'string' && sec.type.trim() ? sec.type.trim() : 'list';
         let title = typeof sec.title === 'string' ? sec.title.trim() : '';
-        const isInternalIdTitle = /^sec_[a-zA-Z0-9_-]+$/i.test(title) ||
-                                  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(title) ||
-                                  title === secId;
-        if (isInternalIdTitle || !title) {
-          const canonicalMap = {
-            profile_header: 'Cabecera de Perfil',
-            title_subtitle: 'Nombre y Perfil',
-            about: 'Perfil Profesional',
-            contact: 'Información de Contacto',
-            skills: 'Habilidades',
-            experience: 'Experiencia Laboral',
-            projects: 'Proyectos',
-            education: 'Educación',
-            certificates: 'Certificaciones',
-            languages: 'Idiomas',
-            awards: 'Premios y Logros',
-            publications: 'Publicaciones',
-            references: 'Referencias',
-            mentoring: 'Mentoría',
-            volunteering: 'Voluntariado',
-            simple_list: 'Información Adicional'
+        const docLang = (safeSnapshot?.layout?.language || safeSnapshot?.language || (Array.isArray(safeSnapshot?.sections) && safeSnapshot.sections.some(s => /\b(experience|education|skills|projects|summary)\b/i.test(s?.title || '')) ? 'en' : 'es'));
+        const canonicalMap = (CANONICAL_SECTION_TITLES && CANONICAL_SECTION_TITLES[docLang])
+          ? CANONICAL_SECTION_TITLES[docLang]
+          : {
+            profile_header: docLang === 'en' ? 'Profile Header' : 'Cabecera de Perfil',
+            title_subtitle: docLang === 'en' ? 'Name & Profile' : 'Nombre y Perfil',
+            about: docLang === 'en' ? 'Professional Summary' : 'Perfil Profesional',
+            contact: docLang === 'en' ? 'Contact Information' : 'Información de Contacto',
+            skills: docLang === 'en' ? 'Technical Skills' : 'Habilidades Técnicas',
+            experience: docLang === 'en' ? 'Work Experience' : 'Experiencia Laboral',
+            projects: docLang === 'en' ? 'Featured Projects' : 'Proyectos Destacados',
+            education: docLang === 'en' ? 'Education' : 'Educación',
+            certificates: docLang === 'en' ? 'Certifications' : 'Certificaciones',
+            languages: docLang === 'en' ? 'Languages' : 'Idiomas',
+            awards: docLang === 'en' ? 'Awards & Honors' : 'Premios y Logros',
+            publications: docLang === 'en' ? 'Publications' : 'Publicaciones',
+            references: docLang === 'en' ? 'References' : 'Referencias',
+            mentoring: docLang === 'en' ? 'Mentoring' : 'Mentoría',
+            volunteering: docLang === 'en' ? 'Volunteering' : 'Voluntariado',
+            simple_list: docLang === 'en' ? 'Additional Information' : 'Información Adicional'
           };
-          title = canonicalMap[type] || (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Sección');
+
+        const isInternalIdPattern = /^sec_[a-zA-Z0-9_-]+$/i.test(title) ||
+                                    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(title);
+        const matchesSecId = Boolean(title && secId && title.toLowerCase() === secId.toLowerCase());
+        const isSemanticSec = /^(experience|work_experience|skills|education|projects|about|summary|contact|languages|certificates)$/i.test(secId);
+
+        if (isInternalIdPattern || !title) {
+          title = canonicalMap[type] || canonicalMap[secId] || (type ? type.charAt(0).toUpperCase() + type.slice(1) : (docLang === 'en' ? 'Section' : 'Sección'));
+        } else if (matchesSecId && isSemanticSec) {
+          title = canonicalMap[secId] || canonicalMap[type] || (title.charAt(0).toUpperCase() + title.slice(1));
         }
 
         const rawItems = Array.isArray(sec.items) ? sec.items : [];
@@ -329,18 +376,30 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
           items: (defaultHeader.items || []).map((it) => ({
             ...it,
             name: profile.name,
+            subtitle: profile.subtitle || it.subtitle || '',
           })),
         },
         ...sanitizedSections,
       ];
     } else {
-      // Synchronize profile.name with profile_header section item if needed
+      // Synchronize profile.name and profile.subtitle with profile_header section item if needed
       finalSections = finalSections.map((sec) => {
         if (sec.id === 'profile_header' || sec.type === 'profile_header') {
           if (sec.items && sec.items.length > 0) {
             const firstItem = { ...sec.items[0] };
             if (!firstItem.name && profile.name) {
               firstItem.name = profile.name;
+            }
+            if (!profile.name && firstItem.name) {
+              profile.name = firstItem.name;
+            }
+            const candidateSubtitle = (profile.subtitle || profile.title || '').trim();
+            const itemSubtitle = (firstItem.subtitle || '').trim();
+            if (!itemSubtitle && candidateSubtitle) {
+              firstItem.subtitle = candidateSubtitle;
+            }
+            if (!candidateSubtitle && itemSubtitle) {
+              profile.subtitle = itemSubtitle;
             }
             return {
               ...sec,

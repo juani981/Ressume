@@ -75,8 +75,11 @@ export const VersionCard = ({
   onConfirmLoad,
   onDuplicate,
   onDownloadJSON,
+  onDownloadPDF,
   onConfirmDelete,
+  theme = 'dark',
 }) => {
+  const isDark = theme === 'dark';
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Generate complete, authentic standalone HTML for the version snapshot (Invariants 15 & 16)
@@ -153,13 +156,15 @@ export const VersionCard = ({
   return (
     <div
       key={version.id}
-      className={`version-card ${isActive ? 'version-card--active' : ''}`}
+      data-testid={`version-card-${version.id}`}
+      data-theme={theme}
+      className="version-card"
       onClick={() => {
         if (!isEditing && onConfirmLoad) onConfirmLoad(version);
       }}
       style={{
-        backgroundColor: '#ffffff',
-        border: isActive ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
         borderRadius: '12px',
         overflow: 'hidden',
         display: 'flex',
@@ -167,15 +172,13 @@ export const VersionCard = ({
         height: '310px',
         minHeight: '310px',
         maxHeight: '310px',
-        boxShadow: isActive
-          ? '0 4px 14px rgba(16, 185, 129, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)'
-          : '0 2px 4px rgba(0, 0, 0, 0.04)',
+        boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.04)',
         transition: 'all 0.15s ease',
         flexShrink: 0,
         position: 'relative',
         cursor: isEditing ? 'default' : 'pointer',
       }}
-      title={!isEditing ? 'Clic para usar como versión actual' : undefined}
+      title={!isEditing ? 'Clic para cargar versión' : undefined}
     >
       {/* Visual Thumbnail Preview (Default click: Use as current version) */}
       <div
@@ -185,13 +188,13 @@ export const VersionCard = ({
           minHeight: '190px',
           maxHeight: '190px',
           flexShrink: 0,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#0f172a' : '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
           position: 'relative',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           cursor: isEditing ? 'default' : 'pointer',
           width: '100%',
           zIndex: 1,
@@ -228,51 +231,18 @@ export const VersionCard = ({
               textAlign: 'center',
               height: '100%',
               width: '100%',
-              backgroundColor: '#f8fafc',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
               zIndex: 1,
             }}
           >
-            <FileText size={24} color="#94a3b8" />
-            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
+            <FileText size={24} color={isDark ? '#475569' : '#94a3b8'} />
+            <span style={{ color: isDark ? '#64748b' : '#94a3b8', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.2 }}>
               Sin vista previa
             </span>
           </div>
         )}
 
-        {/* Top-Left: "Actual" emerald pill with pulse dot if isActive */}
-        {isActive && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '8px',
-              left: '8px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '3px 8px',
-              borderRadius: '9999px',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              backgroundColor: '#ecfdf5',
-              color: '#065f46',
-              border: '1px solid #a7f3d0',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
-              zIndex: 3,
-            }}
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: '#10b981',
-                boxShadow: '0 0 6px #10b981',
-                display: 'inline-block',
-              }}
-            />
-            Actual
-          </div>
-        )}
+        {/* No "Actual" badge: the live document is always different from saved versions, so no version should appear "active" */}
 
         {/* Top-Right: Layout Badge with High Contrast */}
         <div
@@ -430,7 +400,7 @@ export const VersionCard = ({
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          backgroundColor: '#ffffff',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
           position: 'relative',
           zIndex: 2,
           overflow: 'hidden',
@@ -466,7 +436,8 @@ export const VersionCard = ({
                 border: '1px solid #3b82f6',
                 borderRadius: '4px',
                 outline: 'none',
-                backgroundColor: '#eff6ff',
+                backgroundColor: isDark ? '#0f172a' : '#eff6ff',
+                color: isDark ? '#f8fafc' : '#0f172a',
               }}
             />
           ) : (
@@ -489,7 +460,7 @@ export const VersionCard = ({
                   margin: 0,
                   fontSize: '0.9rem',
                   fontWeight: 600,
-                  color: '#0f172a',
+                  color: isDark ? '#f8fafc' : '#0f172a',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -511,7 +482,7 @@ export const VersionCard = ({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#94a3b8',
+                  color: isDark ? '#64748b' : '#94a3b8',
                   padding: '2px',
                   display: 'flex',
                   alignItems: 'center',
@@ -532,7 +503,7 @@ export const VersionCard = ({
             alignItems: 'center',
             gap: '6px',
             fontSize: '0.72rem',
-            color: '#64748b',
+            color: isDark ? '#94a3b8' : '#64748b',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -550,7 +521,7 @@ export const VersionCard = ({
             <Calendar size={12} />
             <span>{relativeTime}</span>
           </span>
-          <span style={{ color: '#cbd5e1' }}>•</span>
+          <span style={{ color: isDark ? '#475569' : '#cbd5e1' }}>•</span>
           <span>{isAts ? 'ATS 1-Columna' : '2 Columnas'}</span>
         </div>
       </div>
@@ -565,14 +536,14 @@ export const VersionCard = ({
           left: 0,
           right: 0,
           height: '46px',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #e2e8f0',
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
           padding: '0 0.75rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.45rem',
           zIndex: 10,
-          boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.03)',
+          boxShadow: isDark ? '0 -2px 6px rgba(0, 0, 0, 0.25)' : '0 -2px 6px rgba(0, 0, 0, 0.03)',
         }}
       >
         {/* Primary Button: Load / Active */}
@@ -588,9 +559,9 @@ export const VersionCard = ({
             justifyContent: 'center',
             gap: '5px',
             padding: '0 0.65rem',
-            backgroundColor: isActive ? '#ecfdf5' : '#eff6ff',
-            color: isActive ? '#059669' : '#2563eb',
-            border: `1px solid ${isActive ? '#a7f3d0' : '#bfdbfe'}`,
+            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff',
+            color: isDark ? '#60a5fa' : '#2563eb',
+            border: `1px solid ${isDark ? '#2563eb' : '#bfdbfe'}`,
             borderRadius: '6px',
             fontSize: '0.78rem',
             fontWeight: 600,
@@ -599,8 +570,8 @@ export const VersionCard = ({
             whiteSpace: 'nowrap',
           }}
         >
-          {isActive ? <Check size={13} /> : <CheckCircle2 size={13} />}
-          <span>{isActive ? 'Activa' : 'Cargar'}</span>
+          <CheckCircle2 size={13} />
+          <span>Cargar</span>
         </button>
 
         {/* Secondary Icon Cluster (30x30px buttons) */}
@@ -625,9 +596,11 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: (version.thumbnail || version.cvData) ? '#334155' : '#94a3b8',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: (version.thumbnail || version.cvData) 
+                ? (isDark ? '#cbd5e1' : '#334155') 
+                : (isDark ? '#475569' : '#94a3b8'),
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: (version.thumbnail || version.cvData) ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s ease',
             }}
@@ -651,9 +624,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -661,13 +634,19 @@ export const VersionCard = ({
             <Copy size={14} />
           </button>
 
-          {/* 3. btn-download-version-json */}
+          {/* 3. btn-download-version-pdf */}
           <button
             type="button"
-            data-testid="btn-download-version-json"
-            aria-label="Descargar esta versión como JSON"
-            title="Descargar como JSON"
-            onClick={() => onDownloadJSON(version)}
+            data-testid="btn-download-version-pdf"
+            aria-label="Descargar esta versión como PDF"
+            title="Descargar como PDF"
+            onClick={() => {
+              if (onDownloadPDF) {
+                onDownloadPDF(version);
+              } else if (onDownloadJSON) {
+                onDownloadJSON(version);
+              }
+            }}
             style={{
               width: '30px',
               height: '30px',
@@ -677,9 +656,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#f8fafc',
-              color: '#475569',
-              border: '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#cbd5e1' : '#475569',
+              border: isDark ? '1px solid #334155' : '1px solid #cbd5e1',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -703,8 +682,9 @@ export const VersionCard = ({
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0,
-              backgroundColor: '#fff1f2',
-              color: '#e11d48',
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fff1f2',
+              color: isDark ? '#f87171' : '#e11d48',
+              border: isDark ? '1px solid #b91c1c' : '1px solid transparent',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}

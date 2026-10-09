@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
+  rectIntersection, 
   PointerSensor, 
   KeyboardSensor, 
   useSensor, 
@@ -97,7 +98,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                     <InlineEdit 
                       value={bulletText} 
                       isPrint={true}
-                      display="inline"
+                      multiline={true}
                     />
                   </li>
                 );
@@ -143,12 +144,27 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
     onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
   };
 
+  const handleBulletDragOver = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = bulletItems.findIndex((b) => b.id === active.id);
+    const newIndex = bulletItems.findIndex((b) => b.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      const realOld = startOffset + oldIndex;
+      const realNew = startOffset + newIndex;
+      const newBullets = arrayMove(canonicalBullets, realOld, realNew);
+      onUpdateItem(sectionId, targetItemId, 'bullets', newBullets);
+    }
+  };
+
   const handleBulletDragEnd = (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = bulletItems.findIndex(b => b.id === active.id);
-    const newIndex = bulletItems.findIndex(b => b.id === over.id);
+    const oldIndex = bulletItems.findIndex((b) => b.id === active.id);
+    const newIndex = bulletItems.findIndex((b) => b.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
       const realOld = startOffset + oldIndex;
@@ -212,7 +228,8 @@ const ExperienceItemEditView = ({ item, sectionId, onUpdateItem }) => {
           {bullets.length > 0 && (
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCorners}
+              collisionDetection={rectIntersection}
+              onDragOver={handleBulletDragOver}
               onDragEnd={handleBulletDragEnd}
             >
               <SortableContext

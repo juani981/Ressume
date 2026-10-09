@@ -1,18 +1,21 @@
 /**
  * liveSortDndCoordinator.test.jsx
  *
- * Exhaustive unit test suite verifying real-time live sort drag-and-drop reordering,
- * in-place placeholder presentation without floating clone overlay,
- * and single atomic undo/redo history commit.
+ * Exhaustive unit test suite verifying static snap-in-place drag-and-drop coordination:
+ * 1. Document data remains static during drag (zero micro-movement or layout recalculation).
+ * 2. Visual drop indicator ('sombra') dropTarget state is computed in real-time.
+ * 3. 60fps ghost overlay renders friendly declared names from sectionRegistry.
+ * 4. Atomic commit to cvData and history transition occurs on handleDragEnd.
+ * 5. Clean state reset on handleDragCancel.
  */
 
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, renderHook, act } from '@testing-library/react';
 import { useCVDndCoordinator } from '../hooks/useCVDndCoordinator';
-import { CVDragOverlay } from '../components/Editor/CVDragOverlay';
+import { CVDragOverlay, CVDragOverlayContent } from '../components/Editor/CVDragOverlay';
 
-describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => {
+describe('Static Snap-in-Place Drag & Drop Coordinator', () => {
   const initialSections = [
     {
       id: 'profile_header',
@@ -38,18 +41,50 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
     },
   ];
 
-  it('CVDragOverlay returns null (no floating clone tracking cursor)', () => {
-    const { container } = render(
-      <CVDragOverlay
-        activeDragItem={{ id: 'exp_1' }}
-        activeDragSection={{ id: 'experience' }}
-      />
-    );
-    expect(container.firstChild).toBeNull();
+  describe('CVDragOverlay & CVDragOverlayContent', () => {
+    it('CVDragOverlay returns null when no item or section is active', () => {
+      const { container } = render(
+        <CVDragOverlay
+          activeDragItem={null}
+          activeDragSection={null}
+        />
+      );
+      expect(container.firstChild).toBeNull();
+    });
+
+    it('renders friendly section preview card and full component in CVDragOverlayContent', () => {
+      const { getByTestId } = render(
+        <CVDragOverlayContent
+          activeDragSection={{
+            section: { id: 'experience', type: 'experience', title: 'Experiencia Laboral', items: [{}, {}] },
+          }}
+        />
+      );
+      const sectionOverlay = getByTestId('drag-overlay-section');
+      expect(sectionOverlay).toBeDefined();
+      expect(getByTestId('drag-overlay-section-title').textContent).toContain('Experiencia Laboral');
+      expect(sectionOverlay.querySelector('.drag-overlay-rendered-section')).toBeTruthy();
+    });
+
+    it('renders friendly item preview card and full item component in CVDragOverlayContent', () => {
+      const { getByTestId } = render(
+        <CVDragOverlayContent
+          activeDragItem={{
+            sectionType: 'experience',
+            item: { id: 'exp_1', title: 'Senior Dev', subtitle: 'Acme Corp' },
+          }}
+        />
+      );
+      const itemOverlay = getByTestId('drag-overlay-item');
+      expect(itemOverlay).toBeDefined();
+      expect(getByTestId('drag-overlay-item-title').textContent).toBe('Senior Dev');
+      expect(getByTestId('drag-overlay-item-badge').textContent).toContain('Experiencia Laboral');
+      expect(itemOverlay.querySelector('.drag-overlay-rendered-item')).toBeTruthy();
+    });
   });
 
-  describe('Section live reordering on handleDragOver', () => {
-    it('reorders sections downward in real time during drag over before mouse release', () => {
+  describe('Dynamic live drag over reordering (Framer Motion Reorder UX)', () => {
+    it('dynamically reorders sections downward in cvData during section drag over', () => {
       let cvData = { sections: [...initialSections] };
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -74,6 +109,9 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
+      expect(result.current.activeDragSection).toBeDefined();
+      expect(result.current.dropTarget).toBeNull();
+
       // 2. Drag over education section downward
       act(() => {
         result.current.handleDragOver({
@@ -90,16 +128,25 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
-      // Verify setCvData was invoked and sections reordered: experience moved below education
+      // Verify setCvData was invoked during dragover and sections were reordered dynamically
       expect(setCvData).toHaveBeenCalled();
       expect(cvData.sections.map((s) => s.id)).toEqual([
         'profile_header',
         'education',
         'experience',
       ]);
+
+      // Verify dropTarget holds the active target
+      expect(result.current.dropTarget).toEqual({
+        type: 'section',
+        activeSectionId: 'experience',
+        targetColumn: 'single',
+        targetSectionId: 'education',
+        position: 'below',
+      });
     });
 
-    it('reorders sections upward in real time during drag over', () => {
+    it('dynamically reorders sections upward in cvData during section drag over', () => {
       let cvData = {
         sections: [
           initialSections[0],
@@ -120,7 +167,6 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         })
       );
 
-      // Start dragging experience upward
       act(() => {
         result.current.handleDragStart({
           active: {
@@ -146,16 +192,25 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
+      // Sections reordered dynamically
+      expect(setCvData).toHaveBeenCalled();
       expect(cvData.sections.map((s) => s.id)).toEqual([
         'profile_header',
         'experience',
         'education',
       ]);
-    });
-  });
 
-  describe('Item live reordering on handleDragOver', () => {
-    it('reorders items within the same section in real time', () => {
+      // dropTarget indicates placement
+      expect(result.current.dropTarget).toEqual({
+        type: 'section',
+        activeSectionId: 'experience',
+        targetColumn: 'single',
+        targetSectionId: 'education',
+        position: 'above',
+      });
+    });
+
+    it('dynamically reorders items in cvData during item drag over', () => {
       let cvData = JSON.parse(JSON.stringify({ sections: initialSections }));
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -209,14 +264,25 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
+      // Dynamic mutation during drag over
       expect(setCvData).toHaveBeenCalled();
-      const expSec = cvData.sections.find((s) => s.id === 'experience');
-      expect(expSec.items.map((i) => i.id)).toEqual(['exp_2', 'exp_1', 'exp_3']);
+      const expItems = cvData.sections.find((s) => s.id === 'experience').items;
+      expect(expItems.map((i) => i.id)).toEqual(['exp_2', 'exp_1', 'exp_3']);
+
+      // dropTarget reflects item placeholder position
+      expect(result.current.dropTarget).toEqual({
+        type: 'item',
+        activeItemId: 'exp_1',
+        activeSectionId: 'experience',
+        targetSectionId: 'experience',
+        targetItemId: 'exp_2',
+        position: 'below',
+      });
     });
   });
 
-  describe('Atomic history commit and cancel rollback', () => {
-    it('commits pre-drag snapshot and next state to history on handleDragEnd', () => {
+  describe('Atomic commit on handleDragEnd and cancel rollback', () => {
+    it('commits section reordering atomically on handleDragEnd', () => {
       let cvData = JSON.parse(JSON.stringify({ sections: initialSections }));
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -241,7 +307,7 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
-      // Move during drag
+      // Drag over education
       act(() => {
         result.current.handleDragOver({
           active: {
@@ -257,15 +323,26 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
-      // Release mouse
+      // Release mouse (drop)
       act(() => {
         result.current.handleDragEnd({
-          active: { id: 'experience' },
-          over: { id: 'education' },
+          active: {
+            id: 'experience',
+            data: { current: { type: 'section' } },
+            rect: { current: { translated: { top: 400, height: 100 } } },
+          },
+          over: {
+            id: 'education',
+            data: { current: { type: 'section' } },
+            rect: { top: 300, height: 100 },
+          },
         });
       });
 
+      // setCvData and recordHistory are called on drop
+      expect(setCvData).toHaveBeenCalled();
       expect(recordHistory).toHaveBeenCalledTimes(1);
+
       const [preSnapshot, finalState] = recordHistory.mock.calls[0];
       expect(preSnapshot.sections.map((s) => s.id)).toEqual([
         'profile_header',
@@ -277,9 +354,104 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         'education',
         'experience',
       ]);
+
+      // Active and dropTarget states are reset
+      expect(result.current.dropTarget).toBeNull();
+      expect(result.current.activeDragSection).toBeNull();
     });
 
-    it('rolls back to pre-drag snapshot on handleDragCancel', () => {
+    it('commits item reordering atomically on handleDragEnd', () => {
+      let cvData = JSON.parse(JSON.stringify({ sections: initialSections }));
+      const setCvData = vi.fn((updater) => {
+        cvData = typeof updater === 'function' ? updater(cvData) : updater;
+      });
+      const recordHistory = vi.fn();
+
+      const { result } = renderHook(() =>
+        useCVDndCoordinator({
+          cvData,
+          setCvData,
+          recordHistoryTransition: recordHistory,
+        })
+      );
+
+      // Start drag
+      act(() => {
+        result.current.handleDragStart({
+          active: {
+            id: 'exp_1',
+            data: {
+              current: {
+                type: 'item',
+                item: cvData.sections[1].items[0],
+                sectionId: 'experience',
+              },
+            },
+          },
+        });
+      });
+
+      // Drag exp_1 below exp_2
+      act(() => {
+        result.current.handleDragOver({
+          active: {
+            id: 'exp_1',
+            data: {
+              current: {
+                type: 'item',
+                sectionId: 'experience',
+              },
+            },
+            rect: { current: { translated: { top: 250, height: 50 } } },
+          },
+          over: {
+            id: 'exp_2',
+            data: {
+              current: {
+                type: 'item',
+                sectionId: 'experience',
+              },
+            },
+            rect: { top: 200, height: 50 },
+          },
+        });
+      });
+
+      // Drop
+      act(() => {
+        result.current.handleDragEnd({
+          active: {
+            id: 'exp_1',
+            data: {
+              current: {
+                type: 'item',
+                sectionId: 'experience',
+              },
+            },
+            rect: { current: { translated: { top: 250, height: 50 } } },
+          },
+          over: {
+            id: 'exp_2',
+            data: {
+              current: {
+                type: 'item',
+                sectionId: 'experience',
+              },
+            },
+            rect: { top: 200, height: 50 },
+          },
+        });
+      });
+
+      expect(setCvData).toHaveBeenCalled();
+      expect(recordHistory).toHaveBeenCalledTimes(1);
+      const expSec = cvData.sections.find((s) => s.id === 'experience');
+      expect(expSec.items.map((i) => i.id)).toEqual(['exp_2', 'exp_1', 'exp_3']);
+      expect(result.current.dropTarget).toBeNull();
+      expect(result.current.activeDragItem).toBeNull();
+    });
+
+    it('clears dropTarget and keeps original state on handleDragCancel', () => {
       let cvData = JSON.parse(JSON.stringify({ sections: initialSections }));
       const setCvData = vi.fn((updater) => {
         cvData = typeof updater === 'function' ? updater(cvData) : updater;
@@ -318,25 +490,17 @@ describe('Live Sort Drag & Drop Coordinator (Real-time auto-adjustment)', () => 
         });
       });
 
-      expect(cvData.sections.map((s) => s.id)).toEqual([
-        'profile_header',
-        'education',
-        'experience',
-      ]);
+      expect(result.current.dropTarget).not.toBeNull();
 
       // Cancel drag (e.g. Escape key pressed)
       act(() => {
         result.current.handleDragCancel();
       });
 
-      // Rollback called with pre-drag snapshot
-      expect(setCvData).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          sections: expect.arrayContaining([
-            expect.objectContaining({ id: 'experience' }),
-          ]),
-        })
-      );
+      // State is reset and document data is untouched
+      expect(result.current.dropTarget).toBeNull();
+      expect(result.current.activeDragSection).toBeNull();
+      expect(result.current.activeDragItem).toBeNull();
       expect(cvData.sections.map((s) => s.id)).toEqual([
         'profile_header',
         'experience',

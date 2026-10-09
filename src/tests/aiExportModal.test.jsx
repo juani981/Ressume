@@ -301,7 +301,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
 
       const promptSelect = screen.getByTestId('ai-prompt-select');
       const options = promptSelect.querySelectorAll('option');
-      expect(options.length).toBe(13);
+      expect(options.length).toBe(10);
 
       const promptIds = Array.from(options).map(o => o.value);
       expect(promptIds).toContain('recruiter_audit');
@@ -309,10 +309,7 @@ describe('AIExportModal Component & UI Reactivity', () => {
       expect(promptIds).toContain('star_enhancer');
       expect(promptIds).toContain('technical_interview');
       expect(promptIds).toContain('translate_english');
-      expect(promptIds).toContain('layout_advisor');
-      expect(promptIds).toContain('system_design_simulator');
       expect(promptIds).toContain('live_coding_coach');
-      expect(promptIds).toContain('behavioral_leadership_prep');
       expect(promptIds).toContain('career_upskilling_roadmap');
       expect(promptIds).toContain('cold_outreach_generator');
       expect(promptIds).toContain('salary_negotiation_advisor');
@@ -375,35 +372,14 @@ describe('AIExportModal Component & UI Reactivity', () => {
       });
     });
 
-    it('T6.2: downloads markdown file with candidate name and prompt id on download click', () => {
-      const createObjectURLMock = vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:http://localhost/mock-url');
-      const revokeObjectURLMock = vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
-
-      const clickedLinks = [];
-      const origCreateElement = document.createElement.bind(document);
-      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
-        const el = origCreateElement(tagName, options);
-        if (tagName.toLowerCase() === 'a') {
-          el.click = vi.fn(() => { clickedLinks.push(el); });
-        }
-        return el;
-      });
-
+    it('T6.2: omits download button per user design customization', () => {
       render(
         <CVProvider initialCV={baseMockCV}>
           <AIExportModal isOpen={true} onClose={vi.fn()} />
         </CVProvider>
       );
 
-      const downloadBtn = screen.getByTestId('ai-download-btn');
-      fireEvent.click(downloadBtn);
-
-      expect(clickedLinks.length).toBe(1);
-      expect(clickedLinks[0].download).toBe('Ada_Lovelace_AI_Prompt_recruiter_audit.md');
-
-      createObjectURLMock.mockRestore();
-      revokeObjectURLMock.mockRestore();
-      createElementSpy.mockRestore();
+      expect(screen.queryByTestId('ai-download-btn')).toBeNull();
     });
 
     it('T6.3: renders zero raw unicode emoji glyphs in the modal markup (adversarial ban compliant)', () => {
@@ -428,3 +404,4 @@ describe('AIExportModal Component & UI Reactivity', () => {
     });
   });
 });
+

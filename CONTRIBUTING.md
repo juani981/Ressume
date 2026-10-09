@@ -24,7 +24,7 @@ Antes de escribir cualquier línea de código, debes conocer las 3 leyes fundame
 src/
 ├── constants/               # [SSOT] Dimensiones físicas A4, espaciados, paletas, fuentes
 │   ├── geometry.js          # 210mm x 297mm, 794px x 1123px, A4_GEOMETRY
-│   ├── spacing.js           # Defaults: pagePadding (24px), sectionGap (20px), itemGap (8px)
+│   ├── spacing.js           # Defaults: pagePadding (24px), sectionGap (12px), itemGap (6px)
 │   ├── colors.js            # Tokens semánticos y reglas Obsidian Callout
 │   └── typography.js        # Fuentes soportadas y límites de escalado
 │
@@ -47,7 +47,7 @@ src/
 │   └── Editor/              # Barra de herramientas (ActionMenu), modales y paneles
 │       └── ActionMenu/      # Compound Components (DesignPanel, ActionMenuRoot)
 │
-└── tests/                   # 69 suites y +1,015 pruebas unitarias e integradas (Vitest)
+└── tests/                   # 82 suites nucleares y +1,170 pruebas unitarias e integradas (Vitest)
 ```
 
 ---

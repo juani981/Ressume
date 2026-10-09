@@ -28,7 +28,7 @@ export const useCVExport = () => {
     setToast(null);
   }, []);
 
-  const exportCleanPDF = useCallback(async (cvData, activeLanguage = 'es') => {
+  const exportCleanPDF = useCallback(async (cvData, activeLanguage = 'es', customSnapshot = undefined) => {
     if (isExporting) return;
     setIsExporting(true);
     showToast('Generando PDF optimizado y preparando impresión...', 'loading', 0);
@@ -61,7 +61,7 @@ export const useCVExport = () => {
     }
 
     try {
-      await executeCleanPrint(cvData, activeLanguage);
+      await executeCleanPrint(cvData, activeLanguage, customSnapshot);
     } catch (e) {
       console.warn('executeCleanPrint fallback', e);
       if (typeof window !== 'undefined') window.print();

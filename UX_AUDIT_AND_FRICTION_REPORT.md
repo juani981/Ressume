@@ -1,6 +1,6 @@
 # Ressume UX Friction Audit & First-Time User Journey Report
 
-**Audit Date**: 10/5/2026, 5:21:32 AM  
+**Audit Date**: 10/7/2026, 1:09:52 AM  
 **Target User Persona**: *First-time naive candidate / software engineer with zero prior knowledge of Ressume.*  
 **Methodology**: Simulated end-to-end user session running Cypress on Firefox 157 and Chromium 152 with full DOM telemetry, coordinate tracking, and UX friction instrumentation.
 
@@ -28,12 +28,12 @@ Below is the 2D spatial heatmap representing click and hover density across the 
       0% 7% 14%21%29%36%43%50%57%64%71%79%86%93%
      ┌─────────────────────────────┐
   0% │ · · · · · · ▓ · · · · · · · │
- 13% │ · · ▓ · · · ▓ · · · · · · · │
- 25% │ ▓ · · · · · · · · · ▓ · · · │
+ 13% │ ▓ · ▓ · · · ▓ · · · · · · · │
+ 25% │ · · · · · · · · · · ▓ · · · │
  38% │ █ · · · · · · · · · · · · · │
  50% │ █ · · · · · · · · · · · · · │
- 63% │ ▓ · · · · · · · · · · · · · │
- 75% │ · · · · · · · · · · · · · · │
+ 63% │ · · · · · · · · · · · · · · │
+ 75% │ ▓ · · · · · · · · · · · · · │
  88% │ · · · · · · · · · · · · · · │
      └─────────────────────────────┘
 ```

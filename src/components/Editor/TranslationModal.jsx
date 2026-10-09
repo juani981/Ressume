@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
 import {
   SUPPORTED_LANGUAGES,
@@ -30,7 +30,8 @@ import {
   ExternalLink,
   ArrowRight,
   ClipboardPaste,
-  Trash2
+  Trash2,
+  Info
 } from 'lucide-react';
 
 const TranslationModal = ({ isOpen, onClose }) => {
@@ -44,12 +45,29 @@ const TranslationModal = ({ isOpen, onClose }) => {
   } = useCV();
 
   const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'import' | 'slots'
-  const [targetLangCode, setTargetLangCode] = useState('en');
-  const [customLangCode, setCustomLangCode] = useState('');
+  const [sourceLangCode, setSourceLangCode] = useState(() => (activeLanguage === 'en' ? 'en' : 'es'));
+  const [targetLangCode, setTargetLangCode] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
   const [customGuidelines, setCustomGuidelines] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [isWaitingAI, setIsWaitingAI] = useState(false);
+
+  // Synchronize when activeLanguage changes
+  useEffect(() => {
+    const src = activeLanguage === 'en' ? 'en' : 'es';
+    setSourceLangCode(src);
+    setTargetLangCode(src === 'en' ? 'es' : 'en');
+  }, [activeLanguage]);
+
+  const handleSourceLangChange = (newSource) => {
+    setSourceLangCode(newSource);
+    setTargetLangCode(newSource === 'en' ? 'es' : 'en');
+  };
+
+  const handleTargetLangChange = (newTarget) => {
+    setTargetLangCode(newTarget);
+    setSourceLangCode(newTarget === 'en' ? 'es' : 'en');
+  };
 
   // Import Tab State
   const [rawAIInput, setRawAIInput] = useState('');
@@ -60,16 +78,14 @@ const TranslationModal = ({ isOpen, onClose }) => {
     return getActiveDictionary() || extractDictionaryFromCV(cvData);
   }, [cvData, activeLanguage, languagePacks]);
 
-  const effectiveTargetLang = targetLangCode === 'custom' ? (customLangCode.trim() || 'custom') : targetLangCode;
-
   const generatedPrompt = useMemo(() => {
     return buildTranslationPrompt(
       currentDict,
-      effectiveTargetLang,
-      activeLanguage,
+      targetLangCode,
+      sourceLangCode,
       customGuidelines
     );
-  }, [currentDict, effectiveTargetLang, activeLanguage, customGuidelines]);
+  }, [currentDict, targetLangCode, sourceLangCode, customGuidelines]);
 
   if (!isOpen) return null;
 
@@ -281,33 +297,59 @@ const TranslationModal = ({ isOpen, onClose }) => {
         {/* Tab Content */}
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
+          {/* Disclaimer de Privacidad, Procesamiento Externo/Local y Gratuidad */}
+          {activeTab !== 'slots' && (
+            <div 
+              className="obsidian-callout"
+              data-testid="translation-ai-disclaimer-callout"
+              style={{
+                background: 'rgba(8, 109, 221, 0.08)',
+                borderLeft: '4px solid rgb(8, 109, 221)',
+                padding: '0.75rem 1rem',
+                borderRadius: '4px 8px 8px 4px',
+                fontSize: '0.84rem'
+              }}
+            >
+              <div 
+                className="callout-title"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                  color: '#3874ff',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                <Info size={16} color="#3874ff" />
+                <span>Privacidad, Procesamiento Externo y Uso Gratuito</span>
+              </div>
+              <div 
+                className="callout-content"
+                style={{
+                  color: 'var(--text-color, #334155)',
+                  lineHeight: '1.45',
+                  fontSize: '0.82rem'
+                }}
+              >
+                Todo el procesamiento de datos se realiza en la IA externa o local que elijas (como ChatGPT, Claude, Gemini, DeepSeek u Ollama). Ressume no almacena tus datos en ningún servidor ni genera coste alguno por uso o descarga. Recomendamos copiar y pegar este mismo prompt en varias IAs para comparar y contrastar los resultados.
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: PROMPT GENERATOR */}
           {activeTab === 'prompt' && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                    Idioma Origen Actual:
-                  </label>
-                  <div style={{
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(150, 150, 150, 0.3)',
-                    background: 'rgba(0,0,0,0.05)',
-                    fontWeight: 600,
-                    fontSize: '0.9rem'
-                  }}>
-                    {activeLanguage.toUpperCase()} — {SUPPORTED_LANGUAGES.find(l => l.code === activeLanguage)?.name || 'Idioma Activo'}
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                    <Target size={15} color="#3874ff" /> Idioma Destino (Slot a Traducir):
+                  <label htmlFor="translation-source-lang" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    <Globe size={15} color="#10b981" /> Idioma de Entrada (Input):
                   </label>
                   <select
-                    value={targetLangCode}
-                    onChange={(e) => setTargetLangCode(e.target.value)}
+                    id="translation-source-lang"
+                    data-testid="translation-source-lang"
+                    value={sourceLangCode}
+                    onChange={(e) => handleSourceLangChange(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.85rem',
@@ -319,37 +361,36 @@ const TranslationModal = ({ isOpen, onClose }) => {
                       cursor: 'pointer'
                     }}
                   >
-                    {SUPPORTED_LANGUAGES.filter(l => l.code !== activeLanguage).map(l => (
-                      <option key={l.code} value={l.code}>
-                        {l.name} ({l.code})
-                      </option>
-                    ))}
-                    <option value="custom">Otro Idioma (Código ISO personalizado)</option>
+                    <option value="es">Español (es)</option>
+                    <option value="en">English (en)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="translation-target-lang" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    <Target size={15} color="#3874ff" /> Idioma de Salida (Output):
+                  </label>
+                  <select
+                    id="translation-target-lang"
+                    data-testid="translation-target-lang"
+                    value={targetLangCode}
+                    onChange={(e) => handleTargetLangChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(150, 150, 150, 0.3)',
+                      background: 'var(--body-color, #f9f9f9)',
+                      color: 'inherit',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="en">English (en)</option>
+                    <option value="es">Español (es)</option>
                   </select>
                 </div>
               </div>
-
-              {targetLangCode === 'custom' && (
-                <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                    <Plus size={15} /> Código de Idioma Personalizado (ej. "nl", "sv", "pl", "it"):
-                  </label>
-                  <input
-                    type="text"
-                    value={customLangCode}
-                    onChange={(e) => setCustomLangCode(e.target.value.toLowerCase())}
-                    placeholder="Código de 2 o 3 letras..."
-                    style={{
-                      width: '200px',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(150, 150, 150, 0.3)',
-                      background: 'var(--body-color, #f9f9f9)',
-                      color: 'inherit'
-                    }}
-                  />
-                </div>
-              )}
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
@@ -537,6 +578,9 @@ const TranslationModal = ({ isOpen, onClose }) => {
                       DeepSeek <ExternalLink size={11} />
                     </a>
                   </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-color-light, #666)', marginTop: '0.15rem' }}>
+                    Sin costes ni almacenamiento de datos. Puedes comparar la traducción en varios modelos antes de importar.
+                  </div>
                 </div>
               )}
 
@@ -591,7 +635,7 @@ const TranslationModal = ({ isOpen, onClose }) => {
                   rows={isWaitingAI ? 10 : 7}
                   value={rawAIInput}
                   onChange={(e) => setRawAIInput(e.target.value)}
-                  placeholder={`Pega aquí el JSON devuelto por ChatGPT, Claude, Gemini o DeepSeek...\nEjemplo:\n{\n  "${effectiveTargetLang}": {\n    "nav_home": "Home",\n    ...\n  }\n}`}
+                  placeholder={`Pega aquí el JSON devuelto por ChatGPT, Claude, Gemini o DeepSeek...\nEjemplo:\n{\n  "${targetLangCode}": {\n    "nav_home": "Home",\n    ...\n  }\n}`}
                   style={{
                     width: '100%',
                     minHeight: isWaitingAI ? '220px' : '140px',

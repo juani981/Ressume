@@ -18,13 +18,16 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { List, Trash2, Plus, Lightbulb } from 'lucide-react';
+import { List, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
 import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
+import { useDndStatus } from '../../context/DndStatusContext';
+import { DEFAULT_SECTION_GAP_PX } from '../../constants';
+import SectionErrorBoundary from './SectionErrorBoundary';
 
 /**
  * Checks whether the container tag should be rendered as a list container (ul/ol).
@@ -62,6 +65,7 @@ export const SectionItemsRenderer = ({
   sectionType,
   descriptor,
   isPrint = false,
+  hasContinuation = false,
 }) => {
   const ContainerTag = descriptor?.containerTag;
   const isList = isListContainerTag(ContainerTag);
@@ -70,16 +74,19 @@ export const SectionItemsRenderer = ({
     ? descriptor?.printContainerStyle || {}
     : descriptor?.containerStyle || {};
 
-  const renderedItems = items.map((item, index) => (
-    <BaseItem
-      key={item.id || index}
-      item={item}
-      sectionId={sectionId}
-      sectionType={sectionType}
-      isPrint={isPrint}
-      isLast={index === items.length - 1}
-    />
-  ));
+  const renderedItems = items.map((item, index) => {
+    const isItemLast = (index === items.length - 1) && !hasContinuation && !item?.isPartialItem;
+    return (
+      <BaseItem
+        key={item.id || index}
+        item={item}
+        sectionId={sectionId}
+        sectionType={sectionType}
+        isPrint={isPrint}
+        isLast={isItemLast}
+      />
+    );
+  });
 
   if (isList && ContainerTag) {
     return (
@@ -115,16 +122,19 @@ export const PrintBaseSection = ({ section }) => {
 
   const hasPageBreak = Boolean(section.pageBreak === 'before' || section.breakBefore || section.isForcedBreak);
   const hasTitlePageBreak = Boolean(section.titlePageBreak === 'before' || section.isTitleForcedBreak);
+  const isContinuation = Boolean(section.isContinuation);
 
   return (
     <PrintModeContext.Provider value={true}>
       <section 
-        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}`} 
+        className={`${descriptor.sectionClass} section cv-section${bulletClasses}${hasPageBreak ? ' break-page-before' : ''}${section.hasContinuation ? ' section-has-continuation' : ''}${isContinuation ? ' section-is-continuation' : ''}`} 
         id={section.id}
         data-section-id={section.id}
-        style={{ marginBottom: 'var(--section-gap, 20px)', color: 'var(--text-color)' }}
+        data-has-continuation={section.hasContinuation ? 'true' : undefined}
+        data-is-continuation={isContinuation ? 'true' : undefined}
+        style={{ marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`, color: 'var(--text-color)' }}
       >
-        {descriptor.hasTitle !== false && section.title && (
+        {descriptor.hasTitle !== false && !isContinuation && Boolean(section.title) && (
           <h2 
             className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
             data-section-title={section.id}
@@ -134,13 +144,16 @@ export const PrintBaseSection = ({ section }) => {
         )}
 
         <div className={wrapperClass}>
-          <SectionItemsRenderer
-            items={items}
-            sectionId={section.originalSectionId || section.id}
-            sectionType={section.type}
-            descriptor={descriptor}
-            isPrint={true}
-          />
+          <SectionErrorBoundary sectionId={section.id} sectionTitle={section.title}>
+            <SectionItemsRenderer
+              items={items}
+              sectionId={section.originalSectionId || section.id}
+              sectionType={section.type}
+              descriptor={descriptor}
+              isPrint={true}
+              hasContinuation={Boolean(section.hasContinuation)}
+            />
+          </SectionErrorBoundary>
         </div>
 
         <IntegratedBottomSpacer isPrint={true} containerId={section.id} height={section.bottomSpacing || 0} />
@@ -158,7 +171,7 @@ export const PrintBaseSection = ({ section }) => {
  * @param {Object} props.section - CV section data model
  * @returns {React.ReactElement}
  */
-const EditableBaseSection = ({ section }) => {
+const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const descriptor = getSectionDescriptor(section?.type);
 
   if (descriptor?.sectionComponent) {
@@ -166,9 +179,17 @@ const EditableBaseSection = ({ section }) => {
     return <CustomSection section={section} isPrint={false} />;
   }
 
+  const isMoveDisabled = Boolean(
+    descriptor?.isMoveDisabled ||
+    descriptor?.allowSectionDrag === false ||
+    ['profile_header', 'title_subtitle', 'contact', 'about'].includes(section?.type) ||
+    ['profile_header', 'title_subtitle', 'contact', 'about_section', 'about'].includes(section?.id)
+  );
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
     id: section.id,
-    data: { type: 'section', section }
+    disabled: isMoveDisabled,
+    data: { type: 'section', section, isMoveDisabled }
   });
 
   const { 
@@ -178,11 +199,9 @@ const EditableBaseSection = ({ section }) => {
     addSectionItem, 
     deleteSection, 
     updateSectionProperty,
-    toggleTooltipForSection,
-    activeTooltip
   } = useCV();
 
-  const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
+  const { justDroppedId } = useDndStatus();
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
@@ -192,11 +211,12 @@ const EditableBaseSection = ({ section }) => {
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
     position: 'relative',
-    opacity: isDragging ? 0.4 : 1,
-    marginBottom: 'var(--section-gap, 20px)',
+    opacity: isDragging ? undefined : 1,
+    zIndex: isDragging ? 100 : undefined,
+    marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`,
     color: 'var(--text-color)',
     minWidth: 0,
     maxWidth: '100%',
@@ -207,20 +227,25 @@ const EditableBaseSection = ({ section }) => {
   const allowDelete = descriptor.allowDelete !== false;
   const allowAddItem = descriptor.allowAddItem !== false;
   const allowBulletCustomization = Boolean(descriptor.supportsBulletCustomization);
-  const containerDragListeners = createContainerDragListeners(listeners, false);
+  const containerDragListeners = !isMoveDisabled ? createContainerDragListeners(listeners, false) : {};
   const wrapperClass = resolveSectionWrapperClass(descriptor);
+
+  const isJustDropped = Boolean(justDroppedId && (justDroppedId === section.id || justDroppedId === section.originalSectionId));
 
   return (
     <section 
-      ref={setNodeRef} 
-      style={style} 
-      className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}`} 
-      id={section.id}
-      data-section-id={section.id}
-      {...attributes}
-      {...containerDragListeners}
-    >
-      {!section.isContinuation && (
+        ref={setNodeRef} 
+        style={style} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${hideDragAffordance ? ' drag-affordance-hidden' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
+        id={section.id}
+        data-section-id={section.id}
+        data-drag-disabled={isMoveDisabled ? 'true' : undefined}
+        data-has-continuation={section.hasContinuation ? 'true' : undefined}
+        data-is-continuation={section.isContinuation ? 'true' : undefined}
+        {...attributes}
+        {...containerDragListeners}
+      >
+      {!section.isContinuation && !isMoveDisabled && (
         <DragHandle listeners={listeners} attributes={attributes} />
       )}
       
@@ -231,23 +256,6 @@ const EditableBaseSection = ({ section }) => {
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          {isAtsMode && (
-            <button 
-              type="button"
-              className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
-              title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              data-testid={`btn-section-tips-${section.id}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect(), { current: e.currentTarget });
-              }}
-            >
-              <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
-            </button>
-          )}
-
           {allowBulletCustomization && (
             <button 
               type="button"
@@ -287,21 +295,27 @@ const EditableBaseSection = ({ section }) => {
         </div>
       )}
 
-      {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
-        <h2 className="section-title" data-section-title={section.id}>
+      {descriptor.hasTitle !== false && !section.isContinuation && Boolean(section.title) && (
+        <h2 
+          className="section-title" 
+          data-section-title={section.id}
+        >
           <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.originalSectionId || section.id, val)} />
         </h2>
       )}
       
       <div className={wrapperClass} style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}>
         <SortableContext items={(section.items || []).map(i => i.id)} strategy={verticalListSortingStrategy}>
-          <SectionItemsRenderer
-            items={section.items || []}
-            sectionId={section.originalSectionId || section.id}
-            sectionType={section.type}
-            descriptor={descriptor}
-            isPrint={false}
-          />
+          <SectionErrorBoundary sectionId={section.id} sectionTitle={section.title}>
+            <SectionItemsRenderer
+              items={section.items || []}
+              sectionId={section.originalSectionId || section.id}
+              sectionType={section.type}
+              descriptor={descriptor}
+              isPrint={false}
+              hasContinuation={Boolean(section.hasContinuation)}
+            />
+          </SectionErrorBoundary>
         </SortableContext>
       </div>
 

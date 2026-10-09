@@ -81,6 +81,11 @@
   - Espacio entre Secciones (`sectionGap`): `12px`
   - Espacio entre Ítems (`itemGap`): `6px`
 
+## 20. Tono Editorial y Sistema de Ayuda Guiada en Modales
+- **Tono y Registro de Redacción**: Los textos de ayuda, tutoriales, tooltips y guías deben mantener un tono formal, profesional y sobrio, sin caer en voseo ni fórmulas corporativas trilladas o clichés de IA (prohibido el uso de muletillas vacías como "clave", "robusta", "crucial", "ejecutivo", "No es X, es Y"). Debe explicar el funcionamiento y los pasos con claridad técnica y serenidad, sin caer en condescendencia ni estridencias.
+- **Botón de Ayuda "?" en Encabezados de Modales**: Cada modal interactivo debe incorporar un botón de ayuda contextual (`?`, `data-testid="btn-modal-help"`) que despliega una guía paso a paso del flujo específico, accesible en cualquier momento sin forzar bloqueos invasivos.
+- **Arquitectura de Tours Centralizada (`useTourManager`)**: Los pasos de onboarding y recorridos guiados se gestionan mediante un hook global centralizado que preserva la compatibilidad cromática con modo oscuro/claro y registra la finalización o descarte de cada flujo de forma persistente.
+
 
 
 

@@ -156,8 +156,8 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       expect(['0', '0px', '0 0']).toContain(pageBox.style.gap);
       expect(['0', '0px']).toContain(pageBox.style.columnGap);
       expect(['0', '0px']).toContain(pageBox.style.rowGap);
-      expect(rightCol.style.padding).toBe('24px');
-      expect(leftCol.style.padding).toBe('24px');
+      expect(rightCol.style.padding).toBe('24px 24px 12px 24px');
+      expect(leftCol.style.padding).toBe('24px 24px 12px 24px');
     });
   });
 
@@ -172,7 +172,7 @@ describe('A4PageBox Component & Print Support (Rule 15)', () => {
       const singleCol = container.querySelector('.resume__single-column');
 
       expect(pageBox.style.background).toBe('rgb(255, 255, 255)');
-      expect(pageBox.style.padding).toBe('32px');
+      expect(pageBox.style.padding).toBe('32px 32px 16px 32px');
       expect(singleCol).toBeTruthy();
       expect(singleCol.style.height).toBe('100%');
       expect(singleCol.style.minHeight).toBe('100%');

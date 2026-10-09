@@ -14,6 +14,7 @@
 
   /* Spacing defaults */
   --page-padding: 24px;
+  --page-padding-bottom: 12px;
   --section-gap: 12px;
   --item-gap: 6px;
   --line-height: 1.3;

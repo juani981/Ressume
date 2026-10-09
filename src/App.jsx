@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import ActionMenu from "./components/Editor/ActionMenu";
 import LayoutModeToggle from "./components/Editor/LayoutModeToggle";
 import AppModals from "./components/Editor/AppModals";
+import { Footer } from "./components/common/Footer";
 import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
 import { PlusCircle } from "lucide-react";
 import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
+import { initializeFontPreloading } from "./utils/fontPreloader";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -18,8 +20,9 @@ import { computeTypographyTokens } from "./utils/typographyUtils";
 import { getDynamicTextVariables } from "./utils/colorUtils";
 import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
-import CVDragOverlay from "./components/Editor/CVDragOverlay";
 import DroppableColumn from "./components/Editor/DroppableColumn";
+import CVDragOverlay from "./components/Editor/CVDragOverlay";
+
 import {
    A4_WIDTH_PX,
    A4_HEIGHT_CSS,
@@ -53,6 +56,10 @@ const AREA_CV_CONTAINER_STYLE = Object.freeze({
    columnGap: 0,
 });
 
+const shouldHideSectionDragAffordance = (section) =>
+   ["profile_header", "title_subtitle", "contact", "about"].includes(section?.type) ||
+   ["profile_header", "title_subtitle", "contact", "about_section", "about"].includes(section?.id);
+
 function App() {
    const {
       cvData,
@@ -61,13 +68,13 @@ function App() {
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
-      activeTooltip,
       setTotalPages: setContextTotalPages,
       deletePage,
    } = useCV();
 
    useEffect(() => {
       setupDisableNativeTooltips();
+      initializeFontPreloading();
    }, []);
 
    const areaCvRef = useRef(null);
@@ -82,6 +89,8 @@ function App() {
       handleDragCancel,
       activeDragItem,
       activeDragSection,
+      dropTarget,
+      justDroppedId,
    } = useCVDndCoordinator({
       cvData,
       setCvData,
@@ -161,6 +170,7 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
+            
             <main
                className="l-main bd-container"
                style={{
@@ -209,6 +219,7 @@ function App() {
                         gridTemplateColumns={gridTemplateColumns}
                         pageHeight={A4_HEIGHT_CSS}
                         pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
+                        pageBottomClearance={cvData.layout?.pageBottomClearance}
                         onDeletePage={deletePage}
                      >
                         {is2Col ? (
@@ -233,6 +244,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -288,6 +300,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -331,7 +344,11 @@ function App() {
                                  items={pageModel.singleSections.map((s) => s.id)}
                                  strategy={verticalListSortingStrategy}>
                                  {pageModel.singleSections.map((section) => (
-                                    <BaseSection key={section.id} section={section} />
+                                    <BaseSection
+                                       key={section.id}
+                                       section={section}
+                                       hideDragAffordance={shouldHideSectionDragAffordance(section)}
+                                    />
                                  ))}
                               </SortableContext>
 
@@ -355,78 +372,18 @@ function App() {
                            </DroppableColumn>
                         )}
                      </A4PageBox>
-
-                     {pageModel.pageNumber < pages.length && (
-                        <div
-                           className="inter-page-gap-adder no-print"
-                           data-editor-ui="true"
-                           data-editor-add="true"
-                           style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "32px",
-                              margin: "-16px auto 16px auto",
-                              position: "relative",
-                              zIndex: 50
-                           }}>
-                           <button
-                              type="button"
-                              className="inter-page-add-btn no-print"
-                              data-testid={`btn-add-section-interpage-${pageModel.pageNumber}`}
-                              onClick={() => {
-                                 const sectionsOnPage = isAtsMode ? pageModel.singleSections : (pageModel.rightSections || []);
-                                 const lastSec = sectionsOnPage?.[sectionsOnPage.length - 1];
-                                 let spliceIdx = undefined;
-                                 if (lastSec && Array.isArray(cvData.sections)) {
-                                    const canonicalId = lastSec.originalSectionId || lastSec.id;
-                                    const foundIdx = cvData.sections.findIndex((s) => s.id === canonicalId);
-                                    if (foundIdx !== -1) spliceIdx = foundIdx + 1;
-                                 }
-                                 handleOpenAddSection(isAtsMode ? "single" : "left", spliceIdx);
-                              }}
-                              title={`Agregar nueva sección entre Página ${pageModel.pageNumber} y Página ${pageModel.pageNumber + 1}`}
-                              style={{
-                                 display: "inline-flex",
-                                 alignItems: "center",
-                                 gap: "6px",
-                                 padding: "4px 14px",
-                                 borderRadius: "16px",
-                                 border: "1px dashed #94a3b8",
-                                 background: "#ffffff",
-                                 color: "#475569",
-                                 fontSize: "11px",
-                                 fontWeight: 600,
-                                 cursor: "pointer",
-                                 boxShadow: "0 2px 5px rgba(0,0,0,0.06)",
-                                 transition: "all 0.15s ease"
-                              }}
-                              onMouseEnter={(e) => {
-                                 e.currentTarget.style.borderColor = "#3874ff";
-                                 e.currentTarget.style.color = "#3874ff";
-                                 e.currentTarget.style.transform = "scale(1.04)";
-                              }}
-                              onMouseLeave={(e) => {
-                                 e.currentTarget.style.borderColor = "#94a3b8";
-                                 e.currentTarget.style.color = "#475569";
-                                 e.currentTarget.style.transform = "scale(1)";
-                              }}>
-                              <PlusCircle size={13} />
-                              <span>Agregar Sección entre Páginas</span>
-                           </button>
-                        </div>
-                     )}
                   </React.Fragment>
                ))}
                </div>
             </main>
-
-            {/* Drag Overlay for ghost preview */}
             <CVDragOverlay
                activeDragItem={activeDragItem}
                activeDragSection={activeDragSection}
             />
          </DndContext>
+
+         {/* Web Application Footer */}
+         <Footer />
 
          {/* Modals, Tour, Tooltip, Sidebar & Toast */}
          <AppModals
@@ -434,7 +391,6 @@ function App() {
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
             addSectionTargetIndex={addSectionTargetIndex}
-            activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />
       </>

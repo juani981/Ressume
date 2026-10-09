@@ -16,7 +16,7 @@ const SkillsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           backgroundColor: 'var(--circle-color, var(--text-color))' 
         }}
       />
-      <span style={{ flex: 1, minWidth: 0, maxWidth: '100%' }}>
+      <span style={{ flex: 1, minWidth: 0, maxWidth: '100%', overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
         <b>
           <InlineEdit 
             value={item.title || ''} 
@@ -27,6 +27,7 @@ const SkillsItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
         <InlineEdit 
           value={item.description || ''} 
           isPrint={isPrint}
+          multiline={true}
           onSave={(val) => onUpdateItem?.(sectionId, item.id, 'description', val)} 
         />
       </span>

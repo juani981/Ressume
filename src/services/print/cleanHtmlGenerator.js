@@ -30,6 +30,7 @@ import {
 import { getRulerHeightPx } from '../../utils/pageGeometry';
 import { getFontFamilyStack } from '../../utils/typographyUtils';
 import { getDynamicPdfTitle } from './pdfTitleService';
+import { STATIC_PRINT_FONTS_CSS } from './printFonts';
 import { normalizeDateRange, sanitizeBulletText, sanitizeOcrMathSyntax } from '../../utils/textSanitizer';
 
 export { renderRichHTML, stripHtml };
@@ -62,6 +63,7 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
   const listScale = layout.listScale ?? 1.0;
   const lineHeight = layout.lineHeight ?? DEFAULT_LINE_HEIGHT;
   const pagePadding = layout.pagePadding ?? SPACING_LIMITS.pagePadding.default;
+  const pagePaddingBottom = Math.round(pagePadding / 2);
   const sectionGap = layout.sectionGap ?? SPACING_LIMITS.sectionGap.default;
   const itemGap = layout.itemGap ?? DEFAULT_ITEM_GAP_PX;
   const fontFamilyStack = getFontFamilyStack(layout.fontFamily);
@@ -81,6 +83,7 @@ export const generateLayoutVariablesCSS = (layout = {}) => {
       --a4-page-height-px: ${A4_PAGE_HEIGHT_PX}px;
       --a4-page-scale: ${A4_DOCUMENT_SCALE};
       --page-padding: ${pagePadding}px;
+      --page-padding-bottom: ${pagePaddingBottom}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
       --body-font: ${fontFamilyStack};
@@ -666,6 +669,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     ? (snapshot ? `resume bd-grid ${isAtsMode ? 'resume--ats-mode' : ''}`.trim() : `resume ${isAtsMode ? 'resume--ats-mode' : ''}`.trim())
     : `resume resume__single-column ${isAtsMode ? 'resume--ats-mode' : ''}`.trim();
 
+  const pagePaddingBottom = Math.round(pagePadding / 2);
   const dynamicSpacingStyle = `
     --body-font: ${fontFamily};
     --font-scale: ${fontScale};
@@ -674,6 +678,7 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
     --list-scale: ${listScale};
     --line-height: ${lineHeight};
     --page-padding: ${pagePadding}px;
+    --page-padding-bottom: ${pagePaddingBottom}px;
     --section-gap: ${sectionGap}px;
     --item-gap: ${itemGap}px;
   `.replace(/\s+/g, ' ').trim();
@@ -761,9 +766,11 @@ export const generateCleanPrintHTML = (cvData, lang = 'es', customSnapshot = und
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style id="cv-base-styles">
+${STATIC_PRINT_FONTS_CSS}
     :root,
     #area-cv {
       --page-padding: ${pagePadding}px;
+      --page-padding-bottom: ${pagePaddingBottom}px;
       --section-gap: ${sectionGap}px;
       --item-gap: ${itemGap}px;
       --title-color: #0f172a;

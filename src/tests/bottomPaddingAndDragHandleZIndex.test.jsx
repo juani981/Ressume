@@ -128,7 +128,7 @@ describe('Bottom Margin Parity & Drag Handles Z-Index', () => {
 
       const box = container.querySelector('.a4-page-box');
       expect(box).toBeTruthy();
-      expect(box.style.padding).toBe('40px');
+      expect(box.style.padding).toBe('40px 40px 20px 40px');
       expect(box.style.height).toBe('297mm');
     });
 

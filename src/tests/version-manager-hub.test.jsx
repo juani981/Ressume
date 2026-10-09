@@ -21,7 +21,8 @@ import ActionMenu from '../components/Editor/ActionMenu';
 import ToastNotification from '../components/Editor/ToastNotification';
 import VersionManagerModal from '../components/Editor/VersionManagerModal';
 import { VersionCard } from '../components/Editor/versionManager/VersionCard';
-import { defaultSchema, blankSchema } from '../utils/schema';
+import { defaultSchema } from '../utils/schema';
+import { seedCVTemplateNames } from '../utils/seedCVTemplates';
 import * as versionStorage from '../utils/versionStorage';
 import * as versionValidator from '../utils/versionValidator';
 import * as cleanPrintEngine from '../utils/staticHtmlPdfEngine';
@@ -1058,9 +1059,10 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       clickSpy.mockRestore();
     });
 
-    it('T5.3: version cards display dedicated JSON download button', async () => {
+    it('T5.3: version cards display dedicated PDF download button and trigger PDF export', async () => {
       if (!VersionManagerModal || !versionStorage) return;
 
+      const cleanPrintSpy = vi.spyOn(cleanPrintEngine, 'executeCleanPrint').mockResolvedValue();
       await versionStorage.saveVersion('Snapshot Download Test', defaultSchema, 'thumb_test');
 
       render(
@@ -1070,9 +1072,20 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       );
 
       await waitFor(() => {
-        const downloadBtns = screen.getAllByTestId('btn-download-version-json');
+        const downloadBtns = screen.getAllByTestId('btn-download-version-pdf');
         expect(downloadBtns.length).toBeGreaterThan(0);
       });
+
+      const downloadBtn = screen.getAllByTestId('btn-download-version-pdf')[0];
+      fireEvent.click(downloadBtn);
+
+      await waitFor(() => {
+        expect(cleanPrintSpy).toHaveBeenCalled();
+        const calledData = cleanPrintSpy.mock.calls[0][0];
+        expect(calledData.versionName).toBe('Snapshot Download Test');
+      });
+
+      cleanPrintSpy.mockRestore();
     });
 
     it('T5.4: importing valid JSON file parses, saves version and notifies user', async () => {
@@ -1165,9 +1178,9 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
   });
 
   // ==========================================================================
-  // TIER 7: START BLANK CV TEMPLATE WITH PLACEHOLDERS
+  // TIER 7: START A NEW CV FROM A RANDOM SAMPLE PROFILE
   // ==========================================================================
-  describe('Tier 7: Start Blank CV Template with Placeholders', () => {
+  describe('Tier 7: Start a CV from a Random Sample Profile', () => {
     it('T7.1: renders "Empezar CV en Blanco" button in Version Manager action bar', async () => {
       if (!VersionManagerModal || !versionStorage) return;
 
@@ -1197,7 +1210,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       await waitFor(() => {
         const callout = screen.getByTestId('callout-confirm-blank');
         expect(callout).toBeInTheDocument();
-        expect(callout.textContent).toMatch(/plantilla limpia|placeholders/i);
+        expect(callout.textContent).toMatch(/al azar|perfil de demostración/i);
       });
     });
 
@@ -1217,9 +1230,10 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       expect(screen.queryByTestId('callout-confirm-blank')).toBeNull();
     });
 
-    it('T7.4: confirming "Empezar CV en Blanco" loads blankSchema placeholders into state', async () => {
+    it('T7.4: confirming "Empezar CV en Blanco" loads a sample profile into state', async () => {
       if (!VersionManagerModal || !versionStorage) return;
 
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
       let currentState = null;
       const StateProbe = () => {
         const { cvData } = useCV();
@@ -1229,20 +1243,25 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
 
       const onCloseSpy = vi.fn();
 
-      render(
-        <CVProvider>
-          <StateProbe />
-          <VersionManagerModal isOpen={true} onClose={onCloseSpy} />
-        </CVProvider>
-      );
+      try {
+        render(
+          <CVProvider>
+            <StateProbe />
+            <VersionManagerModal isOpen={true} onClose={onCloseSpy} />
+          </CVProvider>
+        );
 
-      fireEvent.click(screen.getByTestId('btn-start-blank-cv'));
-      fireEvent.click(screen.getByTestId('btn-confirm-blank'));
+        fireEvent.click(screen.getByTestId('btn-start-blank-cv'));
+        fireEvent.click(screen.getByTestId('btn-confirm-blank'));
 
-      await waitFor(() => {
-        expect(onCloseSpy).toHaveBeenCalledTimes(1);
-        expect(currentState.profile.name).toBe(blankSchema.profile.name);
-      });
+        await waitFor(() => {
+          expect(onCloseSpy).toHaveBeenCalledTimes(1);
+          expect(currentState.profile.name).toBe(seedCVTemplateNames[0]);
+          expect(currentState.sections.find((section) => section.id === 'contact').items[0].contacts).toEqual([]);
+        });
+      } finally {
+        randomSpy.mockRestore();
+      }
     });
   });
 
@@ -1283,7 +1302,7 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
       expect(screen.getByTestId('btn-load-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-preview-version')).toBeInTheDocument();
       expect(screen.getByTestId('btn-duplicate-version')).toBeInTheDocument();
-      expect(screen.getByTestId('btn-download-version-json')).toBeInTheDocument();
+      expect(screen.getByTestId('btn-download-version-pdf')).toBeInTheDocument();
       expect(screen.getByTestId('btn-delete-version')).toBeInTheDocument();
     });
 

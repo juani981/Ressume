@@ -15,7 +15,7 @@ describe('useDocumentPages Hook', () => {
     expect(page1.rightSections.length).toBeGreaterThan(0);
   });
 
-  it('2. omits repeated continuation headers on split sections per user decision', () => {
+  it('2. does not put another title for resuming when a break in other page happens', () => {
     // Create large schema with many experience items to force page break
     const manyExperienceItems = Array.from({ length: 10 }).map((_, i) => ({
       id: `exp-${i}`,
@@ -46,7 +46,7 @@ describe('useDocumentPages Hook', () => {
     const page2 = result.current.pages[1];
     const continuedExp = page2.rightSections.find((s) => s.isContinuation || s.originalSectionId === 'experience');
     expect(continuedExp).toBeTruthy();
-    // Header title must be empty string per user requirement
+    // Does not put another title for resuming
     expect(continuedExp.title).toBe('');
   });
 
@@ -87,12 +87,12 @@ describe('useDocumentPages Hook', () => {
       },
     };
 
-    // With huge padding (320px) to drastically reduce capacity
+    // With huge padding (450px) to drastically reduce capacity
     const largePaddingSchema = {
       ...defaultSchema,
       layout: {
         ...defaultSchema.layout,
-        pagePadding: 320,
+        pagePadding: 450,
       },
     };
 
@@ -117,4 +117,47 @@ describe('useDocumentPages Hook', () => {
     expect(page1.rightSections).toHaveLength(0);
     expect(page1.singleSections.length).toBeGreaterThan(0);
   });
+
+  it('6. BaseSection never renders a section-title heading element when isContinuation is true', async () => {
+    const { render } = await import('@testing-library/react');
+    const { default: BaseSection } = await import('../components/CV/BaseSection');
+    const { CVProvider } = await import('../context/CVContext');
+
+    const continuationSection = {
+      id: 'experience__cont_2',
+      originalSectionId: 'experience',
+      type: 'experience',
+      title: 'EXPERIENCIA LABORAL',
+      isContinuation: true,
+      items: [
+        {
+          id: 'exp-item-1',
+          title: 'Software Engineer',
+          company: 'Corp',
+          bullets: ['Continued task'],
+        },
+      ],
+    };
+
+    // Render in editor mode
+    const { container: editorContainer } = render(
+      <CVProvider initialData={defaultSchema}>
+        <BaseSection section={continuationSection} />
+      </CVProvider>
+    );
+
+    expect(editorContainer.querySelector('.section-title')).toBeNull();
+    expect(editorContainer.querySelector('[data-section-title]')).toBeNull();
+
+    // Render in print mode
+    const { container: printContainer } = render(
+      <CVProvider initialData={defaultSchema}>
+        <BaseSection section={continuationSection} isPrint={true} />
+      </CVProvider>
+    );
+
+    expect(printContainer.querySelector('.section-title')).toBeNull();
+    expect(printContainer.querySelector('[data-section-title]')).toBeNull();
+  });
 });
+

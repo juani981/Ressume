@@ -14,7 +14,8 @@ import {
   OctagonAlert, 
   TriangleAlert, 
   Info, 
-  Pin
+  Pin,
+  ChevronDown
 } from 'lucide-react';
 
 const SECTION_TYPE_TO_TARGET = {
@@ -115,9 +116,20 @@ const AITipsSidebar = () => {
   const [hasMeasuredPositions, setHasMeasuredPositions] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState(null);
   const [hoveredSectionId, setHoveredSectionId] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({});
 
   const containerRef = useRef(null);
   const cardRefs = useRef({});
+
+  const toggleSectionExpanded = useCallback((key, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setExpandedSections(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  }, []);
 
   const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
   const targetLayout = isAtsMode ? 'ATS_1_col' : 'Human_2_col';
@@ -255,7 +267,7 @@ const AITipsSidebar = () => {
     setHasMeasuredPositions(true);
   }, [cardItems]);
 
-  // When column widths adjust due to viewport constraints, measure updated card heights for vertical flow
+  // When column widths adjust due to viewport constraints or cards expand/collapse, measure updated card heights for vertical flow
   useEffect(() => {
     if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
       return;
@@ -266,7 +278,7 @@ const AITipsSidebar = () => {
       }, 30);
       return () => clearTimeout(timer);
     }
-  }, [columnWidths.left, columnWidths.right, recalculatePositions, hasMeasuredPositions]);
+  }, [columnWidths.left, columnWidths.right, recalculatePositions, hasMeasuredPositions, expandedSections]);
 
   // Track DOM layout, scroll, and resize
   useEffect(() => {
@@ -566,103 +578,156 @@ const AITipsSidebar = () => {
                 </span>
               </div>
 
-              {/* Obsidian Callouts inside card */}
+              {/* Obsidian Callouts inside card with progressive disclosure */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {item.rules.map((rule, rIdx) => {
-                  const isCritical = rule.severity === 'critical';
-                  const isWarning = rule.severity === 'warning';
-
-                  // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
-                  const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
-                  const iconColor = `rgba(${themeColor}, 1)`;
+                {(() => {
+                  const isExpanded = Boolean(expandedSections[item.key]);
+                  const visibleRules = isExpanded ? item.rules : item.rules.slice(0, 1);
+                  const hasMoreRules = item.rules.length > 1;
+                  const remainingCount = item.rules.length - 1;
 
                   return (
-                    <div
-                      key={rule.id || rIdx}
-                      className="obsidian-callout"
-                      data-testid={`callout-${rule.id || rIdx}`}
-                      style={{
-                        backgroundColor: `rgba(${themeColor}, 0.08)`,
-                        borderLeft: `4px solid ${iconColor}`,
-                        borderRadius: '4px',
-                        padding: '5px 8px',
-                        fontSize: '0.72rem',
-                        color: isAtsMode ? '#e2e8f0' : '#1e293b',
-                        lineHeight: '1.3',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        boxSizing: 'border-box',
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word',
-                        height: 'auto'
-                      }}
-                    >
-                      <div
-                        className="callout-title"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '5px',
-                          color: iconColor,
-                          fontWeight: '600',
-                          marginBottom: '2px',
-                          fontSize: '0.74rem',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-word'
-                        }}
-                      >
-                        <span
-                          className="callout-icon"
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
-                        >
-                          {isCritical ? (
-                            <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
-                          ) : isWarning ? (
-                            <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
-                          ) : (
-                            <Info size={13} color={iconColor} strokeWidth={2.2} />
-                          )}
-                        </span>
-                        <span>{rule.suggestion_title}</span>
-                      </div>
-                      <div
-                        className="callout-content"
-                        style={{
-                          fontSize: '0.68rem',
-                          color: isAtsMode ? '#cbd5e1' : '#334155',
-                          lineHeight: '1.3',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-word'
-                        }}
-                      >
-                        {rule.suggestion_body}
-                        {rule.example_bad && rule.example_good && (
+                    <>
+                      {visibleRules.map((rule, rIdx) => {
+                        const isCritical = rule.severity === 'critical';
+                        const isWarning = rule.severity === 'warning';
+
+                        // Obsidian Callout Theme Colors according to AGENTS.md Invariant 1
+                        const themeColor = isCritical ? '233, 49, 71' : isWarning ? '219, 139, 0' : '8, 109, 221';
+                        const iconColor = `rgba(${themeColor}, 1)`;
+
+                        return (
                           <div
-                            className="callout-examples"
+                            key={rule.id || rIdx}
+                            className="obsidian-callout"
+                            data-testid={`callout-${rule.id || rIdx}`}
                             style={{
-                              marginTop: '6px',
-                              paddingTop: '4px',
-                              borderTop: `1px dashed ${isAtsMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+                              backgroundColor: `rgba(${themeColor}, 0.08)`,
+                              borderLeft: `4px solid ${iconColor}`,
+                              borderRadius: '4px',
+                              padding: '5px 8px',
+                              fontSize: '0.72rem',
+                              color: isAtsMode ? '#e2e8f0' : '#1e293b',
+                              lineHeight: '1.3',
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: '2px',
-                              fontSize: '0.62rem'
+                              boxSizing: 'border-box',
+                              overflowWrap: 'break-word',
+                              wordBreak: 'break-word',
+                              height: 'auto'
                             }}
                           >
-                            <div style={{ color: isAtsMode ? '#fca5a5' : '#b91c1c' }}>
-                              <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evitá: '}</strong>
-                              <span>{rule.example_bad}</span>
+                            <div
+                              className="callout-title"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '5px',
+                                color: iconColor,
+                                fontWeight: '600',
+                                marginBottom: '2px',
+                                fontSize: '0.74rem',
+                                overflowWrap: 'break-word',
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              <span
+                                className="callout-icon"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}
+                              >
+                                {isCritical ? (
+                                  <OctagonAlert size={13} color={iconColor} strokeWidth={2.2} />
+                                ) : isWarning ? (
+                                  <TriangleAlert size={13} color={iconColor} strokeWidth={2.2} />
+                                ) : (
+                                  <Info size={13} color={iconColor} strokeWidth={2.2} />
+                                )}
+                              </span>
+                              <span>{rule.suggestion_title}</span>
                             </div>
-                            <div style={{ color: isAtsMode ? '#86efac' : '#15803d' }}>
-                              <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Usá: '}</strong>
-                              <span>{rule.example_good}</span>
+                            <div
+                              className="callout-content"
+                              style={{
+                                fontSize: '0.68rem',
+                                color: isAtsMode ? '#cbd5e1' : '#334155',
+                                lineHeight: '1.3',
+                                overflowWrap: 'break-word',
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              {rule.suggestion_body}
+                              {rule.example_bad && rule.example_good && (
+                                <div
+                                  className="callout-examples"
+                                  style={{
+                                    marginTop: '6px',
+                                    paddingTop: '4px',
+                                    borderTop: `1px dashed ${isAtsMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'}`,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '2px',
+                                    fontSize: '0.62rem'
+                                  }}
+                                >
+                                  <div style={{ color: isAtsMode ? '#fca5a5' : '#b91c1c' }}>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Avoid: ' : 'Evite: '}</strong>
+                                    <span>"{rule.example_bad}"</span>
+                                  </div>
+                                  <div style={{ color: isAtsMode ? '#86efac' : '#15803d' }}>
+                                    <strong style={{ fontWeight: 600 }}>{lang === 'en' ? 'Use: ' : 'Es mejor: '}</strong>
+                                    <span>"{rule.example_good}"</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        );
+                      })}
+
+                      {hasMoreRules && (
+                        <button
+                          type="button"
+                          className="btn-toggle-tips"
+                          data-testid={`btn-toggle-tips-${item.key}`}
+                          onClick={(e) => toggleSectionExpanded(item.key, e)}
+                          style={{
+                            marginTop: '2px',
+                            padding: '4px 8px',
+                            fontSize: '0.66rem',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px',
+                            borderRadius: '4px',
+                            border: isAtsMode ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #cbd5e1',
+                            backgroundColor: isAtsMode ? 'rgba(255, 255, 255, 0.06)' : '#f8fafc',
+                            color: isAtsMode ? '#cbd5e1' : '#475569',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            width: '100%',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <span>
+                            {isExpanded
+                              ? (lang === 'en' ? 'Show fewer tips' : 'Ver menos consejos')
+                              : (lang === 'en'
+                                  ? `View more tips for this section (+${remainingCount})`
+                                  : `Ver más consejos para esta sección (+${remainingCount})`)}
+                          </span>
+                          <ChevronDown
+                            size={12}
+                            style={{
+                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s ease'
+                            }}
+                          />
+                        </button>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             </div>
           );

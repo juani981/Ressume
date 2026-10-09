@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useCV } from '../../context/CVContext';
-import { Columns, FileText, Lightbulb, LightbulbOff } from 'lucide-react';
+import { Columns, FileText, Lightbulb, LightbulbOff, HelpCircle } from 'lucide-react';
+import { useTourManager, TOUR_IDS } from '../../context/TourContext';
 
 /**
  * LayoutModeToggle
@@ -16,6 +17,26 @@ import { Columns, FileText, Lightbulb, LightbulbOff } from 'lucide-react';
  */
 const LayoutModeToggle = ({ enableTwoColumn }) => {
   const { cvData, updateLayout, showAITips, toggleAITips } = useCV();
+  const { resetTourStatus } = useTourManager();
+
+  const handleRestartTour = () => {
+    if (resetTourStatus) {
+      resetTourStatus(TOUR_IDS.ONBOARDING);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('skip_onboarding_tour');
+        localStorage.removeItem('seen_main_tour');
+        localStorage.removeItem('seen_sidebar_tour');
+        localStorage.removeItem('seen_import_cv_tour');
+      } catch (_) {}
+      window.dispatchEvent(
+        new CustomEvent('start-cv-tour', {
+          detail: { tour: 'main' },
+        })
+      );
+    }
+  };
 
   const isTwoColumnFeatureEnabled = typeof enableTwoColumn === 'boolean'
     ? enableTwoColumn
@@ -298,7 +319,7 @@ const LayoutModeToggle = ({ enableTwoColumn }) => {
             }}
           />
         )}
-        <span>Consejos IA</span>
+        <span>Sugerencias</span>
         <span
           style={{
             fontSize: '0.72rem',
@@ -312,6 +333,43 @@ const LayoutModeToggle = ({ enableTwoColumn }) => {
         >
           {showAITips ? 'ON' : 'OFF'}
         </span>
+      </button>
+
+      {/* Botón de Ayuda para relanzar el tutorial completo */}
+      <button
+        type="button"
+        id="btn-restart-tour"
+        data-testid="btn-restart-tour"
+        onClick={handleRestartTour}
+        className="layout-mode-help-btn"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.45rem',
+          padding: '0.5rem 1.15rem',
+          borderRadius: '9999px',
+          backgroundColor: isAtsMode ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+          border: isAtsMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
+          color: isAtsMode ? '#cbd5e1' : '#475569',
+          cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: isAtsMode
+            ? '0 10px 30px rgba(0, 0, 0, 0.5)'
+            : '0 10px 30px rgba(0, 0, 0, 0.06)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+        title="Volver a iniciar el tutorial completo"
+        aria-label="Volver a iniciar el tutorial completo"
+      >
+        <HelpCircle
+          size={18}
+          color={isAtsMode ? '#38bdf8' : '#0284c7'}
+          strokeWidth={2.2}
+        />
+        <span>Tutorial</span>
       </button>
     </div>
   );

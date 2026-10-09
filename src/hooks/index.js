@@ -8,3 +8,4 @@ export { default as useDocumentPages, useDocumentPages as useDocumentPagesHook }
 export { default as useCVDndCoordinator, useCVDndCoordinator as useCVDndCoordinatorHook } from './useCVDndCoordinator';
 export { default as useColumnResizer, useColumnResizer as useColumnResizerHook } from './useColumnResizer';
 export { default as useLiveDomHeights, useLiveDomHeights as useLiveDomHeightsHook } from './useLiveDomHeights';
+export { default as useFocusTrap, useFocusTrap as useFocusTrapHook } from './useFocusTrap';

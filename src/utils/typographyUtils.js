@@ -96,6 +96,7 @@ export function computeTypographyTokens(layout = {}) {
     '--list-scale': `${listScale}`,
     '--line-height': `${lineHeight}`,
     '--page-padding': `${pagePadding}px`,
+    '--page-padding-bottom': `${Math.round(pagePadding / 2)}px`,
     '--section-gap': `${sectionGap}px`,
     '--item-gap': `${itemGap}px`,
     '--grid-template-columns': gridTemplateColumns,

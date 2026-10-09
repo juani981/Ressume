@@ -10,7 +10,7 @@ export const photoDescriptor = {
   description: 'Fotografía profesional de perfil con carga de archivo local o enlace URL y formas personalizables.',
   allowDelete: true,
   allowAddItem: false,
-  allowDeleteItem: true,
+  allowDeleteItem: false,
   hasTitle: false,
   hasItemDrag: false,
   supportsBulletCustomization: false,

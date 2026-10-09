@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, act, renderHook } from '@testing-library/react';
 import { CVProvider, useCV } from '../context/CVContext';
 import { useCVDndCoordinator } from '../hooks/useCVDndCoordinator';
+import { isFixedSection } from '../utils/dndUtils';
 
 describe('Drag and Drop Directional Parity (Moving Below and Above)', () => {
   beforeEach(() => {
@@ -93,7 +94,8 @@ describe('Drag and Drop Directional Parity (Moving Below and Above)', () => {
 
       const initialLeft = cvContext.cvData.sections.filter(s => s.column === 'left');
       const initialRight = cvContext.cvData.sections.filter(s => s.column === 'right');
-      const leftSecId = initialLeft[0].id;
+      const movableLeftSec = initialLeft.find(s => !isFixedSection(s));
+      const leftSecId = movableLeftSec.id;
       const targetRightSecId = initialRight[0].id;
 
       // Move left section to right column, explicitly BELOW the target section
@@ -123,7 +125,8 @@ describe('Drag and Drop Directional Parity (Moving Below and Above)', () => {
 
       const initialLeft = cvContext.cvData.sections.filter(s => s.column === 'left');
       const initialRight = cvContext.cvData.sections.filter(s => s.column === 'right');
-      const leftSecId = initialLeft[0].id;
+      const movableLeftSec = initialLeft.find(s => !isFixedSection(s));
+      const leftSecId = movableLeftSec.id;
       const targetRightSecId = initialRight[1].id;
 
       // Move left section to right column, explicitly ABOVE the target section
@@ -137,6 +140,34 @@ describe('Drag and Drop Directional Parity (Moving Below and Above)', () => {
 
       // Since it was placed above targetRightSecId, it should precede it
       expect(movedIdx).toBe(targetIdx - 1);
+    });
+
+    it('blocks moving fixed header sections (contact, about, profile_header)', () => {
+      let cvContext;
+      const TestConsumer = () => {
+        cvContext = useCV();
+        return null;
+      };
+
+      render(
+        <CVProvider>
+          <TestConsumer />
+        </CVProvider>
+      );
+
+      const initialSections = [...cvContext.cvData.sections];
+      const fixedContact = cvContext.cvData.sections.find(s => s.type === 'contact' || s.id === 'contact');
+      expect(fixedContact).toBeDefined();
+
+      // Attempt to move contact section to right column
+      act(() => {
+        cvContext.moveSectionToColumnAndIndex(fixedContact.id, 'right', 'experience', 'above');
+      });
+
+      // The section order and columns must remain unchanged
+      expect(cvContext.cvData.sections.map(s => s.id)).toEqual(initialSections.map(s => s.id));
+      const unchangedContact = cvContext.cvData.sections.find(s => s.id === fixedContact.id);
+      expect(unchangedContact.column).toBe('left');
     });
 
     it('dropping a section onto itself in the same column is a safe no-op', () => {

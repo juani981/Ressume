@@ -252,7 +252,7 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(saved.layout.itemGap).toBe(12);
     });
 
-    it('T2.4: contains Color pickers in 2-column mode and informs user in ATS mode', () => {
+    it('T2.4: contains Color pickers in 2-column mode and informs user in ATS mode (if tab-colors is active)', () => {
       let currentState = null;
       render(
         <CVProvider>
@@ -263,23 +263,29 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       );
 
       fireEvent.click(screen.getByTestId('btn-open-design'));
-      fireEvent.click(screen.getByTestId('tab-colors'));
+      const colorsTab = screen.queryByTestId('tab-colors');
+      if (colorsTab) {
+        fireEvent.click(colorsTab);
 
-      // In 2-column mode, lateral and main column color pickers are active
-      const leftBgInput = screen.getByLabelText(/fondo columna lateral/i);
-      const rightBgInput = screen.getByLabelText(/fondo columna principal/i);
-      expect(leftBgInput).toBeInTheDocument();
-      expect(rightBgInput).toBeInTheDocument();
+        // In 2-column mode, lateral and main column color pickers are active
+        const leftBgInput = screen.getByLabelText(/fondo columna lateral/i);
+        const rightBgInput = screen.getByLabelText(/fondo columna principal/i);
+        expect(leftBgInput).toBeInTheDocument();
+        expect(rightBgInput).toBeInTheDocument();
 
-      fireEvent.change(leftBgInput, { target: { value: '#2d3748' } });
-      expect(currentState.cvData.layout.leftBg).toBe('#2d3748');
+        fireEvent.change(leftBgInput, { target: { value: '#2d3748' } });
+        expect(currentState.cvData.layout.leftBg).toBe('#2d3748');
 
-      // Now toggle to ATS mode
-      fireEvent.click(screen.getByTestId('ats-mode-toggle'));
+        // Now toggle to ATS mode
+        fireEvent.click(screen.getByTestId('ats-mode-toggle'));
 
-      // In ATS mode, an Obsidian callout is displayed explaining pure white bg
-      expect(screen.getByText(/modo ats activo/i)).toBeInTheDocument();
-      expect(screen.getByText(/fondo blanco puro/i)).toBeInTheDocument();
+        // In ATS mode, an Obsidian callout is displayed explaining pure white bg
+        expect(screen.getByText(/modo ats activo/i)).toBeInTheDocument();
+        expect(screen.getByText(/fondo blanco puro/i)).toBeInTheDocument();
+      } else {
+        // Streamlined tab bar: tab-colors omitted by user per AGENTS.md Rule 18
+        expect(colorsTab).toBeNull();
+      }
     });
 
     it('T2.5: close button in Diseño submenu closes panel', () => {
@@ -487,6 +493,18 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(screen.getByTestId('add-section-card-skills')).toBeInTheDocument();
       expect(screen.getByTestId('add-section-card-certificates')).toBeInTheDocument();
       expect(screen.getByTestId('add-section-card-languages')).toBeInTheDocument();
+
+      const modal = screen.getByTestId('add-section-modal');
+      const card = screen.getByTestId('add-section-card-projects');
+      const title = screen.getByText('Añadir Sección al CV');
+      const helpButton = screen.getByTestId('btn-modal-help');
+
+      expect(modal.style.background).toBe('rgba(15, 23, 42, 0.96)');
+      expect(modal.style.color).toBe('rgb(248, 250, 252)');
+      expect(card.style.background).toBe('rgba(255, 255, 255, 0.055)');
+      expect(card.querySelector('span').style.color).toBe('rgb(248, 250, 252)');
+      expect(title.style.color).toBe('rgb(248, 250, 252)');
+      expect(helpButton.style.backgroundColor).toBe('rgb(30, 41, 59)');
     });
 
     it('T5.4: clicking a section card adds section to target column and closes modal', () => {

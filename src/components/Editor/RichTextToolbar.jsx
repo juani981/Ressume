@@ -20,7 +20,7 @@ import {
  * - Flips to bottom if approaching the viewport top boundary
  * - Flips / shifts horizontally when approaching window.innerWidth
  * - Clamps vertically to prevent escaping window.innerHeight
- * - onMouseDown preventDefault on all buttons to preserve text selection
+ * - Prevents default on toolbar mousedown to preserve text selection
  */
 const RichTextToolbar = (props) => {
   const cvContext = useCV();
@@ -182,6 +182,9 @@ const RichTextToolbar = (props) => {
         style={buttonStyle(isBold)}
         onMouseDown={(e) => {
           e.preventDefault();
+        }}
+        onClick={(e) => {
+          e.preventDefault();
           handleCommand('bold');
         }}
       >
@@ -197,6 +200,9 @@ const RichTextToolbar = (props) => {
         aria-pressed={isItalic}
         style={buttonStyle(isItalic)}
         onMouseDown={(e) => {
+          e.preventDefault();
+        }}
+        onClick={(e) => {
           e.preventDefault();
           handleCommand('italic');
         }}
@@ -216,6 +222,9 @@ const RichTextToolbar = (props) => {
         style={buttonStyle(currentAlign === 'left')}
         onMouseDown={(e) => {
           e.preventDefault();
+        }}
+        onClick={(e) => {
+          e.preventDefault();
           handleCommand('justifyLeft');
         }}
       >
@@ -231,6 +240,9 @@ const RichTextToolbar = (props) => {
         aria-pressed={currentAlign === 'center'}
         style={buttonStyle(currentAlign === 'center')}
         onMouseDown={(e) => {
+          e.preventDefault();
+        }}
+        onClick={(e) => {
           e.preventDefault();
           handleCommand('justifyCenter');
         }}
@@ -248,6 +260,9 @@ const RichTextToolbar = (props) => {
         style={buttonStyle(currentAlign === 'right')}
         onMouseDown={(e) => {
           e.preventDefault();
+        }}
+        onClick={(e) => {
+          e.preventDefault();
           handleCommand('justifyRight');
         }}
       >
@@ -263,6 +278,9 @@ const RichTextToolbar = (props) => {
         aria-pressed={currentAlign === 'justify'}
         style={buttonStyle(currentAlign === 'justify')}
         onMouseDown={(e) => {
+          e.preventDefault();
+        }}
+        onClick={(e) => {
           e.preventDefault();
           handleCommand('justifyFull');
         }}
@@ -281,6 +299,9 @@ const RichTextToolbar = (props) => {
         style={buttonStyle(false)}
         onMouseDown={(e) => {
           e.preventDefault();
+        }}
+        onClick={(e) => {
+          e.preventDefault();
           handleCommand('undo');
         }}
       >
@@ -295,6 +316,9 @@ const RichTextToolbar = (props) => {
         title="Rehacer (Ctrl+Y)"
         style={buttonStyle(false)}
         onMouseDown={(e) => {
+          e.preventDefault();
+        }}
+        onClick={(e) => {
           e.preventDefault();
           handleCommand('redo');
         }}

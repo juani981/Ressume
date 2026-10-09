@@ -28,8 +28,8 @@ export const SUPPORTED_LOCALES = [
   { code: 'en', name: 'English (US Tech)', region: 'United States / Global Tech', flag: '🇺🇸' }
 ];
 
-import { defaultSchema } from '../utils/schema';
-import { applyDictionaryToCVState } from '../utils/translationEngine';
+import { defaultSchema } from '../utils/schema.js';
+import { applyDictionaryToCVState } from '../utils/translationEngine.js';
 
 export const getContent = (lang = 'es') => {
   const dict = LOCALES[lang]?.content || LOCALES.es.content || {};

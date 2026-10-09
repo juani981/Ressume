@@ -169,7 +169,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
       }
     });
     (cvData.sections || []).forEach(sec => {
-      if (!seenSecIds.has(sec.id)) {
+      if (!seenSecIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         lines.push(`  - id: "${escapeYaml(sec.id)}"`);
         lines.push(`    title: "${escapeYaml(sec.title || sec.id)}"`);
         lines.push(`    type: "${escapeYaml(sec.type || 'list')}"`);
@@ -182,8 +182,8 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
     });
   } else {
     // 2-column mode
-    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
-    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
 
     lines.push('left_column_sections:');
     leftSections.forEach(sec => {
@@ -339,7 +339,7 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
   // Helper to render individual section
   // ==========================================
   const renderSection = (sec) => {
-    if (!sec || sec.type === 'profile_header' || sec.type === 'title_subtitle') return;
+    if (!sec || sec.type === 'profile_header' || sec.type === 'title_subtitle' || sec.type === 'contact' || sec.id === 'contact') return;
 
     if (sec.type === 'spacer') {
       lines.push('<!-- spacer -->');
@@ -353,20 +353,6 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
       lines.push(`## ${headerTitle}${colTag}`);
       const aboutDesc = aboutMarkdown(sec.items?.[0]) || aboutMarkdown(aboutItem) || '';
       if (aboutDesc) lines.push(aboutDesc);
-      lines.push('');
-      lines.push('---');
-      lines.push('');
-      return;
-    }
-
-    if (sec.type === 'contact') {
-      const headerTitle = sec.title || 'Información de Contacto';
-      const colTag = is1Col ? '' : (sec.column === 'right' ? ' [Visual Layout: Main Column]' : ' [Visual Layout: Sidebar / Left Column]');
-      lines.push(`## ${headerTitle}${colTag}`);
-      const dynamicContacts = normalizeItemContacts(sec.items?.[0] || {});
-      dynamicContacts.forEach(c => {
-        if (c?.value) lines.push(`- **${c.type}**: ${c.value}`);
-      });
       lines.push('');
       lines.push('---');
       lines.push('');
@@ -402,16 +388,16 @@ export const exportToAIMarkdown = (cvData, options = {}) => {
         renderedIds.add(sec.id);
       }
     });
-    // Append any custom sections added by the user
+    // Append any custom sections added by the user (contact is in Header block)
     (cvData.sections || []).forEach(sec => {
-      if (!renderedIds.has(sec.id) && sec.type !== 'profile_header') {
+      if (!renderedIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         renderSection(sec);
       }
     });
   } else {
     // In 2-column mode: group Left Column sections (Sidebar) and Right Column sections (Main Content) legibly
-    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header');
-    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header');
+    const leftSections = (cvData.sections || []).filter(s => (s.column === 'left' || !s.column) && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
+    const rightSections = (cvData.sections || []).filter(s => s.column === 'right' && s.type !== 'profile_header' && s.type !== 'contact' && s.id !== 'contact');
 
     if (leftSections.length > 0) {
       lines.push('# COLUMNA LATERAL (BARRA LATERAL / SIDEBAR)');
@@ -447,6 +433,8 @@ export const exportToAIXML = (cvData) => {
 
   const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
+  const contactSection = cvData.sections?.find(s => s.type === 'contact' || s.id === 'contact');
+  const contactItem = contactSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
 
@@ -470,15 +458,35 @@ export const exportToAIXML = (cvData) => {
     xml.push(`  <layout type="2-column" mode="visual_portfolio" left_bg="${escapeXML(layout.leftBg || '')}" right_bg="${escapeXML(layout.rightBg || '')}" />`);
   }
 
+  const xmlContacts = [
+    ...normalizeItemContacts(profileItem),
+    ...normalizeItemContacts(contactItem)
+  ];
+  let xmlEmail = profileItem.email || contactItem.email || '';
+  let xmlPhone = profileItem.phone || contactItem.phone || '';
+  let xmlLocation = profileItem.location || contactItem.location || '';
+  let xmlLinkedin = profileItem.linkedin || contactItem.linkedin || '';
+  let xmlGithub = profileItem.github || contactItem.github || '';
+
+  xmlContacts.forEach(c => {
+    if (!c || !c.value) return;
+    const type = (c.type || '').toLowerCase();
+    if (type === 'email' && !xmlEmail) xmlEmail = c.value;
+    else if (type === 'phone' && !xmlPhone) xmlPhone = c.value;
+    else if (type === 'location' && !xmlLocation) xmlLocation = c.value;
+    else if (type === 'linkedin' && !xmlLinkedin) xmlLinkedin = c.value;
+    else if (type === 'github' && !xmlGithub) xmlGithub = c.value;
+  });
+
   xml.push('  <candidate>');
   xml.push(`    <name>${escapeXML(profileItem.name || cvData.profile?.name)}</name>`);
   xml.push(`    <headline>${escapeXML(profileItem.subtitle)}</headline>`);
-  xml.push(`    <location>${escapeXML(profileItem.location)}</location>`);
+  xml.push(`    <location>${escapeXML(xmlLocation)}</location>`);
   xml.push('    <contact>');
-  xml.push(`      <email>${escapeXML(profileItem.email)}</email>`);
-  xml.push(`      <phone>${escapeXML(profileItem.phone)}</phone>`);
-  xml.push(`      <linkedin>${escapeXML(profileItem.linkedin)}</linkedin>`);
-  xml.push(`      <github>${escapeXML(profileItem.github)}</github>`);
+  xml.push(`      <email>${escapeXML(xmlEmail)}</email>`);
+  xml.push(`      <phone>${escapeXML(xmlPhone)}</phone>`);
+  xml.push(`      <linkedin>${escapeXML(xmlLinkedin)}</linkedin>`);
+  xml.push(`      <github>${escapeXML(xmlGithub)}</github>`);
   xml.push('    </contact>');
   if (aboutItem.description) {
     xml.push(`    <professional_summary>${escapeXML(aboutItem.description)}</professional_summary>`);
@@ -497,7 +505,7 @@ export const exportToAIXML = (cvData) => {
       }
     });
     (cvData.sections || []).forEach(sec => {
-      if (!seen.has(sec.id) && sec.type !== 'profile_header') {
+      if (!seen.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
         ordered.push(sec);
       }
     });
@@ -508,7 +516,7 @@ export const exportToAIXML = (cvData) => {
 
 
   sectionsToRender.forEach((sec, idx) => {
-    if (sec.type === 'profile_header' || sec.type === 'about') return;
+    if (sec.type === 'profile_header' || sec.type === 'about' || sec.type === 'contact' || sec.id === 'contact') return;
 
     const colAttr = is1Col ? `order="${idx + 1}"` : `column="${escapeXML(sec.column || 'left')}"`;
     xml.push(`    <section id="${escapeXML(sec.id)}" type="${escapeXML(sec.type)}" title="${escapeXML(sec.title)}" ${colAttr}>`);
@@ -541,6 +549,8 @@ export const exportToATSPlainText = (cvData) => {
   if (!cvData) return '';
   const profileSection = cvData.sections?.find(s => s.type === 'profile_header' || s.type === 'title_subtitle');
   const profileItem = profileSection?.items?.[0] || {};
+  const contactSection = cvData.sections?.find(s => s.type === 'contact' || s.id === 'contact');
+  const contactItem = contactSection?.items?.[0] || {};
   const aboutSection = cvData.sections?.find(s => s.type === 'about');
   const aboutItem = aboutSection?.items?.[0] || {};
 
@@ -548,17 +558,29 @@ export const exportToATSPlainText = (cvData) => {
   lines.push((profileItem.name || cvData.profile?.name || 'CURRICULUM VITAE').toUpperCase());
   if (profileItem.subtitle) lines.push(profileItem.subtitle);
 
+  const dynamicContacts = [
+    ...normalizeItemContacts(profileItem),
+    ...normalizeItemContacts(contactItem)
+  ];
+
   const contacts = [];
-  if (Array.isArray(profileItem.contacts) && profileItem.contacts.length > 0) {
-    profileItem.contacts.forEach(c => {
-      if (c && c.value) contacts.push(c.value);
+  if (dynamicContacts.length > 0) {
+    dynamicContacts.forEach(c => {
+      if (c && c.value && c.type !== 'location') contacts.push(c.value);
     });
+    const loc = profileItem.location || contactItem.location;
+    if (loc && !contacts.includes(loc)) contacts.unshift(loc);
   } else {
-    if (profileItem.location) contacts.push(profileItem.location);
-    if (profileItem.email) contacts.push(profileItem.email);
-    if (profileItem.phone) contacts.push(profileItem.phone);
-    if (profileItem.linkedin) contacts.push(profileItem.linkedin);
-    if (profileItem.github) contacts.push(profileItem.github);
+    const loc = profileItem.location || contactItem.location;
+    const email = profileItem.email || contactItem.email;
+    const phone = profileItem.phone || contactItem.phone;
+    const linkedin = profileItem.linkedin || contactItem.linkedin;
+    const github = profileItem.github || contactItem.github;
+    if (loc) contacts.push(loc);
+    if (email) contacts.push(email);
+    if (phone) contacts.push(phone);
+    if (linkedin) contacts.push(linkedin);
+    if (github) contacts.push(github);
   }
   if (contacts.length > 0) lines.push(contacts.join(' | '));
   lines.push('\n' + '='.repeat(60) + '\n');
@@ -581,13 +603,13 @@ export const exportToATSPlainText = (cvData) => {
     }
   });
   (cvData.sections || []).forEach(sec => {
-    if (!seenIds.has(sec.id) && sec.type !== 'profile_header') {
+    if (!seenIds.has(sec.id) && sec.type !== 'profile_header' && sec.type !== 'contact' && sec.id !== 'contact') {
       orderedSections.push(sec);
     }
   });
 
   orderedSections.forEach(sec => {
-    if (sec.type === 'profile_header' || sec.type === 'about') return;
+    if (sec.type === 'profile_header' || sec.type === 'about' || sec.type === 'contact' || sec.id === 'contact') return;
     lines.push((sec.title || sec.id).toUpperCase());
     lines.push('-'.repeat(30));
 
@@ -648,7 +670,8 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     format = 'markdown',
     jobDescription = '',
     userCommentary = '',
-    lang = 'es'
+    lang = 'es',
+    targetLang = (options.targetLang || (lang === 'en' ? 'es' : 'en'))
   } = options;
 
   const localizedPrompts = getPrompts(lang);
@@ -667,15 +690,40 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
     cvFormatted = exportToAIMarkdown(cvData);
   }
 
+  const isEn = lang === 'en';
+  let systemRole = promptDef.system_instruction || '';
+  let taskDesc = promptDef.task || '';
+
+  // Bidirectional Translation & Localization Prompt Directives
+  if (promptId === 'translate_english' || promptDef?.category === 'localization') {
+    if (targetLang === 'es') {
+      systemRole = isEn
+        ? "You are a bilingual Principal Technical Recruiter and Localization Architect specializing in the Spanish-speaking software engineering and tech market (Spain and Latin America). Your mission is to translate, culturally localize, and format the candidate's CV abstraction into professional Tech Spanish, strictly returning ONLY a native JSON code block conforming 1:1 to Ressume's `cvData` schema, with zero conversational text or explanations, for immediate direct import into the editor."
+        : "Eres un Principal Technical Recruiter bilingüe y Arquitecto de Localización especializado en el mercado hispanohablante de ingeniería de software y tecnología (España y América Latina). Tu misión es traducir, adaptar culturalmente y formatear la abstracción de CV del candidato al español profesional del sector Tech, devolviendo obligatoria y ÚNICAMENTE un bloque de código JSON nativo compatible 1:1 con el schema `cvData` de Ressume, sin explicaciones ni texto conversacional, para su importación directa e inmediata en el editor.";
+
+      taskDesc = isEn
+        ? "1. Spanish Tech Localization & Cultural Alignment Rules:\n- Academic Degrees: Map English degrees to official accredited equivalents in the Spanish-speaking market (e.g. 'Associate Degree' ➔ 'Técnico Superior / Tecnicatura'; 'Bachelor of Science (B.S.)' ➔ 'Licenciatura / Grado / Ingeniería'; 'Master of Science (M.S.)' ➔ 'Maestría / Máster').\n- Professional Titles: Standardize technical job titles (e.g. 'Software Engineer II' ➔ 'Desarrollador de Software Semi Senior / Ssr'; 'Tech Lead' ➔ 'Líder Técnico / Responsable Técnico'; 'Senior Frontend Developer' ➔ 'Desarrollador Frontend Senior'; 'Junior / Intern' ➔ 'Desarrollador Junior / Trainee').\n- Verb Tense Discipline: Use precise past-tense action verbs in Spanish (pretérito perfecto simple: Diseñó, Desarrolló, Implementó, Optimizó, Lideró, Automatizó) for past positions; use present indicative or professional infinitive for current active roles.\n- Canonical Spanish Section Titles: 'EXPERIENCIA LABORAL', 'EDUCACIÓN', 'HABILIDADES TÉCNICAS', 'PROYECTOS DESTACADOS', 'PERFIL PROFESIONAL', 'CERTIFICACIONES', 'IDIOMAS', 'CONTACTO'.\n- Technical Vocabulary: Preserve industry-standard terms, libraries, tools, and framework names unchanged (TypeScript, React, Docker, Kubernetes, etc.).\n2. Universal Strict Output Format Directive (JSON ONLY):\n- The response MUST strictly consist of ONLY a single Markdown code fence ```json ... ``` (or raw JSON text).\n- Absolutely zero conversational preambles, localization summaries, explanations, apologies, postscripts, or commentary outside the code fence.\n- The JSON object must strictly follow Ressume's cvData schema ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap, language: 'es' }, profile: { name, subtitle }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- The JSON must be 100% valid (RFC 8259) and directly importable into Version Manager via sanitizeAndValidateCVSnapshot."
+        : "1. Reglas de Traducción y Localización Cultural al Español:\n- Títulos Académicos y Grados: Mapear títulos en inglés a la titulación universitaria o técnica equivalente oficial en el mercado hispanohablante (ej. 'Associate Degree' ➔ 'Técnico Superior / Tecnicatura'; 'Bachelor of Science / B.S.' ➔ 'Licenciatura / Grado / Ingeniería'; 'Master of Science / M.S.' ➔ 'Maestría / Máster').\n- Cargos y Niveles Laborales: Adaptar cargos técnicos a la nomenclatura profesional estándar (ej. 'Software Engineer II' ➔ 'Desarrollador de Software Semi Senior / Ssr'; 'Tech Lead' ➔ 'Líder Técnico / Responsable Técnico'; 'Senior Frontend Developer' ➔ 'Desarrollador Frontend Senior'; 'Intern / Junior Developer' ➔ 'Desarrollador Trainee / Junior').\n- Disciplina de Tiempos Verbales: Usar verbos de acción precisos en pretérito perfecto simple / pasado para experiencias anteriores (ej. Diseñó, Desarrolló, Implementó, Optimizó, Lideró, Automatizó); usar verbos en presente de indicativo o infinitivo profesional para la posición activa actual.\n- Títulos de Secciones Canónicos en Español: 'EXPERIENCIA LABORAL', 'EDUCACIÓN', 'HABILIDADES TÉCNICAS', 'PROYECTOS DESTACADOS', 'PERFIL PROFESIONAL', 'CERTIFICACIONES', 'IDIOMAS', 'CONTACTO'.\n- Vocabulario Técnico: Preservar nombres de tecnologías, frameworks y herramientas en su forma original reconocida en la industria (TypeScript, React, Docker, Kubernetes, etc.) sin traducciones literales torpes.\n2. Directiva Universal Estricta de Formato de Salida (SOLO JSON):\n- La respuesta DEBE consistir ÚNICAMENTE en el bloque de código Markdown ```json ... ``` (o texto JSON crudo).\n- Queda TERMINANTEMENTE PROHIBIDO cualquier texto introductorio, resúmenes de localización, explicaciones, notas al pie, saludos o comentarios antes o después del bloque JSON.\n- El objeto JSON debe cumplir estrictamente con la estructura nativa de cvData de Ressume ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap, language: 'es' }, profile: { name, subtitle }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- El JSON debe ser 100% válido (RFC 8259) y directamente importable mediante sanitizeAndValidateCVSnapshot en el Gestor de Versiones.";
+    } else if (targetLang === 'en' || !targetLang) {
+      systemRole = isEn
+        ? "You are a bilingual Principal Technical Recruiter and Localization Architect in Silicon Valley specializing in the US software engineering talent market. Your mission is to translate, culturally localize, and format the candidate's CV abstraction into professional US Tech English, strictly returning ONLY a native JSON code block conforming 1:1 to Ressume's `cvData` schema, with zero conversational text or explanations, for immediate direct import into the Version Manager."
+        : "Eres un Principal Technical Recruiter bilingüe y Arquitecto de Localización de Silicon Valley especializado en el mercado de contratación de ingeniería de software en Estados Unidos. Tu misión es traducir, adaptar culturalmente y formatear la abstracción de CV del candidato al inglés profesional estadounidense del sector Tech, devolviendo obligatoria y ÚNICAMENTE un bloque de código JSON nativo compatible 1:1 con el schema `cvData` de Ressume, sin explicaciones ni texto conversacional, para su importación directa e inmediata en el editor.";
+
+      taskDesc = isEn
+        ? "1. US Tech Localization & Cultural Alignment Rules:\n- Academic Degrees: Map international degrees to standard US accredited equivalents (e.g. 'Programador Universitario' ➔ 'Associate Degree in Computer Programming / Software Development'; 'Licenciatura en Informática' ➔ 'Bachelor of Science in Computer Science'; 'Ingeniería en Sistemas' ➔ 'B.S. in Software Engineering').\n- Professional Titles: Align job titles with standard US industry leveling (e.g. 'Desarrollador Semi Senior' ➔ 'Software Engineer II'; 'Líder Técnico' ➔ 'Tech Lead / Lead Software Engineer'; 'Desarrollador Trainee' ➔ 'Junior Software Engineer / Intern').\n- Verb Tense Discipline: Strong past-tense action verbs (Engineered, Architected, Optimized, Spearheaded) for past roles; present tense for the current role.\n- Idiomatic Technical Vocabulary: Eradicate literal translations.\n- Canonical Section Titles in English: 'WORK EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'PROJECTS', 'PROFESSIONAL SUMMARY', 'CERTIFICATIONS', 'LANGUAGES', 'CONTACT'.\n2. Universal Strict Output Format Directive (JSON ONLY):\n- The response MUST strictly consist of ONLY a single Markdown code fence ```json ... ``` (or raw JSON text).\n- Absolutely zero conversational preambles, localization summaries, explanations, apologies, postscripts, or commentary outside the code fence.\n- The JSON object must strictly follow Ressume's cvData schema ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap, language: 'en' }, profile: { name, subtitle }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- The JSON must be 100% valid (RFC 8259) and directly importable into Version Manager via sanitizeAndValidateCVSnapshot."
+        : "1. Reglas de Traducción y Localización Cultural US Tech (US Tech Localization):\n- Títulos Académicos: Mapear titulaciones internacionales a equivalentes estándar en EE.UU. (ej. 'Programador Universitario' -> 'Associate Degree in Computer Programming / Software Development'; 'Licenciatura en Informática / Sistemas' -> 'Bachelor of Science in Computer Science / Information Systems'; 'Ingeniería en Sistemas de Información' -> 'B.S. in Software Engineering').\n- Cargos Laborales: Estandarizar a nomenclatura de mercado (ej. 'Desarrollador Semi Senior' -> 'Software Engineer II'; 'Líder Técnico' -> 'Tech Lead / Lead Software Engineer'; 'Desarrollador Trainee' -> 'Junior Software Engineer / Intern').\n- Disciplina de Tiempos Verbales: Verbos de acción en pasado (Engineered, Architected, Implemented, Optimized) para roles anteriores; verbos en presente (Architects, Develops, Maintains) para el rol actualmente activo.\n- Títulos Canónicos de Secciones en Inglés: 'WORK EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'PROJECTS', 'PROFESSIONAL SUMMARY', 'CERTIFICATIONS', 'LANGUAGES', 'CONTACT'.\n- Vocabulario Técnico Preciso: Eliminar traducciones literales torpes.\n2. Directiva Universal Estricta de Formato de Salida (SOLO JSON):\n- La respuesta DEBE consistir ÚNICAMENTE en el bloque de código Markdown ```json ... ``` (o texto JSON crudo).\n- Queda TERMINANTEMENTE PROHIBIDO cualquier texto introductorio, resúmenes de localización, explicaciones, notas al pie, saludos o comentarios antes o después del bloque JSON.\n- El objeto JSON debe cumplir estrictamente con la estructura nativa de cvData de Ressume ({ layout: { type, isAtsMode, fontFamily, fontScale, titleScale, bodyScale, listScale, lineHeight, pagePadding, sectionGap, itemGap, language: 'en' }, profile: { name, subtitle }, sections: [ { id, column, type, title, items: [ ... ] } ] }).\n- El JSON debe ser 100% válido (RFC 8259) y directamente importable mediante sanitizeAndValidateCVSnapshot en el Gestor de Versiones.";
+    }
+  }
+
   const payload = [];
 
   /* Instrucciones del sistema */
   payload.push('---');
-  payload.push('role: ' + (promptDef.system_instruction || ''));
+  payload.push('role: ' + systemRole);
   payload.push('');
 
   /* Tarea a realizar */
-  payload.push('task: ' + (promptDef.task || ''));
+  payload.push('task: ' + taskDesc);
   payload.push('');
 
   /* Formato de salida */
@@ -700,7 +748,6 @@ export const buildAIPromptPayload = (cvData, promptId = 'recruiter_audit', optio
 
   payload.push('---');
 
-  const isEn = lang === 'en';
   const introHeader = isEn
     ? `# CANDIDATE RESUME INPUT DATA (${format.toUpperCase()})`
     : `# DATOS DE ENTRADA DEL CURRÍCULUM VITAE (${format.toUpperCase()})`;

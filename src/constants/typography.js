@@ -18,11 +18,11 @@ export const DEFAULT_FONT_FAMILY = FONT_FAMILIES.Poppins;
 export const SUPPORTED_FONT_NAMES = Object.freeze(Object.keys(FONT_FAMILIES));
 
 export const TYPOGRAPHY_SCALE_LIMITS = Object.freeze({
-  fontScale: Object.freeze({ min: 0.7, max: 1.3, step: 0.05, default: 1.0 }),
-  titleScale: Object.freeze({ min: 0.8, max: 1.4, step: 0.05, default: 1.0 }),
-  bodyScale: Object.freeze({ min: 0.8, max: 1.3, step: 0.05, default: 1.0 }),
-  listScale: Object.freeze({ min: 0.8, max: 1.3, step: 0.05, default: 1.0 }),
-  lineHeight: Object.freeze({ min: 1.15, max: 1.8, step: 0.05, default: 1.3 }),
+  fontScale: Object.freeze({ min: 0.5, max: 1.3, step: 0.05, default: 1.0 }),
+  titleScale: Object.freeze({ min: 0.5, max: 1.4, step: 0.05, default: 1.0 }),
+  bodyScale: Object.freeze({ min: 0.5, max: 1.3, step: 0.05, default: 1.0 }),
+  listScale: Object.freeze({ min: 0.5, max: 1.3, step: 0.05, default: 1.0 }),
+  lineHeight: Object.freeze({ min: 1.15, max: 1.85, step: 0.05, default: 1.3 }),
 });
 
 /**
@@ -69,7 +69,7 @@ export function getFontAdvanceRatio(fontFamily) {
 export const DEFAULT_COLUMN_CHARS_CAPACITY = Object.freeze({
   left: Object.freeze({ text: 28, bullet: 26 }),
   right: Object.freeze({ text: 44, bullet: 42 }),
-  single: Object.freeze({ text: 72, bullet: 70 }),
+  single: Object.freeze({ text: 118, bullet: 114 }),
 });
 
 export const MIN_CHARS_PER_LINE = 12;
