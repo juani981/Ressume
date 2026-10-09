@@ -85,6 +85,7 @@ describe('Final E2E Cross-Cutting Challenger: Cross-Epic Adversarial Stress Suit
       // Apply center alignment via toolbar
       const centerBtn = screen.getByTestId('btn-format-align-center');
       fireEvent.mouseDown(centerBtn);
+      fireEvent.click(centerBtn);
 
       // Blur to save changes
       fireEvent.blur(activeInput);

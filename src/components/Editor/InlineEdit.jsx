@@ -89,7 +89,7 @@ const InlineEditPrintView = ({
     <span
       className={`inline-edit-display ${className}`}
       style={{
-        display: display || (multiline ? 'block' : 'inline-block'),
+        display: display || 'inline-block',
         maxWidth: '100%',
         boxSizing: 'border-box',
         overflowWrap: 'break-word',
@@ -125,6 +125,10 @@ const InlineEditEditor = ({
   const initialParsed = stripOuterAlignment(value);
   const [isEditing, setIsEditing] = useState(false);
   const [currentAlignment, setCurrentAlignment] = useState(initialParsed.alignment || 'left');
+  const currentAlignmentRef = useRef(initialParsed.alignment || 'left');
+  useEffect(() => {
+    currentAlignmentRef.current = currentAlignment;
+  }, [currentAlignment]);
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -142,6 +146,7 @@ const InlineEditEditor = ({
     if (!isEditing) {
       const parsed = stripOuterAlignment(value);
       setCurrentAlignment(parsed.alignment || 'left');
+      currentAlignmentRef.current = parsed.alignment || 'left';
       setActiveFormats(prev => ({ ...prev, align: parsed.alignment || 'left' }));
     }
   }, [value, isEditing]);
@@ -268,11 +273,12 @@ const InlineEditEditor = ({
     if (!contentRef.current) return;
 
     if (command === 'bold') {
+      const prevHtml = contentRef.current.innerHTML;
       let handled = false;
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         try { handled = document.execCommand('bold', false, null); } catch (e) {}
       }
-      if (!handled) {
+      if (!handled || contentRef.current.innerHTML === prevHtml) {
         toggleTagFallback('b');
       }
       historyRef.current.past.push(contentRef.current.innerHTML);
@@ -282,11 +288,12 @@ const InlineEditEditor = ({
     }
 
     if (command === 'italic') {
+      const prevHtml = contentRef.current.innerHTML;
       let handled = false;
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         try { handled = document.execCommand('italic', false, null); } catch (e) {}
       }
-      if (!handled) {
+      if (!handled || contentRef.current.innerHTML === prevHtml) {
         toggleTagFallback('i');
       }
       historyRef.current.past.push(contentRef.current.innerHTML);
@@ -296,6 +303,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyLeft') {
+      currentAlignmentRef.current = 'left';
       setCurrentAlignment('left');
       if (contentRef.current) contentRef.current.style.textAlign = 'left';
       updateToolbar('left');
@@ -303,6 +311,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyCenter') {
+      currentAlignmentRef.current = 'center';
       setCurrentAlignment('center');
       if (contentRef.current) contentRef.current.style.textAlign = 'center';
       updateToolbar('center');
@@ -310,6 +319,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyRight') {
+      currentAlignmentRef.current = 'right';
       setCurrentAlignment('right');
       if (contentRef.current) contentRef.current.style.textAlign = 'right';
       updateToolbar('right');
@@ -317,6 +327,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyFull') {
+      currentAlignmentRef.current = 'justify';
       setCurrentAlignment('justify');
       if (contentRef.current) contentRef.current.style.textAlign = 'justify';
       updateToolbar('justify');
@@ -457,7 +468,8 @@ const InlineEditEditor = ({
         cleanInner = sanitizeRichHTML(rawHtml);
       }
 
-      const finalValue = cleanInner ? applyAlignment(cleanInner, currentAlignment) : '';
+      const finalAlignment = currentAlignmentRef.current || currentAlignment || 'left';
+      const finalValue = cleanInner ? applyAlignment(cleanInner, finalAlignment) : '';
       if (finalValue !== value && typeof onSave === 'function') {
         onSave(finalValue);
       }
