@@ -18,7 +18,7 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { List, Trash2, Plus, Lightbulb } from 'lucide-react';
+import { List, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
@@ -199,13 +199,9 @@ const EditableBaseSection = ({ section }) => {
     addSectionItem, 
     deleteSection, 
     updateSectionProperty,
-    toggleTooltipForSection,
-    activeTooltip
   } = useCV();
 
   const { justDroppedId } = useDndStatus();
-
-  const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
@@ -259,23 +255,6 @@ const EditableBaseSection = ({ section }) => {
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          {isAtsMode && (
-            <button 
-              type="button"
-              className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
-              title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              data-testid={`btn-section-tips-${section.id}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect(), { current: e.currentTarget });
-              }}
-            >
-              <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
-            </button>
-          )}
-
           {allowBulletCustomization && (
             <button 
               type="button"

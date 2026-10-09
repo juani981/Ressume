@@ -722,6 +722,7 @@
   .profile__description,
   .bullet-item-row,
   .simple-list-item,
+  .simple-list-text,
   .skills__name,
   .languages__name,
   .inline-edit-display {
@@ -730,6 +731,7 @@
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
+    white-space: pre-wrap !important;
     box-sizing: border-box !important;
   }
 

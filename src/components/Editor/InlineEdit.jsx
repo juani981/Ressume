@@ -456,9 +456,11 @@ const InlineEditEditor = ({
       }
     }
 
-    if (e.key === 'Enter' && !multiline) {
-      e.preventDefault();
-      contentRef.current?.blur();
+    if (e.key === 'Enter') {
+      if (!multiline && !e.shiftKey) {
+        e.preventDefault();
+        contentRef.current?.blur();
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       isCancelingRef.current = true;
@@ -577,6 +579,7 @@ const InlineEditEditor = ({
         minHeight: '1em',
         textAlign: currentAlignment,
         color: 'inherit',
+        whiteSpace: multiline ? 'pre-wrap' : 'normal',
         ...style
       }}
       dangerouslySetInnerHTML={{ __html: displayHtml }}

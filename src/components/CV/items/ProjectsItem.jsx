@@ -108,6 +108,7 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
                     <InlineEdit 
                       value={bulletText} 
                       isPrint={true}
+                      multiline={true}
                     />
                   </li>
                 );

@@ -63,7 +63,6 @@ function App() {
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
-      activeTooltip,
       setTotalPages: setContextTotalPages,
       deletePage,
    } = useCV();
@@ -380,7 +379,6 @@ function App() {
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
             addSectionTargetIndex={addSectionTargetIndex}
-            activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />
       </>

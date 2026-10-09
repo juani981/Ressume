@@ -29,6 +29,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
               <InlineEdit 
                 value={item.description} 
                 isPrint={isPrint}
+                multiline={true}
                 onSave={(val) => onUpdateItem?.(sectionId, item.id, 'description', val)} 
                 placeholder="Detalle o certificación (ej: EF SET C2)..."
               />
