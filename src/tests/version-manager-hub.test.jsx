@@ -618,6 +618,13 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
         fireEvent.click(renameTrigger);
 
         const renameInput = screen.queryByTestId('input-rename-version') || screen.getByDisplayValue('Original Para Renombrar');
+        await waitFor(() => expect(renameInput).toHaveFocus());
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        });
+        expect(renameInput).toBeInTheDocument();
+        expect(renameInput).toHaveFocus();
+
         fireEvent.change(renameInput, { target: { value: 'Nombre Finalizado' } });
         fireEvent.keyDown(renameInput, { key: 'Enter', code: 'Enter' });
 
