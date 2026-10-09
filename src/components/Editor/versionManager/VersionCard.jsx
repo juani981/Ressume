@@ -158,13 +158,13 @@ export const VersionCard = ({
       key={version.id}
       data-testid={`version-card-${version.id}`}
       data-theme={theme}
-      className={`version-card ${isActive ? 'version-card--active' : ''}`}
+      className="version-card"
       onClick={() => {
         if (!isEditing && onConfirmLoad) onConfirmLoad(version);
       }}
       style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
-        border: isActive ? '1.5px solid #10b981' : (isDark ? '1px solid #334155' : '1px solid #e2e8f0'),
+        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
         borderRadius: '12px',
         overflow: 'hidden',
         display: 'flex',
@@ -172,15 +172,13 @@ export const VersionCard = ({
         height: '310px',
         minHeight: '310px',
         maxHeight: '310px',
-        boxShadow: isActive
-          ? '0 4px 14px rgba(16, 185, 129, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05)'
-          : (isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.04)'),
+        boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.04)',
         transition: 'all 0.15s ease',
         flexShrink: 0,
         position: 'relative',
         cursor: isEditing ? 'default' : 'pointer',
       }}
-      title={!isEditing ? 'Clic para usar como versión actual' : undefined}
+      title={!isEditing ? 'Clic para cargar versión' : undefined}
     >
       {/* Visual Thumbnail Preview (Default click: Use as current version) */}
       <div
@@ -244,40 +242,7 @@ export const VersionCard = ({
           </div>
         )}
 
-        {/* Top-Left: "Actual" emerald pill with pulse dot if isActive */}
-        {isActive && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '8px',
-              left: '8px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '3px 8px',
-              borderRadius: '9999px',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              backgroundColor: '#ecfdf5',
-              color: '#065f46',
-              border: '1px solid #a7f3d0',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
-              zIndex: 3,
-            }}
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: '#10b981',
-                boxShadow: '0 0 6px #10b981',
-                display: 'inline-block',
-              }}
-            />
-            Actual
-          </div>
-        )}
+        {/* No "Actual" badge: the live document is always different from saved versions, so no version should appear "active" */}
 
         {/* Top-Right: Layout Badge with High Contrast */}
         <div
@@ -594,17 +559,9 @@ export const VersionCard = ({
             justifyContent: 'center',
             gap: '5px',
             padding: '0 0.65rem',
-            backgroundColor: isActive 
-              ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#ecfdf5') 
-              : (isDark ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff'),
-            color: isActive 
-              ? (isDark ? '#34d399' : '#059669') 
-              : (isDark ? '#60a5fa' : '#2563eb'),
-            border: `1px solid ${
-              isActive 
-                ? (isDark ? '#059669' : '#a7f3d0') 
-                : (isDark ? '#2563eb' : '#bfdbfe')
-            }`,
+            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#eff6ff',
+            color: isDark ? '#60a5fa' : '#2563eb',
+            border: `1px solid ${isDark ? '#2563eb' : '#bfdbfe'}`,
             borderRadius: '6px',
             fontSize: '0.78rem',
             fontWeight: 600,
@@ -613,8 +570,8 @@ export const VersionCard = ({
             whiteSpace: 'nowrap',
           }}
         >
-          {isActive ? <Check size={13} /> : <CheckCircle2 size={13} />}
-          <span>{isActive ? 'Activa' : 'Cargar'}</span>
+          <CheckCircle2 size={13} />
+          <span>Cargar</span>
         </button>
 
         {/* Secondary Icon Cluster (30x30px buttons) */}
