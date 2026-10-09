@@ -51,6 +51,8 @@ export function useFocusTrap(containerRef, {
   returnFocusRef,
 } = {}) {
   const previouslyFocusedElementRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const getFocusableElements = useCallback(() => {
     if (!containerRef?.current) return [];
@@ -93,10 +95,10 @@ export function useFocusTrap(containerRef, {
       if (e.defaultPrevented) return;
 
       if (e.key === 'Escape') {
-        if (typeof onClose === 'function') {
+        if (typeof onCloseRef.current === 'function') {
           e.preventDefault();
           e.stopPropagation();
-          onClose(e);
+          onCloseRef.current(e);
         }
         return;
       }
@@ -147,7 +149,7 @@ export function useFocusTrap(containerRef, {
         }, 16);
       }
     };
-  }, [isOpen, onClose, initialFocusRef, returnFocusRef, containerRef, getFocusableElements]);
+  }, [isOpen, initialFocusRef, returnFocusRef, containerRef, getFocusableElements]);
 }
 
 export default useFocusTrap;
