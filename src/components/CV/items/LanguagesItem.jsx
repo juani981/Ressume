@@ -25,7 +25,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
             />
           </span>
           {item.description && (
-            <div style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
+            <span style={{ fontSize: 'var(--body-smaller-font-size, var(--smaller-font-size))', color: 'var(--text-color-light)' }}>
               <InlineEdit 
                 value={item.description} 
                 isPrint={isPrint}
@@ -33,7 +33,7 @@ const LanguagesItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
                 onSave={(val) => onUpdateItem?.(sectionId, item.id, 'description', val)} 
                 placeholder="Detalle o certificación (ej: EF SET C2)..."
               />
-            </div>
+            </span>
           )}
         </div>
       </div>

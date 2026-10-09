@@ -147,21 +147,61 @@ const InlineEditEditor = ({
   }, [value, isEditing]);
 
   const isBold = () => {
-    if (typeof document !== 'undefined' && typeof document.queryCommandState === 'function') {
-      try { return document.queryCommandState('bold'); } catch (e) {}
-    }
-    if (contentRef.current) {
-      return /<b>|<strong>/i.test(contentRef.current.innerHTML);
+    if (typeof document !== 'undefined') {
+      // Primary check: queryCommandState returns the formatting state of the current selection
+      // (works in browsers that support execCommand state reporting)
+      if (typeof document.queryCommandState === 'function') {
+        try { if (document.queryCommandState('bold')) return true; } catch (e) {}
+      }
+      // Fallback: inspect the actual DOM to detect any applied bold formatting.
+      // queryCommandState can return false when the cursor sits at the end of
+      // editable text or in browsers with incomplete state reporting, so we verify
+      // whether the editable content itself carries bold markup. This keeps the
+      // toolbar button in sync with what the user has actually applied.
+      if (contentRef.current) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          let node = range.commonAncestorContainer;
+          if (node.nodeType === 3 && node.parentNode) {
+            node = node.parentNode;
+          }
+          if (node && node.closest && node.closest('b, strong')) {
+            return true;
+          }
+        }
+        return /<b>|<strong>/i.test(contentRef.current.innerHTML);
+      }
     }
     return false;
   };
 
   const isItalic = () => {
-    if (typeof document !== 'undefined' && typeof document.queryCommandState === 'function') {
-      try { return document.queryCommandState('italic'); } catch (e) {}
-    }
-    if (contentRef.current) {
-      return /<i>|<em>/i.test(contentRef.current.innerHTML);
+    if (typeof document !== 'undefined') {
+      // Primary check: queryCommandState returns the formatting state of the current selection
+      // (works in browsers that support execCommand state reporting)
+      if (typeof document.queryCommandState === 'function') {
+        try { if (document.queryCommandState('italic')) return true; } catch (e) {}
+      }
+      // Fallback: inspect the actual DOM to detect any applied italic formatting.
+      // queryCommandState can return false when the cursor sits at the end of
+      // editable text or in browsers with incomplete state reporting, so we verify
+      // whether the editable content itself carries italic markup. This keeps the
+      // toolbar button in sync with what the user has actually applied.
+      if (contentRef.current) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          let node = range.commonAncestorContainer;
+          if (node.nodeType === 3 && node.parentNode) {
+            node = node.parentNode;
+          }
+          if (node && node.closest && node.closest('i, em')) {
+            return true;
+          }
+        }
+        return /<i>|<em>/i.test(contentRef.current.innerHTML);
+      }
     }
     return false;
   };
@@ -570,7 +610,10 @@ const InlineEditEditor = ({
       data-is-empty={!hasValue ? "true" : undefined}
       style={{
         cursor: 'pointer',
-        display: display || (multiline ? 'block' : 'inline-block'),
+        // Always inline-block in display mode so short multiline text (titles + descriptions)
+        // does not force unwanted line breaks when it could fit on one line. During editing
+        // (isEditing === true) the component becomes a block element to allow multi-line input.
+        display: display || 'inline-block',
         minWidth: '20px',
         maxWidth: '100%',
         boxSizing: 'border-box',
