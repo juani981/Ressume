@@ -236,7 +236,7 @@ const EditableBaseSection = ({ section }) => {
     <section 
         ref={setNodeRef} 
         style={style} 
-        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
         id={section.id}
         data-section-id={section.id}
         data-has-continuation={section.hasContinuation ? 'true' : undefined}

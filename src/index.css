@@ -971,6 +971,12 @@ img {
   cursor: grab;
 }
 
+.editable-section-container.section-fixed:hover {
+  cursor: default;
+  outline-color: rgba(148, 163, 184, 0.35);
+  background-color: rgba(148, 163, 184, 0.03);
+}
+
 .editable-item-container:hover {
   outline-color: rgba(56, 116, 255, 0.35);
   background-color: rgba(0, 0, 0, 0.03);
@@ -1454,7 +1460,7 @@ body.has-running-tour .section-action-buttons {
   transform: scale(1.15);
 }
 
-/* Add bullet button (Positioned directly centered on border line: 50% in, 50% out) */
+/* Add bullet button starts at the lower edge of the preceding content. */
 .bullet-add-row {
   position: relative;
   z-index: 100;
@@ -1487,8 +1493,10 @@ body.has-running-tour .bullet-add-row {
   cursor: pointer;
   transition: all 0.18s ease;
   margin: 0;
+  position: absolute;
+  top: -2px;
+  left: -10px;
   transform: translateY(-50%);
-  position: relative;
   z-index: 110;
   pointer-events: auto;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
@@ -1499,6 +1507,7 @@ body.has-running-tour .bullet-add-row {
   border-color: #059669;
   color: #059669;
   transform: translateY(-50%) scale(1.06);
+  transform-origin: top left;
   z-index: 130 !important;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
 }
