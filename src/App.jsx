@@ -7,6 +7,7 @@ import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
 import { PlusCircle } from "lucide-react";
 import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
+import { initializeFontPreloading } from "./utils/fontPreloader";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -69,6 +70,7 @@ function App() {
 
    useEffect(() => {
       setupDisableNativeTooltips();
+      initializeFontPreloading();
    }, []);
 
    const areaCvRef = useRef(null);
