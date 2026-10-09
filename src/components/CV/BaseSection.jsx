@@ -171,7 +171,7 @@ export const PrintBaseSection = ({ section }) => {
  * @param {Object} props.section - CV section data model
  * @returns {React.ReactElement}
  */
-const EditableBaseSection = ({ section }) => {
+const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const descriptor = getSectionDescriptor(section?.type);
 
   if (descriptor?.sectionComponent) {
@@ -236,9 +236,10 @@ const EditableBaseSection = ({ section }) => {
     <section 
         ref={setNodeRef} 
         style={style} 
-        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${hideDragAffordance ? ' drag-affordance-hidden' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
         id={section.id}
         data-section-id={section.id}
+        data-drag-disabled={isMoveDisabled ? 'true' : undefined}
         data-has-continuation={section.hasContinuation ? 'true' : undefined}
         data-is-continuation={section.isContinuation ? 'true' : undefined}
         {...attributes}

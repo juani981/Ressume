@@ -493,6 +493,18 @@ describe('Epic 3: Floating Panel Reorganization, ATS Mode & Right-Docked Modal',
       expect(screen.getByTestId('add-section-card-skills')).toBeInTheDocument();
       expect(screen.getByTestId('add-section-card-certificates')).toBeInTheDocument();
       expect(screen.getByTestId('add-section-card-languages')).toBeInTheDocument();
+
+      const modal = screen.getByTestId('add-section-modal');
+      const card = screen.getByTestId('add-section-card-projects');
+      const title = screen.getByText('Añadir Sección al CV');
+      const helpButton = screen.getByTestId('btn-modal-help');
+
+      expect(modal.style.background).toBe('rgba(15, 23, 42, 0.96)');
+      expect(modal.style.color).toBe('rgb(248, 250, 252)');
+      expect(card.style.background).toBe('rgba(255, 255, 255, 0.055)');
+      expect(card.querySelector('span').style.color).toBe('rgb(248, 250, 252)');
+      expect(title.style.color).toBe('rgb(248, 250, 252)');
+      expect(helpButton.style.backgroundColor).toBe('rgb(30, 41, 59)');
     });
 
     it('T5.4: clicking a section card adds section to target column and closes modal', () => {

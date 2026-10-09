@@ -188,6 +188,7 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
       const display = screen.getByTestId('inline-edit-display');
       expect(display).toBeInTheDocument();
       expect(display.textContent).toBe('Desarrollador Web Senior');
+      expect(display.style.cursor).toBe('text');
     });
 
     it('T2.2: switches to contentEditable and renders formatting toolbar on click', () => {

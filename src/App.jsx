@@ -56,6 +56,10 @@ const AREA_CV_CONTAINER_STYLE = Object.freeze({
    columnGap: 0,
 });
 
+const shouldHideSectionDragAffordance = (section) =>
+   ["profile_header", "title_subtitle", "contact", "about"].includes(section?.type) ||
+   ["profile_header", "title_subtitle", "contact", "about_section", "about"].includes(section?.id);
+
 function App() {
    const {
       cvData,
@@ -240,6 +244,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -295,6 +300,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -338,7 +344,11 @@ function App() {
                                  items={pageModel.singleSections.map((s) => s.id)}
                                  strategy={verticalListSortingStrategy}>
                                  {pageModel.singleSections.map((section) => (
-                                    <BaseSection key={section.id} section={section} />
+                                    <BaseSection
+                                       key={section.id}
+                                       section={section}
+                                       hideDragAffordance={shouldHideSectionDragAffordance(section)}
+                                    />
                                  ))}
                               </SortableContext>
 

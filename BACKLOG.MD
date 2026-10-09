@@ -15,7 +15,7 @@ CArgando vista previa demora muhcisimo en cargar, el primer renderizado ya deber
 
 AL editar texto, los botones de negrita y cursiva se resetean automaticamente, solo funciona con los atajos del teclado (LISTO)
 
-Los tres primeros elementos que no pueden moverse, no deberian tener la manito de arrastre activada, o almenos tener visualmente un decorador distinto al hacer hover para senializar. (LISTO)
+Los tres primeros elementos que no pueden moverse, no deberian tener la manito de arrastre activada, o almenos tener visualmente un decorador distinto al hacer hover para senializar. 
 
 EN el gestor de versiones, Se esta poniendo como ACTIVO una version guardada, pero no tiene sentido porque en el editor, si vas editando, ya no es el mismo documento ni al misma version, las ediciones en vivo estan BASADAS en la ultima version cargada, pero confunde al usuario. (LISTO)
 

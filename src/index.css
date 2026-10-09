@@ -971,10 +971,25 @@ img {
   cursor: grab;
 }
 
-.editable-section-container.section-fixed:hover {
-  cursor: default;
-  outline-color: rgba(148, 163, 184, 0.35);
-  background-color: rgba(148, 163, 184, 0.03);
+.editable-section-container[data-drag-disabled="true"],
+.editable-section-container[data-drag-disabled="true"]:hover,
+.editable-section-container[data-drag-disabled="true"]:active {
+  cursor: default !important;
+}
+
+.editable-section-container.section-fixed:hover,
+.editable-section-container.section-fixed:active {
+  outline-color: rgba(100, 116, 139, 0.55);
+  background-color: rgba(100, 116, 139, 0.045);
+}
+
+.editable-section-container.drag-affordance-hidden,
+.editable-section-container.drag-affordance-hidden:hover,
+.editable-section-container.drag-affordance-hidden:active {
+  cursor: default !important;
+  outline-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .editable-item-container:hover {
@@ -1043,6 +1058,18 @@ img {
   background-color: rgba(56, 116, 255, 0.02);
 }
 
+.editable-section-container.section-fixed.has-split-break:hover::before,
+.editable-section-container.section-fixed.has-split-break:hover::after {
+  outline-color: rgba(100, 116, 139, 0.55);
+  background-color: rgba(100, 116, 139, 0.045);
+}
+
+.editable-section-container.drag-affordance-hidden.has-split-break:hover::before,
+.editable-section-container.drag-affordance-hidden.has-split-break:hover::after {
+  outline-color: transparent !important;
+  background-color: transparent !important;
+}
+
 .editable-item-container.has-split-break:hover::before,
 .editable-item-container.has-split-break:hover::after {
   outline-color: rgba(56, 116, 255, 0.35);
@@ -1065,9 +1092,14 @@ img {
   cursor: grabbing;
 }
 
-/* Ensure text and interactive controls maintain their proper text/pointer cursor */
+/* Editable text uses the familiar text-selection cursor. */
 .inline-edit-display,
 .inline-edit-display * {
+  cursor: text !important;
+}
+
+.inline-edit-display a,
+.inline-edit-display a * {
   cursor: pointer !important;
 }
 
@@ -1555,6 +1587,14 @@ body.has-running-tour .bullet-add-row {
   transform: translateY(-1px);
   z-index: 200 !important;
     box-shadow: 0 4px 12px rgba(56, 116, 255, 0.18);
+}
+
+.add-section-card:hover,
+.add-section-card:focus-visible {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(147, 197, 253, 0.48) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.16);
 }
 
 /*========== ACTION MENU TOOLTIPS & BUTTONS ==========*/

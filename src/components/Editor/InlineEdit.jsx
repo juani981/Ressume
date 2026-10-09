@@ -621,7 +621,7 @@ const InlineEditEditor = ({
       data-testid="inline-edit-display"
       data-is-empty={!hasValue ? "true" : undefined}
       style={{
-        cursor: 'pointer',
+        cursor: 'text',
         // Always inline-block in display mode so short multiline text (titles + descriptions)
         // does not force unwanted line breaks when it could fit on one line. During editing
         // (isEditing === true) the component becomes a block element to allow multi-line input.
