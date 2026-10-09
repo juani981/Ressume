@@ -48,7 +48,7 @@ export const VersionConfirmationDialogs = ({
               fontSize: '1rem',
             }}
           >
-            <TriangleAlert size={18} /> Empezar CV en Blanco
+            <TriangleAlert size={18} /> Iniciar plantilla de muestra
           </div>
           <div
             className="callout-content"
@@ -58,7 +58,7 @@ export const VersionConfirmationDialogs = ({
               lineHeight: 1.5,
             }}
           >
-            Esta acción inicializará el editor con una plantilla limpia y datos placeholders listos para rellenar. El CV actual en pantalla será reemplazado (puedes deshacer con Ctrl+Z). ¿Deseas continuar?
+            Se elegirá al azar un perfil de demostración basado en la trayectoria de una persona referente de la computación. Puedes sustituir todos sus datos. El CV actual será reemplazado (puedes deshacer con Ctrl+Z). ¿Deseas continuar?
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
             <button
@@ -93,7 +93,7 @@ export const VersionConfirmationDialogs = ({
                 cursor: 'pointer',
               }}
             >
-              Sí, Empezar en Blanco
+              Sí, Usar esta plantilla
             </button>
           </div>
         </div>

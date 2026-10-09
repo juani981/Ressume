@@ -30,14 +30,15 @@ describe('Goal: Add Buttons Priority & Border Centering + Resizer Fine Styling',
       expect(cssContent).toMatch(/\.section-add-container\s*\{[^}]*z-index:\s*100/);
     });
 
-    it('positions .add-bullet-btn centered on border line (50% in, 50% out) with high z-index', () => {
-      // Must have transform: translateY(-50%) and z-index >= 100
-      expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*transform:\s*translateY\(-50%\)/);
+    it('aligns the top edge of .add-bullet-btn with the preceding content bottom edge', () => {
+      expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*top:\s*0/);
+      expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*transform:\s*none/);
       expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*z-index:\s*110/);
     });
 
     it('guarantees add buttons have top-layer z-index on hover (z-index >= 120)', () => {
       expect(cssContent).toMatch(/\.round-btn-add:hover\s*\{[^}]*z-index:\s*130/);
+      expect(cssContent).toMatch(/\.add-bullet-btn:hover\s*\{[^}]*transform:\s*scale\(1\.06\)/);
       expect(cssContent).toMatch(/\.add-bullet-btn:hover\s*\{[^}]*z-index:\s*130/);
       expect(cssContent).toMatch(/\.add-section-btn:hover\s*\{[^}]*z-index:\s*(?:130|200)/);
       expect(cssContent).toMatch(/\.add-contact-btn:hover\s*\{[^}]*z-index:\s*120/);

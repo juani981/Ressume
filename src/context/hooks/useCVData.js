@@ -5,7 +5,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { defaultSchema } from '../../utils/schema';
-import { getAtsGoldenSchemaTemplate } from '../../utils/atsSchemaTemplate';
+import { getRandomSeedCV } from '../../utils/seedCVTemplates';
 import { LOCALES } from '../../locales/index';
 import { applyDictionaryToCVState, extractDictionaryFromCV } from '../../utils/translationEngine';
 import { adaptItemToSectionType, createDefaultItemForSection, createDefaultSection } from '../../utils/itemAdapter';
@@ -115,7 +115,7 @@ const safeSetItem = (key, value) => {
 };
 
 /**
- * Loads initial CV data from localStorage with fallback to defaultSchema.
+ * Loads saved CV data, or selects a sample profile for a new browser session.
  * Automatically quarantines corrupt payloads and normalizes through sanitizeAndValidateCVSnapshot.
  * @returns {Object} Initialized CV state.
  */
@@ -146,7 +146,7 @@ export const loadInitialCVData = () => {
   }
   const isTestEnv = typeof process !== 'undefined' && (process.env?.NODE_ENV === 'test' || Boolean(process.env?.VITEST));
   if (isTestEnv || typeof window === 'undefined') return defaultSchema;
-  return getAtsGoldenSchemaTemplate('es');
+  return getRandomSeedCV();
 };
 
 /**
