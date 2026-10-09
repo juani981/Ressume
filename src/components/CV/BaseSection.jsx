@@ -18,7 +18,7 @@ import InlineEdit from '../Editor/InlineEdit';
 import { useCV } from '../../context/CVContext';
 import BaseItem from './BaseItem';
 import { getSectionDescriptor } from '../../registry/sectionRegistry';
-import { List, Trash2, Plus, Lightbulb } from 'lucide-react';
+import { List, Trash2, Plus } from 'lucide-react';
 import { getBulletClasses } from '../../utils/bulletStyles';
 import SectionBulletStylePopover from '../Editor/SectionBulletStylePopover';
 import SectionDeleteConfirmPopover from '../Editor/SectionDeleteConfirmPopover';
@@ -134,7 +134,7 @@ export const PrintBaseSection = ({ section }) => {
         data-is-continuation={isContinuation ? 'true' : undefined}
         style={{ marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`, color: 'var(--text-color)' }}
       >
-        {descriptor.hasTitle !== false && section.title && (
+        {descriptor.hasTitle !== false && !isContinuation && Boolean(section.title) && (
           <h2 
             className={`section-title${hasTitlePageBreak ? ' break-page-before' : ''}`} 
             data-section-title={section.id}
@@ -171,7 +171,7 @@ export const PrintBaseSection = ({ section }) => {
  * @param {Object} props.section - CV section data model
  * @returns {React.ReactElement}
  */
-const EditableBaseSection = ({ section }) => {
+const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const descriptor = getSectionDescriptor(section?.type);
 
   if (descriptor?.sectionComponent) {
@@ -199,13 +199,9 @@ const EditableBaseSection = ({ section }) => {
     addSectionItem, 
     deleteSection, 
     updateSectionProperty,
-    toggleTooltipForSection,
-    activeTooltip
   } = useCV();
 
   const { justDroppedId } = useDndStatus();
-
-  const isAtsMode = cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
@@ -240,10 +236,12 @@ const EditableBaseSection = ({ section }) => {
     <section 
         ref={setNodeRef} 
         style={style} 
-        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${hideDragAffordance ? ' drag-affordance-hidden' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
         id={section.id}
         data-section-id={section.id}
+        data-drag-disabled={isMoveDisabled ? 'true' : undefined}
         data-has-continuation={section.hasContinuation ? 'true' : undefined}
+        data-is-continuation={section.isContinuation ? 'true' : undefined}
         {...attributes}
         {...containerDragListeners}
       >
@@ -258,23 +256,6 @@ const EditableBaseSection = ({ section }) => {
           data-testid={`section-actions-${section.id}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          {isAtsMode && (
-            <button 
-              type="button"
-              className={`section-tips-toggle-btn ${activeTooltip?.section?.id === section.id ? 'active' : ''}`}
-              title={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              aria-label={`Consejos y sugerencias para ${section.title || 'esta sección'}`}
-              data-testid={`btn-section-tips-${section.id}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleTooltipForSection?.(section, e.currentTarget.getBoundingClientRect(), { current: e.currentTarget });
-              }}
-            >
-              <Lightbulb size={14} color={activeTooltip?.section?.id === section.id ? '#ffffff' : '#eab308'} />
-            </button>
-          )}
-
           {allowBulletCustomization && (
             <button 
               type="button"
@@ -314,8 +295,11 @@ const EditableBaseSection = ({ section }) => {
         </div>
       )}
 
-      {!section.isContinuation && descriptor.hasTitle !== false && Boolean(section.title) && (
-        <h2 className="section-title" data-section-title={section.id}>
+      {descriptor.hasTitle !== false && !section.isContinuation && Boolean(section.title) && (
+        <h2 
+          className="section-title" 
+          data-section-title={section.id}
+        >
           <InlineEdit value={section.title || ''} onSave={(val) => updateSectionTitle(section.originalSectionId || section.id, val)} />
         </h2>
       )}

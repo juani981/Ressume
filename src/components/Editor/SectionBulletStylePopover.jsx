@@ -284,13 +284,6 @@ const SectionBulletStylePopover = ({
           marginTop: '6px'
         }}
       >
-        <div className="callout-title" style={{ display: 'flex', gap: '6px', fontWeight: 600, alignItems: 'center', marginBottom: '2px' }}>
-          <Info size={13} color="#086ddd" />
-          <span>Recomendación ATS</span>
-        </div>
-        <div className="callout-content">
-          El círculo estándar (•) garantiza compatibilidad universal y máxima puntuación en filtros ATS (Workday, Greenhouse).
-        </div>
       </div>
     </div>
   );

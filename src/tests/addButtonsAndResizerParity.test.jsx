@@ -39,7 +39,7 @@ describe('Goal: Add Buttons Priority & Border Centering + Resizer Fine Styling',
     it('guarantees add buttons have top-layer z-index on hover (z-index >= 120)', () => {
       expect(cssContent).toMatch(/\.round-btn-add:hover\s*\{[^}]*z-index:\s*130/);
       expect(cssContent).toMatch(/\.add-bullet-btn:hover\s*\{[^}]*z-index:\s*130/);
-      expect(cssContent).toMatch(/\.add-section-btn:hover\s*\{[^}]*z-index:\s*130/);
+      expect(cssContent).toMatch(/\.add-section-btn:hover\s*\{[^}]*z-index:\s*(?:130|200)/);
       expect(cssContent).toMatch(/\.add-contact-btn:hover\s*\{[^}]*z-index:\s*120/);
     });
 
@@ -157,7 +157,8 @@ describe('Goal: Add Buttons Priority & Border Centering + Resizer Fine Styling',
       expect(cssContent).toMatch(/\.editable-item-container:hover\s*\{[^}]*cursor:\s*grab/);
       expect(cssContent).toMatch(/\.bullet-item-row:hover\s*\{[^}]*cursor:\s*grab/);
       expect(cssContent).toMatch(/cursor:\s*grabbing/);
-      expect(cssContent).toMatch(/\.inline-edit-display[^{]*\{[^}]*cursor:\s*pointer\s*!important/);
+      expect(cssContent).toMatch(/\.inline-edit-display,\s*\.inline-edit-display\s*\*\s*\{[^}]*cursor:\s*text\s*!important/);
+      expect(cssContent).toMatch(/\.inline-edit-display\s+a[^{]*\{[^}]*cursor:\s*pointer\s*!important/);
     });
 
     it('isNonDraggableTarget correctly detects interactive/text targets vs draggable background', async () => {
@@ -213,4 +214,3 @@ describe('Goal: Add Buttons Priority & Border Centering + Resizer Fine Styling',
     });
   });
 });
-

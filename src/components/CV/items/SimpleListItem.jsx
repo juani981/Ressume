@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 
-const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
+const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false, multiline = true }) => {
   const containerRef = React.useRef(null);
 
   const handleCircleClick = (e) => {
@@ -18,6 +18,7 @@ const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
       <InlineEdit 
         value={item?.text || ''} 
         isPrint={true}
+        multiline={multiline}
       />
     );
   }
@@ -40,9 +41,22 @@ const SimpleListItem = ({ item, sectionId, onUpdateItem, isPrint = false }) => {
           cursor: 'pointer'
         }} 
       />
-      <span ref={containerRef} className="simple-list-text" style={{ flex: 1, minWidth: 0, maxWidth: '100%', color: 'inherit' }}>
+      <span 
+        ref={containerRef} 
+        className="simple-list-text" 
+        style={{ 
+          flex: 1, 
+          minWidth: 0, 
+          maxWidth: '100%', 
+          color: 'inherit',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap'
+        }}
+      >
         <InlineEdit 
           value={item?.text || ''} 
+          multiline={multiline}
           onSave={(val) => onUpdateItem?.(sectionId, item.id, 'text', val)} 
         />
       </span>

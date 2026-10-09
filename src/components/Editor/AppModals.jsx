@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Joyride } from 'react-joyride';
 import { CustomTooltip } from '../CustomTooltip';
 import AddSectionModal from './AddSectionModal';
-import SuggestionTooltip from './SuggestionTooltip';
 import AITipsSidebar from './AITipsSidebar';
 import ToastNotification from './ToastNotification';
 import ModalHelpDialog from '../common/ModalHelpDialog';
@@ -33,7 +32,6 @@ export function AppModals({
   onCloseAddSectionModal,
   addSectionTargetColumn,
   addSectionTargetIndex,
-  activeTooltip,
   layoutType,
 }) {
   const { activeTour } = useTourManager();
@@ -423,17 +421,6 @@ export function AppModals({
       <ModalErrorBoundary modalName="diálogo de ayuda">
         <ModalHelpDialog />
       </ModalErrorBoundary>
-
-      {/* Global Singleton AI Suggestion Tooltip */}
-      {activeTooltip && activeTooltip.section && activeTooltip.rect && (
-        <SuggestionTooltip
-          section={activeTooltip.section}
-          isHovered={true}
-          layoutType={layoutType}
-          rect={activeTooltip.rect}
-          anchorRef={activeTooltip.anchorRef}
-        />
-      )}
 
       {/* Master AI Tips Right-Hand Rail */}
       <AITipsSidebar />

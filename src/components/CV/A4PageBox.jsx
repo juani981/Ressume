@@ -99,6 +99,7 @@ export const A4PageBox = React.forwardRef(function A4PageBox(
     leftColPercent = DEFAULT_LEFT_COLUMN_WIDTH_PERCENT,
     gridTemplateColumns,
     pagePadding,
+    pageBottomClearance,
     pageHeight = A4_HEIGHT_CSS,
     leftContent,
     rightContent,

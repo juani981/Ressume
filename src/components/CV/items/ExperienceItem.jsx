@@ -98,7 +98,7 @@ const ExperienceItemPrintView = ({ item, sectionId, isLast = false }) => {
                     <InlineEdit 
                       value={bulletText} 
                       isPrint={true}
-                      display="inline"
+                      multiline={true}
                     />
                   </li>
                 );

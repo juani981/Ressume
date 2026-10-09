@@ -372,35 +372,14 @@ describe('AIExportModal Component & UI Reactivity', () => {
       });
     });
 
-    it('T6.2: downloads markdown file with candidate name and prompt id on download click', () => {
-      const createObjectURLMock = vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:http://localhost/mock-url');
-      const revokeObjectURLMock = vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
-
-      const clickedLinks = [];
-      const origCreateElement = document.createElement.bind(document);
-      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
-        const el = origCreateElement(tagName, options);
-        if (tagName.toLowerCase() === 'a') {
-          el.click = vi.fn(() => { clickedLinks.push(el); });
-        }
-        return el;
-      });
-
+    it('T6.2: omits download button per user design customization', () => {
       render(
         <CVProvider initialCV={baseMockCV}>
           <AIExportModal isOpen={true} onClose={vi.fn()} />
         </CVProvider>
       );
 
-      const downloadBtn = screen.getByTestId('ai-download-btn');
-      fireEvent.click(downloadBtn);
-
-      expect(clickedLinks.length).toBe(1);
-      expect(clickedLinks[0].download).toBe('Ada_Lovelace_AI_Prompt_recruiter_audit.md');
-
-      createObjectURLMock.mockRestore();
-      revokeObjectURLMock.mockRestore();
-      createElementSpy.mockRestore();
+      expect(screen.queryByTestId('ai-download-btn')).toBeNull();
     });
 
     it('T6.3: renders zero raw unicode emoji glyphs in the modal markup (adversarial ban compliant)', () => {
@@ -424,48 +403,5 @@ describe('AIExportModal Component & UI Reactivity', () => {
       expect(text).not.toContain('📄');
     });
   });
-
-  // =========================================================================
-  // 7. Privacy, External AI, Zero Cost & Multi-Model Disclaimer
-  // =========================================================================
-  describe('7. Privacy, External AI, Zero Cost & Multi-Model Disclaimer', () => {
-    it('T7.1: renders prominent Obsidian Callout disclaimer in AIExportModal with all required guarantees', () => {
-      render(
-        <CVProvider initialCV={baseMockCV}>
-          <AIExportModal isOpen={true} onClose={vi.fn()} />
-        </CVProvider>
-      );
-
-      const disclaimer = screen.getByTestId('ai-privacy-disclaimer-callout');
-      expect(disclaimer).toBeInTheDocument();
-      expect(disclaimer.className).toContain('obsidian-callout');
-
-      const title = disclaimer.querySelector('.callout-title');
-      const content = disclaimer.querySelector('.callout-content');
-      expect(title).toBeInTheDocument();
-      expect(content).toBeInTheDocument();
-
-      // Guarantees required by user contract:
-      // 1. External and local AI processing
-      expect(content.textContent).toMatch(/IA externa o local/i);
-      // 2. Zero server retention / client privacy
-      expect(content.textContent).toMatch(/no almacena tus datos/i);
-      // 3. Zero cost for usage or download
-      expect(content.textContent).toMatch(/genera coste alguno por uso o descarga/i);
-      // 4. Recommend multi-model comparison
-      expect(content.textContent).toMatch(/comparar y contrastar los resultados/i);
-    });
-
-    it('T7.2: preserves disclaimer visibility across bidirectional prompts (bring_your_own_cv)', () => {
-      render(
-        <CVProvider initialCV={baseMockCV}>
-          <AIExportModal isOpen={true} onClose={vi.fn()} initialPromptId="bring_your_own_cv" />
-        </CVProvider>
-      );
-
-      const disclaimer = screen.getByTestId('ai-privacy-disclaimer-callout');
-      expect(disclaimer).toBeInTheDocument();
-      expect(screen.getByText('Privacidad, Procesamiento Externo y Uso Gratuito')).toBeInTheDocument();
-    });
-  });
 });
+

@@ -89,7 +89,7 @@ const InlineEditPrintView = ({
     <span
       className={`inline-edit-display ${className}`}
       style={{
-        display: display || (multiline ? 'block' : 'inline-block'),
+        display: display || 'inline-block',
         maxWidth: '100%',
         boxSizing: 'border-box',
         overflowWrap: 'break-word',
@@ -125,6 +125,10 @@ const InlineEditEditor = ({
   const initialParsed = stripOuterAlignment(value);
   const [isEditing, setIsEditing] = useState(false);
   const [currentAlignment, setCurrentAlignment] = useState(initialParsed.alignment || 'left');
+  const currentAlignmentRef = useRef(initialParsed.alignment || 'left');
+  useEffect(() => {
+    currentAlignmentRef.current = currentAlignment;
+  }, [currentAlignment]);
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -142,26 +146,67 @@ const InlineEditEditor = ({
     if (!isEditing) {
       const parsed = stripOuterAlignment(value);
       setCurrentAlignment(parsed.alignment || 'left');
+      currentAlignmentRef.current = parsed.alignment || 'left';
       setActiveFormats(prev => ({ ...prev, align: parsed.alignment || 'left' }));
     }
   }, [value, isEditing]);
 
   const isBold = () => {
-    if (typeof document !== 'undefined' && typeof document.queryCommandState === 'function') {
-      try { return document.queryCommandState('bold'); } catch (e) {}
-    }
-    if (contentRef.current) {
-      return /<b>|<strong>/i.test(contentRef.current.innerHTML);
+    if (typeof document !== 'undefined') {
+      // Primary check: queryCommandState returns the formatting state of the current selection
+      // (works in browsers that support execCommand state reporting)
+      if (typeof document.queryCommandState === 'function') {
+        try { if (document.queryCommandState('bold')) return true; } catch (e) {}
+      }
+      // Fallback: inspect the actual DOM to detect any applied bold formatting.
+      // queryCommandState can return false when the cursor sits at the end of
+      // editable text or in browsers with incomplete state reporting, so we verify
+      // whether the editable content itself carries bold markup. This keeps the
+      // toolbar button in sync with what the user has actually applied.
+      if (contentRef.current) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          let node = range.commonAncestorContainer;
+          if (node.nodeType === 3 && node.parentNode) {
+            node = node.parentNode;
+          }
+          if (node && node.closest && node.closest('b, strong')) {
+            return true;
+          }
+        }
+        return /<b>|<strong>/i.test(contentRef.current.innerHTML);
+      }
     }
     return false;
   };
 
   const isItalic = () => {
-    if (typeof document !== 'undefined' && typeof document.queryCommandState === 'function') {
-      try { return document.queryCommandState('italic'); } catch (e) {}
-    }
-    if (contentRef.current) {
-      return /<i>|<em>/i.test(contentRef.current.innerHTML);
+    if (typeof document !== 'undefined') {
+      // Primary check: queryCommandState returns the formatting state of the current selection
+      // (works in browsers that support execCommand state reporting)
+      if (typeof document.queryCommandState === 'function') {
+        try { if (document.queryCommandState('italic')) return true; } catch (e) {}
+      }
+      // Fallback: inspect the actual DOM to detect any applied italic formatting.
+      // queryCommandState can return false when the cursor sits at the end of
+      // editable text or in browsers with incomplete state reporting, so we verify
+      // whether the editable content itself carries italic markup. This keeps the
+      // toolbar button in sync with what the user has actually applied.
+      if (contentRef.current) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          let node = range.commonAncestorContainer;
+          if (node.nodeType === 3 && node.parentNode) {
+            node = node.parentNode;
+          }
+          if (node && node.closest && node.closest('i, em')) {
+            return true;
+          }
+        }
+        return /<i>|<em>/i.test(contentRef.current.innerHTML);
+      }
     }
     return false;
   };
@@ -228,11 +273,12 @@ const InlineEditEditor = ({
     if (!contentRef.current) return;
 
     if (command === 'bold') {
+      const prevHtml = contentRef.current.innerHTML;
       let handled = false;
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         try { handled = document.execCommand('bold', false, null); } catch (e) {}
       }
-      if (!handled) {
+      if (!handled || contentRef.current.innerHTML === prevHtml) {
         toggleTagFallback('b');
       }
       historyRef.current.past.push(contentRef.current.innerHTML);
@@ -242,11 +288,12 @@ const InlineEditEditor = ({
     }
 
     if (command === 'italic') {
+      const prevHtml = contentRef.current.innerHTML;
       let handled = false;
       if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
         try { handled = document.execCommand('italic', false, null); } catch (e) {}
       }
-      if (!handled) {
+      if (!handled || contentRef.current.innerHTML === prevHtml) {
         toggleTagFallback('i');
       }
       historyRef.current.past.push(contentRef.current.innerHTML);
@@ -256,6 +303,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyLeft') {
+      currentAlignmentRef.current = 'left';
       setCurrentAlignment('left');
       if (contentRef.current) contentRef.current.style.textAlign = 'left';
       updateToolbar('left');
@@ -263,6 +311,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyCenter') {
+      currentAlignmentRef.current = 'center';
       setCurrentAlignment('center');
       if (contentRef.current) contentRef.current.style.textAlign = 'center';
       updateToolbar('center');
@@ -270,6 +319,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyRight') {
+      currentAlignmentRef.current = 'right';
       setCurrentAlignment('right');
       if (contentRef.current) contentRef.current.style.textAlign = 'right';
       updateToolbar('right');
@@ -277,6 +327,7 @@ const InlineEditEditor = ({
     }
 
     if (command === 'justifyFull') {
+      currentAlignmentRef.current = 'justify';
       setCurrentAlignment('justify');
       if (contentRef.current) contentRef.current.style.textAlign = 'justify';
       updateToolbar('justify');
@@ -417,7 +468,8 @@ const InlineEditEditor = ({
         cleanInner = sanitizeRichHTML(rawHtml);
       }
 
-      const finalValue = cleanInner ? applyAlignment(cleanInner, currentAlignment) : '';
+      const finalAlignment = currentAlignmentRef.current || currentAlignment || 'left';
+      const finalValue = cleanInner ? applyAlignment(cleanInner, finalAlignment) : '';
       if (finalValue !== value && typeof onSave === 'function') {
         onSave(finalValue);
       }
@@ -456,9 +508,11 @@ const InlineEditEditor = ({
       }
     }
 
-    if (e.key === 'Enter' && !multiline) {
-      e.preventDefault();
-      contentRef.current?.blur();
+    if (e.key === 'Enter') {
+      if (!multiline && !e.shiftKey) {
+        e.preventDefault();
+        contentRef.current?.blur();
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       isCancelingRef.current = true;
@@ -567,8 +621,11 @@ const InlineEditEditor = ({
       data-testid="inline-edit-display"
       data-is-empty={!hasValue ? "true" : undefined}
       style={{
-        cursor: 'pointer',
-        display: display || (multiline ? 'block' : 'inline-block'),
+        cursor: 'text',
+        // Always inline-block in display mode so short multiline text (titles + descriptions)
+        // does not force unwanted line breaks when it could fit on one line. During editing
+        // (isEditing === true) the component becomes a block element to allow multi-line input.
+        display: display || 'inline-block',
         minWidth: '20px',
         maxWidth: '100%',
         boxSizing: 'border-box',
@@ -577,6 +634,7 @@ const InlineEditEditor = ({
         minHeight: '1em',
         textAlign: currentAlignment,
         color: 'inherit',
+        whiteSpace: multiline ? 'pre-wrap' : 'normal',
         ...style
       }}
       dangerouslySetInnerHTML={{ __html: displayHtml }}

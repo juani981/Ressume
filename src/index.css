@@ -971,6 +971,27 @@ img {
   cursor: grab;
 }
 
+.editable-section-container[data-drag-disabled="true"],
+.editable-section-container[data-drag-disabled="true"]:hover,
+.editable-section-container[data-drag-disabled="true"]:active {
+  cursor: default !important;
+}
+
+.editable-section-container.section-fixed:hover,
+.editable-section-container.section-fixed:active {
+  outline-color: rgba(100, 116, 139, 0.55);
+  background-color: rgba(100, 116, 139, 0.045);
+}
+
+.editable-section-container.drag-affordance-hidden,
+.editable-section-container.drag-affordance-hidden:hover,
+.editable-section-container.drag-affordance-hidden:active {
+  cursor: default !important;
+  outline-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
 .editable-item-container:hover {
   outline-color: rgba(56, 116, 255, 0.35);
   background-color: rgba(0, 0, 0, 0.03);
@@ -1037,6 +1058,18 @@ img {
   background-color: rgba(56, 116, 255, 0.02);
 }
 
+.editable-section-container.section-fixed.has-split-break:hover::before,
+.editable-section-container.section-fixed.has-split-break:hover::after {
+  outline-color: rgba(100, 116, 139, 0.55);
+  background-color: rgba(100, 116, 139, 0.045);
+}
+
+.editable-section-container.drag-affordance-hidden.has-split-break:hover::before,
+.editable-section-container.drag-affordance-hidden.has-split-break:hover::after {
+  outline-color: transparent !important;
+  background-color: transparent !important;
+}
+
 .editable-item-container.has-split-break:hover::before,
 .editable-item-container.has-split-break:hover::after {
   outline-color: rgba(56, 116, 255, 0.35);
@@ -1059,9 +1092,14 @@ img {
   cursor: grabbing;
 }
 
-/* Ensure text and interactive controls maintain their proper text/pointer cursor */
+/* Editable text uses the familiar text-selection cursor. */
 .inline-edit-display,
 .inline-edit-display * {
+  cursor: text !important;
+}
+
+.inline-edit-display a,
+.inline-edit-display a * {
   cursor: pointer !important;
 }
 
@@ -1454,7 +1492,7 @@ body.has-running-tour .section-action-buttons {
   transform: scale(1.15);
 }
 
-/* Add bullet button (Positioned directly centered on border line: 50% in, 50% out) */
+/* Add bullet button starts at the lower edge of the preceding content. */
 .bullet-add-row {
   position: relative;
   z-index: 100;
@@ -1487,8 +1525,10 @@ body.has-running-tour .bullet-add-row {
   cursor: pointer;
   transition: all 0.18s ease;
   margin: 0;
+  position: absolute;
+  top: -2px;
+  left: -10px;
   transform: translateY(-50%);
-  position: relative;
   z-index: 110;
   pointer-events: auto;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
@@ -1499,13 +1539,14 @@ body.has-running-tour .bullet-add-row {
   border-color: #059669;
   color: #059669;
   transform: translateY(-50%) scale(1.06);
+  transform-origin: top left;
   z-index: 130 !important;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
 }
 
 .column-add-section {
   position: relative;
-  z-index: 100;
+  z-index: 250;
   opacity: 0.5;
   transition: opacity 0.2s ease;
 }
@@ -1515,34 +1556,45 @@ body.has-running-tour .bullet-add-row {
 .resume__single-column:hover .column-add-section,
 .column-add-section:hover {
   opacity: 1 !important;
-  z-index: 120 !important;
+  z-index: 200 !important;
 }
 
 .add-section-btn {
-  background: transparent;
-  border: 2px dashed var(--text-color-light, #999);
-  color: var(--text-color, #555);
-  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1.5px dashed var(--text-color-light, #94a3b8);
+    color: #1e293b;
+    padding: 0.4rem 0.85rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   transition: all 0.2s ease;
   position: relative;
-  z-index: 110;
+  z-index: 200;
   pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .add-section-btn:hover {
   border-color: #3874ff;
   color: #3874ff;
-  background: rgba(56, 116, 255, 0.08);
+  background: rgba(255, 255, 255, 0.96);
   transform: translateY(-1px);
-  z-index: 130 !important;
-  box-shadow: 0 4px 12px rgba(56, 116, 255, 0.15);
+  z-index: 200 !important;
+    box-shadow: 0 4px 12px rgba(56, 116, 255, 0.18);
+}
+
+.add-section-card:hover,
+.add-section-card:focus-visible {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(147, 197, 253, 0.48) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.16);
 }
 
 /*========== ACTION MENU TOOLTIPS & BUTTONS ==========*/
@@ -2486,6 +2538,7 @@ body.ats-mode-active .a4-page-fold-badge {
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
   word-break: break-word !important;
+  white-space: pre-wrap !important;
 }
 
 .inline-input {
@@ -2494,6 +2547,17 @@ body.ats-mode-active .a4-page-fold-badge {
   overflow-wrap: break-word !important;
   word-wrap: break-word !important;
   word-break: break-word !important;
+  white-space: pre-wrap !important;
+}
+
+.simple-list-text {
+  flex: 1;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
 }
 
 /* Container adaptations for 2-column sidebar mode: prevent multiple max-content columns from overflowing */
@@ -2545,6 +2609,7 @@ body.ats-mode-active .a4-page-fold-badge {
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 /* Typography & OCR Glyph Mapping Protection */

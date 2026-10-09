@@ -43,14 +43,14 @@ describe('Greedy bottom margin packing verification', () => {
 
     const pages8 = distributeSectionsToPages(cv8, {
       isEditor: true,
-      pageCapacity: 227, // 227 + 7 = 234 effective
+      pageCapacity: 234, // Exactly 8 items net (7 * 30 + 24 = 234px)
       itemGapPx: 6,
       sectionGapPx: 0,
     });
 
     const pages9 = distributeSectionsToPages(cv9, {
       isEditor: true,
-      pageCapacity: 227,
+      pageCapacity: 234,
       itemGapPx: 6,
       sectionGapPx: 0,
     });
@@ -67,7 +67,7 @@ describe('Greedy bottom margin packing verification', () => {
   });
 
   it('occupies all available space without overflowing physical page dimensions', () => {
-    // Check that terminal element consumes up to availableOnPage + terminalTolerance
+    // Check that terminal element consumes up to availableOnPage
     const cv = {
       layout: { isAtsMode: true },
       sections: [
@@ -84,11 +84,11 @@ describe('Greedy bottom margin packing verification', () => {
     };
 
     // Item 1 gross 50, Item 2 net 44 (itemGap 6). Total = 50 + 44 = 94px.
-    // Standard pageCapacity = 90px, terminalTolerance = 11px. Effective = 101px.
-    // Since 94 <= 101, both items fit on Page 1!
+    // Standard pageCapacity = 94px.
+    // Both items fit cleanly on Page 1!
     const pages = distributeSectionsToPages(cv, {
       isEditor: true,
-      pageCapacity: 90,
+      pageCapacity: 94,
       itemGapPx: 6,
       sectionGapPx: 0,
       pagePaddingPx: 24,

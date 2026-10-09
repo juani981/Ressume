@@ -49,7 +49,7 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
       expect(screen.getByTestId('btn-format-redo')).toBeInTheDocument();
     });
 
-    it('T1.2: enforces onMouseDown preventDefault on container and all buttons to protect selection', () => {
+    it('T1.2: preserves selection on mouse down and runs each command once on click', () => {
       const onFormatMock = vi.fn();
       render(
         <RichTextToolbar
@@ -66,15 +66,15 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
 
       boldBtn.dispatchEvent(mousedownEvt);
       expect(preventSpy).toHaveBeenCalled();
+      expect(onFormatMock).not.toHaveBeenCalled();
+      fireEvent.click(boldBtn);
+      expect(onFormatMock).toHaveBeenCalledTimes(1);
       expect(onFormatMock).toHaveBeenCalledWith('bold');
 
       const alignCenterBtn = screen.getByTestId('btn-format-align-center');
-      const centerEvt = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
-      const centerSpy = vi.spyOn(centerEvt, 'preventDefault');
-
-      alignCenterBtn.dispatchEvent(centerEvt);
-      expect(centerSpy).toHaveBeenCalled();
-      expect(onFormatMock).toHaveBeenCalledWith('justifyCenter');
+      fireEvent.click(alignCenterBtn);
+      expect(onFormatMock).toHaveBeenCalledTimes(2);
+      expect(onFormatMock).toHaveBeenLastCalledWith('justifyCenter');
     });
 
     it('T1.3: positions toolbar directly above active element (Rule 3 non-obstructive)', () => {
@@ -188,6 +188,7 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
       const display = screen.getByTestId('inline-edit-display');
       expect(display).toBeInTheDocument();
       expect(display.textContent).toBe('Desarrollador Web Senior');
+      expect(display.style.cursor).toBe('text');
     });
 
     it('T2.2: switches to contentEditable and renders formatting toolbar on click', () => {
@@ -240,6 +241,27 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
       expect(editor.innerHTML).toContain('<i>Líder Técnico</i>');
     });
 
+    it('T2.4a: toolbar clicks apply bold and italic once without immediately toggling them off', () => {
+      render(
+        <CVProvider>
+          <InlineEdit value="Texto con formato" onSave={vi.fn()} />
+        </CVProvider>
+      );
+
+      fireEvent.click(screen.getByTestId('inline-edit-display'));
+      const editor = screen.getByRole('textbox');
+
+      const boldButton = screen.getByTestId('btn-format-bold');
+      fireEvent.mouseDown(boldButton);
+      fireEvent.click(boldButton);
+      expect(editor.innerHTML).toContain('<b>Texto con formato</b>');
+
+      const italicButton = screen.getByTestId('btn-format-italic');
+      fireEvent.mouseDown(italicButton);
+      fireEvent.click(italicButton);
+      expect(editor.innerHTML).toContain('<i><b>Texto con formato</b></i>');
+    });
+
     it('T2.5: alignment buttons update field text-align and toolbar state', () => {
       render(
         <CVProvider>
@@ -252,13 +274,13 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
 
       const editor = screen.getByRole('textbox');
       const centerBtn = screen.getByTestId('btn-format-align-center');
-      fireEvent.mouseDown(centerBtn);
+      fireEvent.click(centerBtn);
 
       expect(editor.style.textAlign).toBe('center');
       expect(centerBtn).toHaveAttribute('aria-pressed', 'true');
 
       const rightBtn = screen.getByTestId('btn-format-align-right');
-      fireEvent.mouseDown(rightBtn);
+      fireEvent.click(rightBtn);
 
       expect(editor.style.textAlign).toBe('right');
       expect(rightBtn).toHaveAttribute('aria-pressed', 'true');
@@ -377,7 +399,9 @@ describe('Epic 2: Rich Inline Text Editing Toolbar with Persistent State', () =>
 
       // Bold + Center
       fireEvent.keyDown(editor, { key: 'b', ctrlKey: true });
-      fireEvent.mouseDown(screen.getByTestId('btn-format-align-center'));
+      const centerButton = screen.getByTestId('btn-format-align-center');
+      fireEvent.mouseDown(centerButton);
+      fireEvent.click(centerButton);
 
       fireEvent.blur(editor);
 

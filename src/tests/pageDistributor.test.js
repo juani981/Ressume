@@ -1182,12 +1182,12 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
       expect(pages[0].singleSections[0].items[0].id).toBe('it1');
     });
 
-    it('Safety Margin Tolerance: keeps terminal item on page 1 when within 30% safety margin tolerance (<= 11px)', () => {
+    it('Uniform Page Capacity: pushes item to page 2 when exceeding standard capacity without artificial tolerance expansion', () => {
       // Base page capacity: 1000px
       // Item 1 consumes 950px.
       // Item 2 has gross height 66px, itemGap 10px -> net height = 56px.
       // Item 2 exceeds standard capacity (1000px) by 6px (950 + 56 = 1006px > 1000px).
-      // With 30% safety tolerance (11px), effective capacity is 1011px >= 1006px -> stays on Page 1!
+      // Without artificial tolerance expansion, it cleanly moves to Page 2!
       const cv = {
         layout: { isAtsMode: true },
         sections: [
@@ -1203,7 +1203,7 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
         ],
       };
 
-      const pagesWithinTolerance = distributeSectionsToPages(cv, {
+      const pages = distributeSectionsToPages(cv, {
         pageCapacity: 1000,
         itemGapPx: 10,
         sectionGapPx: 0,
@@ -1212,12 +1212,14 @@ describe('Pure Page Distributor (distributeSectionsToPages)', () => {
         isEditor: true,
       });
 
-      expect(pagesWithinTolerance.length).toBe(1);
-      expect(pagesWithinTolerance[0].singleSections[0].items.length).toBe(2);
-      expect(pagesWithinTolerance[0].singleSections[0].items[1].id).toBe('it2');
+      expect(pages.length).toBe(2);
+      expect(pages[0].singleSections[0].items.length).toBe(1);
+      expect(pages[0].singleSections[0].items[0].id).toBe('it1');
+      expect(pages[1].singleSections[0].items.length).toBe(1);
+      expect(pages[1].singleSections[0].items[0].id).toBe('it2');
 
-      // Now with item 2 height = 75px -> net height = 65px (950 + 65 = 1015px > 1011px).
-      // Exceeds 30% safety tolerance -> splits or moves to Page 2!
+      // Now with item 2 height = 75px -> net height = 65px (950 + 65 = 1015px > 1000px).
+      // Exceeds capacity -> cleanly on Page 2!
       const cvExceeding = {
         layout: { isAtsMode: true },
         sections: [

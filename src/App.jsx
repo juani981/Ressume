@@ -7,6 +7,7 @@ import { useCV } from "./context/CVContext";
 import BaseSection from "./components/CV/BaseSection";
 import { PlusCircle } from "lucide-react";
 import { setupDisableNativeTooltips } from "./utils/disableNativeTooltips";
+import { initializeFontPreloading } from "./utils/fontPreloader";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -55,6 +56,10 @@ const AREA_CV_CONTAINER_STYLE = Object.freeze({
    columnGap: 0,
 });
 
+const shouldHideSectionDragAffordance = (section) =>
+   ["profile_header", "title_subtitle", "contact", "about"].includes(section?.type) ||
+   ["profile_header", "title_subtitle", "contact", "about_section", "about"].includes(section?.id);
+
 function App() {
    const {
       cvData,
@@ -63,13 +68,13 @@ function App() {
       moveItemBetweenSections,
       moveSectionToColumnAndIndex,
       updateLayout,
-      activeTooltip,
       setTotalPages: setContextTotalPages,
       deletePage,
    } = useCV();
 
    useEffect(() => {
       setupDisableNativeTooltips();
+      initializeFontPreloading();
    }, []);
 
    const areaCvRef = useRef(null);
@@ -214,6 +219,7 @@ function App() {
                         gridTemplateColumns={gridTemplateColumns}
                         pageHeight={A4_HEIGHT_CSS}
                         pagePadding={cvData.layout?.pagePadding != null ? `${cvData.layout.pagePadding}px` : undefined}
+                        pageBottomClearance={cvData.layout?.pageBottomClearance}
                         onDeletePage={deletePage}
                      >
                         {is2Col ? (
@@ -238,6 +244,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -293,6 +300,7 @@ function App() {
                                        <BaseSection
                                           key={section.id}
                                           section={section}
+                                          hideDragAffordance={shouldHideSectionDragAffordance(section)}
                                        />
                                     ))}
                                  </SortableContext>
@@ -336,7 +344,11 @@ function App() {
                                  items={pageModel.singleSections.map((s) => s.id)}
                                  strategy={verticalListSortingStrategy}>
                                  {pageModel.singleSections.map((section) => (
-                                    <BaseSection key={section.id} section={section} />
+                                    <BaseSection
+                                       key={section.id}
+                                       section={section}
+                                       hideDragAffordance={shouldHideSectionDragAffordance(section)}
+                                    />
                                  ))}
                               </SortableContext>
 
@@ -379,7 +391,6 @@ function App() {
             onCloseAddSectionModal={() => setIsAddSectionModalOpen(false)}
             addSectionTargetColumn={addSectionTargetColumn}
             addSectionTargetIndex={addSectionTargetIndex}
-            activeTooltip={activeTooltip}
             layoutType={cvData.layout?.type === "1-column" ? 1 : 2}
          />
       </>

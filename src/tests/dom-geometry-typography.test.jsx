@@ -1,6 +1,8 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import fs from 'fs';
+import path from 'path';
 import { CVProvider, useCV } from '../context/CVContext';
 import App from '../App';
 import ActionMenu from '../components/Editor/ActionMenu';
@@ -522,14 +524,44 @@ describe('DOM Geometry & Typography E2E Test Suite (Tiers 1-4)', () => {
       });
 
       it('F7.3b: BaseSection does not render drag handle for fixed header sections', () => {
-        const fixedSection = defaultSchema.sections.find(s => s.type === 'contact' || s.type === 'about' || s.type === 'profile_header');
-        render(
+        const fixedSections = defaultSchema.sections.filter(section =>
+          ['profile_header', 'contact', 'about'].includes(section.type)
+        );
+
+        expect(fixedSections).toHaveLength(3);
+        fixedSections.forEach(section => {
+          const { container, unmount } = render(
+            <CVProvider>
+              <BaseSection section={section} hideDragAffordance />
+            </CVProvider>
+          );
+
+          expect(container.querySelector('.editable-section-container.section-fixed')).toBeInTheDocument();
+          expect(container.querySelector('.drag-affordance-hidden')).toBeInTheDocument();
+          expect(container.querySelector('[data-drag-disabled="true"]')).toBeInTheDocument();
+          expect(container.querySelector('.section-drag-handle')).not.toBeInTheDocument();
+          unmount();
+        });
+
+        const css = fs.readFileSync(path.resolve(__dirname, '../index.css'), 'utf8');
+        expect(css).toMatch(/\.editable-section-container\[data-drag-disabled="true"\],\s*\.editable-section-container\[data-drag-disabled="true"\]:hover,\s*\.editable-section-container\[data-drag-disabled="true"\]:active\s*\{[^}]*cursor:\s*default\s*!important/);
+        expect(css).toMatch(/\.editable-section-container\.drag-affordance-hidden,\s*\.editable-section-container\.drag-affordance-hidden:hover,\s*\.editable-section-container\.drag-affordance-hidden:active\s*\{[^}]*outline-color:\s*transparent\s*!important/);
+        expect(css).toMatch(/\.editable-section-container\.drag-affordance-hidden\.has-split-break:hover::before,\s*\.editable-section-container\.drag-affordance-hidden\.has-split-break:hover::after\s*\{[^}]*outline-color:\s*transparent\s*!important/);
+      });
+
+      it('F7.3c: App passes drag-affordance suppression to the three fixed header sections', () => {
+        const { container } = render(
           <CVProvider>
-            <BaseSection section={fixedSection} />
+            <App />
           </CVProvider>
         );
-        const sectionHandle = document.querySelector('.section-drag-handle');
-        expect(sectionHandle).not.toBeInTheDocument();
+
+        ['profile_header', 'contact', 'about_section'].forEach(sectionId => {
+          const section = container.querySelector(
+            `.editable-section-container[data-section-id="${sectionId}"]`
+          );
+          expect(section).toHaveClass('drag-affordance-hidden');
+        });
       });
 
       it('F7.4: BaseItem renders item drag handle for draggable items', () => {

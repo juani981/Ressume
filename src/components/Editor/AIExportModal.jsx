@@ -97,417 +97,580 @@ const AIExportModal = ({
   const [externalLLMResponse, setExternalLLMResponse] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [applyStatus, setApplyStatus] = useState(null);
-  const [targetTranslationLang, setTargetTranslationLang] = useState(() => (activeLanguage === 'en' ? 'es' : 'en'));
+  const [sourceTranslationLang, setSourceTranslationLang] = useState(() =>
+     activeLanguage === "en" ? "en" : "es",
+  );
+  const [targetTranslationLang, setTargetTranslationLang] = useState(() =>
+     activeLanguage === "en" ? "es" : "en",
+  );
 
-  // Synchronize targetTranslationLang when activeLanguage changes
+  // Synchronize translation languages when activeLanguage changes
   useEffect(() => {
-    setTargetTranslationLang(prev => (prev === activeLanguage ? (activeLanguage === 'en' ? 'es' : 'en') : prev));
+     const src = activeLanguage === "en" ? "en" : "es";
+     setSourceTranslationLang(src);
+     setTargetTranslationLang(src === "en" ? "es" : "en");
   }, [activeLanguage]);
+
+  const handleSourceTranslationLangChange = (newSource) => {
+     setSourceTranslationLang(newSource);
+     setTargetTranslationLang(newSource === "en" ? "es" : "en");
+  };
+
+  const handleTargetTranslationLangChange = (newTarget) => {
+     setTargetTranslationLang(newTarget);
+     setSourceTranslationLang(newTarget === "en" ? "es" : "en");
+  };
 
   // UX States: Collapsible Prompt Preview & External AI Waiting Hand-off Mode
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
 
   // BYO-CV UX States
-  const [byoSourceTab, setByoSourceTab] = useState('upload'); // 'upload' | 'paste'
+  const [byoSourceTab, setByoSourceTab] = useState("upload"); // 'upload' | 'paste'
   const [byoUploadedFile, setByoUploadedFile] = useState(null);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [showAdvancedCommentary, setShowAdvancedCommentary] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
-    const file = e.target?.files?.[0];
-    if (!file) return;
-    if (file.name.match(/\.(txt|md|json)$/i)) {
-      setByoUploadedFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result;
-        if (typeof text === 'string') {
-          setUserCommentary(text);
-          if (typeof showToast === 'function') {
-            showToast(`Archivo "${file.name}" leído (${text.split(/\s+/).filter(Boolean).length} palabras)`, 'success', 3000);
-          }
+     const file = e.target?.files?.[0];
+     if (!file) return;
+     if (file.name.match(/\.(txt|md|json)$/i)) {
+        setByoUploadedFile(file);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+           const text = event.target?.result;
+           if (typeof text === "string") {
+              setUserCommentary(text);
+              if (typeof showToast === "function") {
+                 showToast(
+                    `Archivo "${file.name}" leído (${text.split(/\s+/).filter(Boolean).length} palabras)`,
+                    "success",
+                    3000,
+                 );
+              }
+           }
+        };
+        reader.onerror = () => {
+           if (typeof showToast === "function") {
+              showToast("Error al leer el archivo del disco", "error", 3500);
+           }
+        };
+        reader.readAsText(file);
+     } else {
+        if (typeof showToast === "function") {
+           showToast(
+              `Para documentos ${file.name.split(".").pop().toUpperCase()}, adjúntalo directamente en ChatGPT o Claude junto con el prompt copiado para aprovechar su visión multimodal.`,
+              "info",
+              4500,
+           );
         }
-      };
-      reader.onerror = () => {
-        if (typeof showToast === 'function') {
-          showToast('Error al leer el archivo del disco', 'error', 3500);
-        }
-      };
-      reader.readAsText(file);
-    } else {
-      if (typeof showToast === 'function') {
-        showToast(`Para documentos ${file.name.split('.').pop().toUpperCase()}, adjúntalo directamente en ChatGPT o Claude junto con el prompt copiado para aprovechar su visión multimodal.`, 'info', 4500);
-      }
-    }
+     }
   };
 
   const handleFileDrop = (e) => {
-    e.preventDefault();
-    setIsDraggingFile(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (!file) return;
-    if (file.name.match(/\.(txt|md|json)$/i)) {
-      setByoUploadedFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result;
-        if (typeof text === 'string') {
-          setUserCommentary(text);
-          if (typeof showToast === 'function') {
-            showToast(`Archivo "${file.name}" leído (${text.split(/\s+/).filter(Boolean).length} palabras)`, 'success', 3000);
-          }
+     e.preventDefault();
+     setIsDraggingFile(false);
+     const file = e.dataTransfer?.files?.[0];
+     if (!file) return;
+     if (file.name.match(/\.(txt|md|json)$/i)) {
+        setByoUploadedFile(file);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+           const text = event.target?.result;
+           if (typeof text === "string") {
+              setUserCommentary(text);
+              if (typeof showToast === "function") {
+                 showToast(
+                    `Archivo "${file.name}" leído (${text.split(/\s+/).filter(Boolean).length} palabras)`,
+                    "success",
+                    3000,
+                 );
+              }
+           }
+        };
+        reader.onerror = () => {
+           if (typeof showToast === "function") {
+              showToast("Error al leer el archivo del disco", "error", 3500);
+           }
+        };
+        reader.readAsText(file);
+     } else {
+        if (typeof showToast === "function") {
+           showToast(
+              `Para documentos ${file.name.split(".").pop().toUpperCase()}, adjúntalo directamente en ChatGPT o Claude junto con el prompt copiado para aprovechar su visión multimodal.`,
+              "info",
+              4500,
+           );
         }
-      };
-      reader.onerror = () => {
-        if (typeof showToast === 'function') {
-          showToast('Error al leer el archivo del disco', 'error', 3500);
-        }
-      };
-      reader.readAsText(file);
-    } else {
-      if (typeof showToast === 'function') {
-        showToast(`Para documentos ${file.name.split('.').pop().toUpperCase()}, adjúntalo directamente en ChatGPT o Claude junto con el prompt copiado para aprovechar su visión multimodal.`, 'info', 4500);
-      }
-    }
+     }
   };
 
   // Reset ingestion and waiting state on prompt change or modal open
   useEffect(() => {
-    setExternalLLMResponse('');
-    setApplyStatus(null);
-    setIsWaitingForAI(false);
-    setIsPromptExpanded(false);
-    setCopiedProvider(null);
-    if (isOpen && typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('ai-modal-prompt-changed', {
-        detail: { promptId: selectedPromptId }
-      }));
-    }
+     setExternalLLMResponse("");
+     setApplyStatus(null);
+     setIsWaitingForAI(false);
+     setIsPromptExpanded(false);
+     setCopiedProvider(null);
+     if (isOpen && typeof window !== "undefined") {
+        window.dispatchEvent(
+           new CustomEvent("ai-modal-prompt-changed", {
+              detail: { promptId: selectedPromptId },
+           }),
+        );
+     }
   }, [selectedPromptId, isOpen]);
 
   const localizedPrompts = useMemo(() => {
-    return getPrompts(activeLanguage);
+     return getPrompts(activeLanguage);
   }, [activeLanguage]);
 
   // Filtered prompts: when unidirectionalOnly is true, hide bidirectional transformation prompts
   const filteredPrompts = useMemo(() => {
-    if (unidirectionalOnly) {
-      return localizedPrompts.filter(p => (
-        (p.id !== 'translate_english' && p.id !== 'bring_your_own_cv' && !p.requires_json_response) ||
-        p.id === selectedPromptId
-      ));
-    }
-    return localizedPrompts;
+     if (unidirectionalOnly) {
+        return localizedPrompts.filter(
+           (p) =>
+              (p.id !== "translate_english" &&
+                 p.id !== "bring_your_own_cv" &&
+                 !p.requires_json_response) ||
+              p.id === selectedPromptId,
+        );
+     }
+     return localizedPrompts;
   }, [localizedPrompts, unidirectionalOnly, selectedPromptId]);
 
   const ui = useMemo(() => {
-    return getUI(activeLanguage);
+     return getUI(activeLanguage);
   }, [activeLanguage]);
 
   const selectedPrompt = useMemo(() => {
-    return localizedPrompts.find(p => p.id === selectedPromptId) || localizedPrompts[0] || {};
+     return (
+        localizedPrompts.find((p) => p.id === selectedPromptId) ||
+        localizedPrompts[0] ||
+        {}
+     );
   }, [localizedPrompts, selectedPromptId]);
 
   // Identify prompts that require applying an external LLM response
   const isResponseImportablePrompt = useMemo(() => {
-    return (
-      selectedPromptId === 'translate_english' ||
-      selectedPromptId === 'bring_your_own_cv' ||
-      selectedPrompt?.category === 'localization' ||
-      selectedPrompt?.requires_json_response === true
-    );
+     return (
+        selectedPromptId === "translate_english" ||
+        selectedPromptId === "bring_your_own_cv" ||
+        selectedPrompt?.category === "localization" ||
+        selectedPrompt?.requires_json_response === true
+     );
   }, [selectedPromptId, selectedPrompt]);
 
   // Automatic Layout Mode Detection (R1):
   // Detects active layout dynamically from cvData without manual state or dropdown selectors
   const isAtsMode = useMemo(() => {
-    return cvData?.layout?.isAtsMode === true || cvData?.layout?.type === '1-column';
+     return (
+        cvData?.layout?.isAtsMode === true ||
+        cvData?.layout?.type === "1-column"
+     );
   }, [cvData?.layout?.isAtsMode, cvData?.layout?.type]);
 
   const targetCvData = useMemo(() => {
-    return {
-      ...cvData,
-      layout: {
-        ...(cvData?.layout || {}),
-        type: isAtsMode ? '1-column' : '2-column',
-        isAtsMode: isAtsMode
-      }
-    };
+     return {
+        ...cvData,
+        layout: {
+           ...(cvData?.layout || {}),
+           type: isAtsMode ? "1-column" : "2-column",
+           isAtsMode: isAtsMode,
+        },
+     };
   }, [cvData, isAtsMode]);
 
   const compiledPayload = useMemo(() => {
-    return buildAIPromptPayload(targetCvData, selectedPromptId, {
-      format: selectedFormat,
-      jobDescription,
-      userCommentary,
-      lang: activeLanguage,
-      targetLang: targetTranslationLang
-    });
-  }, [targetCvData, selectedPromptId, selectedFormat, jobDescription, userCommentary, activeLanguage, targetTranslationLang]);
+     return buildAIPromptPayload(targetCvData, selectedPromptId, {
+        format: selectedFormat,
+        jobDescription,
+        userCommentary,
+        lang: sourceTranslationLang || activeLanguage,
+        targetLang: targetTranslationLang,
+     });
+  }, [
+     targetCvData,
+     selectedPromptId,
+     selectedFormat,
+     jobDescription,
+     userCommentary,
+     activeLanguage,
+     sourceTranslationLang,
+     targetTranslationLang,
+  ]);
 
   const handleApplyResponse = async () => {
-    if (!externalLLMResponse || !externalLLMResponse.trim()) {
-      setApplyStatus({
-        type: 'error',
-        message: 'Por favor, pega la respuesta JSON del LLM antes de aplicar.'
-      });
-      return;
-    }
-
-    setIsApplying(true);
-    setApplyStatus(null);
-
-    try {
-      // 1. Clean and parse raw JSON from external LLM (handles markdown fences, preamble, trailing commas, etc.)
-      const parsed = cleanAndParseRawJSON(externalLLMResponse);
-      if (!parsed || typeof parsed !== 'object') {
-        throw new Error('No se pudo encontrar un JSON válido en la respuesta pegada. Asegúrate de copiar el bloque ```json ... ``` devuelto por el LLM.');
-      }
-
-      // 2. Normalize and validate against Ressume CV schema
-      const validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
-      if (!validatedCV) {
-        throw new Error('El JSON devuelto no cumple con la estructura de currículum válida requerida por Ressume.');
-      }
-
-      // 3. Save current CV snapshot adhering to [subtitulo + Nombre][Backup][idioma] format (L125)
-      const currentSubtitle = cvData?.profile?.subtitle || cvData?.profile?.title || '';
-      const currentCandidateName = cvData?.profile?.name || 'CV';
-      const currentVersionTitle = formatBackupVersionTitle(cvData, activeLanguage);
-
-      const currentSnapshotToSave = {
-        ...cvData,
-        versionName: currentVersionTitle,
-        activeVersionName: currentVersionTitle
-      };
-      const currentThumbnail = await generateThumbnail(currentSnapshotToSave);
-      await saveVersion(currentVersionTitle, currentSnapshotToSave, currentThumbnail);
-
-      // 4. Determine target language and target version title
-      const isTranslation = selectedPromptId === 'translate_english' || selectedPrompt?.category === 'localization';
-      const effectiveTargetLang = isTranslation ? (targetTranslationLang || 'en') : (activeLanguage || 'es');
-      const targetLangLegend = getLanguageLegend(effectiveTargetLang);
-
-      const newCandidateName = validatedCV.profile?.name || currentCandidateName;
-      const newSubtitle = validatedCV.profile?.subtitle || validatedCV.profile?.title || currentSubtitle;
-      const newVersionTitle = selectedPromptId === 'bring_your_own_cv'
-        ? `[${newSubtitle ? `${newSubtitle} - ` : ''}${newCandidateName}][IMPORTADO ATS]`
-        : `[${newSubtitle ? `${newSubtitle} - ` : ''}${newCandidateName}][${targetLangLegend}]`;
-
-      const newSnapshotToSave = {
-        ...validatedCV,
-        layout: {
-          ...(validatedCV.layout || {}),
-          language: effectiveTargetLang
-        },
-        language: effectiveTargetLang,
-        versionName: newVersionTitle,
-        activeVersionName: newVersionTitle
-      };
-      const newThumbnail = await generateThumbnail(newSnapshotToSave);
-      const savedNew = await saveVersion(newVersionTitle, newSnapshotToSave, newThumbnail);
-
-      // 5. Apply into editor state and make it the active CV
-      if (typeof loadVersionSnapshot === 'function') {
-        loadVersionSnapshot({
-          ...newSnapshotToSave,
-          activeVersionId: savedNew?.id
+     if (!externalLLMResponse || !externalLLMResponse.trim()) {
+        setApplyStatus({
+           type: "error",
+           message:
+              "Por favor, pega la respuesta JSON del LLM antes de aplicar.",
         });
-      }
+        return;
+     }
 
-      // 6. Set active language
-      if (typeof setActiveLanguage === 'function') {
-        setActiveLanguage(effectiveTargetLang);
-      } else if (typeof switchLanguage === 'function') {
-        switchLanguage(effectiveTargetLang);
-      }
+     setIsApplying(true);
+     setApplyStatus(null);
 
-      const successMsg = `¡Copia de respaldo guardada con éxito como "${currentVersionTitle}" y nuevo CV en ${targetLangLegend} activado en el editor!`;
-      setApplyStatus({
-        type: 'success',
-        message: successMsg,
-        savedOld: currentVersionTitle,
-        savedNew: newVersionTitle
-      });
+     try {
+        // 1. Clean and parse raw JSON from external LLM (handles markdown fences, preamble, trailing commas, etc.)
+        const parsed = cleanAndParseRawJSON(externalLLMResponse);
+        if (!parsed || typeof parsed !== "object") {
+           throw new Error(
+              "No se pudo encontrar un JSON válido en la respuesta pegada. Asegúrate de copiar el bloque ```json ... ``` devuelto por el LLM.",
+           );
+        }
 
-      if (typeof showToast === 'function') {
-        showToast(successMsg, 'success');
-      }
-    } catch (err) {
-      console.error('Error aplicando respuesta del LLM:', err);
-      setApplyStatus({
-        type: 'error',
-        message: err.message || 'Error al validar y aplicar el JSON devuelto por el LLM.'
-      });
-      if (typeof showToast === 'function') {
-        showToast(err.message || 'Error al aplicar el JSON', 'error');
-      }
-    } finally {
-      setIsApplying(false);
-    }
+        // 2. Normalize and validate against Ressume CV schema
+        const validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
+        if (!validatedCV) {
+           throw new Error(
+              "El JSON devuelto no cumple con la estructura de currículum válida requerida por Ressume.",
+           );
+        }
+
+        // 3. Save current CV snapshot adhering to [subtitulo + Nombre][Backup][idioma] format (L125)
+        const currentSubtitle =
+           cvData?.profile?.subtitle || cvData?.profile?.title || "";
+        const currentCandidateName = cvData?.profile?.name || "CV";
+        const currentVersionTitle = formatBackupVersionTitle(
+           cvData,
+           activeLanguage,
+        );
+
+        const currentSnapshotToSave = {
+           ...cvData,
+           versionName: currentVersionTitle,
+           activeVersionName: currentVersionTitle,
+        };
+        const currentThumbnail = await generateThumbnail(currentSnapshotToSave);
+        await saveVersion(
+           currentVersionTitle,
+           currentSnapshotToSave,
+           currentThumbnail,
+        );
+
+        // 4. Determine target language and target version title
+        const isTranslation =
+           selectedPromptId === "translate_english" ||
+           selectedPrompt?.category === "localization";
+        const effectiveTargetLang = isTranslation
+           ? targetTranslationLang || "en"
+           : activeLanguage || "es";
+        const targetLangLegend = getLanguageLegend(effectiveTargetLang);
+
+        const newCandidateName =
+           validatedCV.profile?.name || currentCandidateName;
+        const newSubtitle =
+           validatedCV.profile?.subtitle ||
+           validatedCV.profile?.title ||
+           currentSubtitle;
+        const newVersionTitle =
+           selectedPromptId === "bring_your_own_cv"
+              ? `[${newSubtitle ? `${newSubtitle} - ` : ""}${newCandidateName}][IMPORTADO ATS]`
+              : `[${newSubtitle ? `${newSubtitle} - ` : ""}${newCandidateName}][${targetLangLegend}]`;
+
+        const newSnapshotToSave = {
+           ...validatedCV,
+           layout: {
+              ...(validatedCV.layout || {}),
+              language: effectiveTargetLang,
+           },
+           language: effectiveTargetLang,
+           versionName: newVersionTitle,
+           activeVersionName: newVersionTitle,
+        };
+        const newThumbnail = await generateThumbnail(newSnapshotToSave);
+        const savedNew = await saveVersion(
+           newVersionTitle,
+           newSnapshotToSave,
+           newThumbnail,
+        );
+
+        // 5. Apply into editor state and make it the active CV
+        if (typeof loadVersionSnapshot === "function") {
+           loadVersionSnapshot({
+              ...newSnapshotToSave,
+              activeVersionId: savedNew?.id,
+           });
+        }
+
+        // 6. Set active language
+        if (typeof setActiveLanguage === "function") {
+           setActiveLanguage(effectiveTargetLang);
+        } else if (typeof switchLanguage === "function") {
+           switchLanguage(effectiveTargetLang);
+        }
+
+        const successMsg = `¡Copia de respaldo guardada con éxito como "${currentVersionTitle}" y nuevo CV en ${targetLangLegend} activado en el editor!`;
+        setApplyStatus({
+           type: "success",
+           message: successMsg,
+           savedOld: currentVersionTitle,
+           savedNew: newVersionTitle,
+        });
+
+        if (typeof showToast === "function") {
+           showToast(successMsg, "success");
+        }
+     } catch (err) {
+        console.error("Error aplicando respuesta del LLM:", err);
+        setApplyStatus({
+           type: "error",
+           message:
+              err.message ||
+              "Error al validar y aplicar el JSON devuelto por el LLM.",
+        });
+        if (typeof showToast === "function") {
+           showToast(err.message || "Error al aplicar el JSON", "error");
+        }
+     } finally {
+        setIsApplying(false);
+     }
   };
 
   // Impact Summary (Requirement 3: Enumerating elements in input JSON)
   const impactSummary = useMemo(() => {
-    if (!externalLLMResponse || !externalLLMResponse.trim()) return null;
-    try {
-      const parsed = cleanAndParseRawJSON(externalLLMResponse);
-      if (!parsed || typeof parsed !== 'object') return null;
-      const validated = normalizeAnyJSONToCVSnapshot(parsed);
-      if (!validated) return null;
+     if (!externalLLMResponse || !externalLLMResponse.trim()) return null;
+     try {
+        const parsed = cleanAndParseRawJSON(externalLLMResponse);
+        if (!parsed || typeof parsed !== "object") return null;
+        const validated = normalizeAnyJSONToCVSnapshot(parsed);
+        if (!validated) return null;
 
-      const candidateName = validated.profile?.name || cvData?.profile?.name || 'CV';
-      const candidateSubtitle = validated.profile?.subtitle || '';
-      const sections = Array.isArray(validated.sections) ? validated.sections : [];
+        const candidateName =
+           validated.profile?.name || cvData?.profile?.name || "CV";
+        const candidateSubtitle = validated.profile?.subtitle || "";
+        const sections = Array.isArray(validated.sections)
+           ? validated.sections
+           : [];
 
-      const expSection = sections.find(s => s.type === 'list' && (s.id === 'experience' || /experiencia|experience/i.test(s.title)));
-      const expItems = expSection?.items || [];
-      const totalBullets = expItems.reduce((acc, it) => acc + (Array.isArray(it.bullets) ? it.bullets.length : (it.description ? 1 : 0)), 0);
+        const expSection = sections.find(
+           (s) =>
+              s.type === "list" &&
+              (s.id === "experience" ||
+                 /experiencia|experience/i.test(s.title)),
+        );
+        const expItems = expSection?.items || [];
+        const totalBullets = expItems.reduce(
+           (acc, it) =>
+              acc +
+              (Array.isArray(it.bullets)
+                 ? it.bullets.length
+                 : it.description
+                   ? 1
+                   : 0),
+           0,
+        );
 
-      const skillSection = sections.find(s => s.type === 'skills' || /habilidad|skill/i.test(s.title));
-      const skillCategories = skillSection?.items || [];
-      const totalSkillsCount = skillCategories.reduce((acc, cat) => {
-        if (cat.description) {
-          return acc + cat.description.split(',').filter(s => s.trim().length > 0).length;
-        }
-        return acc;
-      }, 0);
+        const skillSection = sections.find(
+           (s) => s.type === "skills" || /habilidad|skill/i.test(s.title),
+        );
+        const skillCategories = skillSection?.items || [];
+        const totalSkillsCount = skillCategories.reduce((acc, cat) => {
+           if (cat.description) {
+              return (
+                 acc +
+                 cat.description.split(",").filter((s) => s.trim().length > 0)
+                    .length
+              );
+           }
+           return acc;
+        }, 0);
 
-      const eduSection = sections.find(s => s.type === 'education' || /educaci|education/i.test(s.title));
-      const eduItems = eduSection?.items || [];
+        const eduSection = sections.find(
+           (s) => s.type === "education" || /educaci|education/i.test(s.title),
+        );
+        const eduItems = eduSection?.items || [];
 
-      const certSection = sections.find(s => s.id === 'certificates' || /certifi/i.test(s.title));
-      const langSection = sections.find(s => s.id === 'languages' || /idioma|language/i.test(s.title));
+        const certSection = sections.find(
+           (s) => s.id === "certificates" || /certifi/i.test(s.title),
+        );
+        const langSection = sections.find(
+           (s) => s.id === "languages" || /idioma|language/i.test(s.title),
+        );
 
-      return {
-        isValid: true,
-        candidateName,
-        candidateSubtitle,
-        totalSections: sections.length,
-        expCount: expItems.length,
-        totalBullets,
-        skillsCategoriesCount: skillCategories.length,
-        totalSkillsCount,
-        eduCount: eduItems.length,
-        certCount: certSection?.items?.length || 0,
-        langCount: langSection?.items?.length || 0,
-        layoutType: validated.layout?.type || '1-column',
-        isAtsMode: validated.layout?.isAtsMode ?? true,
-      };
-    } catch (_) {
-      return null;
-    }
+        return {
+           isValid: true,
+           candidateName,
+           candidateSubtitle,
+           totalSections: sections.length,
+           expCount: expItems.length,
+           totalBullets,
+           skillsCategoriesCount: skillCategories.length,
+           totalSkillsCount,
+           eduCount: eduItems.length,
+           certCount: certSection?.items?.length || 0,
+           langCount: langSection?.items?.length || 0,
+           layoutType: validated.layout?.type || "1-column",
+           isAtsMode: validated.layout?.isAtsMode ?? true,
+        };
+     } catch (_) {
+        return null;
+     }
   }, [externalLLMResponse, cvData?.profile?.name]);
 
   // Auto-detect and auto-paste LLM response from clipboard upon window focus (Requirement 2)
   useEffect(() => {
-    if (!isOpen || !isResponseImportablePrompt) return;
+     if (!isOpen || !isResponseImportablePrompt) return;
 
-    const handleWindowFocus = async () => {
-      try {
-        if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.readText) {
-          const text = await navigator.clipboard.readText();
-          if (text && text.trim() && text.trim().length > 30 && text.trim() !== externalLLMResponse.trim()) {
-            const parsed = cleanAndParseRawJSON(text);
-            if (parsed && typeof parsed === 'object') {
-              setExternalLLMResponse(text);
-              if (applyStatus) setApplyStatus(null);
-              if (typeof showToast === 'function') {
-                showToast('Se pegó automáticamente la respuesta de tu IA desde el portapapeles y se validó la estructura.', 'success', 3500);
+     const handleWindowFocus = async () => {
+        try {
+           if (
+              typeof navigator !== "undefined" &&
+              navigator.clipboard &&
+              navigator.clipboard.readText
+           ) {
+              const text = await navigator.clipboard.readText();
+              if (
+                 text &&
+                 text.trim() &&
+                 text.trim().length > 30 &&
+                 text.trim() !== externalLLMResponse.trim()
+              ) {
+                 const parsed = cleanAndParseRawJSON(text);
+                 if (parsed && typeof parsed === "object") {
+                    setExternalLLMResponse(text);
+                    if (applyStatus) setApplyStatus(null);
+                    if (typeof showToast === "function") {
+                       showToast(
+                          "Se pegó automáticamente la respuesta de tu IA desde el portapapeles y se validó la estructura.",
+                          "success",
+                          3500,
+                       );
+                    }
+                 }
               }
-            }
-          }
+           }
+        } catch (_) {
+           // Silently ignore clipboard permission errors
         }
-      } catch (_) {
-        // Silently ignore clipboard permission errors
-      }
-    };
+     };
 
-    window.addEventListener('focus', handleWindowFocus);
-    return () => {
-      window.removeEventListener('focus', handleWindowFocus);
-    };
-  }, [isOpen, isResponseImportablePrompt, externalLLMResponse, applyStatus, showToast]);
+     window.addEventListener("focus", handleWindowFocus);
+     return () => {
+        window.removeEventListener("focus", handleWindowFocus);
+     };
+  }, [
+     isOpen,
+     isResponseImportablePrompt,
+     externalLLMResponse,
+     applyStatus,
+     showToast,
+  ]);
 
   if (!isOpen) return null;
 
   const handleCopy = async (targetProviderName = null) => {
-    try {
-      await navigator.clipboard.writeText(compiledPayload);
-      setCopied(true);
-      setCopiedProvider(targetProviderName);
-      setTimeout(() => {
-        setCopied(false);
-        setCopiedProvider(null);
-      }, 2500);
-      if (isResponseImportablePrompt) {
-        setIsWaitingForAI(true);
-      }
-      if (!targetProviderName && typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
-          detail: { action: 'copy_clicked', promptId: selectedPromptId }
-        }));
-      }
-    } catch (err) {
-      console.error('Failed to copy', err);
-    }
+     try {
+        await navigator.clipboard.writeText(compiledPayload);
+        setCopied(true);
+        setCopiedProvider(targetProviderName);
+        setTimeout(() => {
+           setCopied(false);
+           setCopiedProvider(null);
+        }, 2500);
+        if (isResponseImportablePrompt) {
+           setIsWaitingForAI(true);
+        }
+        if (!targetProviderName && typeof window !== "undefined") {
+           window.dispatchEvent(
+              new CustomEvent("ai-modal-tour-action", {
+                 detail: { action: "copy_clicked", promptId: selectedPromptId },
+              }),
+           );
+        }
+     } catch (err) {
+        console.error("Failed to copy", err);
+     }
   };
 
   const handleCopyAndOpenProvider = async (url, providerName) => {
-    await handleCopy(providerName);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
-        detail: { action: 'provider_clicked', providerName, promptId: selectedPromptId }
-      }));
-    }
-    try {
-      if (typeof window !== 'undefined' && window.open) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-    } catch (e) {
-      console.warn('Failed to open external AI window', e);
-    }
-    if (typeof showToast === 'function') {
-      showToast(`Prompt copiado al portapapeles. Pégalo en ${providerName} con Ctrl+V.`, 'success', 4000);
-    }
+     await handleCopy(providerName);
+     if (typeof window !== "undefined") {
+        window.dispatchEvent(
+           new CustomEvent("ai-modal-tour-action", {
+              detail: {
+                 action: "provider_clicked",
+                 providerName,
+                 promptId: selectedPromptId,
+              },
+           }),
+        );
+     }
+     try {
+        if (typeof window !== "undefined" && window.open) {
+           window.open(url, "_blank", "noopener,noreferrer");
+        }
+     } catch (e) {
+        console.warn("Failed to open external AI window", e);
+     }
+     if (typeof showToast === "function") {
+        showToast(
+           `Prompt copiado al portapapeles. Pégalo en ${providerName} con Ctrl+V.`,
+           "success",
+           4000,
+        );
+     }
   };
 
   const handlePasteFromClipboard = async () => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.readText) {
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          setExternalLLMResponse(text);
-          if (applyStatus) setApplyStatus(null);
-          const parsed = cleanAndParseRawJSON(text);
-          if (parsed && typeof parsed === 'object' && typeof showToast === 'function') {
-            showToast('Se pegó información del portapapeles y se validó automáticamente.', 'success', 3500);
-          }
+     try {
+        if (
+           typeof navigator !== "undefined" &&
+           navigator.clipboard &&
+           navigator.clipboard.readText
+        ) {
+           const text = await navigator.clipboard.readText();
+           if (text) {
+              setExternalLLMResponse(text);
+              if (applyStatus) setApplyStatus(null);
+              const parsed = cleanAndParseRawJSON(text);
+              if (
+                 parsed &&
+                 typeof parsed === "object" &&
+                 typeof showToast === "function"
+              ) {
+                 showToast(
+                    "Se pegó información del portapapeles y se validó automáticamente.",
+                    "success",
+                    3500,
+                 );
+              }
+           }
         }
-      }
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('ai-modal-tour-action', {
-          detail: { action: 'paste_clicked', promptId: selectedPromptId }
-        }));
-      }
-    } catch (err) {
-      console.warn('Clipboard read failed:', err);
-    }
+        if (typeof window !== "undefined") {
+           window.dispatchEvent(
+              new CustomEvent("ai-modal-tour-action", {
+                 detail: {
+                    action: "paste_clicked",
+                    promptId: selectedPromptId,
+                 },
+              }),
+           );
+        }
+     } catch (err) {
+        console.warn("Clipboard read failed:", err);
+     }
   };
 
   const handleDownload = () => {
-    const candidateName = cvData?.profile?.name ? cvData.profile.name.replace(/\s+/g, '_') : 'CV';
-    const blob = new Blob([compiledPayload], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${candidateName}_AI_Prompt_${selectedPromptId}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+     const candidateName = cvData?.profile?.name
+        ? cvData.profile.name.replace(/\s+/g, "_")
+        : "CV";
+     const blob = new Blob([compiledPayload], {
+        type: "text/markdown;charset=utf-8",
+     });
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement("a");
+     a.href = url;
+     a.download = `${candidateName}_AI_Prompt_${selectedPromptId}.md`;
+     document.body.appendChild(a);
+     a.click();
+     document.body.removeChild(a);
+     URL.revokeObjectURL(url);
   };
 
   return (
@@ -848,13 +1011,13 @@ const AIExportModal = ({
                        flexDirection: "column",
                        gap: "0.75rem",
                        border: isDark
-                          ? "1px solid rgba(56, 116, 255, 0.3)"
-                          : "1px solid rgba(56, 116, 255, 0.25)",
+                          ? "1px solid rgba(111, 34, 255, 0.3)"
+                          : "1px solid rgba(111, 34, 255, 0.25)",
                        borderRadius: "10px",
                        padding: "1rem",
                        background: isDark
-                          ? "rgba(56, 116, 255, 0.05)"
-                          : "rgba(56, 116, 255, 0.02)",
+                          ? "rgba(111, 34, 255, 0.05)"
+                          : "rgba(111, 34, 255, 0.02)",
                     }}>
                     <div
                        style={{
@@ -1176,64 +1339,108 @@ const AIExportModal = ({
                                 style={{
                                    display: "flex",
                                    alignItems: "center",
-                                   gap: "6px",
+                                   gap: "10px",
+                                   flexWrap: "wrap",
                                 }}>
-                                <label
-                                   htmlFor="ai-target-lang-select"
+                                <div
                                    style={{
-                                      fontSize: "0.8rem",
-                                      fontWeight: 600,
-                                      color: "var(--text-color, #444)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "6px",
                                    }}>
-                                   <Globe
-                                      size={14}
-                                      color="#10b981"
+                                   <label
+                                      htmlFor="ai-source-lang-select"
                                       style={{
-                                         verticalAlign: "middle",
-                                         marginRight: "4px",
-                                      }}
-                                   />
-                                   Idioma destino:
-                                </label>
-                                <select
-                                   id="ai-target-lang-select"
-                                   data-testid="ai-target-lang-select"
-                                   value={targetTranslationLang}
-                                   onChange={(e) =>
-                                      setTargetTranslationLang(e.target.value)
-                                   }
+                                         fontSize: "0.8rem",
+                                         fontWeight: 600,
+                                         color: "var(--text-color, #444)",
+                                      }}>
+                                      <Globe
+                                         size={14}
+                                         color="#10b981"
+                                         style={{
+                                            verticalAlign: "middle",
+                                            marginRight: "4px",
+                                         }}
+                                      />
+                                      Idioma origen:
+                                   </label>
+                                   <select
+                                      id="ai-source-lang-select"
+                                      data-testid="ai-source-lang-select"
+                                      value={sourceTranslationLang}
+                                      onChange={(e) =>
+                                         handleSourceTranslationLangChange(
+                                            e.target.value,
+                                         )
+                                      }
+                                      style={{
+                                         padding: "0.35rem 0.65rem",
+                                         borderRadius: "6px",
+                                         border: isDark
+                                            ? "1px solid #334155"
+                                            : "1px solid rgba(150, 150, 150, 0.3)",
+                                         background: isDark
+                                            ? "#1e293b"
+                                            : "#f8fafc",
+                                         color: isDark ? "#f8fafc" : "inherit",
+                                         fontSize: "0.8rem",
+                                         cursor: "pointer",
+                                      }}>
+                                      <option value="es">Español (es)</option>
+                                      <option value="en">Inglés (en)</option>
+                                   </select>
+                                </div>
+
+                                <div
                                    style={{
-                                      padding: "0.35rem 0.65rem",
-                                      borderRadius: "6px",
-                                      border: isDark
-                                         ? "1px solid #334155"
-                                         : "1px solid rgba(150, 150, 150, 0.3)",
-                                      background: isDark
-                                         ? "#1e293b"
-                                         : "#f8fafc",
-                                      color: isDark ? "#f8fafc" : "inherit",
-                                      fontSize: "0.8rem",
-                                      cursor: "pointer",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "6px",
                                    }}>
-                                   <option value="en">
-                                      Inglés (English - US Tech / Global)
-                                   </option>
-                                   <option value="es">
-                                      Español (Spanish - LatAm / España)
-                                   </option>
-                                   <option value="de">
-                                      Alemán (Deutsch - DACH)
-                                   </option>
-                                   <option value="fr">
-                                      Francés (Français - France / Canada)
-                                   </option>
-                                   <option value="pt">
-                                      Portugués (Português - Brasil / Portugal)
-                                   </option>
-                                   <option value="it">
-                                      Italiano (Italian)
-                                   </option>
-                                </select>
+                                   <label
+                                      htmlFor="ai-target-lang-select"
+                                      style={{
+                                         fontSize: "0.8rem",
+                                         fontWeight: 600,
+                                         color: "var(--text-color, #444)",
+                                      }}>
+                                      <Globe
+                                         size={14}
+                                         color="#3874ff"
+                                         style={{
+                                            verticalAlign: "middle",
+                                            marginRight: "4px",
+                                         }}
+                                      />
+                                      Idioma destino:
+                                   </label>
+                                   <select
+                                      id="ai-target-lang-select"
+                                      data-testid="ai-target-lang-select"
+                                      value={targetTranslationLang}
+                                      onChange={(e) =>
+                                         handleTargetTranslationLangChange(
+                                            e.target.value,
+                                         )
+                                      }
+                                      style={{
+                                         padding: "0.35rem 0.65rem",
+                                         borderRadius: "6px",
+                                         border: isDark
+                                            ? "1px solid #334155"
+                                            : "1px solid rgba(150, 150, 150, 0.3)",
+                                         background: isDark
+                                            ? "#1e293b"
+                                            : "#f8fafc",
+                                         color: isDark ? "#f8fafc" : "inherit",
+                                         fontSize: "0.8rem",
+                                         cursor: "pointer",
+                                      }}>
+                                      <option value="en">Inglés (en)</option>
+                                      <option value="es">Español (es)</option>
+                                   </select>
+                                </div>
                              </div>
                           )}
 
