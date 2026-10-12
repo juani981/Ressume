@@ -36,12 +36,22 @@ export const ensureProfileHeader = (data) => {
   const profSecIndex = sections.findIndex(s => s.id === 'profile_header' || s.type === 'profile_header');
   const hasContactSection = sections.some(s => s.id === 'contact' || s.type === 'contact');
   
+  const fallbackContacts = [
+    { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+    { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+    { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+    { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+    { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+  ];
+
   if (!hasContactSection && profSecIndex !== -1) {
     const profSec = sections[profSecIndex];
     const profItem = profSec?.items?.[0] || {};
     const extractedContacts = (Array.isArray(profItem.contacts) && profItem.contacts.length > 0)
       ? profItem.contacts
       : normalizeItemContacts(profItem);
+    const validExtracted = extractedContacts.filter(c => c && c.value && String(c.value).trim() !== '');
+    const contactsToUse = validExtracted.length > 0 ? validExtracted : fallbackContacts;
 
     const contactSection = {
       id: 'contact',
@@ -51,18 +61,39 @@ export const ensureProfileHeader = (data) => {
       items: [
         {
           id: 'contact1',
-          contacts: extractedContacts.length > 0 ? extractedContacts : [
-            { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
-            { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
-            { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
-            { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
-            { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
-          ],
-          ...syncFlatContactFields(extractedContacts)
+          contacts: contactsToUse,
+          ...syncFlatContactFields(contactsToUse)
         }
       ]
     };
     sections.splice(profSecIndex + 1, 0, contactSection);
+  } else if (hasContactSection) {
+    const contactSecIndex = sections.findIndex(s => s.id === 'contact' || s.type === 'contact');
+    const contactSec = sections[contactSecIndex];
+    const contactItem = contactSec?.items?.[0] || {};
+    const existingContacts = Array.isArray(contactItem.contacts) ? contactItem.contacts : normalizeItemContacts(contactItem);
+    const validContacts = existingContacts.filter(c => c && c.value && String(c.value).trim() !== '');
+    if (validContacts.length === 0) {
+      let salvaged = [];
+      if (profSecIndex !== -1) {
+        const profItem = sections[profSecIndex]?.items?.[0] || {};
+        const rawProf = Array.isArray(profItem.contacts) && profItem.contacts.length > 0 ? profItem.contacts : normalizeItemContacts(profItem);
+        salvaged = rawProf.filter(c => c && c.value && String(c.value).trim() !== '');
+      }
+      const contactsToUse = salvaged.length > 0 ? salvaged : fallbackContacts;
+      sections[contactSecIndex] = {
+        ...contactSec,
+        items: [
+          {
+            ...contactItem,
+            id: contactItem.id || 'contact1',
+            contacts: contactsToUse,
+            ...syncFlatContactFields(contactsToUse)
+          },
+          ...(contactSec.items ? contactSec.items.slice(1) : [])
+        ]
+      };
+    }
   }
 
   // 3. Guarantee profile_header only retains candidate name & subtitle (no bundled contacts)

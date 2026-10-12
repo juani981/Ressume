@@ -5,7 +5,7 @@ import { loadInitialCVData } from '../context/hooks/useCVData';
 import { sanitizeAndValidateCVSnapshot } from '../utils/versionValidator';
 
 describe('seed CV templates', () => {
-  it('provides six distinct, complete sample profiles without fabricated contact details', () => {
+  it('provides six distinct, complete sample profiles with mock contact details (location, email, phone, linkedin, github)', () => {
     expect(seedCVTemplateNames).toHaveLength(6);
     expect(new Set(seedCVTemplateNames).size).toBe(6);
 
@@ -30,7 +30,19 @@ describe('seed CV templates', () => {
         'PROYECTOS DESTACADOS',
         'EDUCACIÓN',
       ]);
-      expect(cv.sections.find(({ id }) => id === 'contact').items[0].contacts).toEqual([]);
+      const contactItem = cv.sections.find(({ id }) => id === 'contact').items[0];
+      expect(contactItem.location).toBe('Ciudad, País');
+      expect(contactItem.email).toBe('tuemail@ejemplo.com');
+      expect(contactItem.phone).toBe('+00 123 456 789');
+      expect(contactItem.linkedin).toBe('linkedin.com/in/tu-perfil');
+      expect(contactItem.github).toBe('github.com/tu-usuario');
+      expect(contactItem.contacts.map((c) => c.type)).toEqual([
+        'location',
+        'email',
+        'phone',
+        'linkedin',
+        'github',
+      ]);
       expect(cv.sections.find(({ id }) => id === 'about_section').items[0].description).toBeTruthy();
       expect(cv.sections.find(({ id }) => id === 'experience').items.length).toBeGreaterThan(0);
       expect(sanitizeAndValidateCVSnapshot(cv)?.profile.name).toBe(seedCVTemplateNames[index]);

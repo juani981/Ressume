@@ -1264,7 +1264,19 @@ describe('Epic: Version Manager Hub & Snapshot Management', () => {
         await waitFor(() => {
           expect(onCloseSpy).toHaveBeenCalledTimes(1);
           expect(currentState.profile.name).toBe(seedCVTemplateNames[0]);
-          expect(currentState.sections.find((section) => section.id === 'contact').items[0].contacts).toEqual([]);
+          const contactItem = currentState.sections.find((section) => section.id === 'contact').items[0];
+          expect(contactItem.email).toBe('tuemail@ejemplo.com');
+          expect(contactItem.phone).toBe('+00 123 456 789');
+          expect(contactItem.location).toBe('Ciudad, País');
+          expect(contactItem.linkedin).toBe('linkedin.com/in/tu-perfil');
+          expect(contactItem.github).toBe('github.com/tu-usuario');
+          expect(contactItem.contacts.map((c) => c.type)).toEqual([
+            'location',
+            'email',
+            'phone',
+            'linkedin',
+            'github',
+          ]);
         });
       } finally {
         randomSpy.mockRestore();

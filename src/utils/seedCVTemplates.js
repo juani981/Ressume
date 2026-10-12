@@ -255,7 +255,23 @@ const createSeedCV = (seed) => {
       type: 'contact',
       title: '',
       column: 'left',
-      items: [{ id: 'seed_contact', contacts: [] }],
+      items: [
+        {
+          id: 'seed_contact',
+          location: 'Ciudad, País',
+          email: 'tuemail@ejemplo.com',
+          phone: '+00 123 456 789',
+          linkedin: 'linkedin.com/in/tu-perfil',
+          github: 'github.com/tu-usuario',
+          contacts: [
+            { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+            { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+            { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+            { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+            { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' },
+          ],
+        },
+      ],
     },
     {
       id: 'about_section',

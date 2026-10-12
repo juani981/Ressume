@@ -5,6 +5,7 @@ import { buildAIPromptPayload, getLanguageLegend } from '../../utils/aiExporter'
 import { saveVersion } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
 import { cleanAndParseRawJSON, normalizeAnyJSONToCVSnapshot } from '../../utils/universalJsonImporter';
+import { ensureContactSectionWithFallback } from '../../utils/cvSchemaValidator';
 import { formatBackupVersionTitle } from '../../services/ai/bidirectionalPromptContract';
 import { useModalTheme } from '../../hooks/useModalTheme';
 import { ModalThemeToggle } from '../common/ModalThemeToggle';
@@ -324,7 +325,10 @@ const AIExportModal = ({
         }
 
         // 2. Normalize and validate against Ressume CV schema
-        const validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
+        let validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
+        if (selectedPromptId === "bring_your_own_cv" && validatedCV) {
+           validatedCV = ensureContactSectionWithFallback(validatedCV, effectiveTargetLang);
+        }
         if (!validatedCV) {
            throw new Error(
               "El JSON devuelto no cumple con la estructura de currículum válida requerida por Ressume.",
@@ -437,7 +441,10 @@ const AIExportModal = ({
      try {
         const parsed = cleanAndParseRawJSON(externalLLMResponse);
         if (!parsed || typeof parsed !== "object") return null;
-        const validated = normalizeAnyJSONToCVSnapshot(parsed);
+        let validated = normalizeAnyJSONToCVSnapshot(parsed);
+        if (selectedPromptId === "bring_your_own_cv" && validated) {
+           validated = ensureContactSectionWithFallback(validated, activeLanguage);
+        }
         if (!validated) return null;
 
         const candidateName =
