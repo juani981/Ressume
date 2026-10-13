@@ -14,6 +14,8 @@ import { getAllVersions } from '../utils/versionStorage.js';
 import { buildAIPromptPayload } from '../utils/aiExporter.js';
 import { normalizeAnyJSONToCVSnapshot } from '../utils/universalJsonImporter.js';
 import { buildTranslationPrompt } from '../utils/translationEngine.js';
+import { getPrompts } from '../locales/index.js';
+import { ensureContactSectionWithFallback } from '../utils/cvSchemaValidator.js';
 
 describe('Bidirectional Prompt Contract & Multi-Provider Launcher Suite', () => {
   const mockCV = {
@@ -290,5 +292,122 @@ describe('Bidirectional Prompt Contract & Multi-Provider Launcher Suite', () => 
       expect(targetSelect.value).toBe('es');
     });
   });
+
+  describe('4. Bring Your Own CV (Importar CV) Contact Structure & Mandatory Fallback Invariants', () => {
+    it('T4.1: bring_your_own_cv prompt explicitly specifies contact section and fallback directive in Spanish catalog', () => {
+      const esPrompts = getPrompts('es');
+      const byoPrompt = esPrompts.find(p => p.id === 'bring_your_own_cv');
+      expect(byoPrompt).toBeDefined();
+      expect(byoPrompt.task).toContain('contact (tipo \'contact\')');
+      expect(byoPrompt.task).toContain('Invariante de contacto único y Fallback obligatorio');
+      expect(byoPrompt.task).toContain('Ciudad, País');
+      expect(byoPrompt.task).toContain('tuemail@ejemplo.com');
+    });
+
+    it('T4.2: bring_your_own_cv prompt explicitly specifies contact section and fallback directive in English catalog', () => {
+      const enPrompts = getPrompts('en');
+      const byoPrompt = enPrompts.find(p => p.id === 'bring_your_own_cv');
+      expect(byoPrompt).toBeDefined();
+      expect(byoPrompt.task).toContain('contact (type \'contact\')');
+      expect(byoPrompt.task).toContain('Single Contact Source invariant & Mandatory Fallback');
+      expect(byoPrompt.task).toContain('City, Country');
+      expect(byoPrompt.task).toContain('youremail@example.com');
+    });
+
+    it('T4.3: injects default fallback contact placeholders when imported CV completely lacks contact section', () => {
+      const byoHandler = getBidirectionalHandler('bring_your_own_cv');
+      const rawJsonWithoutContact = JSON.stringify({
+        profile: { name: 'Alan Turing', subtitle: 'Mathematician' },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            items: [{ id: 'ph1', name: 'Alan Turing', subtitle: 'Mathematician' }]
+          },
+          {
+            id: 'experience',
+            type: 'list',
+            title: 'EXPERIENCIA LABORAL',
+            items: [{ id: 'exp1', title: 'Codebreaker', subtitle: 'Bletchley Park', date: '1939 – 1945' }]
+          }
+        ]
+      });
+
+      const result = byoHandler.parseAndValidate(rawJsonWithoutContact);
+      expect(result.isValid).toBe(true);
+
+      const contactSec = result.cvData.sections.find(s => s.id === 'contact' || s.type === 'contact');
+      expect(contactSec).toBeDefined();
+      expect(contactSec.items[0].contacts.length).toBeGreaterThanOrEqual(4);
+      expect(contactSec.items[0].contacts.map(c => c.type)).toEqual(
+        expect.arrayContaining(['email', 'phone', 'location'])
+      );
+      expect(contactSec.items[0].email).toBe('tuemail@ejemplo.com');
+      expect(contactSec.items[0].location).toBe('Ciudad, País');
+    });
+
+    it('T4.4: injects default fallback contact placeholders when contact section exists but contains empty contacts', () => {
+      const byoHandler = getBidirectionalHandler('bring_your_own_cv');
+      const rawJsonWithEmptyContacts = JSON.stringify({
+        profile: { name: 'Ada Lovelace' },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            items: [{ id: 'ph1', name: 'Ada Lovelace' }]
+          },
+          {
+            id: 'contact',
+            type: 'contact',
+            title: '',
+            items: [{ id: 'contact1', contacts: [{ type: 'email', value: '' }, { type: 'phone', value: '   ' }] }]
+          }
+        ]
+      });
+
+      const result = byoHandler.parseAndValidate(rawJsonWithEmptyContacts);
+      expect(result.isValid).toBe(true);
+
+      const contactSec = result.cvData.sections.find(s => s.id === 'contact' || s.type === 'contact');
+      expect(contactSec).toBeDefined();
+      expect(contactSec.items[0].contacts.some(c => c.value === 'tuemail@ejemplo.com')).toBe(true);
+      expect(contactSec.items[0].contacts.some(c => c.value === 'Ciudad, País')).toBe(true);
+    });
+
+    it('T4.5: preserves valid contacts and extracts bundled contacts from profile_header', () => {
+      const byoHandler = getBidirectionalHandler('bring_your_own_cv');
+      const rawJsonWithBundledContacts = JSON.stringify({
+        profile: { name: 'Grace Hopper' },
+        sections: [
+          {
+            id: 'profile_header',
+            type: 'profile_header',
+            items: [{
+              id: 'ph1',
+              name: 'Grace Hopper',
+              email: 'grace@navy.mil',
+              contacts: [
+                { id: 'c1', type: 'email', value: 'grace@navy.mil' },
+                { id: 'c2', type: 'location', value: 'New York, NY' }
+              ]
+            }]
+          }
+        ]
+      });
+
+      const result = byoHandler.parseAndValidate(rawJsonWithBundledContacts);
+      expect(result.isValid).toBe(true);
+
+      const headerSec = result.cvData.sections.find(s => s.type === 'profile_header');
+      const contactSec = result.cvData.sections.find(s => s.type === 'contact');
+
+      expect(headerSec).toBeDefined();
+      expect(headerSec.items[0].contacts).toBeUndefined();
+      expect(contactSec).toBeDefined();
+      expect(contactSec.items[0].contacts.map(c => c.value)).toContain('grace@navy.mil');
+      expect(contactSec.items[0].contacts.map(c => c.value)).toContain('New York, NY');
+    });
+  });
 });
+
 

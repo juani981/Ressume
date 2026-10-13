@@ -11,6 +11,7 @@
 
 import { defaultSchema } from './schema.js';
 import { normalizeAnyJSONToCVSnapshot } from './universalJsonImporter.js';
+import { normalizeItemContacts, syncFlatContactFields } from './contactTypes.js';
 import { SPACING_LIMITS, DEFAULT_LINE_HEIGHT } from '../constants/spacing.js';
 import { TYPOGRAPHY_SCALE_LIMITS, SUPPORTED_FONT_NAMES } from '../constants/typography.js';
 
@@ -66,6 +67,23 @@ export const CANONICAL_SECTION_TITLES = Object.freeze({
     volunteering: 'Volunteering',
     simple_list: 'Additional Information'
   }
+});
+
+export const DEFAULT_CONTACT_PLACEHOLDERS = Object.freeze({
+  es: [
+    { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+    { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+    { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+    { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+    { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+  ],
+  en: [
+    { id: 'c_loc', type: 'location', value: 'City, Country' },
+    { id: 'c_email', type: 'email', value: 'youremail@example.com' },
+    { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+    { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/your-profile' },
+    { id: 'c_github', type: 'github', value: 'github.com/your-username' }
+  ]
 });
 
 /**
@@ -235,6 +253,8 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
   const safeSnapshot = (snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot))
     ? snapshot
     : {};
+
+  const docLang = (safeSnapshot?.layout?.language || safeSnapshot?.language || (Array.isArray(safeSnapshot?.sections) && safeSnapshot.sections.some(s => /\b(experience|education|skills|projects|summary)\b/i.test(s?.title || '')) ? 'en' : 'es'));
 
   try {
     // 1. Sanitize Profile
@@ -445,6 +465,47 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
     });
     finalSections = deduplicatedSections;
 
+    // 5. Ensure Contact Section & Fallback Placeholders (Single Source of Truth)
+    const fallbackContacts = docLang === 'en'
+      ? DEFAULT_CONTACT_PLACEHOLDERS.en
+      : DEFAULT_CONTACT_PLACEHOLDERS.es;
+
+    const contactSecIdx = finalSections.findIndex(s => s.type === 'contact' || s.id === 'contact');
+    const profHeaderIdx = finalSections.findIndex(s => s.type === 'profile_header' || s.id === 'profile_header');
+
+    if (contactSecIdx !== -1) {
+      const contactSec = finalSections[contactSecIdx];
+      const rawContactItem = contactSec.items?.[0] || {};
+      const normalizedContacts = Array.isArray(rawContactItem.contacts)
+        ? rawContactItem.contacts
+        : normalizeItemContacts(rawContactItem);
+      const validContacts = normalizedContacts.filter(c => c && c.value && String(c.value).trim() !== '');
+
+      if (validContacts.length === 0) {
+        let salvagedContacts = [];
+        if (profHeaderIdx !== -1) {
+          const profItem = finalSections[profHeaderIdx]?.items?.[0] || {};
+          const rawProfContacts = Array.isArray(profItem.contacts) && profItem.contacts.length > 0
+            ? profItem.contacts
+            : normalizeItemContacts(profItem);
+          salvagedContacts = rawProfContacts.filter(c => c && c.value && String(c.value).trim() !== '');
+        }
+        const contactsToUse = salvagedContacts.length > 0 ? salvagedContacts : fallbackContacts;
+        finalSections[contactSecIdx] = {
+          ...contactSec,
+          items: [
+            {
+              ...rawContactItem,
+              id: rawContactItem.id || 'contact1',
+              contacts: contactsToUse,
+              ...syncFlatContactFields(contactsToUse)
+            },
+            ...(contactSec.items ? contactSec.items.slice(1) : [])
+          ]
+        };
+      }
+    }
+
     return {
       ...safeSnapshot,
       profile,
@@ -455,6 +516,81 @@ export function sanitizeAndValidateCVSnapshot(snapshot) {
     console.error('Snapshot validation failed:', err);
     return JSON.parse(JSON.stringify(defaultSchema));
   }
+}
+
+export function ensureContactSectionWithFallback(cvData, lang = 'es') {
+  if (!cvData || !Array.isArray(cvData.sections)) return cvData;
+  const docLang = lang || cvData.layout?.language || cvData.language || 'es';
+  const fallbackContacts = docLang === 'en'
+    ? DEFAULT_CONTACT_PLACEHOLDERS.en
+    : DEFAULT_CONTACT_PLACEHOLDERS.es;
+
+  let sections = [...cvData.sections];
+  const contactIdx = sections.findIndex(s => s.id === 'contact' || s.type === 'contact');
+  const profHeaderIdx = sections.findIndex(s => s.id === 'profile_header' || s.type === 'profile_header');
+
+  if (contactIdx === -1) {
+    let extractedContacts = [];
+    if (profHeaderIdx !== -1) {
+      const profItem = sections[profHeaderIdx]?.items?.[0] || {};
+      const raw = Array.isArray(profItem.contacts) ? profItem.contacts : normalizeItemContacts(profItem);
+      extractedContacts = raw.filter(c => c && c.value && String(c.value).trim() !== '');
+    }
+    const contactsToUse = extractedContacts.length > 0 ? extractedContacts : fallbackContacts;
+    const newContactSection = {
+      id: 'contact',
+      type: 'contact',
+      column: profHeaderIdx !== -1 ? sections[profHeaderIdx].column || 'left' : 'left',
+      title: '',
+      items: [
+        {
+          id: 'contact1',
+          contacts: contactsToUse,
+          ...syncFlatContactFields(contactsToUse)
+        }
+      ]
+    };
+    const insertAt = profHeaderIdx !== -1 ? profHeaderIdx + 1 : 0;
+    sections.splice(insertAt, 0, newContactSection);
+  } else {
+    const contactSec = sections[contactIdx];
+    const contactItem = contactSec?.items?.[0] || {};
+    const raw = Array.isArray(contactItem.contacts) ? contactItem.contacts : normalizeItemContacts(contactItem);
+    const valid = raw.filter(c => c && c.value && String(c.value).trim() !== '');
+    if (valid.length === 0) {
+      let salvaged = [];
+      if (profHeaderIdx !== -1) {
+        const profItem = sections[profHeaderIdx]?.items?.[0] || {};
+        const rawProf = Array.isArray(profItem.contacts) ? profItem.contacts : normalizeItemContacts(profItem);
+        salvaged = rawProf.filter(c => c && c.value && String(c.value).trim() !== '');
+      }
+      const contactsToUse = salvaged.length > 0 ? salvaged : fallbackContacts;
+      sections[contactIdx] = {
+        ...contactSec,
+        items: [
+          {
+            ...contactItem,
+            id: contactItem.id || 'contact1',
+            contacts: contactsToUse,
+            ...syncFlatContactFields(contactsToUse)
+          },
+          ...(contactSec.items ? contactSec.items.slice(1) : [])
+        ]
+      };
+    }
+  }
+
+  // Clean bundled contacts from profile_header
+  if (profHeaderIdx !== -1) {
+    const profSec = sections[profHeaderIdx];
+    const cleanItems = (profSec.items || []).map(item => {
+      const { contacts, email, phone, location, linkedin, github, ...rest } = item;
+      return rest;
+    });
+    sections[profHeaderIdx] = { ...profSec, items: cleanItems };
+  }
+
+  return { ...cvData, sections };
 }
 
 export { normalizeAnyJSONToCVSnapshot };

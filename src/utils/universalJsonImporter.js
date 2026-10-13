@@ -28,6 +28,7 @@ import { sanitizeAndValidateCVSnapshot } from './cvSchemaValidator.js';
 import { sanitizeContactUrl } from './cvJsonAbstraction.js';
 import { stripHtml } from './richTextEngine.js';
 import { defaultSchema } from './schema.js';
+import { normalizeItemContacts, syncFlatContactFields } from './contactTypes.js';
 
 /**
  * Maps snake_case layout properties to internal camelCase properties
@@ -454,6 +455,31 @@ const normalizeItemToInternal = (item, secType, secId, itemIdx, docLang = 'es') 
 
   const currentLabel = docLang === 'en' ? 'Present' : 'Actualidad';
   const ats = (item.ats && typeof item.ats === 'object') ? item.ats : {};
+
+  // Contact
+  if (secType === 'contact') {
+    const rawContacts = normalizeItemContacts(item);
+    const valid = rawContacts.filter(c => c && c.value && String(c.value).trim() !== '');
+    const fallback = docLang === 'en' ? [
+      { id: 'c_loc', type: 'location', value: 'City, Country' },
+      { id: 'c_email', type: 'email', value: 'youremail@example.com' },
+      { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+      { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/your-profile' },
+      { id: 'c_github', type: 'github', value: 'github.com/your-username' }
+    ] : [
+      { id: 'c_loc', type: 'location', value: 'Ciudad, País' },
+      { id: 'c_email', type: 'email', value: 'tuemail@ejemplo.com' },
+      { id: 'c_phone', type: 'phone', value: '+00 123 456 789' },
+      { id: 'c_linkedin', type: 'linkedin', value: 'linkedin.com/in/tu-perfil' },
+      { id: 'c_github', type: 'github', value: 'github.com/tu-usuario' }
+    ];
+    const finalContacts = valid.length > 0 ? valid : fallback;
+    return {
+      id: stableId,
+      contacts: finalContacts,
+      ...syncFlatContactFields(finalContacts)
+    };
+  }
 
   // Skills
   if (secType === 'skills') {

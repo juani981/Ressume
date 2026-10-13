@@ -6,6 +6,7 @@
  */
 
 import { cleanAndParseRawJSON, normalizeAnyJSONToCVSnapshot } from '../../utils/universalJsonImporter';
+import { ensureContactSectionWithFallback } from '../../utils/cvSchemaValidator';
 import { getLanguageLegend } from '../../utils/aiExporter';
 import { saveVersion } from '../../utils/versionStorage';
 import { generateThumbnail } from '../../utils/thumbnailGenerator';
@@ -151,7 +152,8 @@ registerBidirectionalHandler({
           error: 'No se pudo encontrar un JSON válido en la respuesta pegada. Asegúrate de copiar el bloque ```json ... ``` devuelto por la IA.'
         };
       }
-      const validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
+      const rawValidated = normalizeAnyJSONToCVSnapshot(parsed);
+      const validatedCV = rawValidated ? ensureContactSectionWithFallback(rawValidated, parsed.language || parsed.layout?.language) : null;
       if (!validatedCV) {
         return {
           isValid: false,
