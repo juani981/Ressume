@@ -594,7 +594,17 @@ const AIExportModal = ({
      }
   };
 
-  const handleCopyAndOpenProvider = async (url, providerName) => {
+  const handleCopyAndOpenProvider = async (url, providerName, e = null) => {
+     if (e && typeof e.preventDefault === "function") {
+        e.preventDefault();
+     }
+     try {
+        if (typeof window !== "undefined" && window.open) {
+           window.open(url, "_blank", "noopener,noreferrer");
+        }
+     } catch (err) {
+        console.warn("Failed to open external AI window", err);
+     }
      await handleCopy(providerName);
      if (typeof window !== "undefined") {
         window.dispatchEvent(
@@ -606,13 +616,6 @@ const AIExportModal = ({
               },
            }),
         );
-     }
-     try {
-        if (typeof window !== "undefined" && window.open) {
-           window.open(url, "_blank", "noopener,noreferrer");
-        }
-     } catch (e) {
-        console.warn("Failed to open external AI window", e);
      }
      if (typeof showToast === "function") {
         showToast(
@@ -1166,10 +1169,11 @@ const AIExportModal = ({
                              key={provider.id}
                              type="button"
                              data-testid={`ai-provider-btn-${provider.id}`}
-                             onClick={() =>
+                             onClick={(e) =>
                                 handleCopyAndOpenProvider(
                                    provider.url,
                                    provider.name,
+                                   e,
                                 )
                              }
                              style={{
@@ -1526,10 +1530,11 @@ const AIExportModal = ({
                                 key={provider.id}
                                 type="button"
                                 data-testid={`ai-provider-btn-${provider.id}`}
-                                onClick={() =>
+                                onClick={(e) =>
                                    handleCopyAndOpenProvider(
                                       provider.url,
                                       provider.name,
+                                      e,
                                    )
                                 }
                                 style={{
@@ -1698,10 +1703,11 @@ const AIExportModal = ({
                                    href={provider.url}
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   onClick={() =>
+                                   onClick={(e) =>
                                       handleCopyAndOpenProvider(
                                          provider.url,
                                          provider.name,
+                                         e,
                                       )
                                    }
                                    style={{
