@@ -213,6 +213,48 @@ describe('AI Waiting Modal & Compact Prompt UX Suite', () => {
       fireEvent.change(promptSelect, { target: { value: 'recruiter_audit' } });
       expect(screen.queryByTestId('ai-waiting-banner')).not.toBeInTheDocument();
     });
+
+    it('2.4: prevents duplicate tab opening when clicking external AI link in waiting banner', async () => {
+      const writeTextMock = vi.fn().mockResolvedValue(undefined);
+      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      Object.assign(navigator, {
+        clipboard: {
+          writeText: writeTextMock,
+          readText: vi.fn().mockResolvedValue('')
+        }
+      });
+
+      render(
+        <CVProvider initialCV={baseMockCV}>
+          <AIExportModal isOpen={true} onClose={vi.fn()} />
+        </CVProvider>
+      );
+
+      const promptSelect = screen.getByTestId('ai-prompt-select');
+      fireEvent.change(promptSelect, { target: { value: 'bring_your_own_cv' } });
+
+      const copyBtn = screen.getByTestId('ai-copy-btn');
+      await act(async () => {
+        fireEvent.click(copyBtn);
+      });
+
+      expect(screen.getByTestId('ai-waiting-banner')).toBeInTheDocument();
+
+      const chatGptLink = screen.getByText('ChatGPT').closest('a');
+      expect(chatGptLink).toBeInTheDocument();
+
+      const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
+      const preventDefaultSpy = vi.spyOn(clickEvent, 'preventDefault');
+
+      await act(async () => {
+        chatGptLink.dispatchEvent(clickEvent);
+      });
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      expect(openSpy).toHaveBeenCalledTimes(1);
+      expect(openSpy).toHaveBeenCalledWith('https://chatgpt.com', '_blank', 'noopener,noreferrer');
+      expect(writeTextMock).toHaveBeenCalled();
+    });
   });
 
   describe('3. TranslationModal Collapsible Prompt & Hand-off', () => {
