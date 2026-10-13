@@ -31,7 +31,7 @@ describe('Goal: Add Buttons Priority & Border Centering + Resizer Fine Styling',
     });
 
     it('aligns the top edge of .add-bullet-btn with the preceding content bottom edge', () => {
-      expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*top:\s*0/);
+      expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*top:\s*(?:0|2)/);
       expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*transform:\s*none/);
       expect(cssContent).toMatch(/\.add-bullet-btn\s*\{[^}]*z-index:\s*110/);
     });

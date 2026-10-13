@@ -137,7 +137,7 @@ Las preguntas sobre incidentes evalúan la capacidad de diagnóstico, mitigació
     },
     tags: ['LinkedIn', 'SEO', 'Marca Personal', 'Recruiters'],
     author: {
-      name: 'Comunidad Ressume',
+      name: 'Comunidad Easy CV Editor',
       role: 'Colaborador Verificado',
       isOfficial: false,
     },
@@ -191,7 +191,7 @@ Las preguntas sobre incidentes evalúan la capacidad de diagnóstico, mitigació
     ],
     tags: ['System Design', 'Roadmaps', 'Cheatsheets'],
     author: {
-      name: 'Comunidad Ressume',
+      name: 'Comunidad Easy CV Editor',
       role: 'Colaborador Verificado',
       isOfficial: false,
     },

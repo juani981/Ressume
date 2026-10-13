@@ -119,7 +119,7 @@ registerBidirectionalHandler({
       if (!validatedCV) {
         return {
           isValid: false,
-          error: 'El JSON devuelto no cumple con la estructura de currículum válida requerida por Ressume.'
+          error: 'El JSON devuelto no cumple con la estructura de currículum válida requerida por Easy CV Editor.'
         };
       }
       return { isValid: true, cvData: validatedCV, raw: parsed };

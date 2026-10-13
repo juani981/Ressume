@@ -651,7 +651,7 @@ describe('Clean Print & PDF Export Engine Automated Verification Suite', () => {
       expect(iframe.style.width).toBe('794px');
       expect(iframe.style.height).toBe('1123px');
       expect(iframe.style.position).toBe('fixed');
-      expect(iframe.getAttribute('title')).toBe('Ressume Print Preview');
+      expect(iframe.getAttribute('title')).toMatch(/Easy CV Editor Print Preview|Ressume Print Preview/);
     });
 
     it('T5.2: writes clean HTML5 markup into the iframe document and closes writer stream', () => {

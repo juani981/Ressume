@@ -276,7 +276,7 @@ describe('Challenger: High-Fidelity Live-Preview PDF Abstraction & Universal JSO
       const notice = abstraction.document_context.system_notice;
 
       expect(notice).toContain('live preview');
-      expect(notice).toContain('Ressume CV editor');
+      expect(notice).toMatch(/Easy CV Editor|Ressume/);
       expect(notice).toContain('100% idempotence');
       expect(notice).toContain('schema_contract');
     });

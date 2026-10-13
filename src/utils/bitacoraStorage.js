@@ -4,8 +4,8 @@
  * Prepares the frontend for Supabase integration with an anti-abuse voting signature.
  */
 
-const STORAGE_VOTES_KEY = 'ressume_bitacora_voted_ids';
-const STORAGE_CUSTOM_ITEMS_KEY = 'ressume_bitacora_custom_items';
+const STORAGE_VOTES_KEY = 'Easy CV Editor_bitacora_voted_ids';
+const STORAGE_CUSTOM_ITEMS_KEY = 'Easy CV Editor_bitacora_custom_items';
 const VOTE_COOLDOWN_MS = 600;
 
 let lastVoteTimestamp = 0;

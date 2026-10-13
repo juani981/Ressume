@@ -117,6 +117,13 @@ export const CONTACT_TYPES = [
     placeholder: '+54 9 11 1234 5678'
   },
   {
+    id: 'whatsapp',
+    label: 'WhatsApp',
+    icon: 'MessageCircle',
+    category: 'direct',
+    placeholder: '+54 9 11 1234 5678'
+  },
+  {
     id: 'telegram',
     label: 'Telegram',
     icon: 'Send',
@@ -140,27 +147,20 @@ export const CONTACT_TYPES = [
     placeholder: 'Remoto / Híbrido'
   },
   {
+    id: 'citizenship',
+    label: 'Ciudadanía / Visado',
+    icon: 'IdCard',
+    category: 'availability',
+    placeholder: 'Ciudadanía Europea / Permiso de trabajo'
+  },
+  {
     id: 'age',
     label: 'Edad / Fecha',
     icon: 'Calendar',
     category: 'availability',
     placeholder: '26 años'
   },
-  // Web & Portfolio
-  {
-    id: 'portfolio',
-    label: 'Portfolio',
-    icon: 'Briefcase',
-    category: 'web',
-    placeholder: 'mi-portfolio.dev'
-  },
-  {
-    id: 'website',
-    label: 'Sitio Web',
-    icon: 'Globe',
-    category: 'web',
-    placeholder: 'misitio.com'
-  },
+
   // Código & Plataformas
   {
     id: 'linkedin',
@@ -197,6 +197,43 @@ export const CONTACT_TYPES = [
     category: 'code',
     placeholder: 'stackoverflow.com/users/...'
   },
+
+  // Web & Portfolio
+  {
+    id: 'portfolio',
+    label: 'Portfolio',
+    icon: 'Briefcase',
+    category: 'web',
+    placeholder: 'mi-portfolio.dev'
+  },
+  {
+    id: 'website',
+    label: 'Sitio Web',
+    icon: 'Globe',
+    category: 'web',
+    placeholder: 'misitio.com'
+  },
+  {
+    id: 'blog',
+    label: 'Blog / Artículos',
+    icon: 'FileText',
+    category: 'web',
+    placeholder: 'medium.com/@usuario'
+  },
+  {
+    id: 'figma',
+    label: 'Figma',
+    icon: 'PenTool',
+    category: 'web',
+    placeholder: 'figma.com/@usuario'
+  },
+  {
+    id: 'dribbble',
+    label: 'Dribbble / Behance',
+    icon: 'Palette',
+    category: 'web',
+    placeholder: 'dribbble.com/usuario'
+  }
 ];
 
 /**

@@ -324,6 +324,15 @@ const AIExportModal = ({
            );
         }
 
+        // Determine target language and target version title
+        const isTranslation =
+           selectedPromptId === "translate_english" ||
+           selectedPrompt?.category === "localization";
+        const effectiveTargetLang = isTranslation
+           ? targetTranslationLang || "en"
+           : activeLanguage || "es";
+        const targetLangLegend = getLanguageLegend(effectiveTargetLang);
+
         // 2. Normalize and validate against Ressume CV schema
         let validatedCV = normalizeAnyJSONToCVSnapshot(parsed);
         if (selectedPromptId === "bring_your_own_cv" && validatedCV) {
@@ -355,15 +364,6 @@ const AIExportModal = ({
            currentSnapshotToSave,
            currentThumbnail,
         );
-
-        // 4. Determine target language and target version title
-        const isTranslation =
-           selectedPromptId === "translate_english" ||
-           selectedPrompt?.category === "localization";
-        const effectiveTargetLang = isTranslation
-           ? targetTranslationLang || "en"
-           : activeLanguage || "es";
-        const targetLangLegend = getLanguageLegend(effectiveTargetLang);
 
         const newCandidateName =
            validatedCV.profile?.name || currentCandidateName;
