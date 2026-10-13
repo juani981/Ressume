@@ -75,10 +75,10 @@ export const executeCleanPrint = (cvData, lang = 'es', customSnapshot = undefine
     iframe.style.opacity = '0';
     iframe.style.visibility = 'hidden';
     iframe.style.pointerEvents = 'none';
-    iframe.setAttribute('title', 'Ressume Print Preview');
+    iframe.setAttribute('title', 'Easy CV Editor Print Preview');
 
     if (typeof document !== 'undefined') {
-      document.querySelectorAll('iframe[title="Ressume Print Preview"]').forEach((oldIframe) => {
+      document.querySelectorAll('iframe[title="Easy CV Editor Print Preview"]').forEach((oldIframe) => {
         if (oldIframe.parentNode) oldIframe.parentNode.removeChild(oldIframe);
       });
     }

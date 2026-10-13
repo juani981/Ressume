@@ -13,7 +13,7 @@ import {
   toggleItemVote as toggleLocalVote,
 } from '../utils/bitacoraStorage';
 
-const VOTER_TOKEN_KEY = 'ressume_voter_token';
+const VOTER_TOKEN_KEY = 'Easy CV Editor_voter_token';
 
 /**
  * Get or create a persistent anonymous client voter token for anti-abuse.
@@ -133,7 +133,7 @@ export const submitBitacoraPost = async (itemData) => {
     content: itemData.content?.trim() || null,
     links: Array.isArray(itemData.links) ? itemData.links : [],
     author: itemData.author || {
-      name: 'Comunidad Ressume',
+      name: 'Comunidad Easy CV Editor',
       role: 'Colaborador',
       isOfficial: false,
     },

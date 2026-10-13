@@ -585,7 +585,7 @@ export const generatePhysicalPageLayout = (cvData, options = {}) => {
 export const generateSchemaContractForLLM = () => {
   return {
     contract_version: '3.0',
-    contract_purpose: 'Deterministic 1-click import into Ressume Editor and Version Manager',
+    contract_purpose: 'Deterministic 1-click import into Easy CV Editor Editor and Version Manager',
     idempotence_invariant: 'All repeated translations or prompt runs must return this exact JSON schema. Zero information loss.',
     accepted_root_structure: {
       candidate_profile: {
@@ -649,10 +649,10 @@ export const generateCVLivePdfAbstraction = (cvData, options = {}) => {
   const documentContext = {
     is_live_preview_pdf_abstraction: true,
     schema_version: '3.0',
-    description: 'Contextualized, deterministic 1:1 abstraction of an active CV/Resume rendered in the Ressume live preview and print-to-PDF engine.',
+    description: 'Contextualized, deterministic 1:1 abstraction of an active CV/Resume rendered in the Easy CV Editor live preview and print-to-PDF engine.',
     wysiwyg_print_parity: 'What You See Is What You Get: Exact visual, structural, and physical page-budget mirroring of the printed A4 PDF.',
-    system_notice: 'You are reading a contextualized, deterministic 1:1 abstraction of a PDF currently in live preview in the Ressume CV editor. All content, sections, physical page assignments, layout bounds, and ATS compliance factors correspond strictly to the printed PDF output. Any JSON modification or translation output you generate must adhere strictly to the schema_contract defined below so that it can be imported into the Ressume editor with 100% idempotence and zero data loss.',
-    rendering_engine: 'Ressume Deterministic Page Distributor & Print Engine',
+    system_notice: 'You are reading a contextualized, deterministic 1:1 abstraction of a PDF currently in live preview in the Easy CV Editor CV editor. All content, sections, physical page assignments, layout bounds, and ATS compliance factors correspond strictly to the printed PDF output. Any JSON modification or translation output you generate must adhere strictly to the schema_contract defined below so that it can be imported into the Easy CV Editor editor with 100% idempotence and zero data loss.',
+    rendering_engine: 'Easy CV Editor Deterministic Page Distributor & Print Engine',
     locale: options.lang || 'es',
     total_physical_pages: physicalLayoutData.total_pages,
     is_ats_mode: isAts,

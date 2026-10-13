@@ -1,7 +1,7 @@
 /**
  * src/utils/cvSchemaValidator.js
  *
- * Declarative Schema Definitions & Validation Engine for Ressume CV data models.
+ * Declarative Schema Definitions & Validation Engine for Easy CV Editor CV data models.
  * 
  * Provides:
  * 1. Declarative constants & constraints (Layout, Profile, Section, Item).

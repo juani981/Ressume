@@ -1,7 +1,7 @@
 /**
  * universalJsonImporter.js
  *
- * Universal, Failproof JSON Ingestion Pipeline for Ressume.
+ * Universal, Failproof JSON Ingestion Pipeline for Easy CV Editor.
  *
  * Ingests, repairs, normalizes, and adapts ANY JSON format produced by
  * human users, LLM prompts, Version Manager backups, JSON Resume standards,
@@ -13,7 +13,7 @@
  *    newlines, and smart typographic quotes.
  * 2. Multi-Flavor Ingestion: seamlessly unrolls enveloped roots (cv, cvData,
  *    resume, data), maps snake_case to camelCase, and adapts:
- *    - Native Ressume Format ({ profile, layout, sections })
+ *    - Native Easy CV Editor Format ({ profile, layout, sections })
  *    - Rich Live-Preview PDF Abstraction ({ document_context, candidate_profile, normalized_sections })
  *    - Normalized Section Dictionaries ({ candidate_profile, work_experience, skills, education })
  *    - Standard JSON Resume ({ basics, work, education, skills })
@@ -163,7 +163,7 @@ export const detectDocumentLanguage = (raw) => {
 };
 
 /**
- * Maps normalized or loose section names to canonical Ressume types and IDs
+ * Maps normalized or loose section names to canonical Easy CV Editor types and IDs
  */
 const SECTION_TYPE_MAP = {
   candidate_profile: { id: 'profile_header', type: 'profile_header', defaultTitle: '' },
@@ -616,7 +616,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
   const layout = extractNormalizedLayout(root);
   const profileData = extractProfileData(root);
 
-  // If root is already a standard Ressume CV snapshot with native sections and profile_header:
+  // If root is already a standard Easy CV Editor CV snapshot with native sections and profile_header:
   const docLang = detectDocumentLanguage(root);
 
   if (Array.isArray(root.sections) && root.sections.some(s => s?.id === 'profile_header' || s?.type === 'profile_header')) {
@@ -626,7 +626,7 @@ export const normalizeAnyJSONToCVSnapshot = (candidateInput) => {
       const secId = sec.id || `sec_${secIdx}`;
       if (!Array.isArray(sec.items)) return sec;
       const normalizedItems = sec.items.map((it, itemIdx) => {
-        if (it && !it.ats && !it.role_title && !it.technologies && !it.achievements && !it.degree && !it.company) {
+        if (secType !== 'contact' && it && !it.ats && !it.role_title && !it.technologies && !it.achievements && !it.degree && !it.company) {
           return it;
         }
         return normalizeItemToInternal(it, secType, secId, itemIdx, docLang);

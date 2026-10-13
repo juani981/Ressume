@@ -1,5 +1,5 @@
 -- =============================================================================
--- Ressume Bitácora / Career Knowledge Hub - Supabase Database Schema (Production Ready)
+-- Easy CV Editor Bitácora / Career Knowledge Hub - Supabase Database Schema (Production Ready)
 -- Incluye: Tablas con constraints, RLS endurecido, función RPC atómica anti-race-conditions,
 -- función de verificación de voto seguro, e inserción de seeds completos y curados.
 -- =============================================================================
@@ -180,7 +180,7 @@ values
   '{"type": "warning", "title": "Indexación en Búsquedas", "text": "Las consultas de perfiles utilizan filtros como \"Senior Frontend Engineer | React, TypeScript\". Las expresiones de búsqueda no incorporan frases genéricas de disponibilidad."}'::jsonb,
   null,
   '[]'::jsonb,
-  '{"name": "Comunidad Ressume", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
+  '{"name": "Comunidad Easy CV Editor", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
   array['LinkedIn', 'SEO', 'Marca Personal', 'Recruiters'],
   41,
   'published'
@@ -208,7 +208,7 @@ values
   null,
   null,
   '[{"label": "System Design Primer (GitHub)", "url": "https://github.com/donnemartin/system-design-primer", "type": "repo"}, {"label": "Roadmap.sh - Developer Roadmaps", "url": "https://roadmap.sh", "type": "doc"}]'::jsonb,
-  '{"name": "Comunidad Ressume", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
+  '{"name": "Comunidad Easy CV Editor", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
   array['System Design', 'Roadmaps', 'Cheatsheets'],
   38,
   'published'
@@ -250,7 +250,7 @@ values
   '{"type": "info", "title": "Paso a Paso", "text": "Entrá a la página de tu universidad en LinkedIn > pestaña \"Exalumnos\" > filtrá por tu empresa objetivo y cargo (ej. Software Engineer). Enviá un mensaje de máximo 300 caracteres apelando al sentido de pertenencia."}'::jsonb,
   E'### Plantilla de mensaje de conexión (300 caracteres):\n\"Hola [Nombre], vi que sos graduado de [Universidad] y hoy estás como Dev en [Empresa]. Soy egresado reciente de Sistemas enfocado en [Stack]. Me encantaría conectar para seguir de cerca los desafíos de ingeniería de su equipo. ¡Un saludo!\"',
   '[]'::jsonb,
-  '{"name": "Comunidad Ressume", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
+  '{"name": "Comunidad Easy CV Editor", "role": "Colaborador Verificado", "isOfficial": false}'::jsonb,
   array['LinkedIn', 'Networking', 'Alumni', 'Referrals'],
   59,
   'published'

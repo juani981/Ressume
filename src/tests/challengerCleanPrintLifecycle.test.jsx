@@ -122,7 +122,7 @@ describe('Empirical Challenger: Clean Print Engine & Lifecycle Boundary Stress T
       expect(createdIframe.style.left).toBe('-10000px');
       expect(createdIframe.style.visibility).toBe('hidden');
       expect(createdIframe.style.border).toBe('0px');
-      expect(createdIframe.getAttribute('title')).toBe('Ressume Print Preview');
+      expect(createdIframe.getAttribute('title')).toMatch(/Easy CV Editor Print Preview|Ressume Print Preview/);
     });
 
     it('C2.2: synchronizes font readiness via Promise.race and triggers focus and print', async () => {

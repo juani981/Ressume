@@ -87,6 +87,8 @@ const TranslationModal = ({ isOpen, onClose }) => {
     );
   }, [currentDict, targetLangCode, sourceLangCode, customGuidelines]);
 
+  const effectiveTargetLang = targetLangCode || 'en';
+
   if (!isOpen) return null;
 
   const handleCopyPrompt = async () => {

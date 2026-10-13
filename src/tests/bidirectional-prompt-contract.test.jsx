@@ -407,6 +407,109 @@ describe('Bidirectional Prompt Contract & Multi-Provider Launcher Suite', () => 
       expect(contactSec.items[0].contacts.map(c => c.value)).toContain('grace@navy.mil');
       expect(contactSec.items[0].contacts.map(c => c.value)).toContain('New York, NY');
     });
+
+    it('T4.6: successfully parses and validates full tech CV JSON from bring_your_own_cv', () => {
+      const byoHandler = getBidirectionalHandler('bring_your_own_cv');
+      const userCvJson = JSON.stringify({
+        layout: {
+          type: "1-column",
+          isAtsMode: true,
+          fontFamily: "Inter",
+          fontScale: 1.0,
+          titleScale: 1.0,
+          bodyScale: 1.0,
+          listScale: 1.0,
+          lineHeight: 1.3,
+          pagePadding: 24,
+          sectionGap: 20,
+          itemGap: 8
+        },
+        profile: {
+          name: "Juan Ignacio Carrizo",
+          subtitle: "Desarrollador Backend | PHP, Laravel, Oracle | CI/CD y Automatización"
+        },
+        sections: [
+          {
+            id: "profile_header",
+            type: "profile_header",
+            title: "",
+            column: "left",
+            items: [
+              {
+                id: "prof_header_item",
+                name: "Juan Ignacio Carrizo",
+                subtitle: "Desarrollador Backend | PHP, Laravel, Oracle | CI/CD y Automatización"
+              }
+            ]
+          },
+          {
+            id: "contact",
+            type: "contact",
+            title: "",
+            column: "left",
+            items: [
+              {
+                id: "contact1",
+                contacts: [
+                  { id: "c1", type: "email", value: "juanicarrizo97@gmail.com" },
+                  { id: "c2", type: "phone", value: "+54 381 6706133" },
+                  { id: "c3", type: "location", value: "Tucumán, Argentina" },
+                  { id: "c4", type: "github", value: "https://github.com/juani981" },
+                  { id: "c5", type: "linkedin", value: "https://linkedin.com/in/juan-ignacio-carrizo-juani981/" }
+                ]
+              }
+            ]
+          },
+          {
+            id: "about_section",
+            type: "about",
+            title: "PERFIL PROFESIONAL",
+            column: "left",
+            items: [
+              {
+                id: "about_item",
+                description: "Desarrollador Backend enfocado en modernización de sistemas legacy..."
+              }
+            ]
+          },
+          {
+            id: "skills",
+            type: "skills",
+            title: "HABILIDADES TÉCNICAS",
+            column: "left",
+            items: [
+              { id: "skill_1", title: "Backend", description: "PHP (Laravel), Python, ASP.NET, Playwright, RESTful APIs" }
+            ]
+          },
+          {
+            id: "experience",
+            type: "list",
+            title: "EXPERIENCIA LABORAL",
+            column: "right",
+            items: [
+              {
+                id: "exp_1",
+                title: "Desarrollador Back-End (PHP, Laravel, Oracle)",
+                subtitle: "Dirección General de Catastro",
+                date: "Julio 2025 – Actualidad",
+                bullets: ["Diseñé una arquitectura de transición..."]
+              }
+            ]
+          }
+        ]
+      });
+
+      const result = byoHandler.parseAndValidate(userCvJson);
+      expect(result.isValid).toBe(true);
+      expect(result.cvData.profile.name).toBe("Juan Ignacio Carrizo");
+
+      const contactSec = result.cvData.sections.find(s => s.id === 'contact');
+      expect(contactSec).toBeDefined();
+      expect(contactSec.items[0].contacts.length).toBe(5);
+      expect(contactSec.items[0].email).toBe("juanicarrizo97@gmail.com");
+      expect(contactSec.items[0].phone).toBe("+54 381 6706133");
+      expect(contactSec.items[0].location).toBe("Tucumán, Argentina");
+    });
   });
 });
 
