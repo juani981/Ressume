@@ -1,5 +1,9 @@
 node_modules/
 dist/
+coverage/
+*.local
+.env
+.env.local
 # Local Netlify folder
 .netlify
 cypress/videos/

@@ -1,12 +1,30 @@
 {
-  "name": "ressume-react",
+  "name": "ressume",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
+  "description": "Client-side WYSIWYG resume editor — discrete A4 pages, deterministic pagination, passive print-to-PDF projection.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juani981/Ressume.git"
+  },
+  "keywords": [
+    "resume",
+    "cv",
+    "editor",
+    "pdf",
+    "react",
+    "vite"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "cypress:open": "cypress open",
@@ -29,12 +47,19 @@
     "react-joyride": "^3.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.2.1",
     "cypress": "^16.1.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^24.0.0",
     "start-server-and-test": "^3.0.12",
+    "typescript": "^5.9.3",
     "vite": "^5.0.8",
     "vitest": "^1.3.1",
     "yaml": "^2.9.1"

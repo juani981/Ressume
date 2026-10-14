@@ -174,11 +174,6 @@ export const PrintBaseSection = ({ section }) => {
 const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const descriptor = getSectionDescriptor(section?.type);
 
-  if (descriptor?.sectionComponent) {
-    const CustomSection = descriptor.sectionComponent;
-    return <CustomSection section={section} isPrint={false} />;
-  }
-
   const isMoveDisabled = Boolean(
     descriptor?.isMoveDisabled ||
     descriptor?.allowSectionDrag === false ||
@@ -186,18 +181,18 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
     ['profile_header', 'title_subtitle', 'contact', 'about_section', 'about'].includes(section?.id)
   );
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
     disabled: isMoveDisabled,
     data: { type: 'section', section, isMoveDisabled }
   });
 
-  const { 
+  const {
     cvData,
-    updateSectionTitle, 
+    updateSectionTitle,
     updateSectionBulletStyle,
-    addSectionItem, 
-    deleteSection, 
+    addSectionItem,
+    deleteSection,
     updateSectionProperty,
   } = useCV();
 
@@ -209,6 +204,11 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteTriggerRect, setDeleteTriggerRect] = useState(null);
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
+
+  if (descriptor?.sectionComponent) {
+    const CustomSection = descriptor.sectionComponent;
+    return <CustomSection section={section} isPrint={false} />;
+  }
 
   const style = {
     transform: isDragging ? undefined : CSS.Transform.toString(transform),

@@ -1,49 +1,74 @@
-# Live Editor CV
+# Ressume
 
-## Descripción General
+Client-side WYSIWYG resume editor. React 18 + Vite 5. Discrete A4 page boxes in the
+editor, deterministic pagination in state, passive print projection to PDF. No backend
+required for editing, pagination, or PDF export.
 
-Live Editor CV es un sistema de creación y gestión de currículums interactivo, construido sobre React y Vite. A diferencia de las plantillas estáticas tradicionales, esta aplicación ofrece una experiencia de edición visual directa (WYSIWYG) basada en bloques. 
+## Quickstart
 
-La arquitectura permite manipular el orden de las secciones y el contenido de forma intuitiva, garantizando que el diseño en pantalla coincida 1:1 con la generación del documento final (PDF) a través de un servicio de renderizado backend automatizado.
+```bash
+npm install
+npm run dev      # Vite on http://localhost:5173
+npm test         # Vitest (jsdom)
+```
 
-## Características Principales
+Optional env (see `.env.example`):
 
-*   **Edición en Línea (Inline Editing):** Toda la información de la interfaz gráfica es editable al hacer clic, eliminando la necesidad de formularios separados.
-*   **Gestión de Bloques (Drag and Drop):** Integración profunda con `@dnd-kit` para reordenamiento de secciones enteras y elementos individuales.
-*   **Persistencia Local y Portabilidad:** El estado de la aplicación se gestiona a través de un esquema JSON estricto almacenado en el `localStorage` del navegador. Permite la exportación e importación del estado en formato JSON.
-*   **Generación de PDF Pixel-Perfect:** Utiliza Netlify Functions y Puppeteer (`@sparticuz/chromium`) para interceptar el estado actual del cliente e inyectarlo en una instancia *headless* del navegador, asegurando que la impresión refleje con precisión las modificaciones del usuario, incluyendo preferencias de modo oscuro.
+| Var | Default | Effect |
+|---|---|---|
+| `VITE_ENABLE_TWO_COLUMN_MODE` | `false` | Shows the 1/2-column layout toggle (`LayoutModeToggle.jsx`) |
+| `VITE_ENABLE_BITACORA` | `false` | Shows the Bitácora career-playbook UI (`ActionMenuRoot.jsx`) |
+| `VITE_ENABLE_BITACORA_TOUR` | unset | Enables the Bitácora onboarding nudge (`TourContext.jsx`) |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | unset | Enables Supabase-backed Bitácora posts/votes; without them Bitácora falls back to local data (`supabaseClient.js`) |
 
-## Requisitos del Sistema
+## How it works
 
-*   Node.js (v18.0.0 o superior)
-*   NPM (v8.0.0 o superior)
-*   Netlify CLI (Recomendado para pruebas locales del backend)
+```
+CVProvider (src/context/CVContext.jsx)
+  └─ cvData: { profile, layout, sections[] }  — single source of truth, persisted to localStorage['cvData']
+       ├─ useDocumentPages → PageModel[] → <A4PageBox> per page (src/App.jsx)
+       ├─ useCVDndCoordinator → @dnd-kit sensors/handlers (src/hooks/)
+       └─ services/print/* → sanitized clone of #area-cv → hidden iframe → window.print()
+```
 
-## Instalación y Despliegue Local
+- **State:** `src/context/CVContext.jsx` facades four domain hooks in
+  `src/context/hooks/`: `useCVData` (CRUD + persistence + i18n), `useCVHistory`
+  (undo/redo, cap 30), `useCVLayout` (geometry, overlays, column moves),
+  `useCVExport` (toast + PDF/JSON export).
+- **Pagination:** `src/utils/pageDistributor.js:distributeSectionsToPages` partitions
+  sections/items into frozen `PageModel`s (`src/utils/pageModelTypes.js`). Live DOM
+  heights (`useLiveDomHeights`) feed estimates; explicit `page`/`breakBefore` props win,
+  otherwise capacity packing with bullet-level splitting and a 14px hysteresis deadband.
+- **Print:** `src/services/print/` — `cleanHtmlGenerator.js` (sanitize + layout CSS),
+  `printExecutionDriver.js` (`executeCleanPrint`), `pdfTitleService.js`,
+  `printFonts.js` (static TTF to preserve the PDF text layer). Editor-only chrome is
+  stripped by `.no-print` / `[data-editor-ui]` selectors, never by restructuring pages.
+- **Sections:** Open/Closed registry. `src/registry/sectionRegistry.js` +
+  `src/registry/descriptors/*.js` (18 types). `BaseSection`/`BaseItem` resolve the
+  descriptor at render time — no `if (type ===)` in core. See
+  `docs/EXTENDING_SECTIONS.md`.
+- **AI:** offline rule engine (`src/ai-knowledge/`, `src/locales/*/rules.json`) plus
+  copy-paste LLM prompt pack (`src/locales/*/prompts.json`, 10 prompts) with a
+  paste-back bidirectional contract (`src/services/ai/bidirectionalPromptContract.js`).
+  No LLM calls at runtime.
 
-1. Clonar el repositorio.
-2. Instalar las dependencias del frontend:
-   ```bash
-   npm install
-   ```
-3. Iniciar el servidor de desarrollo Vite:
-   ```bash
-   npm run dev
-   ```
-4. Para probar la función de PDF localmente, se requiere instalar Netlify CLI de forma global (`npm install -g netlify-cli`) y ejecutar:
-   ```bash
-   netlify dev
-   ```
+## Docs
 
-## Documentación
+- `docs/ARCHITECTURE.md` — system architecture, data flow, pagination, print pipeline
+- `docs/FILEMAP.md` — file-by-file mental map with paths
+- `docs/EXTENDING_SECTIONS.md` — add a section type without touching core
+- `CONTRIBUTING.md` — workflow, tests, conventions
+- `AGENTS.md` — AI-agent working notes (read this before editing pagination/print)
 
-El repositorio contiene documentación técnica y operativa detallada en el directorio `/docs`:
+## Scripts
 
-*   [Documentación Técnica](docs/TECHNICAL_DOCUMENTATION.md)
-*   [Manual de Desarrollo](docs/DEVELOPMENT_MANUAL.md)
-*   [Manual de Usuario](docs/USER_MANUAL.md)
-*   [Backlog y Roadmap](docs/BACKLOG.md)
+| Command | Purpose |
+|---|---|
+| `npm run dev` / `build` / `preview` | Vite dev / prod build / preview |
+| `npm test` / `test:watch` | Vitest run / watch (`src/tests/setup.js`, jsdom) |
+| `npm run test:e2e` | Cypress (Chrome); `:firefox`, `:docker` variants |
+| `npm run cypress:open` | Cypress interactive |
 
-## Licencia
+## License
 
-Este proyecto está bajo la Licencia MIT.
+MIT — see `LICENSE`.

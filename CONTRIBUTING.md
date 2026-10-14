@@ -1,156 +1,44 @@
-# Guía de Contribución a Ressume 🚀
+# Contributing to Ressume
 
-¡Gracias por tu interés en contribuir a **Ressume**! Este proyecto es un editor de currículums de alta fidelidad basado en React, diseñado para garantizar **WYSIWYG 100% (What You See Is What You Get)** entre lo que el usuario edita en pantalla y el PDF vectorial final.
+## Workflow
 
----
+1. Branch from `main`: `git checkout -b feat/<short-name>`
+2. Install: `npm install`
+3. Develop: `npm run dev` (Vite at `http://localhost:5173`, host `0.0.0.0`, polling)
+4. Test units: `npm test` (Vitest run) or `npm run test:watch`
+5. Test E2E: `npm run test:e2e` (Cypress + Chrome) or `npm run cypress:open`
+   - Firefox: `npm run test:e2e:firefox` / `npm run cypress:all` (Chrome + Firefox)
+   - Docker: `npm run test:e2e:docker`
+6. Build: `npm run build` (`vite build`, chunk warning limit 1600). Preview: `npm run preview`
+7. Open a small, focused PR against `main` with tests.
 
-## 1. Las Reglas de Oro Inmutables (Invariantes de Arquitectura)
+## Test stacks
 
-Antes de escribir cualquier línea de código, debes conocer las 3 leyes fundamentales del proyecto (documentadas en `AGENTS.md` y `FRACASO_SALTOS_DE_PAGINA.md`):
+- **Vitest + jsdom** (`vite.config.js: test.environment jsdom`, setup `src/tests/setup.js`):
+  globals on, `css: true`, include `src/**/*.{test,spec}.{js,jsx,tsx}`.
+  Setup mocks `localStorage`, `matchMedia`, `ResizeObserver`, `IntersectionObserver`,
+  `window.print/focus/scrollTo`, iframe `contentWindow.print`, `URL.createObjectURL`.
+  Under jsdom, CV seed returns `defaultSchema` (not random demo data).
+- **Cypress 16** (`cypress.config.js`, `baseUrl: http://localhost:5173`, 1440x900,
+  `supportFile: cypress/support/e2e.js`): PDF inspection (`inspectPdf`, `pdffonts`
+  fallback), headless-Chrome `printWithChrome --print-to-pdf`, UX heatmap/audit tasks.
 
-1. **La Caja A4 es Sagrada e Inmutable (`210mm x 297mm`, `overflow: hidden`)**:
-   - El editor (`#area-cv`) **no es un lienzo continuo infinito**. Se compone estrictamente de cajas discretas `<A4PageBox pageNumber={N}>`.
-   - Si un bloque no cabe en la Página 1, el distribuidor de páginas (`pageDistributor`) lo asigna a la Página 2.
-2. **Estructura Fija Tallada en Piedra (Zero Dynamic Reflow on Print)**:
-   - El editor es la **única fuente de verdad**. El motor de exportación a PDF (`src/services/print/`) es pasivo y determinista: proyecta exactamente las mismas cajas que el editor. No calcula saltos ni altera posiciones al imprimir.
-3. **Prohibición de `break-before: page` en selectores repetidos**:
-   - **NUNCA** apliques `break-before: page` a viñetas, ítems de experiencia o bloques `.cv-block`. Hacerlo provoca que un CV de 2 páginas se fracture en un PDF de 5 páginas.
+## Conventions
 
----
-
-## 2. Mapa Rápido de la Base de Código (SOLID & SSOT)
-
-```
-src/
-├── constants/               # [SSOT] Dimensiones físicas A4, espaciados, paletas, fuentes
-│   ├── geometry.js          # 210mm x 297mm, 794px x 1123px, A4_GEOMETRY
-│   ├── spacing.js           # Defaults: pagePadding (24px), sectionGap (12px), itemGap (6px)
-│   ├── colors.js            # Tokens semánticos y reglas Obsidian Callout
-│   └── typography.js        # Fuentes soportadas y límites de escalado
-│
-├── styles/                  # [CSS Modular]
-│   ├── tokens.css           # Variables :root canónicas
-│   ├── print.css            # Reglas de fragmentación para impresión
-│   └── bundle.js            # Bundle pre-concatenado para iframe y exportación
-│
-├── services/print/          # [SRP: Motor de Exportación]
-│   ├── pdfTitleService.js   # Generación y sanitización determinista del título de archivo
-│   ├── cleanHtmlGenerator.js# Serialización estática de cajas A4 sin controles interactivos
-│   └── printExecutionDriver.js # Ciclo de vida del iframe de impresión y window.print()
-│
-├── registry/                # [OCP: Extensibilidad de Secciones]
-│   ├── sectionRegistry.js   # Registro desacoplado de tipos de sección
-│   └── itemFormatters.js    # Serializadores a Markdown, XML y Texto Plano
-│
-├── components/
-│   ├── CV/                  # Componentes visuales del CV (A4PageBox, BaseSection, BaseItem)
-│   └── Editor/              # Barra de herramientas (ActionMenu), modales y paneles
-│       └── ActionMenu/      # Compound Components (DesignPanel, ActionMenuRoot)
-│
-└── tests/                   # 82 suites nucleares y +1,170 pruebas unitarias e integradas (Vitest)
-```
-
----
-
-## 3. Cómo Agregar una Nueva Sección en 3 Pasos (Principio Open/Closed)
-
-El sistema está diseñado para que agregues nuevos tipos de sección (por ejemplo, *Certificaciones*, *Idiomas*, *Proyectos*) **sin modificar archivos nucleares**.
-
-### Paso 1: Crea el componente de visualización del ítem
-Crea el archivo en `src/components/CV/items/CertificatesItem.jsx`:
-
-```jsx
-import React from 'react';
-import InlineEdit from '../../Editor/InlineEdit';
-
-const CertificatesItem = ({ item = {}, sectionId, isPrint = false }) => {
-  return (
-    <div className="certificate__data cv-block" data-item-id={item.id}>
-      <h3 className="certificate__title">
-        <InlineEdit
-          value={item.title || ''}
-          placeholder="Nombre del Certificado"
-          sectionId={sectionId}
-          itemId={item.id}
-          field="title"
-          isPrint={isPrint}
-        />
-      </h3>
-      <span className="certificate__issuer">
-        <InlineEdit
-          value={item.issuer || ''}
-          placeholder="Entidad Emisora (ej. AWS)"
-          sectionId={sectionId}
-          itemId={item.id}
-          field="issuer"
-          isPrint={isPrint}
-        />
-      </span>
-    </div>
-  );
-};
-
-export default CertificatesItem;
-```
-
-### Paso 2: Registra la sección en `src/registry/sectionRegistry.js`
-Agrega el descriptor en el registro llamando a `registerSectionType`:
-
-```javascript
-import CertificatesItem from '../components/CV/items/CertificatesItem';
-
-registerSectionType({
-  type: 'certificates',
-  label: 'Certificados y Licencias',
-  defaultTitle: 'CERTIFICADOS',
-  defaultColumn: 'right',
-  icon: 'Award',
-  sectionClass: 'certificates',
-  itemComponent: CertificatesItem,
-  createDefaultItem: () => ({
-    id: generateUniqueId('cert'),
-    title: 'AWS Certified Solutions Architect',
-    issuer: 'Amazon Web Services',
-    date: '2024',
-  }),
-  // Cálculo de altura encapsulado para el paginador:
-  estimateItemHeight: (item, options) => {
-    return 36 + (options.itemGapPx ?? 8);
-  },
-  schema: {
-    title: 'string',
-    issuer: 'string',
-    date: 'string',
-  },
-});
-```
-
-### Paso 3: Verifica tus pruebas
-Ejecuta la suite de pruebas automatizadas:
-```bash
-npm test
-```
-¡Tu sección ya está completamente integrada! Se mostrará en el menú modal de agregar secciones, soportará arrastre con `@dnd-kit`, calculará su paginación y se imprimirá en el PDF sin tocar `App.jsx` ni el motor de impresión.
-
----
-
-## 4. Guía de Ejecución de Pruebas y Validación de Calidad
-
-### Pruebas Automatizadas
-```bash
-# Ejecutar todas las pruebas una vez
-npm test
-
-# Modo observador (watch) para desarrollo
-npm run test:watch
-
-# Ejecutar una suite específica
-npx vitest run src/tests/registry.test.jsx
-```
-
-### Criterio de Aceptación para Pull Requests (PR)
-1. **100% de tests en verde**: Los 1,015 tests deben pasar sin excepciones.
-2. **Cero Números Mágicos**: Si usas dimensiones físicas A4, impórtalas de `src/constants/`.
-3. **Verificación Visual Empírica (Regla 6 de `AGENTS.md`)**:
-   - JSDOM no evalúa fuentes subpíxel ni el motor `@media print`.
-   - Abre la aplicación en tu navegador (`npm run dev`), presiona **Descargar / Imprimir PDF**, y confirma visualmente que el documento tiene **exactamente el número de páginas esperado** sin viñetas fracturadas ni saltos inesperados.
+- **No `type` switches in core:** `BaseSection` / `BaseItem` resolve behavior from
+  `src/registry/sectionRegistry.js`. Add new section types as descriptors in
+  `src/registry/descriptors/*.js` (flags, factories, formatters) — never branch core on `type`.
+- **Descriptor registry (Open/Closed):** extend via `registerSectionType`; keep
+  `itemComponent` / `sectionComponent` escape hatches local to the descriptor.
+- **Errors:** reuse `RootErrorBoundary` / `SectionErrorBoundary`; user-facing messages
+  use Obsidian callout CSS classes (`.obsidian-callout`, danger/caution/info tokens
+  in `src/constants/colors.js`).
+- **DnD:** use `@dnd-kit/core@6` + `@dnd-kit/sortable@8` (`useCVDndCoordinator`,
+  pointer distance 5 + keyboard sensor). Do not introduce swapy or other DnD libs.
+- **Print CSS only, declarative:** pagination/print lives in `src/services/print/` +
+  `print.css` (`@page { size: A4; margin: 0 }`, `.a4-page-box`, `.cv-block` avoid rules).
+  No inline print style hacks, no imperative DOM print tweaks outside the driver.
+- **Geometry SSOT:** import from `src/constants/geometry.js` / `spacing.js` /
+  `typography.js` (A4 210x297mm, 794x1123px @96dpi). No magic numbers.
+- **Storage:** `localStorage['cvData']` + sanitizers in `src/utils/cvSchemaValidator.js`;
+  versions in IndexedDB `RessumeDB.versions`. Quarantine corrupt snapshots, never crash load.

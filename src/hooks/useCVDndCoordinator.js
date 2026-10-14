@@ -20,6 +20,7 @@ import {
   closestCorners,
   closestCenter,
   rectIntersection,
+  pointerWithin,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { adaptItemToSectionType } from '../utils/itemAdapter';

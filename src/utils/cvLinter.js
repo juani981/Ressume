@@ -75,7 +75,7 @@ const MONTH_MAP = {
   julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
   july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
-  ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5,
+  ene: 0, feb: 1, mar: 2, abr: 3, jun: 5,
   jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11,
   jan: 0, apr: 3, aug: 7, dec: 11
 };
