@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import reactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
 
 export default [
   js.configs.recommended,
@@ -7,7 +8,8 @@ export default [
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'cypress/videos/**', 'cypress/screenshots/**'],
   },
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{ts,tsx}'],
+    extends: [...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
