@@ -25,6 +25,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "cypress:open": "cypress open",
