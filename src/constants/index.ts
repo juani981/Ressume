@@ -1,6 +1,6 @@
 /**
- * index.js
- * 
+ * index.ts
+ *
  * Barrel export for all canonical constants (Single Source of Truth).
  */
 
