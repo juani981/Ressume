@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import reactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
 
 export default [
   js.configs.recommended,
@@ -9,10 +10,10 @@ export default [
   },
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parser: tsparser,
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: {
         window: 'readonly',
@@ -45,6 +46,7 @@ export default [
     },
     plugins: {
       'react-hooks': reactHooks,
+      '@typescript-eslint': tseslint,
     },
     rules: {
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
@@ -65,8 +67,7 @@ export default [
         describe: 'readonly',
         it: 'readonly',
         test: 'readonly',
-        expect: 'readonly',
-        vi: 'readonly',
+        expect: 'vi',
         beforeEach: 'readonly',
         afterEach: 'readonly',
         beforeAll: 'readonly',
