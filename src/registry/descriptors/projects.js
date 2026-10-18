@@ -44,7 +44,7 @@ export const projectsDescriptor = {
       subtitle: src.subtitle || 'Stack Tecnológico / Herramientas',
       date: src.date || '2025',
       link: src.link || '',
-      linkText: src.linkText || 'Ver Proyecto',
+      linkText: src.link ? (src.linkText || 'Ver Proyecto') : (src.linkText || ''),
       description: src.description || '',
       bullets: Array.isArray(src.bullets) ? src.bullets : ['Logro clave del proyecto con impacto directo.']
     };
