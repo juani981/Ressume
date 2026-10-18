@@ -2,7 +2,7 @@ import React from 'react';
 import InlineEdit from '../../Editor/InlineEdit';
 import HyperlinkEdit from '../../Editor/HyperlinkEdit';
 import SortableBulletItem from '../SortableBulletItem';
-import { ListPlus } from 'lucide-react';
+import { ListPlus, Link2, Unlink, Plus } from 'lucide-react';
 import { 
   DndContext, 
   closestCorners, 
@@ -62,7 +62,7 @@ const ProjectsItemPrintView = ({ item, sectionId, isLast = false }) => {
               </span>
             )}
 
-            {item.link && (
+            {Boolean(item.link && String(item.link).trim() !== '') && (
               <div className="social__container bd-grid" style={{ marginTop: '0.2rem', marginBottom: '0.2rem' }}>
                 <HyperlinkEdit 
                   url={item.link || ''} 
@@ -126,6 +126,7 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
   const targetItemId = item.originalItemId || item.id;
   const canonicalBullets = item.originalBullets || bullets;
   const startOffset = item.bulletStartIndex || 0;
+  const hasLink = Boolean(item.link && typeof item.link === 'string' && item.link.trim() !== '');
 
   const bulletItems = bullets.map((b, idx) => ({
     id: `${item.id}_proj_bullet_${idx}`,
@@ -223,15 +224,98 @@ const ProjectsItemEditView = ({ item, sectionId, onUpdateItem }) => {
               </span>
             )}
 
-            {/* Hyperlink */}
-            <div className="social__container bd-grid" style={{ marginTop: '0.2rem', marginBottom: '0.2rem' }}>
-              <HyperlinkEdit 
-                url={item.link || ''} 
-                text={item.linkText || item.link || 'github.com/usuario/proyecto'} 
-                onSave={({ url, text }) => onUpdateItem(sectionId, targetItemId, { link: url, linkText: text })} 
-                onRemove={() => onUpdateItem(sectionId, targetItemId, { link: '', linkText: '' })} 
-              />
-            </div>
+            {/* Optional Hyperlink */}
+            {hasLink ? (
+              <div 
+                className="social__container bd-grid" 
+                style={{ 
+                  marginTop: '0.2rem', 
+                  marginBottom: '0.2rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <HyperlinkEdit 
+                  url={item.link} 
+                  text={item.linkText || item.link} 
+                  onSave={({ url, text }) => onUpdateItem(sectionId, targetItemId, { link: url, linkText: text })} 
+                  onRemove={() => onUpdateItem(sectionId, targetItemId, { link: '', linkText: '' })} 
+                />
+                <button
+                  type="button"
+                  className="no-print"
+                  data-testid="btn-remove-project-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateItem(sectionId, targetItemId, { link: '', linkText: '' });
+                  }}
+                  title="Eliminar link del proyecto"
+                  aria-label="Eliminar link del proyecto"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    color: '#94a3b8',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    lineHeight: 1,
+                    transition: 'color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  <Unlink size={13} />
+                </button>
+              </div>
+            ) : (
+              <div className="no-print" style={{ marginTop: '0.35rem', marginBottom: '0.35rem' }}>
+                <button
+                  type="button"
+                  className="add-project-link-btn no-print"
+                  data-testid="btn-add-project-link"
+                  data-editor-ui="true"
+                  data-editor-add="true"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateItem(sectionId, targetItemId, { 
+                      link: 'https://github.com', 
+                      linkText: 'Ver Proyecto' 
+                    });
+                  }}
+                  title="Agregar enlace al proyecto"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 10px',
+                    borderRadius: '999px',
+                    border: '1.5px dashed var(--first-color, #3874ff)',
+                    background: 'rgba(56, 116, 255, 0.08)',
+                    color: 'var(--first-color, #3874ff)',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(56, 116, 255, 0.18)';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(56, 116, 255, 0.08)';
+                    e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  <Plus size={13} strokeWidth={2.5} />
+                  <span>Agregar enlace</span>
+                </button>
+              </div>
+            )}
 
             {item.description && (
               <p className="experience__description">
