@@ -19,6 +19,7 @@ import { getSectionDescriptor } from '../../registry/sectionRegistry';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { usePrintMode } from '../../context/PrintModeContext';
 import { useDndStatus } from '../../context/DndStatusContext';
+import { useDndDropTarget } from '../../context/DndDropTargetContext';
 
 
 /**
@@ -84,7 +85,8 @@ export const PrintBaseItem = ({ item, sectionId, sectionType, isLast = false }) 
  */
 const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const { updateSectionItem, deleteSectionItem, deleteSection } = useCV();
-  const { justDroppedId } = useDndStatus();
+  const { activeDragItem, justDroppedId } = useDndStatus();
+  const dropTarget = useDndDropTarget();
   const descriptor = getSectionDescriptor(sectionType);
   const ItemComponent = descriptor.itemComponent;
   const ItemTag = descriptor.itemTag || 'div';
@@ -99,9 +101,11 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
     }
   });
 
+  const isAnyItemDragging = Boolean(activeDragItem || dropTarget?.type === 'item');
+
   const baseStyle = {
-    transform: isDragging ? undefined : CSS.Transform.toString(transform),
-    transition,
+    transform: (isDragging || isAnyItemDragging) ? undefined : CSS.Transform.toString(transform),
+    transition: isAnyItemDragging ? undefined : transition,
     position: 'relative',
     opacity: isDragging ? undefined : 1,
     zIndex: isDragging ? 100 : undefined,
@@ -133,10 +137,20 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
   const hasNextItem = !isLast;
   const isJustDropped = Boolean(justDroppedId && (justDroppedId === item?.id || justDroppedId === item?.originalItemId));
 
+  const isDropTargetThisItem = dropTarget?.type === 'item' && (
+    dropTarget?.targetItemId === item?.id ||
+    dropTarget?.targetItemId === item?.originalItemId
+  );
+  const dropIndicatorClass = isDropTargetThisItem
+    ? dropTarget.position === 'above'
+      ? ' dnd-drop-target--above'
+      : ' dnd-drop-target--below'
+    : '';
+
   return (
     <ItemTag
       ref={setNodeRef}
-      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`}
+      className={`${descriptor.itemClass || 'experience__content'} editable-item-container cv-block${isPartial ? ' item-is-partial' : ''}${isContinuation ? ' item-is-continuation' : ''}${hasNextItem ? ' has-next-item' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}${dropIndicatorClass}`}
       data-item-id={isPartial ? `${item?.id}__partial` : (item?.id || sectionType)}
       data-section-id={sectionId}
       data-is-partial={isPartial ? 'true' : undefined}

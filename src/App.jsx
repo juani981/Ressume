@@ -22,6 +22,8 @@ import { A4PageBox } from "./components/CV/A4PageBox";
 import ColumnResizer from "./components/Editor/ColumnResizer";
 import DroppableColumn from "./components/Editor/DroppableColumn";
 import CVDragOverlay from "./components/Editor/CVDragOverlay";
+import { DndDropTargetContext } from "./context/DndDropTargetContext";
+import { DndStatusContext } from "./context/DndStatusContext";
 
 import {
    A4_WIDTH_PX,
@@ -170,6 +172,8 @@ function App() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
+            <DndStatusContext.Provider value={{ activeDragItem, activeDragSection, justDroppedId }}>
+            <DndDropTargetContext.Provider value={dropTarget}>
             
             <main
                className="l-main bd-container"
@@ -380,6 +384,8 @@ function App() {
                activeDragItem={activeDragItem}
                activeDragSection={activeDragSection}
             />
+            </DndDropTargetContext.Provider>
+            </DndStatusContext.Provider>
          </DndContext>
 
          {/* Web Application Footer */}

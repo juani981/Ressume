@@ -19,6 +19,7 @@ import {
   KeyboardSensor,
   closestCorners,
   closestCenter,
+  pointerWithin,
   rectIntersection,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -31,10 +32,9 @@ import { isFixedSection } from '../utils/dndUtils';
 export const toCanonicalSectionId = (id) => (typeof id === 'string' ? id.split('__cont_')[0] : id);
 
 /**
- * Edge-touch collision detection algorithm.
- * Triggers the exact instant the dragged element touches or intersects the edge of another element.
- * Prioritizes same-type droppable containers (items over items, sections over sections),
- * then falls back to parent containers (sections, columns), then closestCenter.
+ * Stable, pointer-first collision detection algorithm.
+ * Eliminates 0px edge-touch jitter by tracking the pointer's location first,
+ * falling back to closestCenter for gaps, and closestCorners for boundaries.
  */
 export const edgeTouchCollisionDetection = (args) => {
   const { active, droppableContainers } = args;
@@ -55,9 +55,9 @@ export const edgeTouchCollisionDetection = (args) => {
     return type === activeType;
   });
 
-  // 1. Primary: Edge-touch intersection with other elements of the exact same type
+  // 1. Primary: Pointer inside another element of the exact same type
   if (sameTypeContainers.length > 0) {
-    const collisions = rectIntersection({
+    const collisions = pointerWithin({
       ...args,
       droppableContainers: sameTypeContainers,
     });
@@ -66,13 +66,13 @@ export const edgeTouchCollisionDetection = (args) => {
     }
   }
 
-  // 2. Secondary: If dragging an item, check intersection with section containers
+  // 2. Secondary: If dragging an item, check pointer inside section containers
   if (activeType === 'item') {
     const sectionContainers = droppableContainers.filter(
       (c) => c.data?.current?.type === 'section'
     );
     if (sectionContainers.length > 0) {
-      const collisions = rectIntersection({
+      const collisions = pointerWithin({
         ...args,
         droppableContainers: sectionContainers,
       });
@@ -82,12 +82,12 @@ export const edgeTouchCollisionDetection = (args) => {
     }
   }
 
-  // 3. Tertiary: Check intersection with column containers (for cross-column moves or empty columns)
+  // 3. Tertiary: Check pointer inside column containers (for cross-column moves or empty columns)
   const columnContainers = droppableContainers.filter(
     (c) => c.data?.current?.type === 'column'
   );
   if (columnContainers.length > 0) {
-    const collisions = rectIntersection({
+    const collisions = pointerWithin({
       ...args,
       droppableContainers: columnContainers,
     });
@@ -96,7 +96,7 @@ export const edgeTouchCollisionDetection = (args) => {
     }
   }
 
-  // 4. Fallback: closestCenter on same-type containers (if cursor moves fast across a gap)
+  // 4. Fallback: closestCenter on same-type containers (e.g. gaps between items/sections)
   if (sameTypeContainers.length > 0) {
     const collisions = closestCenter({
       ...args,
@@ -113,19 +113,30 @@ export const edgeTouchCollisionDetection = (args) => {
 
 /**
  * Determines directional position ('above' vs 'below') from cursor/translated rect centers.
+ * If cursor coordinates are available from activatorEvent + delta, accurately determines
+ * whether pointer is hovering in the upper 50% ('above') or lower 50% ('below') of the target element.
  */
 export const getDirectionalPosition = (active, over, delta) => {
-  if (active?.rect?.current?.translated && over?.rect) {
-    const activeCenterY =
-      active.rect.current.translated.top +
-      active.rect.current.translated.height / 2;
-    const overCenterY = over.rect.top + over.rect.height / 2;
-    return activeCenterY > overCenterY ? 'below' : 'above';
+  if (over?.rect) {
+    const activatorEvent = active?.activatorEvent;
+    if (activatorEvent?.clientY !== undefined) {
+      const currentPointerY = activatorEvent.clientY + (delta?.y || 0);
+      const overMidY = over.rect.top + over.rect.height / 2;
+      return currentPointerY < overMidY ? 'above' : 'below';
+    }
+
+    if (active?.rect?.current?.translated) {
+      const activeCenterY =
+        active.rect.current.translated.top +
+        active.rect.current.translated.height / 2;
+      const overCenterY = over.rect.top + over.rect.height / 2;
+      return activeCenterY >= overCenterY ? 'below' : 'above';
+    }
   }
   if (delta?.y !== undefined && delta.y !== 0) {
     return delta.y > 0 ? 'below' : 'above';
   }
-  return null;
+  return 'below';
 };
 
 /**
@@ -431,13 +442,29 @@ export function useCVDndCoordinator({
   const handleDragStart = (event) => {
     const { active } = event;
     const data = active?.data?.current;
-    const initialWidth = active?.rect?.current?.initial?.width;
+    let initialWidth = active?.rect?.current?.initial?.width;
+    let initialHeight = active?.rect?.current?.initial?.height;
 
     dragStartSnapshotRef.current = cvDataRef.current
       ? JSON.parse(JSON.stringify(cvDataRef.current))
       : null;
 
     const activeCanonical = toCanonicalSectionId(active?.id);
+
+    // Precise DOM dimension fail-safe guaranteeing 1:1 scale fidelity
+    if ((!initialWidth || !initialHeight) && typeof document !== 'undefined') {
+      const domEl =
+        document.getElementById(active?.id) ||
+        document.getElementById(activeCanonical) ||
+        document.querySelector(`[data-section-id="${activeCanonical}"]`) ||
+        document.querySelector(`[data-item-id="${active?.id}"]`);
+      if (domEl) {
+        const r = domEl.getBoundingClientRect();
+        if (r.width > 0) initialWidth = r.width;
+        if (r.height > 0) initialHeight = r.height;
+      }
+    }
+
     const foundSection = (cvDataRef.current?.sections || []).find(
       (s) => s.id === activeCanonical,
     );
@@ -447,7 +474,7 @@ export function useCVDndCoordinator({
       if (isFixedSection(section)) {
         return;
       }
-      setActiveDragSection({ ...data, section, initialWidth });
+      setActiveDragSection({ ...data, section, initialWidth, initialHeight });
       setActiveDragItem(null);
     } else if (data?.type === 'item' || !foundSection) {
       let item = data?.item;
@@ -472,6 +499,7 @@ export function useCVDndCoordinator({
         sectionId: sectionId ? toCanonicalSectionId(sectionId) : undefined,
         sectionType,
         initialWidth,
+        initialHeight,
       });
       setActiveDragSection(null);
     }
@@ -568,35 +596,15 @@ export function useCVDndCoordinator({
         }
       }
 
-      // Live state mutation:
+      // Live state mutation with directional hysteresis guards
       if (typeof setCvData === 'function') {
-        // Intra-column reordering
-        if (overSectionId && targetColumn === activeSec.column) {
-          const oldIndex = currentData.sections.findIndex((s) => s.id === activeSectionId);
-          const newIndex = currentData.sections.findIndex((s) => s.id === overSectionId);
-          if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-            const nextSections = arrayMove(currentData.sections, oldIndex, newIndex);
-            const nextData = { ...currentData, sections: nextSections };
-            cvDataRef.current = nextData;
-            setCvData(nextData);
-          }
-        } else if (targetColumn !== activeSec.column) {
-          // Cross-column reordering
-          const updatedSec = { ...activeSec, column: targetColumn };
-          const remainingSections = currentData.sections.filter((s) => s.id !== activeSectionId);
-          let insertIndex = -1;
-          if (overSectionId) {
-            insertIndex = remainingSections.findIndex((s) => s.id === overSectionId);
-          }
-          if (insertIndex === -1) {
-            const lastColIndex = remainingSections.reduce(
-              (lastIdx, s, idx) => (s.column === targetColumn ? idx : lastIdx),
-              -1,
-            );
-            insertIndex = lastColIndex !== -1 ? lastColIndex + 1 : remainingSections.length;
-          }
-          const nextSections = [...remainingSections];
-          nextSections.splice(insertIndex, 0, updatedSec);
+        const nextSections = calculateReorderedSections(
+          currentData.sections,
+          active.id,
+          over,
+          position || 'below',
+        );
+        if (nextSections) {
           const nextData = { ...currentData, sections: nextSections };
           cvDataRef.current = nextData;
           setCvData(nextData);
@@ -653,51 +661,17 @@ export function useCVDndCoordinator({
       });
 
       if (!targetSectionId) return;
-      const targetSec = currentData.sections.find((s) => s.id === targetSectionId);
-      if (!targetSec) return;
 
+      // Live state mutation with directional hysteresis guards
       if (typeof setCvData === 'function') {
-        // Intra-section reordering
-        if (sourceSec.id === targetSec.id) {
-          if (overItemId && activeItemId !== overItemId) {
-            const oldIndex = sourceSec.items.findIndex((i) => i.id === activeItemId);
-            const newIndex = sourceSec.items.findIndex((i) => i.id === overItemId);
-            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-              const nextItems = arrayMove(sourceSec.items, oldIndex, newIndex);
-              const nextSections = currentData.sections.map((s) =>
-                s.id === sourceSec.id ? { ...s, items: nextItems } : s,
-              );
-              const nextData = { ...currentData, sections: nextSections };
-              cvDataRef.current = nextData;
-              setCvData(nextData);
-            }
-          }
-        } else {
-          // Cross-section reordering
-          const adaptedItem =
-            typeof adaptItemToSectionType === 'function'
-              ? adaptItemToSectionType(sourceItem, targetSec.type)
-              : sourceItem;
-
-          const remainingSourceItems = sourceSec.items.filter((i) => i.id !== activeItemId);
-          const remainingTargetItems = (targetSec.items || []).filter((i) => i.id !== activeItemId);
-
-          let insertIndex = -1;
-          if (overItemId) {
-            insertIndex = remainingTargetItems.findIndex((i) => i.id === overItemId);
-          }
-          if (insertIndex === -1) {
-            insertIndex = remainingTargetItems.length;
-          }
-
-          const nextTargetItems = [...remainingTargetItems];
-          nextTargetItems.splice(insertIndex, 0, adaptedItem);
-
-          const nextSections = currentData.sections.map((s) => {
-            if (s.id === sourceSec.id) return { ...s, items: remainingSourceItems };
-            if (s.id === targetSec.id) return { ...s, items: nextTargetItems };
-            return s;
-          });
+        const nextSections = calculateReorderedItems(
+          currentData.sections,
+          activeItemId,
+          sourceSec.id,
+          over,
+          position || 'below',
+        );
+        if (nextSections) {
           const nextData = { ...currentData, sections: nextSections };
           cvDataRef.current = nextData;
           setCvData(nextData);

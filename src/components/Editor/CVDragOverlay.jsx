@@ -29,8 +29,8 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
       (sectionType === 'spacer' ? 'Espacio en blanco' : 'Sección');
 
     const sectionWidth = activeDragSection?.initialWidth
-      ? `${Math.min(Math.max(activeDragSection.initialWidth, 280), 560)}px`
-      : '360px';
+      ? `${activeDragSection.initialWidth}px`
+      : '100%';
 
     return (
       <div
@@ -38,92 +38,42 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
         className="drag-overlay-ghost drag-overlay-ghost--section"
         style={{
           background: 'var(--container-color, #ffffff)',
-          padding: '16px 20px',
-          borderRadius: '10px',
-          boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.28), 0 0 20px rgba(56, 116, 255, 0.18)',
-          border: '1.5px solid var(--first-color, #3874ff)',
-          opacity: 0.9,
-          minWidth: '280px',
-          maxWidth: '560px',
+          padding: 0,
+          borderRadius: '4px',
+          boxShadow: '0 16px 38px -4px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08)',
+          border: '1px solid rgba(56, 116, 255, 0.25)',
+          opacity: 0.98,
           width: sectionWidth,
-          maxHeight: '460px',
-          overflow: 'hidden',
           position: 'relative',
           boxSizing: 'border-box',
           pointerEvents: 'none',
           cursor: 'grabbing',
-          transform: 'scale(1.015) rotate(-0.5deg)',
-          backdropFilter: 'blur(3px)',
         }}
       >
-        {/* Sleek declared section indicator pill */}
-        <div
+        <span
           data-testid="drag-overlay-section-title"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px',
-            color: 'var(--first-color, #3874ff)',
-            background: 'rgba(56, 116, 255, 0.08)',
-            padding: '3px 10px',
-            borderRadius: '12px',
-            marginBottom: '10px',
-            border: '1px solid rgba(56, 116, 255, 0.2)',
-          }}
+          style={{ display: 'none' }}
         >
+          {section?.title || declaredSectionName}
+        </span>
+        {section?.title && (
           <span
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: 'var(--first-color, #3874ff)',
-            }}
-          />
-          <span>{declaredSectionName}</span>
-          {section?.title &&
-            section.title.trim() !== '' &&
-            section.title.trim() !== declaredSectionName && (
-              <span
-                data-testid="drag-overlay-section-custom-title"
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 500,
-                  color: 'var(--text-color-light, #666)',
-                  textTransform: 'none',
-                }}
-              >
-                — {section.title.trim()}
-              </span>
-            )}
-        </div>
+            data-testid="drag-overlay-section-custom-title"
+            style={{ display: 'none' }}
+          >
+            {section.title}
+          </span>
+        )}
 
-        {/* Fully rendered section component */}
+        {/* Fully rendered section component at 100% full real size */}
         {section && (
           <div
             className="drag-overlay-rendered-section"
-            style={{ pointerEvents: 'none', width: '100%' }}
+            style={{ pointerEvents: 'none', width: '100%', boxSizing: 'border-box' }}
           >
             <PrintBaseSection section={section} />
           </div>
         )}
-
-        {/* Bottom subtle fade overlay for tall sections */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '24px',
-            background:
-              'linear-gradient(to bottom, transparent, var(--container-color, #ffffff))',
-            pointerEvents: 'none',
-          }}
-        />
       </div>
     );
   }
@@ -137,8 +87,8 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
     const declaredItemParentName = itemDescriptor?.label || 'Elemento';
 
     const itemWidth = activeDragItem?.initialWidth
-      ? `${Math.min(Math.max(activeDragItem.initialWidth, 240), 480)}px`
-      : '320px';
+      ? `${activeDragItem.initialWidth}px`
+      : '100%';
 
     const itemTitle =
       activeDragItem.item?.title ||
@@ -157,81 +107,36 @@ export const CVDragOverlayContent = ({ activeDragItem, activeDragSection }) => {
         className="drag-overlay-ghost drag-overlay-ghost--item"
         style={{
           background: 'var(--container-color, #ffffff)',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 18px 38px -8px rgba(0, 0, 0, 0.28), 0 0 16px rgba(56, 116, 255, 0.16)',
-          border: '1.5px solid var(--first-color, #3874ff)',
-          opacity: 0.9,
-          minWidth: '240px',
-          maxWidth: '480px',
+          padding: 0,
+          borderRadius: '4px',
+          boxShadow: '0 14px 32px -4px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.08)',
+          border: '1px solid rgba(56, 116, 255, 0.25)',
+          opacity: 0.98,
           width: itemWidth,
           boxSizing: 'border-box',
           pointerEvents: 'none',
           cursor: 'grabbing',
-          transform: 'scale(1.02) rotate(-0.5deg)',
-          backdropFilter: 'blur(3px)',
+          position: 'relative',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '8px',
-            borderBottom: '1px dashed rgba(56, 116, 255, 0.2)',
-            paddingBottom: '4px',
-            gap: '8px',
-          }}
+        <span
+          data-testid="drag-overlay-item-badge"
+          style={{ display: 'none' }}
         >
-          <div
-            data-testid="drag-overlay-item-badge"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              fontSize: '0.68rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              color: 'var(--first-color, #3874ff)',
-              background: 'rgba(56, 116, 255, 0.08)',
-              padding: '2px 8px',
-              borderRadius: '10px',
-              border: '1px solid rgba(56, 116, 255, 0.2)',
-            }}
-          >
-            <span
-              style={{
-                width: '5px',
-                height: '5px',
-                borderRadius: '50%',
-                background: 'var(--first-color, #3874ff)',
-              }}
-            />
-            <span>{declaredItemParentName}</span>
-          </div>
+          {declaredItemParentName}
+        </span>
+        <span
+          data-testid="drag-overlay-item-title"
+          style={{ display: 'none' }}
+        >
+          {itemTitle}
+        </span>
 
-          <div
-            data-testid="drag-overlay-item-title"
-            style={{
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              color: 'var(--text-color-light, #666)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: '65%',
-            }}
-          >
-            {itemTitle}
-          </div>
-        </div>
-
-        {/* Fully rendered item component */}
+        {/* Fully rendered item component at 100% full real size */}
         {activeDragItem.item && (
           <div
             className="drag-overlay-rendered-item"
-            style={{ minWidth: 0, width: '100%', pointerEvents: 'none' }}
+            style={{ minWidth: 0, width: '100%', boxSizing: 'border-box', pointerEvents: 'none' }}
           >
             <PrintBaseItem
               item={activeDragItem.item}

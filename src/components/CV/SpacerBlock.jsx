@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useCV } from '../../context/CVContext';
+import { useDndStatus } from '../../context/DndStatusContext';
+import { useDndDropTarget } from '../../context/DndDropTargetContext';
 import DragHandle from '../Editor/DragHandle';
 import { MoveVertical, Trash2, Check } from 'lucide-react';
 import { createContainerDragListeners } from '../../utils/dndUtils';
@@ -442,9 +444,13 @@ export const EditableSpacerBlock = ({ section }) => {
     }
   }, [isEditingExact]);
 
+  const { activeDragSection } = useDndStatus();
+  const dropTarget = useDndDropTarget();
+  const isAnySectionDragging = Boolean(activeDragSection || dropTarget?.type === 'section');
+
   const containerStyle = {
-    transform: CSS.Transform.toString(transform),
-    transition: isResizing ? 'none' : transition,
+    transform: (isDragging || isAnySectionDragging) ? undefined : CSS.Transform.toString(transform),
+    transition: isResizing || isAnySectionDragging ? 'none' : transition,
     position: 'relative',
     height: `${localHeight}px`,
     minHeight: `${localHeight}px`,

@@ -26,6 +26,7 @@ import { IntegratedBottomSpacer } from './SpacerBlock';
 import { createContainerDragListeners } from '../../utils/dndUtils';
 import { PrintModeContext, usePrintMode } from '../../context/PrintModeContext';
 import { useDndStatus } from '../../context/DndStatusContext';
+import { useDndDropTarget } from '../../context/DndDropTargetContext';
 import { DEFAULT_SECTION_GAP_PX } from '../../constants';
 import SectionErrorBoundary from './SectionErrorBoundary';
 
@@ -201,7 +202,20 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
     updateSectionProperty,
   } = useCV();
 
-  const { justDroppedId } = useDndStatus();
+  const { activeDragSection, justDroppedId } = useDndStatus();
+  const dropTarget = useDndDropTarget();
+
+  const isAnySectionDragging = Boolean(activeDragSection || dropTarget?.type === 'section');
+
+  const isDropTargetThisSection = dropTarget?.type === 'section' && (
+    dropTarget?.targetSectionId === section.id ||
+    dropTarget?.targetSectionId === section.originalSectionId
+  );
+  const dropIndicatorClass = isDropTargetThisSection
+    ? dropTarget.position === 'above'
+      ? ' dnd-drop-target--above'
+      : ' dnd-drop-target--below'
+    : '';
 
   const [isBulletPopoverOpen, setIsBulletPopoverOpen] = useState(false);
   const [bulletTriggerRect, setBulletTriggerRect] = useState(null);
@@ -211,8 +225,8 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
   const [deleteTriggerElement, setDeleteTriggerElement] = useState(null);
 
   const style = {
-    transform: isDragging ? undefined : CSS.Transform.toString(transform),
-    transition,
+    transform: (isDragging || isAnySectionDragging) ? undefined : CSS.Transform.toString(transform),
+    transition: isAnySectionDragging ? undefined : transition,
     position: 'relative',
     opacity: isDragging ? undefined : 1,
     zIndex: isDragging ? 100 : undefined,
@@ -236,7 +250,7 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
     <section 
         ref={setNodeRef} 
         style={style} 
-        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${hideDragAffordance ? ' drag-affordance-hidden' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}`} 
+        className={`${descriptor.sectionClass} section editable-section-container cv-section ${getBulletClasses(section.bulletStyle)}${section.hasContinuation ? ' section-has-continuation' : ''}${section.isContinuation ? ' section-is-continuation' : ''}${isMoveDisabled ? ' section-fixed' : ''}${hideDragAffordance ? ' drag-affordance-hidden' : ''}${isDragging ? ' is-dragging-placeholder dnd-placeholder-sombra' : ''}${isJustDropped ? ' dnd-dropped-settle' : ''}${dropIndicatorClass}`} 
         id={section.id}
         data-section-id={section.id}
         data-drag-disabled={isMoveDisabled ? 'true' : undefined}
