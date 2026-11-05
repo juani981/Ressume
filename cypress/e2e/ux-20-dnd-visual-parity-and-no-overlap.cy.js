@@ -47,7 +47,7 @@ describe('UX Test 20: Drag and Drop 1:1 Scale Parity & Zero Overlap Verification
     });
 
     // 2. Incremental PointerMoves into target coordinates
-    const steps = 6;
+    const steps = 10;
     for (let i = 1; i <= steps; i++) {
       const curX = Math.round(startX + ((targetX - startX) * i) / steps);
       const curY = Math.round(startY + ((targetY - startY) * i) / steps);

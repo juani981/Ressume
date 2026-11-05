@@ -120,15 +120,31 @@ export const edgeTouchCollisionDetection = (args) => {
 };
 
 /**
- * Determines directional position ('above' vs 'below') from cursor/translated rect centers.
- * If cursor coordinates are available from activatorEvent + delta, accurately determines
- * whether pointer is hovering in the upper 50% ('above') or lower 50% ('below') of the target element.
+ * Determines directional position ('above' vs 'below') with a Schmitt-trigger hysteresis deadband.
+ *
+ * Prevents rapid flip-flopping / jumping in milliseconds at the reorder boundary:
+ * - If Active is currently ABOVE Over (moving downwards):
+ *   Only transitions to 'below' once pointer penetrates past (midpoint + deadband).
+ * - If Active is currently BELOW Over (moving upwards):
+ *   Only transitions to 'above' once pointer penetrates past (midpoint - deadband).
+ * - Inside the deadband: preserves current relative order without jitter.
  */
-export const getDirectionalPosition = (active, over, delta) => {
+export const getDirectionalPosition = (active, over, delta, isCurrentlyBefore = null) => {
   if (over?.rect) {
+    const overHeight = over.rect.height || 0;
+    // Dynamic deadband: at least 10px, or 12% of target height, capped at 28px
+    const deadband = Math.min(Math.max(overHeight * 0.12, 10), 28);
+    const overMidY = over.rect.top + overHeight / 2;
+
     if (lastKnownPointerCoordinates?.y !== undefined) {
-      const overMidY = over.rect.top + over.rect.height / 2;
-      return lastKnownPointerCoordinates.y < overMidY ? 'above' : 'below';
+      const pY = lastKnownPointerCoordinates.y;
+      if (isCurrentlyBefore === true) {
+        return pY >= overMidY + deadband ? 'below' : 'above';
+      }
+      if (isCurrentlyBefore === false) {
+        return pY <= overMidY - deadband ? 'above' : 'below';
+      }
+      return pY < overMidY ? 'above' : 'below';
     }
 
     const activatorEvent = active?.activatorEvent;
@@ -142,7 +158,12 @@ export const getDirectionalPosition = (active, over, delta) => {
 
     if (activatorEvent?.clientY !== undefined && computedDeltaY !== null) {
       const currentPointerY = activatorEvent.clientY + computedDeltaY;
-      const overMidY = over.rect.top + over.rect.height / 2;
+      if (isCurrentlyBefore === true) {
+        return currentPointerY >= overMidY + deadband ? 'below' : 'above';
+      }
+      if (isCurrentlyBefore === false) {
+        return currentPointerY <= overMidY - deadband ? 'above' : 'below';
+      }
       return currentPointerY < overMidY ? 'above' : 'below';
     }
 
@@ -150,7 +171,13 @@ export const getDirectionalPosition = (active, over, delta) => {
       const activeCenterY =
         active.rect.current.translated.top +
         active.rect.current.translated.height / 2;
-      const overCenterY = over.rect.top + over.rect.height / 2;
+      const overCenterY = overMidY;
+      if (isCurrentlyBefore === true) {
+        return activeCenterY >= overCenterY + deadband ? 'below' : 'above';
+      }
+      if (isCurrentlyBefore === false) {
+        return activeCenterY <= overCenterY - deadband ? 'above' : 'below';
+      }
       return activeCenterY >= overCenterY ? 'below' : 'above';
     }
   }
@@ -541,12 +568,11 @@ export function useCVDndCoordinator({
     const currentData = cvDataRef.current;
     if (!currentData?.sections) return;
 
-    const position = getDirectionalPosition(active, over, event?.delta);
+    const activeCanonical = toCanonicalSectionId(active.id);
+    const cleanOver = toCanonicalSectionId(over.id);
     const activeData = active?.data?.current;
     const overData = over?.data?.current;
 
-    const activeCanonical = toCanonicalSectionId(active.id);
-    const cleanOver = toCanonicalSectionId(over.id);
     const isSection =
       activeData?.type === 'section' ||
       Boolean(activeDragSection) ||
@@ -600,6 +626,19 @@ export function useCVDndCoordinator({
           }
         }
       }
+
+      // Intra-column Schmitt-trigger hysteresis: check current relative ordering
+      let isCurrentlyBefore = null;
+      const sameColumn = !targetColumn || !activeSec?.column || targetColumn === activeSec.column;
+      if (overSectionId && sameColumn) {
+        const oldIdx = currentData.sections.findIndex((s) => s.id === activeSectionId);
+        const newIdx = currentData.sections.findIndex((s) => s.id === overSectionId);
+        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+          isCurrentlyBefore = oldIdx < newIdx;
+        }
+      }
+
+      const position = getDirectionalPosition(active, over, event?.delta, isCurrentlyBefore);
 
       setDropTarget({
         type: 'section',
@@ -672,6 +711,18 @@ export function useCVDndCoordinator({
         }
       }
 
+      // Intra-section Schmitt-trigger hysteresis: check current relative ordering
+      let isCurrentlyBefore = null;
+      if (targetSectionId === sourceSec.id && overItemId) {
+        const oldIdx = (sourceSec.items || []).findIndex((i) => i.id === activeItemId);
+        const newIdx = (sourceSec.items || []).findIndex((i) => i.id === overItemId);
+        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+          isCurrentlyBefore = oldIdx < newIdx;
+        }
+      }
+
+      const position = getDirectionalPosition(active, over, event?.delta, isCurrentlyBefore);
+
       setDropTarget({
         type: 'item',
         activeItemId,
@@ -738,7 +789,16 @@ export function useCVDndCoordinator({
           }
         }
 
-        const position = getDirectionalPosition(active, over, event?.delta) || 'below';
+        let isCurrentlyBefore = null;
+        if (overSectionId && targetColumn === activeSec?.column) {
+          const oldIdx = currentData.sections.findIndex((s) => s.id === activeSectionId);
+          const newIdx = currentData.sections.findIndex((s) => s.id === overSectionId);
+          if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+            isCurrentlyBefore = oldIdx < newIdx;
+          }
+        }
+
+        const position = getDirectionalPosition(active, over, event?.delta, isCurrentlyBefore) || 'below';
 
         if (typeof moveSectionToColumnAndIndex === 'function') {
           moveSectionToColumnAndIndex(activeSectionId, targetColumn, overSectionId, position);
@@ -780,7 +840,16 @@ export function useCVDndCoordinator({
             }
           }
 
-          const position = getDirectionalPosition(active, over, event?.delta) || 'below';
+          let isCurrentlyBefore = null;
+          if (targetSectionId === srcSec.id && overItemId) {
+            const oldIdx = (srcSec.items || []).findIndex((i) => i.id === activeItemId);
+            const newIdx = (srcSec.items || []).findIndex((i) => i.id === overItemId);
+            if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+              isCurrentlyBefore = oldIdx < newIdx;
+            }
+          }
+
+          const position = getDirectionalPosition(active, over, event?.delta, isCurrentlyBefore) || 'below';
 
           if (typeof moveItemBetweenSections === 'function') {
             moveItemBetweenSections(

@@ -107,7 +107,7 @@ const EditableBaseItem = ({ item, sectionId, sectionType, isLast = false }) => {
     transform: (isDragging || isAnyItemDragging) ? undefined : CSS.Transform.toString(transform),
     transition: isAnyItemDragging ? undefined : transition,
     position: 'relative',
-    opacity: isDragging ? undefined : 1,
+    opacity: isDragging ? 0.35 : 1,
     zIndex: isDragging ? 100 : undefined,
     color: 'var(--text-color)',
     minWidth: 0,

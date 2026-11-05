@@ -228,7 +228,7 @@ const EditableBaseSection = ({ section, hideDragAffordance = false }) => {
     transform: (isDragging || isAnySectionDragging) ? undefined : CSS.Transform.toString(transform),
     transition: isAnySectionDragging ? undefined : transition,
     position: 'relative',
-    opacity: isDragging ? undefined : 1,
+    opacity: isDragging ? 0.35 : 1,
     zIndex: isDragging ? 100 : undefined,
     marginBottom: `var(--section-gap, ${DEFAULT_SECTION_GAP_PX}px)`,
     color: 'var(--text-color)',
