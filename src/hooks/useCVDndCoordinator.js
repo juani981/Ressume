@@ -32,11 +32,19 @@ import { isFixedSection } from '../utils/dndUtils';
 export const toCanonicalSectionId = (id) => (typeof id === 'string' ? id.split('__cont_')[0] : id);
 
 /**
+ * Tracks the latest pointer coordinates from collision detection passes.
+ */
+let lastKnownPointerCoordinates = null;
+
+/**
  * Stable, pointer-first collision detection algorithm.
  * Eliminates 0px edge-touch jitter by tracking the pointer's location first,
  * falling back to closestCenter for gaps, and closestCorners for boundaries.
  */
 export const edgeTouchCollisionDetection = (args) => {
+  if (args.pointerCoordinates) {
+    lastKnownPointerCoordinates = args.pointerCoordinates;
+  }
   const { active, droppableContainers } = args;
   if (!active) return [];
 
@@ -118,9 +126,22 @@ export const edgeTouchCollisionDetection = (args) => {
  */
 export const getDirectionalPosition = (active, over, delta) => {
   if (over?.rect) {
+    if (lastKnownPointerCoordinates?.y !== undefined) {
+      const overMidY = over.rect.top + over.rect.height / 2;
+      return lastKnownPointerCoordinates.y < overMidY ? 'above' : 'below';
+    }
+
     const activatorEvent = active?.activatorEvent;
-    if (activatorEvent?.clientY !== undefined) {
-      const currentPointerY = activatorEvent.clientY + (delta?.y || 0);
+    const computedDeltaY =
+      delta?.y !== undefined
+        ? delta.y
+        : active?.rect?.current?.translated?.top !== undefined &&
+          active?.rect?.current?.initial?.top !== undefined
+          ? active.rect.current.translated.top - active.rect.current.initial.top
+          : null;
+
+    if (activatorEvent?.clientY !== undefined && computedDeltaY !== null) {
+      const currentPointerY = activatorEvent.clientY + computedDeltaY;
       const overMidY = over.rect.top + over.rect.height / 2;
       return currentPointerY < overMidY ? 'above' : 'below';
     }
@@ -791,6 +812,7 @@ export function useCVDndCoordinator({
     setActiveDragSection(null);
     setDropTarget(null);
     dragStartSnapshotRef.current = null;
+    lastKnownPointerCoordinates = null;
 
     if (preSnapshot && currentData && typeof recordHistoryTransition === 'function') {
       if (JSON.stringify(preSnapshot.sections) !== JSON.stringify(currentData.sections)) {
@@ -812,6 +834,7 @@ export function useCVDndCoordinator({
     setActiveDragSection(null);
     setDropTarget(null);
     dragStartSnapshotRef.current = null;
+    lastKnownPointerCoordinates = null;
   };
 
   return {
@@ -819,6 +842,7 @@ export function useCVDndCoordinator({
     collisionDetection: edgeTouchCollisionDetection,
     handleDragStart,
     handleDragOver,
+    handleDragMove: handleDragOver,
     handleDragEnd,
     handleDragCancel,
     activeDragItem,

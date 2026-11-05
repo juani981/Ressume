@@ -87,6 +87,7 @@ function App() {
       collisionDetection,
       handleDragStart,
       handleDragOver,
+      handleDragMove,
       handleDragEnd,
       handleDragCancel,
       activeDragItem,
@@ -170,6 +171,7 @@ function App() {
             collisionDetection={collisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
+            onDragMove={handleDragMove}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}>
             <DndStatusContext.Provider value={{ activeDragItem, activeDragSection, justDroppedId }}>
